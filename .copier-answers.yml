@@ -1,0 +1,20 @@
+# Changes here will be overwritten by Copier
+_commit: c3aea2c
+_src_path: https://github.com/browniebroke/pypackage-template
+add_me_as_contributor: false
+copyright_year: '2024'
+documentation: false
+email: simone.chemelli@gmail.com
+full_name: Simone Chemelli
+github_username: chemelli74
+has_cli: false
+initial_commit: true
+open_source_license: Apache Software License 2.0
+package_name: aioamazondevices
+project_name: aioamazondevices
+project_short_description: ' Python library to control Amazon devices'
+project_slug: aioamazondevices
+run_poetry_install: true
+setup_github: false
+setup_pre_commit: true
+
