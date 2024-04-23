@@ -12,7 +12,7 @@ initial_commit: true
 open_source_license: Apache Software License 2.0
 package_name: aioamazondevices
 project_name: aioamazondevices
-project_short_description: ' Python library to control Amazon devices'
+project_short_description: Python library to control Amazon devices
 project_slug: aioamazondevices
 run_poetry_install: true
 setup_github: false

@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Library test",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "library_test.py",
+      "args": ["-cf", "library_test.json"],
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}
