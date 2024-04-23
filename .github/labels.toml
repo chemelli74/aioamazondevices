@@ -1,3 +1,8 @@
+[answered]
+color = "0ee2b6"
+name = "answered"
+description = "Automatically closes as answered after a delay"
+
 [breaking]
 color = "ffcc00"
 name = "breaking"
@@ -13,10 +18,10 @@ color = "0366d6"
 name = "dependencies"
 description = "Pull requests that update a dependency file"
 
-[github_actions]
-color = "000000"
-name = "github_actions"
-description = "Update of github actions"
+[discussion]
+color = "c2e0c6"
+name = "discussion"
+description = "Some discussion around the project"
 
 [documentation]
 color = "1bc4a5"
@@ -33,10 +38,20 @@ color = "a2eeef"
 name = "enhancement"
 description = "New feature or request"
 
+[github_actions]
+color = "000000"
+name = "github_actions"
+description = "Update of github actions"
+
 ["good first issue"]
 color = "7057ff"
 name = "good first issue"
 description = "Good for newcomers"
+
+[hacktoberfest]
+color = "ffa663"
+name = "hacktoberfest"
+description = "Good issues for Hacktoberfest"
 
 ["help wanted"]
 color = "008672"
@@ -68,27 +83,12 @@ color = "bfd4f2"
 name = "tests"
 description = "CI, CD and testing related changes"
 
-[wontfix]
-color = "ffffff"
-name = "wontfix"
-description = "This will not be worked on"
-
-[discussion]
-color = "c2e0c6"
-name = "discussion"
-description = "Some discussion around the project"
-
-[hacktoberfest]
-color = "ffa663"
-name = "hacktoberfest"
-description = "Good issues for Hacktoberfest"
-
-[answered]
-color = "0ee2b6"
-name = "answered"
-description = "Automatically closes as answered after a delay"
-
 [waiting]
 color = "5f7972"
 name = "waiting"
 description = "Automatically closes if no answer after a delay"
+
+[wontfix]
+color = "ffffff"
+name = "wontfix"
+description = "This will not be worked on"
