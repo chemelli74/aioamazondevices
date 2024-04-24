@@ -33,7 +33,7 @@
 
 ---
 
- Python library to control Amazon devices
+Python library to control Amazon devices
 
 ## Installation
 
