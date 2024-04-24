@@ -7,11 +7,11 @@
 {%- for category, commits in release["elements"].items() %}
 {# Category title: Breaking, Fix, Documentation #}
 ### {{ category | capitalize }}
+{%- if category != "unknown" %}
 {# List actual changes in the category #}
 {%- for commit in commits %}
 - {{ commit.descriptions[0] | capitalize }} ([`{{ commit.short_hash }}`]({{ commit.hexsha | commit_hash_url }}))
 {%- endfor %}{# for commit #}
-
+{% endif %}
 {%- endfor %}{# for category, commits #}
-
 {%- endfor %}{# for version, release #}

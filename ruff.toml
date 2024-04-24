@@ -21,10 +21,6 @@ lint.ignore = [
     "PLR0915",   # Too many statements
     "T201",      # `print` found
 ]
-"docs/script_grab.py" = [
-    "INP001",    # Checks for packages that are missing an __init__.py file
-    "T201",      # `print` found
-]
 "tests/*" = [
     "S101",     # Use of `assert` detected
 ]
