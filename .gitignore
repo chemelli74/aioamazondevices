@@ -139,5 +139,5 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# Optional config file with router configuration for test script
+# Optional config file for library_test.py script
 library_test.json
