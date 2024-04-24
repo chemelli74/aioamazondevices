@@ -27,7 +27,7 @@ aiohttp = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1"
-pytest-cov = "^3.0"
+pytest-cov = "^5.0"
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:tool.poetry.version"]
