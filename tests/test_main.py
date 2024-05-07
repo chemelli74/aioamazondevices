@@ -1,10 +1,18 @@
 """Base tests for aioamazondevices."""
 
-from aioamazondevices.main import add
+from aioamazondevices.api import (
+    AmazonDevice,
+    AmazonEchoApi,
+)
+from aioamazondevices.exceptions import (
+    CannotAuthenticate,
+    CannotConnect,
+)
 
-SUM = 2
 
-
-def test_add() -> None:
-    """Adding two number works as expected."""
-    assert add(1, 1) == SUM
+def test_objects_can_be_imported() -> None:
+    """Verify objects exist."""
+    assert type(AmazonDevice)
+    assert type(AmazonEchoApi)
+    assert type(CannotConnect)
+    assert type(CannotAuthenticate)
