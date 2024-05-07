@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.1.0 (2024-05-07)
+
+### Unknown
+
+### Feature
+
+- First coding ([`a407a5e`](https://github.com/chemelli74/aioamazondevices/commit/a407a5e66d48ba4ea6307a5fd161ab8397f7b54b))
+
+
+### Build
+
+- Bump pytest from 8.1.1 to 8.2.0 ([`025f860`](https://github.com/chemelli74/aioamazondevices/commit/025f8603fe123514f5b967138133871160db60c2))
+
+
 ## v0.0.0 (2024-04-24)
 
 ### Unknown
