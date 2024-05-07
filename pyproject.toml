@@ -23,7 +23,9 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.11"
-aiohttp = "*"
+beautifulsoup4 = "*"
+httpx = "*"
+orjson = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1"
