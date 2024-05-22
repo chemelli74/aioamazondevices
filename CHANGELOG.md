@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.1.1 (2024-05-22)
+
+### Unknown
+
+### Fix
+
+- Force country code lower case ([`8951bf9`](https://github.com/chemelli74/aioamazondevices/commit/8951bf93c9f80e3fa5a6da23fcaeceb71ca457e2))
+
+
+### Build
+
+- Bump pytest from 8.2.0 to 8.2.1 ([`404fe7f`](https://github.com/chemelli74/aioamazondevices/commit/404fe7fbc195d653437f60ec4db651cac69af82b))
+
+
 ## v0.1.0 (2024-05-07)
 
 ### Unknown
