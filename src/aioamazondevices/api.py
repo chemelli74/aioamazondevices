@@ -39,27 +39,6 @@ class AmazonDevice:
     wifi: str
 
 
-def _build_init_cookies() -> dict[str, str]:
-    """Build initial cookies to prevent captcha in most cases."""
-    token_bytes = secrets.token_bytes(313)
-    frc = base64.b64encode(token_bytes).decode("ascii").rstrip("=")
-
-    map_md_dict = {
-        "device_user_dictionary": [],
-        "device_registration_data": {
-            "software_version": AMAZON_SOFTWARE_VERSION,
-        },
-        "app_identifier": {
-            "app_version": AMAZON_APP_VERSION,
-            "bundle_id": AMAZON_APP_BUNDLE_ID,
-        },
-    }
-    map_md_str = orjson.dumps(map_md_dict).decode("utf-8")
-    map_md = base64.b64encode(map_md_str.encode()).decode().rstrip("=")
-
-    return {"frc": frc, "map-md": map_md, "amzn-app-id": AMAZON_APP_ID}
-
-
 class AmazonEchoApi:
     """Queries Amazon for Echo devices."""
 
@@ -85,10 +64,30 @@ class AmazonEchoApi:
         self._login_password = login_password
         self._domain = domain
         self._url = f"https://www.amazon.{domain}"
-        self._cookies = _build_init_cookies()
+        self._cookies = self._build_init_cookies()
         self._headers = DEFAULT_HEADERS
 
         self.session: AsyncClient
+
+    def _build_init_cookies(self) -> dict[str, str]:
+        """Build initial cookies to prevent captcha in most cases."""
+        token_bytes = secrets.token_bytes(313)
+        frc = base64.b64encode(token_bytes).decode("ascii").rstrip("=")
+
+        map_md_dict = {
+            "device_user_dictionary": [],
+            "device_registration_data": {
+                "software_version": AMAZON_SOFTWARE_VERSION,
+            },
+            "app_identifier": {
+                "app_version": AMAZON_APP_VERSION,
+                "bundle_id": AMAZON_APP_BUNDLE_ID,
+            },
+        }
+        map_md_str = orjson.dumps(map_md_dict).decode("utf-8")
+        map_md = base64.b64encode(map_md_str.encode()).decode().rstrip("=")
+
+        return {"frc": frc, "map-md": map_md, "amzn-app-id": AMAZON_APP_ID}
 
     def _create_code_verifier(self, length: int = 32) -> bytes:
         """Create code verifier."""
@@ -100,18 +99,18 @@ class AmazonEchoApi:
         m = hashlib.sha256(verifier)
         return base64.urlsafe_b64encode(m.digest()).rstrip(b"=")
 
-    def _build_client_id(self) -> str:
+    def _build_client_id(self, serial: str) -> str:
         """Build client ID."""
-        serial = uuid.uuid4().hex.upper()
         client_id = serial.encode() + AMAZON_SERIAL_NUMBER
         return client_id.hex()
 
     def _build_oauth_url(
         self,
+        code_verifier: bytes,
+        client_id: str,
     ) -> str:
         """Build the url to login to Amazon as a Mobile device."""
-        client_id = self._build_client_id()
-        code_challenge = self._create_s256_code_challenge(self._create_code_verifier())
+        code_challenge = self._create_s256_code_challenge(code_verifier)
 
         oauth_params = {
             "openid.oa2.response_type": "code",
@@ -190,8 +189,11 @@ class AmazonEchoApi:
         _LOGGER.debug("Logging-in for %s [otp code %s]", self._login_email, otp_code)
         self._client_session()
 
+        code_verifier = self._create_code_verifier()
+        client_id = self._build_client_id(uuid.uuid4().hex.upper())
+
         _LOGGER.debug("Build oauth URL")
-        login_url = self._build_oauth_url()
+        login_url = self._build_oauth_url(code_verifier, client_id)
 
         login_soup, _ = await self._session_request("GET", login_url)
         login_method, login_url = self._get_request_from_soup(login_soup)
