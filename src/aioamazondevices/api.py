@@ -70,12 +70,15 @@ class AmazonEchoApi:
         login_password: str,
     ) -> None:
         """Initialize the scanner."""
-        locale = DOMAIN_BY_COUNTRY.get(login_country_code)
-        domain = locale["domain"] if locale else login_country_code
+        # Force country digits as lower case
+        country_code = login_country_code.lower()
+
+        locale = DOMAIN_BY_COUNTRY.get(country_code)
+        domain = locale["domain"] if locale else country_code
 
         assoc_handle = "amzn_dp_project_dee_ios"
         if not locale:
-            assoc_handle += f"_{login_country_code}"
+            assoc_handle += f"_{country_code}"
         self._assoc_handle = assoc_handle
 
         self._login_email = login_email
