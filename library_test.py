@@ -8,7 +8,12 @@ from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.exceptions import AmazonError, CannotAuthenticate, CannotConnect
+from aioamazondevices.exceptions import (
+    AmazonError,
+    CannotAuthenticate,
+    CannotConnect,
+    CannotRegisterDevice,
+)
 
 
 def get_arguments() -> tuple[ArgumentParser, Namespace]:
@@ -60,12 +65,15 @@ async def main() -> None:
 
     try:
         try:
-            await api.login(args.otp_code or input("OTP Code: "))
+            login_data = await api.login(args.otp_code or input("OTP Code: "))
         except CannotAuthenticate:
             print(f"Cannot authenticate with {args.email} credentials")
             raise
         except CannotConnect:
             print(f"Cannot authenticate to {args.country} Amazon host")
+            raise
+        except CannotRegisterDevice:
+            print(f"Cannot register device for {args.email}")
             raise
     except AmazonError:
         await api.close()
@@ -74,9 +82,14 @@ async def main() -> None:
     print("Logged-in.")
 
     print("-" * 20)
+    print("Login data:", login_data)
+    print("-" * 20)
+
+    print("-" * 20)
     devices = await api.get_devices_data()
     print("Devices:", devices)
     print("-" * 20)
+
     await api.close()
 
 
