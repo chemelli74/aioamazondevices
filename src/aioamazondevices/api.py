@@ -5,26 +5,30 @@ import hashlib
 import secrets
 import uuid
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
+from http import HTTPStatus
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, urlencode
 
 import orjson
 from bs4 import BeautifulSoup, Tag
-from httpx import AsyncClient, Response
+from httpx import URL, AsyncClient, Response
 
 from .const import (
     _LOGGER,
     AMAZON_APP_BUNDLE_ID,
     AMAZON_APP_ID,
+    AMAZON_APP_NAME,
     AMAZON_APP_VERSION,
-    AMAZON_SERIAL_NUMBER,
-    AMAZON_SOFTWARE_VERSION,
+    AMAZON_CLIENT_OS,
+    AMAZON_DEVICE_SOFTWARE_VERSION,
+    AMAZON_DEVICE_TYPE,
     DEFAULT_HEADERS,
     DOMAIN_BY_COUNTRY,
     URI_QUERIES,
 )
-from .exceptions import CannotAuthenticate
+from .exceptions import CannotAuthenticate, CannotRegisterDevice
 
 
 @dataclass
@@ -80,7 +84,7 @@ class AmazonEchoApi:
         map_md_dict = {
             "device_user_dictionary": [],
             "device_registration_data": {
-                "software_version": AMAZON_SOFTWARE_VERSION,
+                "software_version": AMAZON_DEVICE_SOFTWARE_VERSION,
             },
             "app_identifier": {
                 "app_version": AMAZON_APP_VERSION,
@@ -104,7 +108,7 @@ class AmazonEchoApi:
 
     def _build_client_id(self, serial: str) -> str:
         """Build client ID."""
-        client_id = serial.encode() + AMAZON_SERIAL_NUMBER
+        client_id = serial.encode() + b"#" + AMAZON_DEVICE_TYPE.encode("utf-8")
         return client_id.hex()
 
     def _build_oauth_url(
@@ -161,6 +165,11 @@ class AmazonEchoApi:
                 return method, url
         raise TypeError("Unable to extract form data from response.")
 
+    def _extract_code_from_url(self, url: URL) -> str:
+        """Extract the access token from url query after login."""
+        parsed_url = parse_qs(url.query.decode())
+        return parsed_url["openid.oa2.authorization_code"][0]
+
     def _client_session(self) -> None:
         """Create httpx ClientSession."""
         if not hasattr(self, "session") or self.session.is_closed:
@@ -203,7 +212,92 @@ class AmazonEchoApi:
             file.write(html_code)
             file.write("\n")
 
-    async def login(self, otp_code: str) -> bool:
+    async def _register_device(
+        self,
+        data: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Register a dummy Audible device."""
+        serial: str = data["serial"]
+        authorization_code: str = data["authorization_code"]
+        code_verifier: bytes = data["code_verifier"]
+
+        body = {
+            "requested_token_type": [
+                "bearer",
+                "mac_dms",
+                "website_cookies",
+                "store_authentication_cookie",
+            ],
+            "cookies": {"website_cookies": [], "domain": f".amazon.{self._domain}"},
+            "registration_data": {
+                "domain": "Device",
+                "app_version": AMAZON_APP_VERSION,
+                "device_type": AMAZON_DEVICE_TYPE,
+                "device_name": (
+                    f"%FIRST_NAME%\u0027s%DUPE_STRATEGY_1ST%{AMAZON_APP_NAME}"
+                ),
+                "os_version": AMAZON_CLIENT_OS,
+                "device_serial": serial,
+                "device_model": "iPhone",
+                "app_name": AMAZON_APP_NAME,
+                "software_version": AMAZON_DEVICE_SOFTWARE_VERSION,
+            },
+            "auth_data": {
+                "client_id": self._build_client_id(serial),
+                "authorization_code": authorization_code,
+                "code_verifier": code_verifier.decode(),
+                "code_algorithm": "SHA-256",
+                "client_domain": "DeviceLegacy",
+            },
+            "requested_extensions": ["device_info", "customer_info"],
+        }
+
+        resp = await self.session.post(
+            f"https://api.amazon.{self._domain}/auth/register",
+            json=body,
+        )
+        resp_json = resp.json()
+
+        if resp.status_code != HTTPStatus.OK:
+            _LOGGER.error(
+                "Cannot register device for %s: %s",
+                self._login_email,
+                resp_json["response"]["error"]["message"],
+            )
+            raise CannotRegisterDevice(resp_json)
+
+        success_response = resp_json["response"]["success"]
+
+        tokens = success_response["tokens"]
+        adp_token = tokens["mac_dms"]["adp_token"]
+        device_private_key = tokens["mac_dms"]["device_private_key"]
+        store_authentication_cookie = tokens["store_authentication_cookie"]
+        access_token = tokens["bearer"]["access_token"]
+        refresh_token = tokens["bearer"]["refresh_token"]
+        expires_s = int(tokens["bearer"]["expires_in"])
+        expires = (datetime.now(UTC) + timedelta(seconds=expires_s)).timestamp()
+
+        extensions = success_response["extensions"]
+        device_info = extensions["device_info"]
+        customer_info = extensions["customer_info"]
+
+        website_cookies = {}
+        for cookie in tokens["website_cookies"]:
+            website_cookies[cookie["Name"]] = cookie["Value"].replace(r'"', r"")
+
+        return {
+            "adp_token": adp_token,
+            "device_private_key": device_private_key,
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "expires": expires,
+            "website_cookies": website_cookies,
+            "store_authentication_cookie": store_authentication_cookie,
+            "device_info": device_info,
+            "customer_info": customer_info,
+        }
+
+    async def login(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon."""
         _LOGGER.debug("Logging-in for %s [otp code %s]", self._login_email, otp_code)
         self._client_session()
@@ -257,7 +351,17 @@ class AmazonEchoApi:
         if authcode_url is None:
             raise CannotAuthenticate
 
-        return True
+        device_login_data = {
+            "authorization_code": self._extract_code_from_url(authcode_url),
+            "code_verifier": code_verifier,
+            "domain": self._domain,
+            "serial": client_id,
+        }
+
+        register_device = await self._register_device(device_login_data)
+
+        _LOGGER.warning("Register device: %s", register_device)
+        return register_device
 
     async def close(self) -> None:
         """Close httpx session."""
