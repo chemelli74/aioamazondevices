@@ -17,3 +17,7 @@ class CannotAuthenticate(AmazonError):
 
 class CannotRetrieveData(AmazonError):
     """Exception raised when data retrieval fails."""
+
+
+class CannotRegisterDevice(AmazonError):
+    """Exception raised when device registration fails."""
