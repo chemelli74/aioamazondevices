@@ -21,6 +21,9 @@ DOMAIN_BY_COUNTRY = {
     "br": {
         "domain": "com.br",
     },
+    "de": {
+        "domain": "de",
+    }
 }
 
 DEFAULT_HEADERS = {
