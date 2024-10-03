@@ -30,6 +30,13 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
     parser.add_argument("--password", "-p", type=str, help="Set Amazon login password")
     parser.add_argument("--otp_code", "-o", type=str, help="Set Amazon OTP code")
     parser.add_argument(
+        "--save_html",
+        "-s",
+        type=str,
+        default="False",
+        help="Save HTML source on disk",
+    )
+    parser.add_argument(
         "--configfile",
         "-cf",
         type=str,
@@ -56,7 +63,12 @@ async def main() -> None:
         parser.print_help()
         sys.exit(1)
 
-    api = AmazonEchoApi(args.country, args.email, args.password)
+    api = AmazonEchoApi(
+        args.country,
+        args.email,
+        args.password,
+        args.save_html.lower() in ("yes", "true", "1"),
+    )
 
     try:
         try:

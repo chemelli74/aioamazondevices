@@ -5,6 +5,7 @@ import hashlib
 import secrets
 import uuid
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
@@ -47,6 +48,7 @@ class AmazonEchoApi:
         login_country_code: str,
         login_email: str,
         login_password: str,
+        save_html: bool = False,
     ) -> None:
         """Initialize the scanner."""
         # Force country digits as lower case
@@ -66,6 +68,7 @@ class AmazonEchoApi:
         self._url = f"https://www.amazon.{domain}"
         self._cookies = self._build_init_cookies()
         self._headers = DEFAULT_HEADERS
+        self._save_html = save_html
 
         self.session: AsyncClient
 
@@ -182,7 +185,23 @@ class AmazonEchoApi:
             url,
             data=input_data,
         )
+
+        await self._save_to_file(
+            resp.text,
+            url,
+        )
         return BeautifulSoup(resp.content, "html.parser"), resp
+
+    async def _save_to_file(self, html_code: str, url: str) -> None:
+        """Sage HTML data to disk."""
+        if not self._save_html:
+            return
+
+        url_split = url.split("/")
+        filename = f"{url_split[3]}-{url_split[4].split('?')[0]}.html"
+        with Path.open(Path(filename), "w+") as file:
+            file.write(html_code)
+            file.write("\n")
 
     async def login(self, otp_code: str) -> bool:
         """Login to Amazon."""
