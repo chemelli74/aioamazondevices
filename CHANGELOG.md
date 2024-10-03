@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.2.0 (2024-10-03)
+
+### Unknown
+
+### Feature
+
+- Save html response code to disk ([`2c54b4b`](https://github.com/chemelli74/aioamazondevices/commit/2c54b4b5db16e9cb706cef47a98112c2ba0101fc))
+
+
+### Build
+
+- Bump pytest from 8.3.2 to 8.3.3 ([`75abdc5`](https://github.com/chemelli74/aioamazondevices/commit/75abdc5d7095ee656d4f3acf562e2b3c43bb4239))
+- Bump tiangolo/issue-manager from 0.5.0 to 0.5.1 ([`f8a4c86`](https://github.com/chemelli74/aioamazondevices/commit/f8a4c86709e151b355be20cc1d786649a4a28ddf))
+- Bump wagoid/commitlint-github-action from 6.1.1 to 6.1.2 ([`fb8156c`](https://github.com/chemelli74/aioamazondevices/commit/fb8156c99bc31f2ace979b3532f05a4af9dae84d))
+- Bump httpx from 0.27.0 to 0.27.2 ([`18fe00f`](https://github.com/chemelli74/aioamazondevices/commit/18fe00f07108829463256851ba18bb6d4bef269a))
+- Bump wagoid/commitlint-github-action from 6.0.2 to 6.1.1 ([`dbb2d2e`](https://github.com/chemelli74/aioamazondevices/commit/dbb2d2ef32005930d12beb2168b8f7280128b5a8))
+- Bump orjson from 3.10.6 to 3.10.7 ([`8652e0d`](https://github.com/chemelli74/aioamazondevices/commit/8652e0dd50ce8fee3406da575691ae9247152133))
+- Bump wagoid/commitlint-github-action from 6.0.1 to 6.0.2 ([`4ea8e37`](https://github.com/chemelli74/aioamazondevices/commit/4ea8e37fab352aed837fe90dd73d7609d6914eee))
+- Bump snok/install-poetry from 1.3.4 to 1.4.1 ([`6d448c4`](https://github.com/chemelli74/aioamazondevices/commit/6d448c4367141025986f651986e3e84babac3562))
+- Bump pytest from 8.3.1 to 8.3.2 ([`4e95b0c`](https://github.com/chemelli74/aioamazondevices/commit/4e95b0ceb3192ffb30ee2b42bb45786a657f1e17))
+- Bump pytest from 8.2.2 to 8.3.1 ([`3d9958a`](https://github.com/chemelli74/aioamazondevices/commit/3d9958a6bf5e3943f1daee0746f95434388d7ad7))
+- Bump orjson from 3.10.5 to 3.10.6 ([`afd2a6a`](https://github.com/chemelli74/aioamazondevices/commit/afd2a6afe617eb150866941b0c98fbdb43f03a18))
+- Bump certifi from 2024.6.2 to 2024.7.4 ([`585a3c1`](https://github.com/chemelli74/aioamazondevices/commit/585a3c126fd6bc8047ffd16c2a582ed64a3424fd))
+- Bump orjson from 3.10.3 to 3.10.5 ([`1ce4a95`](https://github.com/chemelli74/aioamazondevices/commit/1ce4a95a57f71327194803dfa8d014384bf18f71))
+
+
 ## v0.1.1 (2024-05-22)
 
 ### Unknown
