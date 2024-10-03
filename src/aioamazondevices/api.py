@@ -201,6 +201,7 @@ class AmazonEchoApi:
         login_inputs["email"] = self._login_email
         login_inputs["password"] = self._login_password
 
+        _LOGGER.debug("Register at %s", login_url)
         login_soup, _ = await self._session_request(
             login_method,
             login_url,
