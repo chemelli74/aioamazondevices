@@ -195,7 +195,10 @@ class AmazonEchoApi:
             )
         elif content_type == "application/json":
             await self._save_to_file(
-                resp.text,
+                orjson.dumps(
+                    orjson.loads(resp.text),
+                    option=orjson.OPT_INDENT_2,
+                ).decode("utf-8"),
                 url,
                 extension="json",
             )
