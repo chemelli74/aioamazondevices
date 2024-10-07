@@ -193,15 +193,18 @@ class AmazonEchoApi:
         return BeautifulSoup(resp.content, "html.parser"), resp
 
     async def _save_to_file(
-        self, html_code: str, url: str, extension: str = "html", output_path: str = "."
+        self, html_code: str, url: str, extension: str = "html", output_path: str = "out"
     ) -> None:
         """Save response data to disk."""
         if not self._save_html:
             return
 
+        output_dir = Path(output_path)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
         url_split = url.split("/")
         filename = f"{url_split[3]}-{url_split[4].split('?')[0]}.{extension}"
-        with Path.open(Path(output_path + "/" + filename), "w+") as file:
+        with Path.open(output_dir / filename, "w+") as file:
             file.write(html_code)
             file.write("\n")
 
