@@ -193,7 +193,11 @@ class AmazonEchoApi:
         return BeautifulSoup(resp.content, "html.parser"), resp
 
     async def _save_to_file(
-        self, html_code: str, url: str, extension: str = "html", output_path: str = "out"
+        self,
+        html_code: str,
+        url: str,
+        extension: str = "html",
+        output_path: str = "out",
     ) -> None:
         """Save response data to disk."""
         if not self._save_html:
@@ -286,10 +290,7 @@ class AmazonEchoApi:
 
             response_data = raw_resp.text
             _LOGGER.debug("Response data: |%s|", response_data)
-            if len(raw_resp.content) == 0:
-                json_data = {}
-            else:
-                json_data = raw_resp.json()
+            json_data = {} if len(raw_resp.content) == 0 else raw_resp.json()
 
             _LOGGER.debug("JSON data: |%s|", json_data)
 
