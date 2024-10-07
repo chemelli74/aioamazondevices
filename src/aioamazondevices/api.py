@@ -185,11 +185,21 @@ class AmazonEchoApi:
             url,
             data=input_data,
         )
+        content_type = resp.headers.get("Content-Type", "")
+        _LOGGER.debug("Response content type: %s", content_type)
 
-        await self._save_to_file(
-            resp.text,
-            url,
-        )
+        if "text/html" in content_type:
+            await self._save_to_file(
+                resp.text,
+                url,
+            )
+        elif content_type == "application/json":
+            await self._save_to_file(
+                resp.text,
+                url,
+                extension="json",
+            )
+
         return BeautifulSoup(resp.content, "html.parser"), resp
 
     async def _save_to_file(
