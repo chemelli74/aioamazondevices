@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.5.1 (2024-10-08)
+
+### Unknown
+
+### Fix
+
+- Removed .idea directory - was accidently committetd ([`716b221`](https://github.com/chemelli74/aioamazondevices/commit/716b221d2082880a88767f367db3a1676a99371d))
+
+
 ## v0.5.0 (2024-10-08)
 
 ### Unknown
