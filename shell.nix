@@ -30,8 +30,6 @@ pkgs.mkShell {
     # Activate the Poetry environment
     python -m venv .venv
     source .venv/bin/activate
-    pre-commit install
-    pre-commit install --hook-type commit-msg
-    npm install @commitlint/config-conventional
+    scripts/setup.sh
   '';
 }
