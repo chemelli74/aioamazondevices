@@ -8,6 +8,7 @@ __pycache__/
 # C extensions
 *.so
 
+# pycharm
 .idea/
 
 # Distribution / packaging
@@ -143,3 +144,6 @@ cython_debug/
 
 # Optional config file for library_test.py script
 library_test.json
+
+# Output folder for saved web call source files
+out/
