@@ -2,7 +2,18 @@
 
 import logging
 
-_LOGGER = logging.getLogger(__package__)
+from rich.logging import RichHandler
+
+logging.basicConfig(
+    level="DEBUG",
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True)],
+)
+
+log = logging.getLogger("rich")
+_LOGGER = logging.getLogger("rich")
+
 
 DOMAIN_BY_COUNTRY = {
     "us": {

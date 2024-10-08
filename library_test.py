@@ -7,6 +7,8 @@ import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
+from rich.console import Console
+
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.exceptions import (
     AmazonError,
@@ -62,6 +64,7 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
 async def main() -> None:
     """Run main."""
     parser, args = get_arguments()
+    console = Console()
 
     if not args.password:
         print("You have to specify a password")
@@ -91,16 +94,17 @@ async def main() -> None:
         await api.close()
         sys.exit(1)
 
-    print("Logged-in.")
+    console.print("Logged-in.")
 
-    print("-" * 20)
-    print("Login data:", login_data)
-    print("-" * 20)
+    console.print("-" * 20)
+    console.print("Login data:", login_data)
+    console.print("-" * 20)
 
-    print("-" * 20)
+    console.print("-" * 20)
     devices = await api.get_devices_data()
-    print("Devices:", devices)
-    print("-" * 20)
+
+    console.print("Devices:", devices)
+    console.print("-" * 20)
 
     await api.close()
 
