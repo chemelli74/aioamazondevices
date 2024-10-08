@@ -5,7 +5,7 @@
     "context": "..",
     "args": {
       "VARIANT": "3.11",
-      "INSTALL_NODE": "false",
+      "INSTALL_NODE": "true",
       "NODE_VERSION": "lts/*"
     }
   },
@@ -26,6 +26,6 @@
       ]
     }
   },
-  "postCreateCommand": "pre-commit install",
+  "postCreateCommand": "scripts/setup.sh",
   "remoteUser": "vscode"
 }
