@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.4.0 (2024-10-08)
+
+### Unknown
+
+### Feature
+
+- Modified output functionality ([`141e57a`](https://github.com/chemelli74/aioamazondevices/commit/141e57a9d9145bb4ec5f6ff484336c3f82cec083))
+
+
 ## v0.3.0 (2024-10-08)
 
 ### Unknown
