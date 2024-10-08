@@ -153,7 +153,7 @@ class AmazonEchoApi:
     def _get_request_from_soup(self, soup: BeautifulSoup) -> tuple[str, str]:
         """Extract URL and method for the next request."""
         _LOGGER.debug("Get request data from HTML source")
-        form = soup.find("form")
+        form = soup.find("form", {"name": "signIn"}) or soup.find("form")
         if isinstance(form, Tag):
             method = form["method"]
             url = form["action"]
