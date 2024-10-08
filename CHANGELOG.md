@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.5.0 (2024-10-08)
+
+### Unknown
+
+### Feature
+
+- Adding commitlint hook ([`96d9fc4`](https://github.com/chemelli74/aioamazondevices/commit/96d9fc41341c0b13851a17622e99368c7a90f954))
+
+
 ## v0.4.0 (2024-10-08)
 
 ### Unknown
