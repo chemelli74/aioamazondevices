@@ -73,6 +73,7 @@ class AmazonEchoApi:
         self._cookies = self._build_init_cookies()
         self._headers = DEFAULT_HEADERS
         self._save_html = save_html
+        self._serial = uuid.uuid4().hex.upper()
 
         self.session: AsyncClient
 
@@ -106,9 +107,9 @@ class AmazonEchoApi:
         m = hashlib.sha256(verifier)
         return base64.urlsafe_b64encode(m.digest()).rstrip(b"=")
 
-    def _build_client_id(self, serial: str) -> str:
+    def _build_client_id(self) -> str:
         """Build client ID."""
-        client_id = serial.encode() + b"#" + AMAZON_DEVICE_TYPE.encode("utf-8")
+        client_id = self._serial.encode() + b"#" + AMAZON_DEVICE_TYPE.encode("utf-8")
         return client_id.hex()
 
     def _build_oauth_url(
@@ -216,18 +217,12 @@ class AmazonEchoApi:
         self,
         data: dict[str, Any],
     ) -> dict[str, Any]:
-        """Register a dummy Audible device."""
-        serial: str = data["serial"]
+        """Register a dummy Alexa device."""
         authorization_code: str = data["authorization_code"]
         code_verifier: bytes = data["code_verifier"]
 
         body = {
-            "requested_token_type": [
-                "bearer",
-                "mac_dms",
-                "website_cookies",
-                "store_authentication_cookie",
-            ],
+            "requested_extensions": ["device_info", "customer_info"],
             "cookies": {"website_cookies": [], "domain": f".amazon.{self._domain}"},
             "registration_data": {
                 "domain": "Device",
@@ -237,24 +232,34 @@ class AmazonEchoApi:
                     f"%FIRST_NAME%\u0027s%DUPE_STRATEGY_1ST%{AMAZON_APP_NAME}"
                 ),
                 "os_version": AMAZON_CLIENT_OS,
-                "device_serial": serial,
+                "device_serial": self._serial,
                 "device_model": "iPhone",
                 "app_name": AMAZON_APP_NAME,
                 "software_version": AMAZON_DEVICE_SOFTWARE_VERSION,
             },
             "auth_data": {
-                "client_id": self._build_client_id(serial),
+                "client_id": self._build_client_id(),
                 "authorization_code": authorization_code,
                 "code_verifier": code_verifier.decode(),
                 "code_algorithm": "SHA-256",
                 "client_domain": "DeviceLegacy",
             },
-            "requested_extensions": ["device_info", "customer_info"],
+            "user_context_map": {"frc": self._cookies["frc"]},
+            "requested_token_type": [
+                "bearer",
+                "mac_dms",
+                "website_cookies",
+                "store_authentication_cookie",
+            ],
         }
 
+        headers = {"Content-Type": "application/json"}
+
+        _LOGGER.warning("_register_device: [data=%s],[headers=%s]", body, headers)
         resp = await self.session.post(
             f"https://api.amazon.{self._domain}/auth/register",
             json=body,
+            headers=headers,
         )
         resp_json = resp.json()
 
@@ -303,7 +308,7 @@ class AmazonEchoApi:
         self._client_session()
 
         code_verifier = self._create_code_verifier()
-        client_id = self._build_client_id(uuid.uuid4().hex.upper())
+        client_id = self._build_client_id()
 
         _LOGGER.debug("Build oauth URL")
         login_url = self._build_oauth_url(code_verifier, client_id)
@@ -355,7 +360,6 @@ class AmazonEchoApi:
             "authorization_code": self._extract_code_from_url(authcode_url),
             "code_verifier": code_verifier,
             "domain": self._domain,
-            "serial": client_id,
         }
 
         register_device = await self._register_device(device_login_data)
