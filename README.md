@@ -49,6 +49,10 @@ Start by importing it:
 import aioamazondevices
 ```
 
+## Nix
+
+If you are using nix you can type: `nix-shell` to load a development environment
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
