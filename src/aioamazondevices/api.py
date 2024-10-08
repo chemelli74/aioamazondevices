@@ -158,7 +158,7 @@ class AmazonEchoApi:
     def _get_request_from_soup(self, soup: BeautifulSoup) -> tuple[str, str]:
         """Extract URL and method for the next request."""
         _LOGGER.debug("Get request data from HTML source")
-        form = soup.find("form")
+        form = soup.find("form", {"name": "signIn"}) or soup.find("form")
         if isinstance(form, Tag):
             method = form["method"]
             url = form["action"]
@@ -195,21 +195,43 @@ class AmazonEchoApi:
             url,
             data=input_data,
         )
+        content_type = resp.headers.get("Content-Type", "")
+        _LOGGER.debug("Response content type: %s", content_type)
 
-        await self._save_to_file(
-            resp.text,
-            url,
-        )
+        if "text/html" in content_type:
+            await self._save_to_file(
+                resp.text,
+                url,
+            )
+        elif content_type == "application/json":
+            await self._save_to_file(
+                orjson.dumps(
+                    orjson.loads(resp.text),
+                    option=orjson.OPT_INDENT_2,
+                ).decode("utf-8"),
+                url,
+                extension="json",
+            )
+
         return BeautifulSoup(resp.content, "html.parser"), resp
 
-    async def _save_to_file(self, html_code: str, url: str) -> None:
-        """Sage HTML data to disk."""
+    async def _save_to_file(
+        self,
+        html_code: str,
+        url: str,
+        extension: str = "html",
+        output_path: str = "out",
+    ) -> None:
+        """Save response data to disk."""
         if not self._save_html:
             return
 
+        output_dir = Path(output_path)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
         url_split = url.split("/")
-        filename = f"{url_split[3]}-{url_split[4].split('?')[0]}.html"
-        with Path.open(Path(filename), "w+") as file:
+        filename = f"{url_split[3]}-{url_split[4].split('?')[0]}.{extension}"
+        with Path.open(output_dir / filename, "w+") as file:
             file.write(html_code)
             file.write("\n")
 
@@ -383,12 +405,19 @@ class AmazonEchoApi:
                 "GET",
                 f"https://alexa.amazon.{self._domain}{URI_QUERIES[key]}",
             )
+            _LOGGER.debug("Response URL: %s", raw_resp.url)
+            response_code = raw_resp.status_code
+            _LOGGER.debug("Response code: %s", response_code)
+
+            response_data = raw_resp.text
+            _LOGGER.debug("Response data: |%s|", response_data)
+            json_data = {} if len(raw_resp.content) == 0 else raw_resp.json()
+
+            _LOGGER.debug("JSON data: |%s|", json_data)
 
             devices.update(
                 {
-                    key: orjson.loads(
-                        raw_resp.text,
-                    ),
+                    key: json_data,
                 },
             )
 
