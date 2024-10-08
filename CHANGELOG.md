@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.3.0 (2024-10-08)
+
+### Unknown
+
+### Feature
+
+- Update gitignore information for pycharm ([`8701548`](https://github.com/chemelli74/aioamazondevices/commit/8701548d2a06c8c9ded7cc6d277a0bcb4905c832))
+
+
 ## v0.2.0 (2024-10-03)
 
 ### Unknown
