@@ -1,6 +1,21 @@
 # Changelog
 
+## v0.6.0 (2024-10-08)
+
+### Unknown
+
+### Fix
+
+- Restore .gitignore from main branch ([`1c620c5`](https://github.com/chemelli74/aioamazondevices/commit/1c620c5363cc610fed2ca76f6265175890b225b4))
+
+
 ## v0.5.1 (2024-10-08)
+
+### Feature
+
+- Rebase onto main ([`dc09f14`](https://github.com/chemelli74/aioamazondevices/commit/dc09f1451d0a9525abe0abc9541c294f2288724c))
+- Updated logic to find form ([`8322efc`](https://github.com/chemelli74/aioamazondevices/commit/8322efcf15cfa307bf8ebf8152f93b4e775bff2d))
+
 
 ### Unknown
 
