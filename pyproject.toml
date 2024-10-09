@@ -26,6 +26,7 @@ python = "^3.11"
 beautifulsoup4 = "*"
 httpx = "*"
 orjson = "*"
+rich = "^13.9.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1"
