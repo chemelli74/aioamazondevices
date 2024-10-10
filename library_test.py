@@ -7,6 +7,8 @@ import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
+from colorlog import ColoredFormatter
+
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.exceptions import (
     AmazonError,
@@ -105,10 +107,33 @@ async def main() -> None:
     await api.close()
 
 
-if __name__ == "__main__":
+def set_logging() -> None:
+    """Set logging levels."""
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger("asyncio").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("charset_normalizer").setLevel(logging.WARNING)
+    fmt = (
+        "%(asctime)s.%(msecs)03d %(levelname)s (%(threadName)s) [%(name)s] %(message)s"
+    )
+    colorfmt = f"%(log_color)s{fmt}%(reset)s"
+    logging.getLogger().handlers[0].setFormatter(
+        ColoredFormatter(
+            colorfmt,
+            datefmt="%Y-%m-%d %H:%M:%S",
+            reset=True,
+            log_colors={
+                "DEBUG": "cyan",
+                "INFO": "green",
+                "WARNING": "yellow",
+                "ERROR": "red",
+                "CRITICAL": "red",
+            },
+        ),
+    )
+
+
+if __name__ == "__main__":
+    set_logging()
     asyncio.run(main())
