@@ -2,6 +2,7 @@
 
 import base64
 import hashlib
+import mimetypes
 import secrets
 import uuid
 from dataclasses import dataclass
@@ -26,8 +27,8 @@ from .const import (
     AMAZON_DEVICE_TYPE,
     DEFAULT_HEADERS,
     DOMAIN_BY_COUNTRY,
-    HTML_FORMAT,
-    JSON_FORMAT,
+    HTML_EXTENSION,
+    JSON_EXTENSION,
     URI_QUERIES,
 )
 from .exceptions import CannotAuthenticate, CannotRegisterDevice
@@ -197,51 +198,55 @@ class AmazonEchoApi:
             url,
             data=input_data,
         )
-        content_type = resp.headers.get("Content-Type", "")
+        content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug("Response content type: %s", content_type)
-
-        extension = JSON_FORMAT if content_type == "application/json" else HTML_FORMAT
 
         await self._save_to_file(
             resp.text,
             url,
-            extension,
+            mimetypes.guess_extension(content_type.split(";")[0]) or ".raw",
         )
 
         return BeautifulSoup(resp.content, "html.parser"), resp
 
     async def _save_to_file(
         self,
-        raw_data: str,
+        raw_data: str | dict,
         url: str,
-        extension: str = HTML_FORMAT,
+        extension: str = HTML_EXTENSION,
         output_path: str = "out",
     ) -> None:
         """Save response data to disk."""
         if not self._save_html:
             return
 
-        _LOGGER.warning("Saving %s as %s", url, extension)
-
         output_dir = Path(output_path)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        data = (
-            raw_data
-            if extension == HTML_FORMAT
-            else orjson.dumps(
+        if url.startswith("http"):
+            url_split = url.split("/")
+            base_filename = f"{url_split[3]}-{url_split[4].split('?')[0]}"
+        else:
+            base_filename = url
+        fullpath = Path(output_dir, base_filename + extension)
+
+        if type(raw_data) is dict:
+            data = orjson.dumps(raw_data, option=orjson.OPT_INDENT_2).decode("utf-8")
+        elif extension == HTML_EXTENSION:
+            data = raw_data
+        else:
+            data = orjson.dumps(
                 orjson.loads(raw_data),
                 option=orjson.OPT_INDENT_2,
             ).decode("utf-8")
-        )
-        url_split = url.split("/")
-        base_filename = f"{url_split[3]}-{url_split[4].split('?')[0]}"
-        fullpath = Path(output_dir, base_filename + f".{extension}")
+
         i = 2
         while fullpath.exists():
-            filename = f"{base_filename}_{i!s}.{extension}"
+            filename = f"{base_filename}_{i!s}{extension}"
             fullpath = Path(output_dir, filename)
             i += 1
+
+        _LOGGER.warning("Saving data to %s", fullpath)
 
         with Path.open(fullpath, "w+") as file:
             file.write(data)
@@ -308,7 +313,7 @@ class AmazonEchoApi:
         await self._save_to_file(
             resp.text,
             url=register_url,
-            extension=JSON_FORMAT,
+            extension=JSON_EXTENSION,
         )
         success_response = resp_json["response"]["success"]
 
@@ -329,7 +334,7 @@ class AmazonEchoApi:
         for cookie in tokens["website_cookies"]:
             website_cookies[cookie["Name"]] = cookie["Value"].replace(r'"', r"")
 
-        return {
+        login_data = {
             "adp_token": adp_token,
             "device_private_key": device_private_key,
             "access_token": access_token,
@@ -340,6 +345,8 @@ class AmazonEchoApi:
             "device_info": device_info,
             "customer_info": customer_info,
         }
+        await self._save_to_file(login_data, "login_data", JSON_EXTENSION)
+        return login_data
 
     async def login(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon."""
