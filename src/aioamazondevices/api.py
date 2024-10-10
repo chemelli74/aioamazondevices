@@ -2,6 +2,7 @@
 
 import base64
 import hashlib
+import mimetypes
 import secrets
 import uuid
 from dataclasses import dataclass
@@ -26,6 +27,8 @@ from .const import (
     AMAZON_DEVICE_TYPE,
     DEFAULT_HEADERS,
     DOMAIN_BY_COUNTRY,
+    HTML_EXTENSION,
+    JSON_EXTENSION,
     URI_QUERIES,
 )
 from .exceptions import CannotAuthenticate, CannotRegisterDevice
@@ -195,31 +198,22 @@ class AmazonEchoApi:
             url,
             data=input_data,
         )
-        content_type = resp.headers.get("Content-Type", "")
+        content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug("Response content type: %s", content_type)
 
-        if "text/html" in content_type:
-            await self._save_to_file(
-                resp.text,
-                url,
-            )
-        elif content_type == "application/json":
-            await self._save_to_file(
-                orjson.dumps(
-                    orjson.loads(resp.text),
-                    option=orjson.OPT_INDENT_2,
-                ).decode("utf-8"),
-                url,
-                extension="json",
-            )
+        await self._save_to_file(
+            resp.text,
+            url,
+            mimetypes.guess_extension(content_type.split(";")[0]) or ".raw",
+        )
 
         return BeautifulSoup(resp.content, "html.parser"), resp
 
     async def _save_to_file(
         self,
-        html_code: str,
+        raw_data: str | dict,
         url: str,
-        extension: str = "html",
+        extension: str = HTML_EXTENSION,
         output_path: str = "out",
     ) -> None:
         """Save response data to disk."""
@@ -229,10 +223,33 @@ class AmazonEchoApi:
         output_dir = Path(output_path)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        url_split = url.split("/")
-        filename = f"{url_split[3]}-{url_split[4].split('?')[0]}.{extension}"
-        with Path.open(output_dir / filename, "w+") as file:
-            file.write(html_code)
+        if url.startswith("http"):
+            url_split = url.split("/")
+            base_filename = f"{url_split[3]}-{url_split[4].split('?')[0]}"
+        else:
+            base_filename = url
+        fullpath = Path(output_dir, base_filename + extension)
+
+        if type(raw_data) is dict:
+            data = orjson.dumps(raw_data, option=orjson.OPT_INDENT_2).decode("utf-8")
+        elif extension == HTML_EXTENSION:
+            data = raw_data
+        else:
+            data = orjson.dumps(
+                orjson.loads(raw_data),
+                option=orjson.OPT_INDENT_2,
+            ).decode("utf-8")
+
+        i = 2
+        while fullpath.exists():
+            filename = f"{base_filename}_{i!s}{extension}"
+            fullpath = Path(output_dir, filename)
+            i += 1
+
+        _LOGGER.warning("Saving data to %s", fullpath)
+
+        with Path.open(fullpath, "w+") as file:
+            file.write(data)
             file.write("\n")
 
     async def _register_device(
@@ -277,9 +294,9 @@ class AmazonEchoApi:
 
         headers = {"Content-Type": "application/json"}
 
-        _LOGGER.warning("_register_device: [data=%s],[headers=%s]", body, headers)
+        register_url = f"https://api.amazon.{self._domain}/auth/register"
         resp = await self.session.post(
-            f"https://api.amazon.{self._domain}/auth/register",
+            register_url,
             json=body,
             headers=headers,
         )
@@ -293,6 +310,11 @@ class AmazonEchoApi:
             )
             raise CannotRegisterDevice(resp_json)
 
+        await self._save_to_file(
+            resp.text,
+            url=register_url,
+            extension=JSON_EXTENSION,
+        )
         success_response = resp_json["response"]["success"]
 
         tokens = success_response["tokens"]
@@ -312,7 +334,7 @@ class AmazonEchoApi:
         for cookie in tokens["website_cookies"]:
             website_cookies[cookie["Name"]] = cookie["Value"].replace(r'"', r"")
 
-        return {
+        login_data = {
             "adp_token": adp_token,
             "device_private_key": device_private_key,
             "access_token": access_token,
@@ -323,6 +345,8 @@ class AmazonEchoApi:
             "device_info": device_info,
             "customer_info": customer_info,
         }
+        await self._save_to_file(login_data, "login_data", JSON_EXTENSION)
+        return login_data
 
     async def login(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon."""
@@ -386,7 +410,7 @@ class AmazonEchoApi:
 
         register_device = await self._register_device(device_login_data)
 
-        _LOGGER.warning("Register device: %s", register_device)
+        _LOGGER.info("Register device: %s", register_device)
         return register_device
 
     async def close(self) -> None:
