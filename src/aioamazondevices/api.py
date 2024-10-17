@@ -25,6 +25,7 @@ from .const import (
     AMAZON_CLIENT_OS,
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
+    DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
     DOMAIN_BY_COUNTRY,
     HTML_EXTENSION,
@@ -64,9 +65,10 @@ class AmazonEchoApi:
         locale = DOMAIN_BY_COUNTRY.get(country_code)
         domain = locale["domain"] if locale else country_code
 
-        assoc_handle = "amzn_dp_project_dee_ios"
-        if not locale:
-            assoc_handle += f"_{country_code}"
+        if locale and (assoc := locale.get("openid.assoc_handle")):
+            assoc_handle = assoc
+        else:
+            assoc_handle = f"{DEFAULT_ASSOC_HANDLE}_{country_code}"
         self._assoc_handle = assoc_handle
 
         self._login_email = login_email
