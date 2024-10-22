@@ -53,5 +53,6 @@ AMAZON_DEVICE_TYPE = "A2IVLV5VM2W81"
 AMAZON_CLIENT_OS = "16.6"
 
 # File extensions
+SAVE_PATH = "out"
 HTML_EXTENSION = ".html"
 JSON_EXTENSION = ".json"

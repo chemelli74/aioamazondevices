@@ -2,6 +2,7 @@
 
 import base64
 import hashlib
+import json
 import mimetypes
 import secrets
 import uuid
@@ -9,7 +10,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
@@ -30,6 +31,7 @@ from .const import (
     DOMAIN_BY_COUNTRY,
     HTML_EXTENSION,
     JSON_EXTENSION,
+    SAVE_PATH,
     URI_QUERIES,
 )
 from .exceptions import CannotAuthenticate, CannotRegisterDevice
@@ -78,9 +80,23 @@ class AmazonEchoApi:
         self._cookies = self._build_init_cookies()
         self._headers = DEFAULT_HEADERS
         self._save_html = save_html
-        self._serial = uuid.uuid4().hex.upper()
+        self._serial = self._serial_number()
 
         self.session: AsyncClient
+
+    def _serial_number(self) -> str:
+        """Get or calculate device serial number."""
+        fullpath = Path(SAVE_PATH, "login_data.json")
+        if not fullpath.exists():
+            # Create a new serial number
+            _LOGGER.debug("Cannot find previous login data, creating new serial number")
+            return uuid.uuid4().hex.upper()
+
+        with Path.open(fullpath, "rb") as file:
+            data = json.load(file)
+
+        _LOGGER.debug("Found previous login data, loading serial number")
+        return cast(str, data["device_info"]["device_serial_number"])
 
     def _build_init_cookies(self) -> dict[str, str]:
         """Build initial cookies to prevent captcha in most cases."""
@@ -216,7 +232,7 @@ class AmazonEchoApi:
         raw_data: str | dict,
         url: str,
         extension: str = HTML_EXTENSION,
-        output_path: str = "out",
+        output_path: str = SAVE_PATH,
     ) -> None:
         """Save response data to disk."""
         if not self._save_html:
