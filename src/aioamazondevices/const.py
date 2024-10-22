@@ -4,10 +4,12 @@ import logging
 
 _LOGGER = logging.getLogger(__package__)
 
+DEFAULT_ASSOC_HANDLE = "amzn_dp_project_dee_ios"
+
 DOMAIN_BY_COUNTRY = {
     "us": {
         "domain": "com",
-        "openid.assoc_handle": "amzn_dp_project_dee_ios",
+        "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
     },
     "uk": {
         "domain": "co.uk",
@@ -17,6 +19,7 @@ DOMAIN_BY_COUNTRY = {
     },
     "jp": {
         "domain": "co.jp",
+        "openid.assoc_handle": "jpflex",
     },
     "br": {
         "domain": "com.br",
