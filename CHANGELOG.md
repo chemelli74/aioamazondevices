@@ -1,8 +1,30 @@
 # Changelog
 
+## v0.7.1 (2024-10-22)
+
+### Unknown
+
+### Build
+
+- Bump orjson from 3.10.7 to 3.10.9 ([`5062556`](https://github.com/chemelli74/aioamazondevices/commit/5062556efa2b6cecab4fecdbf339ffd69cb82ded))
+- Pre-commit migrate-config ([`07ae187`](https://github.com/chemelli74/aioamazondevices/commit/07ae187e21e91546b7ac9bd33b256ede8f3b3550))
+- Exclude out folder ([`5065cd4`](https://github.com/chemelli74/aioamazondevices/commit/5065cd45461d250ebb7693c7577b3dd8282b3874))
+- Add commitlint to devcontainer ([`8eeeed6`](https://github.com/chemelli74/aioamazondevices/commit/8eeeed6fe83c4a82fe05dcb9a5241fea60bf1f05))
+
+
+### Fix
+
+- Allow different openid.assoc_handle by country ([`c0b7249`](https://github.com/chemelli74/aioamazondevices/commit/c0b724908298f06b30352fb9b83c52eea5129517))
+
+
 ## v0.7.0 (2024-10-08)
 
 ### Unknown
+
+### Build
+
+- Adding a shell.nix so you can do nix-shell to work on this repo ([`57dfa5a`](https://github.com/chemelli74/aioamazondevices/commit/57dfa5a40ada28cf9ce2eb78b63d212a042017b5))
+
 
 ## v0.6.0 (2024-10-08)
 
