@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.2 (2024-10-22)
+
+### Unknown
+
 ## v0.7.1 (2024-10-22)
 
 ### Unknown
@@ -14,6 +18,7 @@
 
 ### Fix
 
+- Avoid registering a new device at each login cicle ([`0681a85`](https://github.com/chemelli74/aioamazondevices/commit/0681a8566b8856f940ef1bc910bdc9f6adb8a905))
 - Allow different openid.assoc_handle by country ([`c0b7249`](https://github.com/chemelli74/aioamazondevices/commit/c0b724908298f06b30352fb9b83c52eea5129517))
 
 
