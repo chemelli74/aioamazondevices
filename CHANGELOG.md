@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.7.3 (2024-10-31)
+
+### Unknown
+
+### Build
+
+- Add python 3.13 ([`21b0e3b`](https://github.com/chemelli74/aioamazondevices/commit/21b0e3b2b6c9bed3185287588f2ff08f496b698c))
+- Bump orjson from 3.10.9 to 3.10.10 ([`2540404`](https://github.com/chemelli74/aioamazondevices/commit/25404040807718998efd6ed5a0765879e0a04948))
+
+
+### Fix
+
+- Fix license classifier ([`f5af1f8`](https://github.com/chemelli74/aioamazondevices/commit/f5af1f859ea60ddcdf0d5e599b38e147f172bfe7))
+
+
 ## v0.7.2 (2024-10-22)
 
 ### Unknown
