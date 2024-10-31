@@ -3,6 +3,7 @@ name = "aioamazondevices"
 version = "0.7.2"
 description = "Python library to control Amazon devices"
 authors = ["Simone Chemelli <simone.chemelli@gmail.com>"]
+license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/chemelli74/aioamazondevices"
 classifiers = [
@@ -11,7 +12,6 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries",
-    "License :: OSI Approved :: Apache Software License",
 ]
 packages = [
     { include = "aioamazondevices", from = "src" },
