@@ -1,0 +1,6 @@
+[run]
+source = aioamazondevices
+omit =
+    src/aioamazondevices/api.py
+    src/aioamazondevices/exceptions.py
+    library_test.py
