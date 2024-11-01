@@ -1,71 +1,83 @@
 # Changelog
 
+## v0.8.0 (2024-11-01)
+
+### Build system
+
+- Revert to standard semantic release (#67) ([`874b330`](https://github.com/chemelli74/aioamazondevices/commit/874b330d0faf4c8248fb007f9c67ad61bceadfd8))
+
+
+### Features
+
+- Drop python 3.11 support (#66) ([`317ba8d`](https://github.com/chemelli74/aioamazondevices/commit/317ba8d90ca55bac1c344170762e799a22cca449))
+
+
 ## v0.7.3 (2024-10-31)
 
 ### Unknown
 
-### Build
+### Bug fixes
+
+- Fix license classifier ([`f5af1f8`](https://github.com/chemelli74/aioamazondevices/commit/f5af1f859ea60ddcdf0d5e599b38e147f172bfe7))
+
+
+### Build system
 
 - Add python 3.13 ([`21b0e3b`](https://github.com/chemelli74/aioamazondevices/commit/21b0e3b2b6c9bed3185287588f2ff08f496b698c))
 - Bump orjson from 3.10.9 to 3.10.10 ([`2540404`](https://github.com/chemelli74/aioamazondevices/commit/25404040807718998efd6ed5a0765879e0a04948))
-
-
-### Fix
-
-- Fix license classifier ([`f5af1f8`](https://github.com/chemelli74/aioamazondevices/commit/f5af1f859ea60ddcdf0d5e599b38e147f172bfe7))
 
 
 ## v0.7.2 (2024-10-22)
 
 ### Unknown
 
+### Bug fixes
+
+- Avoid registering a new device at each login cicle ([`0681a85`](https://github.com/chemelli74/aioamazondevices/commit/0681a8566b8856f940ef1bc910bdc9f6adb8a905))
+
+
 ## v0.7.1 (2024-10-22)
 
 ### Unknown
 
-### Build
+### Bug fixes
+
+- Allow different openid.assoc_handle by country ([`c0b7249`](https://github.com/chemelli74/aioamazondevices/commit/c0b724908298f06b30352fb9b83c52eea5129517))
+
+
+### Build system
 
 - Bump orjson from 3.10.7 to 3.10.9 ([`5062556`](https://github.com/chemelli74/aioamazondevices/commit/5062556efa2b6cecab4fecdbf339ffd69cb82ded))
 - Pre-commit migrate-config ([`07ae187`](https://github.com/chemelli74/aioamazondevices/commit/07ae187e21e91546b7ac9bd33b256ede8f3b3550))
 - Exclude out folder ([`5065cd4`](https://github.com/chemelli74/aioamazondevices/commit/5065cd45461d250ebb7693c7577b3dd8282b3874))
 - Add commitlint to devcontainer ([`8eeeed6`](https://github.com/chemelli74/aioamazondevices/commit/8eeeed6fe83c4a82fe05dcb9a5241fea60bf1f05))
-
-
-### Fix
-
-- Avoid registering a new device at each login cicle ([`0681a85`](https://github.com/chemelli74/aioamazondevices/commit/0681a8566b8856f940ef1bc910bdc9f6adb8a905))
-- Allow different openid.assoc_handle by country ([`c0b7249`](https://github.com/chemelli74/aioamazondevices/commit/c0b724908298f06b30352fb9b83c52eea5129517))
+- Adding a shell.nix so you can do nix-shell to work on this repo ([`57dfa5a`](https://github.com/chemelli74/aioamazondevices/commit/57dfa5a40ada28cf9ce2eb78b63d212a042017b5))
 
 
 ## v0.7.0 (2024-10-08)
 
 ### Unknown
 
-### Build
-
-- Adding a shell.nix so you can do nix-shell to work on this repo ([`57dfa5a`](https://github.com/chemelli74/aioamazondevices/commit/57dfa5a40ada28cf9ce2eb78b63d212a042017b5))
-
-
 ## v0.6.0 (2024-10-08)
 
 ### Unknown
 
-### Fix
+### Bug fixes
 
 - Restore .gitignore from main branch ([`1c620c5`](https://github.com/chemelli74/aioamazondevices/commit/1c620c5363cc610fed2ca76f6265175890b225b4))
 
 
-## v0.5.1 (2024-10-08)
-
-### Feature
+### Features
 
 - Rebase onto main ([`dc09f14`](https://github.com/chemelli74/aioamazondevices/commit/dc09f1451d0a9525abe0abc9541c294f2288724c))
 - Updated logic to find form ([`8322efc`](https://github.com/chemelli74/aioamazondevices/commit/8322efcf15cfa307bf8ebf8152f93b4e775bff2d))
 
 
+## v0.5.1 (2024-10-08)
+
 ### Unknown
 
-### Fix
+### Bug fixes
 
 - Removed .idea directory - was accidently committetd ([`716b221`](https://github.com/chemelli74/aioamazondevices/commit/716b221d2082880a88767f367db3a1676a99371d))
 
@@ -74,7 +86,7 @@
 
 ### Unknown
 
-### Feature
+### Features
 
 - Adding commitlint hook ([`96d9fc4`](https://github.com/chemelli74/aioamazondevices/commit/96d9fc41341c0b13851a17622e99368c7a90f954))
 
@@ -83,7 +95,7 @@
 
 ### Unknown
 
-### Feature
+### Features
 
 - Modified output functionality ([`141e57a`](https://github.com/chemelli74/aioamazondevices/commit/141e57a9d9145bb4ec5f6ff484336c3f82cec083))
 
@@ -92,7 +104,7 @@
 
 ### Unknown
 
-### Feature
+### Features
 
 - Update gitignore information for pycharm ([`8701548`](https://github.com/chemelli74/aioamazondevices/commit/8701548d2a06c8c9ded7cc6d277a0bcb4905c832))
 - Device registration ([`d66a054`](https://github.com/chemelli74/aioamazondevices/commit/d66a05462f16caa35e94532301a42f519922354c))
@@ -102,12 +114,12 @@
 
 ### Unknown
 
-### Feature
+### Features
 
 - Save html response code to disk ([`2c54b4b`](https://github.com/chemelli74/aioamazondevices/commit/2c54b4b5db16e9cb706cef47a98112c2ba0101fc))
 
 
-### Build
+### Build system
 
 - Bump pytest from 8.3.2 to 8.3.3 ([`75abdc5`](https://github.com/chemelli74/aioamazondevices/commit/75abdc5d7095ee656d4f3acf562e2b3c43bb4239))
 - Bump tiangolo/issue-manager from 0.5.0 to 0.5.1 ([`f8a4c86`](https://github.com/chemelli74/aioamazondevices/commit/f8a4c86709e151b355be20cc1d786649a4a28ddf))
@@ -128,12 +140,12 @@
 
 ### Unknown
 
-### Fix
+### Bug fixes
 
 - Force country code lower case ([`8951bf9`](https://github.com/chemelli74/aioamazondevices/commit/8951bf93c9f80e3fa5a6da23fcaeceb71ca457e2))
 
 
-### Build
+### Build system
 
 - Bump pytest from 8.2.0 to 8.2.1 ([`404fe7f`](https://github.com/chemelli74/aioamazondevices/commit/404fe7fbc195d653437f60ec4db651cac69af82b))
 
@@ -142,12 +154,12 @@
 
 ### Unknown
 
-### Feature
+### Features
 
 - First coding ([`a407a5e`](https://github.com/chemelli74/aioamazondevices/commit/a407a5e66d48ba4ea6307a5fd161ab8397f7b54b))
 
 
-### Build
+### Build system
 
 - Bump pytest from 8.1.1 to 8.2.0 ([`025f860`](https://github.com/chemelli74/aioamazondevices/commit/025f8603fe123514f5b967138133871160db60c2))
 
@@ -156,7 +168,7 @@
 
 ### Unknown
 
-### Build
+### Build system
 
 - Cleanup ([`1828b57`](https://github.com/chemelli74/aioamazondevices/commit/1828b57f314940c2679d700dad5950c359d0aeaf))
 - Bump codecov/codecov-action from 3 to 4 ([`552b4d9`](https://github.com/chemelli74/aioamazondevices/commit/552b4d9f1d80b59f05c65681da13ab84d9a9145e))
