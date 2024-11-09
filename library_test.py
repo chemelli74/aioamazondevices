@@ -37,7 +37,7 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
     parser.add_argument("--password", "-p", type=str, help="Set Amazon login password")
     parser.add_argument("--otp_code", "-o", type=str, help="Set Amazon OTP code")
     parser.add_argument(
-        "--save_html",
+        "--save_raw_data",
         "-s",
         type=str,
         default="False",
@@ -74,7 +74,7 @@ async def main() -> None:
         args.country,
         args.email,
         args.password,
-        args.save_html.lower() in ("yes", "true", "1"),
+        args.save_raw_data.lower() in ("yes", "true", "1"),
     )
 
     try:
