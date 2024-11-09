@@ -21,3 +21,31 @@ class CannotRetrieveData(AmazonError):
 
 class CannotRegisterDevice(AmazonError):
     """Exception raised when device registration fails."""
+
+
+class WrongMethod(AmazonError):
+    """Exception raised when the wrong login metho is used."""
+
+
+class AuthFlowError(AmazonError):
+    """Exception raised when auth flow fails."""
+
+
+class AuthMissingTimestamp(AmazonError):
+    """Exception raised when expires timestamp is missing."""
+
+
+class AuthMissingAccessToken(AmazonError):
+    """Exception raised when access token is missing."""
+
+
+class AuthMissingRefreshToken(AmazonError):
+    """Exception raised when refresh token is missing."""
+
+
+class AuthMissingSigningData(AmazonError):
+    """Exception raised when some data for signing are missing."""
+
+
+class AuthMissingWebsiteCookies(AmazonError):
+    """Exception raised when website cookies are missing."""

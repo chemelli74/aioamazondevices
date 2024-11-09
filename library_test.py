@@ -36,6 +36,7 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
     )
     parser.add_argument("--password", "-p", type=str, help="Set Amazon login password")
     parser.add_argument("--otp_code", "-o", type=str, help="Set Amazon OTP code")
+    parser.add_argument("--login_data_file", "-ld", type=str, help="Login data file")
     parser.add_argument(
         "--save_raw_data",
         "-s",
@@ -74,12 +75,18 @@ async def main() -> None:
         args.country,
         args.email,
         args.password,
+        args.login_data_file,
         args.save_raw_data.lower() in ("yes", "true", "1"),
     )
 
     try:
         try:
-            login_data = await api.login(args.otp_code or input("OTP Code: "))
+            if Path(args.login_data_file).exists():
+                login_data = await api.login_mode_stored_data()
+            else:
+                login_data = await api.login_mode_interactive(
+                    args.otp_code or input("OTP Code: "),
+                )
         except CannotAuthenticate:
             print(f"Cannot authenticate with {args.email} credentials")
             raise
