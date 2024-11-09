@@ -58,7 +58,7 @@ class AmazonEchoApi:
         login_country_code: str,
         login_email: str,
         login_password: str,
-        save_html: bool = False,
+        save_raw_data: bool = False,
     ) -> None:
         """Initialize the scanner."""
         # Force country digits as lower case
@@ -79,7 +79,7 @@ class AmazonEchoApi:
         self._url = f"https://www.amazon.{domain}"
         self._cookies = self._build_init_cookies()
         self._headers = DEFAULT_HEADERS
-        self._save_html = save_html
+        self._save_raw_data = save_raw_data
         self._serial = self._serial_number()
 
         self.session: AsyncClient
@@ -235,7 +235,7 @@ class AmazonEchoApi:
         output_path: str = SAVE_PATH,
     ) -> None:
         """Save response data to disk."""
-        if not self._save_html:
+        if not self._save_raw_data:
             return
 
         output_dir = Path(output_path)
