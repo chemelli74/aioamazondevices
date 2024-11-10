@@ -1,5 +1,33 @@
 # Changelog
 
+## v0.9.0 (2024-11-10)
+
+### Features
+
+- Devices cleanup and data consolidation (#81) ([`d6a911c`](https://github.com/chemelli74/aioamazondevices/commit/d6a911cc1a28fa269fa158bf1ee60860a421be4a))
+- Add library_test data saving (#80) ([`12f0cc8`](https://github.com/chemelli74/aioamazondevices/commit/12f0cc88bef2a8b88e4f4fc44b5243ade5b1c303))
+
+
+### Refactoring
+
+- Renamed param and var to a better naming (#77) ([`d5f4da6`](https://github.com/chemelli74/aioamazondevices/commit/d5f4da677c26b419c959c9b1b925f09afaf21f8e))
+
+
+### Testing
+
+- Add more vscode launch options (#76) ([`fdac075`](https://github.com/chemelli74/aioamazondevices/commit/fdac075e54ad78600db4e3069e71c5f0051ec803))
+- Add .coveragerc (#69) ([`d3cbc5e`](https://github.com/chemelli74/aioamazondevices/commit/d3cbc5e5e279c08491bb3d93851f5703b0e2b053))
+
+
+### Build system
+
+- Bump python-semantic-release/python-semantic-release (#75) ([`520b94a`](https://github.com/chemelli74/aioamazondevices/commit/520b94a29e3aeff2668ce47d152daf97e7911340))
+- Bump python-semantic-release/python-semantic-release (#74) ([`61b9c65`](https://github.com/chemelli74/aioamazondevices/commit/61b9c655af1f5252e521c2b3c9656b432aace1c4))
+- Bump orjson from 3.10.10 to 3.10.11 (#72) ([`850e41f`](https://github.com/chemelli74/aioamazondevices/commit/850e41ff986c28d1ad00c78235f78ff4240388ae))
+- Bump pytest-cov from 5.0.0 to 6.0.0 (#71) ([`5871ed5`](https://github.com/chemelli74/aioamazondevices/commit/5871ed5dc8d68b08aa78b021ad77bcb904beaf9a))
+- Bump colorlog from 6.8.2 to 6.9.0 (#70) ([`29a9c7b`](https://github.com/chemelli74/aioamazondevices/commit/29a9c7b5273454651d4b0eeb7312ba81fbfdc1ad))
+
+
 ## v0.8.0 (2024-11-01)
 
 ### Build system
