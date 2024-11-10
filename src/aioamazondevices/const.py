@@ -26,9 +26,18 @@ DOMAIN_BY_COUNTRY = {
     },
 }
 
+# Amazon APP info
+AMAZON_APP_BUNDLE_ID = "com.amazon.echo"
+AMAZON_APP_ID = "MAPiOSLib/6.0/ToHideRetailLink"
+AMAZON_APP_NAME = "AioAmazonDevices"
+AMAZON_APP_VERSION = "2.2.556530.0"
+AMAZON_DEVICE_SOFTWARE_VERSION = "35602678"
+AMAZON_DEVICE_TYPE = "A2IVLV5VM2W81"
+AMAZON_CLIENT_OS = "16.6"
+
 DEFAULT_HEADERS = {
     "User-Agent": (
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) "
+        f"Mozilla/5.0 (iPhone; CPU iPhone OS {AMAZON_CLIENT_OS.replace('.', '_')} like Mac OS X) "  # noqa: E501
         "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
     ),
     "Accept-Language": "en-US",
@@ -42,15 +51,6 @@ URI_QUERIES = {
     "devicePreferences": "/api/device-preferences",
     "bluetoothStates": "/api/bluetooth",
 }
-
-# Amazon APP info
-AMAZON_APP_BUNDLE_ID = "com.amazon.echo"
-AMAZON_APP_ID = "MAPiOSLib/6.0/ToHideRetailLink"
-AMAZON_APP_NAME = "AioAmazonDevices"
-AMAZON_APP_VERSION = "2.2.556530.0"
-AMAZON_DEVICE_SOFTWARE_VERSION = "35602678"
-AMAZON_DEVICE_TYPE = "A2IVLV5VM2W81"
-AMAZON_CLIENT_OS = "16.6"
 
 # File extensions
 SAVE_PATH = "out"
