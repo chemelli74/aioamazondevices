@@ -143,7 +143,7 @@ dmypy.json
 cython_debug/
 
 # Optional config file for library_test.py script
-library_test.json
+library_test*.json
 
 # Output folder for saved web call source files
 out/
