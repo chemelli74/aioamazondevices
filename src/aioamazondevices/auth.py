@@ -28,13 +28,13 @@ from .exceptions import (
 def base64_der_to_pkcs1(base64_key: str) -> str:
     """Convert DER private key to PEM format."""
 
-    class PrivateKeyAlgorithm(univ.Sequence):
+    class PrivateKeyAlgorithm(univ.Sequence):  # type: ignore[misc]
         component_type = namedtype.NamedTypes(
             namedtype.NamedType("algorithm", univ.ObjectIdentifier()),
             namedtype.NamedType("parameters", univ.Any()),
         )
 
-    class PrivateKeyInfo(univ.Sequence):
+    class PrivateKeyInfo(univ.Sequence):  # type: ignore[misc]
         component_type = namedtype.NamedTypes(
             namedtype.NamedType("version", univ.Integer()),
             namedtype.NamedType("pkalgo", PrivateKeyAlgorithm()),
@@ -140,7 +140,7 @@ def sign_request(
     }
 
 
-class Authenticator(httpx.Auth):
+class Authenticator(httpx.Auth):  # type: ignore[misc]
     """Amazon Authenticator class."""
 
     access_token: str | None = None
