@@ -35,12 +35,12 @@ DEFAULT_HEADERS = {
     "Accept-Encoding": "gzip",
 }
 
+DEVICES = "devices"
 URI_QUERIES = {
-    "base": "/api/devices-v2/device",
-    "status": "/api/dnd/device-status-list",
-    "preferences": "/api/device-preferences",
-    "automations": "/api/behaviors/v2/automations",
-    "bluetooth": "/api/bluetooth",
+    DEVICES: "/api/devices-v2/device",
+    "doNotDisturbDeviceStatusList": "/api/dnd/device-status-list",
+    "devicePreferences": "/api/device-preferences",
+    "bluetoothStates": "/api/bluetooth",
 }
 
 # Amazon APP info

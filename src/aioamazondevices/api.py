@@ -28,6 +28,7 @@ from .const import (
     AMAZON_DEVICE_TYPE,
     DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
+    DEVICES,
     DOMAIN_BY_COUNTRY,
     HTML_EXTENSION,
     JSON_EXTENSION,
@@ -441,7 +442,7 @@ class AmazonEchoApi:
         self,
     ) -> dict[str, Any]:
         """Get Amazon devices data."""
-        devices = {}
+        devices: dict[str, Any] = {}
         for key in URI_QUERIES:
             _, raw_resp = await self._session_request(
                 "GET",
@@ -457,10 +458,21 @@ class AmazonEchoApi:
 
             _LOGGER.debug("JSON data: |%s|", json_data)
 
-            devices.update(
-                {
-                    key: json_data,
-                },
-            )
+            for data in json_data[key]:
+                dev_serial = data.get("serialNumber") or data.get("deviceSerialNumber")
+                if previous_data := devices.get(dev_serial):
+                    devices[dev_serial] = previous_data | {key: data}
+                else:
+                    devices[dev_serial] = {key: data}
 
-        return devices
+        # Remove stale, orphaned and virtual devices
+        final_devices_list: dict[str, Any] = devices.copy()
+        for serial in devices:
+            device = devices[serial]
+            if (
+                DEVICES not in device
+                or device[DEVICES].get("deviceType") == AMAZON_DEVICE_TYPE
+            ):
+                final_devices_list.pop(serial)
+
+        return final_devices_list
