@@ -6,7 +6,9 @@ import logging
 import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
+from typing import Any
 
+import orjson
 from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonEchoApi
@@ -62,6 +64,17 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
     return parser, arguments
 
 
+def save_to_file(filename: str, data_dict: dict[str, Any]) -> None:
+    """Save data to json file."""
+    data_json = orjson.dumps(
+        data_dict,
+        option=orjson.OPT_INDENT_2,
+    ).decode("utf-8")
+    with Path.open(Path(filename), "w+") as file:
+        file.write(data_json)
+        file.write("\n")
+
+
 async def main() -> None:
     """Run main."""
     parser, args = get_arguments()
@@ -106,10 +119,14 @@ async def main() -> None:
     print("Login data:", login_data)
     print("-" * 20)
 
+    save_to_file("out/output-login-data.json", login_data)
+
     print("-" * 20)
     devices = await api.get_devices_data()
     print("Devices:", devices)
     print("-" * 20)
+
+    save_to_file("out/output-devices.json", devices)
 
     await api.close()
 
