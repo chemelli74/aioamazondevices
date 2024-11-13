@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.10.0 (2024-11-13)
+
+### Features
+
+- Add login from stored data (#78) ([`36af872`](https://github.com/chemelli74/aioamazondevices/commit/36af8723723ef7a4257230cb548d416614a82b8c))
+
+
+### Build system
+
+- Bump python-semantic-release/python-semantic-release (#83) ([`b39e995`](https://github.com/chemelli74/aioamazondevices/commit/b39e995e5d74adb3098f6a1049244021d087fccc))
+
+
+### Refactoring
+
+- Small headers cleanup (#82) ([`e4fafe1`](https://github.com/chemelli74/aioamazondevices/commit/e4fafe1b18889413249fe51d1d680eb0eb7856a5))
+
+
 ## v0.9.0 (2024-11-10)
 
 ### Features
