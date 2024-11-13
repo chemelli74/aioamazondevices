@@ -27,6 +27,8 @@ beautifulsoup4 = "*"
 colorlog = "*"
 httpx = "*"
 orjson = "*"
+pyasn1 = "*"
+rsa = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1"

@@ -15,8 +15,9 @@ from urllib.parse import parse_qs, urlencode
 
 import orjson
 from bs4 import BeautifulSoup, Tag
-from httpx import URL, AsyncClient, Response
+from httpx import URL, AsyncClient, Auth, Response
 
+from .auth import Authenticator
 from .const import (
     _LOGGER,
     AMAZON_APP_BUNDLE_ID,
@@ -35,7 +36,7 @@ from .const import (
     SAVE_PATH,
     URI_QUERIES,
 )
-from .exceptions import CannotAuthenticate, CannotRegisterDevice
+from .exceptions import CannotAuthenticate, CannotRegisterDevice, WrongMethod
 
 
 @dataclass
@@ -59,6 +60,7 @@ class AmazonEchoApi:
         login_country_code: str,
         login_email: str,
         login_password: str,
+        login_data_file: str | None,
         save_raw_data: bool = False,
     ) -> None:
         """Initialize the scanner."""
@@ -81,23 +83,43 @@ class AmazonEchoApi:
         self._cookies = self._build_init_cookies()
         self._headers = DEFAULT_HEADERS
         self._save_raw_data = save_raw_data
+        self._login_stored_data: dict[str, Any] = self._load_data_file(login_data_file)
         self._serial = self._serial_number()
+        self._website_cookies: dict[str, Any] = self._load_website_cookies()
 
         self.session: AsyncClient
 
+    def _load_data_file(self, data_file: str | None) -> dict[str, Any]:
+        """Load stored login data from file."""
+        if not data_file or not (file := Path(data_file)).exists():
+            _LOGGER.debug(
+                "Cannot find previous login data file <%s>",
+                data_file,
+            )
+            return {}
+
+        with Path.open(file, "rb") as f:
+            return cast(dict[str, Any], json.load(f))
+
+    def _load_website_cookies(self) -> dict[str, Any]:
+        """Get website cookies, if avaliables."""
+        if not self._login_stored_data:
+            return {}
+
+        return cast(dict, self._login_stored_data["website_cookies"])
+
     def _serial_number(self) -> str:
         """Get or calculate device serial number."""
-        fullpath = Path(SAVE_PATH, "login_data.json")
-        if not fullpath.exists():
+        if not self._login_stored_data:
             # Create a new serial number
             _LOGGER.debug("Cannot find previous login data, creating new serial number")
             return uuid.uuid4().hex.upper()
 
-        with Path.open(fullpath, "rb") as file:
-            data = json.load(file)
-
         _LOGGER.debug("Found previous login data, loading serial number")
-        return cast(str, data["device_info"]["device_serial_number"])
+        return cast(
+            str,
+            self._login_stored_data["device_info"]["device_serial_number"],
+        )
 
     def _build_init_cookies(self) -> dict[str, str]:
         """Build initial cookies to prevent captcha in most cases."""
@@ -193,7 +215,7 @@ class AmazonEchoApi:
         parsed_url = parse_qs(url.query.decode())
         return parsed_url["openid.oa2.authorization_code"][0]
 
-    def _client_session(self) -> None:
+    def _client_session(self, auth: Auth | None = None) -> None:
         """Create httpx ClientSession."""
         if not hasattr(self, "session") or self.session.is_closed:
             _LOGGER.debug("Creating HTTP ClientSession")
@@ -202,6 +224,7 @@ class AmazonEchoApi:
                 headers=DEFAULT_HEADERS,
                 cookies=self._cookies,
                 follow_redirects=True,
+                auth=auth,
             )
 
     async def _session_request(
@@ -216,6 +239,7 @@ class AmazonEchoApi:
             method,
             url,
             data=input_data,
+            cookies=self._website_cookies,
         )
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug("Response content type: %s", content_type)
@@ -367,8 +391,8 @@ class AmazonEchoApi:
         await self._save_to_file(login_data, "login_data", JSON_EXTENSION)
         return login_data
 
-    async def login(self, otp_code: str) -> dict[str, Any]:
-        """Login to Amazon."""
+    async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
+        """Login to Amazon interactively via OTP."""
         _LOGGER.debug("Logging-in for %s [otp code %s]", self._login_email, otp_code)
         self._client_session()
 
@@ -431,6 +455,28 @@ class AmazonEchoApi:
 
         _LOGGER.info("Register device: %s", register_device)
         return register_device
+
+    async def login_mode_stored_data(self) -> dict[str, Any]:
+        """Login to Amazon using previously stored data."""
+        if not self._login_stored_data:
+            _LOGGER.debug(
+                "Cannot find previous login data,\
+                    use login_interactive() method instead",
+            )
+            raise WrongMethod
+
+        _LOGGER.debug(
+            "Logging-in for %s with stored data",
+            self._login_email,
+        )
+
+        auth = Authenticator.from_dict(
+            self._login_stored_data,
+            self._domain,
+        )
+        self._client_session(auth)
+
+        return self._login_stored_data
 
     async def close(self) -> None:
         """Close httpx session."""
