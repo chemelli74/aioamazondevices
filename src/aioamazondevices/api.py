@@ -43,13 +43,15 @@ from .exceptions import CannotAuthenticate, CannotRegisterDevice, WrongMethod
 class AmazonDevice:
     """Amazon device class."""
 
-    connected: bool
-    connection_type: str
-    ip_address: str
-    name: str
-    mac: str
-    type: str
-    wifi: str
+    account_name: str
+    capabilities: list[str]
+    device_family: str
+    device_type: str
+    serial_number: str
+    software_version: str
+    do_not_disturb: bool
+    response_style: str
+    bluetooth_state: bool
 
 
 class AmazonEchoApi:
