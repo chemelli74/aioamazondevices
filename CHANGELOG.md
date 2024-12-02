@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.11.0 (2024-12-02)
+
+### Features
+
+- Add device models (#92) ([`8baaa6b`](https://github.com/chemelli74/aioamazondevices/commit/8baaa6ba47059b00c38afb4d2ae2716219ac8fa9))
+
+
+### Build system
+
+- Bump python-semantic-release/python-semantic-release from 9.14.0 to 9.15.0 (#91) ([`d20c580`](https://github.com/chemelli74/aioamazondevices/commit/d20c5802c9438dda1172e616978eda356f4d6ad3))
+- Bump pytest from 8.3.3 to 8.3.4 (#90) ([`711373d`](https://github.com/chemelli74/aioamazondevices/commit/711373df071b22463742ce6b4af744b385ff59e1))
+- Bump httpx from 0.27.2 to 0.28.0 (#89) ([`923ed8c`](https://github.com/chemelli74/aioamazondevices/commit/923ed8c9c9e9e052cfc87818d365e5b82e6ca33d))
+- Bump orjson from 3.10.11 to 3.10.12 (#87) ([`71482db`](https://github.com/chemelli74/aioamazondevices/commit/71482db191ce4a46b5d6ac3ce7bfe78ae4a2aa6b))
+- Bump codecov/codecov-action from 4 to 5 (#85) ([`c92c4f2`](https://github.com/chemelli74/aioamazondevices/commit/c92c4f2ce38d0d4783d103a6cbd275047b9f70d0))
+
+
 ## v0.10.0 (2024-11-13)
 
 ### Features
