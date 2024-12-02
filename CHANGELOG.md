@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.12.0 (2024-12-02)
+
+### Features
+
+- Return parsed devices data (#94) ([`114da17`](https://github.com/chemelli74/aioamazondevices/commit/114da17ce89a5c521eeff91f8590cfe61a55fce9))
+
+
 ## v0.11.1 (2024-12-02)
 
 ### Bug fixes
