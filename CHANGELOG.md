@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.11.1 (2024-12-02)
+
+### Bug fixes
+
+- Properties for amazondevice class (#93) ([`a0a2af6`](https://github.com/chemelli74/aioamazondevices/commit/a0a2af69d53433a351ed468f5b607dd562f3319e))
+
+
 ## v0.11.0 (2024-12-02)
 
 ### Features
