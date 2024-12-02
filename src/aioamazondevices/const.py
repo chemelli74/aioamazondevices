@@ -44,12 +44,16 @@ DEFAULT_HEADERS = {
     "Accept-Encoding": "gzip",
 }
 
-DEVICES = "devices"
+NODE_DEVICES = "devices"
+NODE_DO_NOT_DISTURB = "doNotDisturbDeviceStatusList"
+NODE_PREFERENCES = "devicePreferences"
+NODE_BLUETOOTH = "bluetoothStates"
+
 URI_QUERIES = {
-    DEVICES: "/api/devices-v2/device",
-    "doNotDisturbDeviceStatusList": "/api/dnd/device-status-list",
-    "devicePreferences": "/api/device-preferences",
-    "bluetoothStates": "/api/bluetooth",
+    NODE_DEVICES: "/api/devices-v2/device",
+    NODE_DO_NOT_DISTURB: "/api/dnd/device-status-list",
+    NODE_PREFERENCES: "/api/device-preferences",
+    NODE_BLUETOOTH: "/api/bluetooth",
 }
 
 # File extensions
