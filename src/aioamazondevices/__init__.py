@@ -12,6 +12,6 @@ from .exceptions import (
 __all__ = [
     "AmazonDevice",
     "AmazonEchoApi",
-    "CannotConnect",
     "CannotAuthenticate",
+    "CannotConnect",
 ]

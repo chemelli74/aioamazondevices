@@ -513,8 +513,7 @@ class AmazonEchoApi:
 
         # Remove stale, orphaned and virtual devices
         final_devices_list: dict[str, Any] = devices.copy()
-        for serial in devices:
-            device = devices[serial]
+        for serial, device in devices.items():
             if (
                 DEVICES not in device
                 or device[DEVICES].get("deviceType") == AMAZON_DEVICE_TYPE
