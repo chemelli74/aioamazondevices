@@ -56,3 +56,16 @@ URI_QUERIES = {
 SAVE_PATH = "out"
 HTML_EXTENSION = ".html"
 JSON_EXTENSION = ".json"
+
+DEVICE_TYPE_TO_MODEL = {
+    "A1RABVCI4QCIKC": "Echo Dot (Gen3)",
+    "A2DS1Q2TPDJ48U": "Echo Dot Clock (Gen5)",
+    "A2H4LV5GIZ1JFT": "Echo Dot Clock (Gen4)",
+    "A2U21SRK4QGSE1": "Echo Dot Clock (Gen4)",
+    "A32DDESGESSHZA": "Echo Dot (Gen3)",
+    "A32DOYMUN6DTXA": "Echo Dot (Gen3)",
+    "A3RMGO6LYLH7YN": "Echo Dot (Gen4)",
+    "A3S5BH2HU6VAYF": "Echo Dot (Gen2)",
+    "A4ZXE0RM7LQ7A": "Echo Dot (Gen5)",
+    "AKNO1N0KSFN8L": "Echo Dot (Gen1)",
+}
