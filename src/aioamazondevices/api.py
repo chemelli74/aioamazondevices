@@ -29,10 +29,13 @@ from .const import (
     AMAZON_DEVICE_TYPE,
     DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
-    DEVICES,
     DOMAIN_BY_COUNTRY,
     HTML_EXTENSION,
     JSON_EXTENSION,
+    NODE_BLUETOOTH,
+    NODE_DEVICES,
+    NODE_DO_NOT_DISTURB,
+    NODE_PREFERENCES,
     SAVE_PATH,
     URI_QUERIES,
 )
@@ -47,10 +50,11 @@ class AmazonDevice:
     capabilities: list[str]
     device_family: str
     device_type: str
+    online: bool
     serial_number: str
     software_version: str
     do_not_disturb: bool
-    response_style: str
+    response_style: str | None
     bluetooth_state: bool
 
 
@@ -488,7 +492,7 @@ class AmazonEchoApi:
 
     async def get_devices_data(
         self,
-    ) -> dict[str, Any]:
+    ) -> dict[str, AmazonDevice]:
         """Get Amazon devices data."""
         devices: dict[str, Any] = {}
         for key in URI_QUERIES:
@@ -513,13 +517,28 @@ class AmazonEchoApi:
                 else:
                     devices[dev_serial] = {key: data}
 
-        # Remove stale, orphaned and virtual devices
-        final_devices_list: dict[str, Any] = devices.copy()
-        for serial, device in devices.items():
+        final_devices_list: dict[str, AmazonDevice] = {}
+        for device in devices.values():
+            # Remove stale, orphaned and virtual devices
             if (
-                DEVICES not in device
-                or device[DEVICES].get("deviceType") == AMAZON_DEVICE_TYPE
+                NODE_DEVICES not in device
+                or device[NODE_DEVICES].get("deviceType") == AMAZON_DEVICE_TYPE
             ):
-                final_devices_list.pop(serial)
+                continue
+
+            serial_number: str = device[NODE_DEVICES]["serialNumber"]
+            preferences = device.get(NODE_PREFERENCES)
+            final_devices_list[serial_number] = AmazonDevice(
+                account_name=device[NODE_DEVICES]["accountName"],
+                capabilities=device[NODE_DEVICES]["capabilities"],
+                device_family=device[NODE_DEVICES]["deviceFamily"],
+                device_type=device[NODE_DEVICES]["deviceType"],
+                online=device[NODE_DEVICES]["online"],
+                serial_number=serial_number,
+                software_version=device[NODE_DEVICES]["softwareVersion"],
+                do_not_disturb=device[NODE_DO_NOT_DISTURB]["enabled"],
+                response_style=preferences["responseStyle"] if preferences else None,
+                bluetooth_state=device[NODE_BLUETOOTH]["online"],
+            )
 
         return final_devices_list
