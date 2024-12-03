@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.13.0 (2024-12-03)
+
+### Features
+
+- Load login data from dict (#97) ([`d881d16`](https://github.com/chemelli74/aioamazondevices/commit/d881d16d5d4331217b323f80ee69a6c357a16028))
+
+
+### Build system
+
+- Bump python-semantic-release/python-semantic-release from 9.15.0 to 9.15.1 (#96) ([`ef13a01`](https://github.com/chemelli74/aioamazondevices/commit/ef13a012a0e46468547be4b01952c49fcc90a4f6))
+
+
 ## v0.12.0 (2024-12-02)
 
 ### Features
