@@ -2,7 +2,6 @@
 
 import base64
 import hashlib
-import json
 import mimetypes
 import secrets
 import uuid
@@ -66,7 +65,7 @@ class AmazonEchoApi:
         login_country_code: str,
         login_email: str,
         login_password: str,
-        login_data_file: str | None,
+        login_data: dict[str, Any] | None = None,
         save_raw_data: bool = False,
     ) -> None:
         """Initialize the scanner."""
@@ -89,23 +88,11 @@ class AmazonEchoApi:
         self._cookies = self._build_init_cookies()
         self._headers = DEFAULT_HEADERS
         self._save_raw_data = save_raw_data
-        self._login_stored_data: dict[str, Any] = self._load_data_file(login_data_file)
+        self._login_stored_data = login_data
         self._serial = self._serial_number()
         self._website_cookies: dict[str, Any] = self._load_website_cookies()
 
         self.session: AsyncClient
-
-    def _load_data_file(self, data_file: str | None) -> dict[str, Any]:
-        """Load stored login data from file."""
-        if not data_file or not (file := Path(data_file)).exists():
-            _LOGGER.debug(
-                "Cannot find previous login data file <%s>",
-                data_file,
-            )
-            return {}
-
-        with Path.open(file, "rb") as f:
-            return cast(dict[str, Any], json.load(f))
 
     def _load_website_cookies(self) -> dict[str, Any]:
         """Get website cookies, if avaliables."""
