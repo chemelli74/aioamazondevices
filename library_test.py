@@ -6,7 +6,7 @@ import logging
 import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import orjson
 from colorlog import ColoredFormatter
@@ -75,6 +75,19 @@ def save_to_file(filename: str, data_dict: dict[str, Any]) -> None:
         file.write("\n")
 
 
+def read_from_file(data_file: str) -> dict[str, Any]:
+    """Load stored login data from file."""
+    if not data_file or not (file := Path(data_file)).exists():
+        print(
+            "Cannot find previous login data file: ",
+            data_file,
+        )
+        return {}
+
+    with Path.open(file, "rb") as f:
+        return cast(dict[str, Any], json.load(f))
+
+
 async def main() -> None:
     """Run main."""
     parser, args = get_arguments()
@@ -84,11 +97,13 @@ async def main() -> None:
         parser.print_help()
         sys.exit(1)
 
+    login_data_stored = read_from_file(args.login_data_file)
+
     api = AmazonEchoApi(
         args.country,
         args.email,
         args.password,
-        args.login_data_file,
+        login_data_stored,
         args.save_raw_data.lower() in ("yes", "true", "1"),
     )
 
