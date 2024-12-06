@@ -23,6 +23,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.12"
+babel = "*"
 beautifulsoup4 = "*"
 colorlog = "*"
 httpx = "*"
