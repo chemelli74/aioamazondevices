@@ -13,6 +13,7 @@ from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
+from babel import Locale
 from bs4 import BeautifulSoup, Tag
 from httpx import URL, AsyncClient, Response
 
@@ -48,6 +49,7 @@ class AmazonDevice:
     capabilities: list[str]
     device_family: str
     device_type: str
+    device_account_id: str
     online: bool
     serial_number: str
     software_version: str
@@ -82,6 +84,7 @@ class AmazonEchoApi:
 
         self._login_email = login_email
         self._login_password = login_password
+        self._login_country_code = country_code
         self._domain = domain
         self._cookies = self._build_init_cookies()
         self._headers = DEFAULT_HEADERS
@@ -527,6 +530,7 @@ class AmazonEchoApi:
                 capabilities=device[NODE_DEVICES]["capabilities"],
                 device_family=device[NODE_DEVICES]["deviceFamily"],
                 device_type=device[NODE_DEVICES]["deviceType"],
+                device_account_id=device[NODE_DEVICES]["deviceAccountId"],
                 online=device[NODE_DEVICES]["online"],
                 serial_number=serial_number,
                 software_version=device[NODE_DEVICES]["softwareVersion"],
@@ -536,25 +540,3 @@ class AmazonEchoApi:
             )
 
         return final_devices_list
-
-    async def auth_check_status(self) -> bool:
-        """Check AUTH status."""
-        _, raw_resp = await self._session_request(
-            method="GET",
-            url=f"https://alexa.amazon.{self._domain}/api/bootstrap?version=0",
-        )
-        if raw_resp.status_code != HTTPStatus.OK:
-            _LOGGER.debug(
-                "Session not authenticated: reply error %s",
-                raw_resp.status_code,
-            )
-            return False
-
-        resp_json = raw_resp.json()
-        if not (authentication := resp_json.get("authentication")):
-            _LOGGER.debug('Session not authenticated: reply missing "authentication"')
-            return False
-
-        authenticated = authentication.get("authenticated")
-        _LOGGER.debug("Session authenticated: %s", authenticated)
-        return bool(authenticated)
