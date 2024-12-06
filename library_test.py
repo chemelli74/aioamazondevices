@@ -150,6 +150,8 @@ async def main() -> None:
 
     save_to_file(f"{SAVE_PATH}/output-devices.json", devices)
 
+    device = next(iter(devices.values()))
+    await api.send_announcement(device, "prova titolo", "prova da library test")
     await api.close()
 
 
