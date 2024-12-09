@@ -84,7 +84,6 @@ class AmazonEchoApi:
         self._login_email = login_email
         self._login_password = login_password
         self._domain = domain
-        self._url = f"https://www.amazon.{domain}"
         self._cookies = self._build_init_cookies()
         self._headers = DEFAULT_HEADERS
         self._save_raw_data = save_raw_data
@@ -235,7 +234,11 @@ class AmazonEchoApi:
             cookies=self._website_cookies,
         )
         content_type: str = resp.headers.get("Content-Type", "")
-        _LOGGER.debug("Response content type: %s", content_type)
+        _LOGGER.debug(
+            "Response %s with content type: %s",
+            resp.status_code,
+            content_type,
+        )
 
         await self._save_to_file(
             resp.text,
@@ -253,7 +256,7 @@ class AmazonEchoApi:
         output_path: str = SAVE_PATH,
     ) -> None:
         """Save response data to disk."""
-        if not self._save_raw_data:
+        if not self._save_raw_data or not raw_data:
             return
 
         output_dir = Path(output_path)
