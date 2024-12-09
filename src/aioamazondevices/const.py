@@ -6,12 +6,12 @@ _LOGGER = logging.getLogger(__package__)
 
 DEFAULT_ASSOC_HANDLE = "amzn_dp_project_dee_ios"
 
-DOMAIN_BY_COUNTRY = {
+DOMAIN_BY_ISO3166_COUNTRY = {
     "us": {
         "domain": "com",
         "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
     },
-    "uk": {
+    "gb": {
         "domain": "co.uk",
     },
     "au": {
