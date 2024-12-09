@@ -540,3 +540,72 @@ class AmazonEchoApi:
             )
 
         return final_devices_list
+
+    async def send_announcement(
+        self,
+        device: AmazonDevice,
+        message_title: str,
+        message_body: str,
+    ) -> None:
+        """Test send msg."""
+        locale = Locale.parse(f"und_{self._login_country_code}")
+
+        customer_id = device.device_account_id
+
+        if not self._login_stored_data:
+            _LOGGER.warning("Trying to send message before login")
+            return
+
+        node_data = {
+            "behaviorId": "PREVIEW",
+            "sequenceJson": {
+                "@type": "com.amazon.alexa.behaviors.model.Sequence",
+                "startNode": {
+                    "@type": "com.amazon.alexa.behaviors.model.SerialNode",
+                    "nodesToExecute": [
+                        {
+                            "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",  # noqa: E501
+                            "type": "AlexaAnnouncement",
+                            "operationPayload": {
+                                "deviceType": device.device_type,
+                                "deviceSerialNumber": device.serial_number,
+                                "locale": locale,
+                                "customerId": customer_id,
+                                "expireAfter": "PT5S",
+                                "content": [
+                                    {
+                                        "locale": locale,
+                                        "display": {
+                                            "title": message_title,
+                                            "body": message_body,
+                                        },
+                                        "speak": {
+                                            "type": "text",
+                                            "value": message_body,
+                                        },
+                                    },
+                                ],
+                                "target": {
+                                    "customerId": customer_id,
+                                    "devices": [
+                                        {
+                                            "deviceSerialNumber": device.serial_number,
+                                            "deviceTypeId": device.device_type,
+                                        },
+                                    ],
+                                },
+                                "skillId": "amzn1.ask.1p.routines.messaging",
+                            },
+                        },
+                    ],
+                },
+            },
+            "status": "ENABLED",
+        }
+
+        _LOGGER.debug("Preview data payload: %s", node_data)
+        await self._session_request(
+            "POST",
+            f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
+            node_data,
+        )
