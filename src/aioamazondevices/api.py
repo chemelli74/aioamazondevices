@@ -28,7 +28,7 @@ from .const import (
     AMAZON_DEVICE_TYPE,
     DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
-    DOMAIN_BY_ISO3166_COUNTRY,
+    DOMAIN_BY_COUNTRY,
     HTML_EXTENSION,
     JSON_EXTENSION,
     NODE_BLUETOOTH,
@@ -73,7 +73,7 @@ class AmazonEchoApi:
         # Force country digits as lower case
         country_code = login_country_code.lower()
 
-        locale = DOMAIN_BY_ISO3166_COUNTRY.get(country_code)
+        locale = DOMAIN_BY_COUNTRY.get(country_code)
         domain = locale["domain"] if locale else country_code
 
         if locale and (assoc := locale.get("openid.assoc_handle")):
