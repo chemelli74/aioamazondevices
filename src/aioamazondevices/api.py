@@ -602,6 +602,6 @@ class AmazonEchoApi:
         _LOGGER.debug("Preview data payload: %s", node_data)
         await self._session_request(
             "POST",
-            f"{self._url}/api/behaviors/preview",
+            f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
             node_data,
         )
