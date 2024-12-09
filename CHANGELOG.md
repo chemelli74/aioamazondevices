@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.0.0 (2024-12-09)
+
+### Bug fixes
+
+- Use iso 3166 standard for country codes (#102) ([`0fa4e96`](https://github.com/chemelli74/aioamazondevices/commit/0fa4e968678e13c34d1352e7b53cd5224b533779))
+
+
+### Build system
+
+- Bump httpx from 0.28.0 to 0.28.1 (#99) ([`c853dc3`](https://github.com/chemelli74/aioamazondevices/commit/c853dc3fe5c0e75491152f7cd9592ff03c79a717))
+
+
 ## v0.13.0 (2024-12-03)
 
 ### Features
