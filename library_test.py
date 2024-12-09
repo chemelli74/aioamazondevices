@@ -28,7 +28,7 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         "-c",
         type=str,
         default="it",
-        help="Set Amazon login country",
+        help="Set Amazon login country (ISO3166 standard)",
     )
     parser.add_argument(
         "--email",
