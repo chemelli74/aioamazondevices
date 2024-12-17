@@ -13,6 +13,7 @@ from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
+from babel import Locale
 from bs4 import BeautifulSoup, Tag
 from httpx import URL, AsyncClient, Auth, Response
 
@@ -49,6 +50,7 @@ class AmazonDevice:
     capabilities: list[str]
     device_family: str
     device_type: str
+    device_account_id: str
     online: bool
     serial_number: str
     software_version: str
@@ -83,6 +85,7 @@ class AmazonEchoApi:
 
         self._login_email = login_email
         self._login_password = login_password
+        self._login_country_code = country_code
         self._domain = domain
         self._cookies = self._build_init_cookies()
         self._headers = DEFAULT_HEADERS
@@ -523,6 +526,7 @@ class AmazonEchoApi:
                 capabilities=device[NODE_DEVICES]["capabilities"],
                 device_family=device[NODE_DEVICES]["deviceFamily"],
                 device_type=device[NODE_DEVICES]["deviceType"],
+                device_account_id=device[NODE_DEVICES]["deviceAccountId"],
                 online=device[NODE_DEVICES]["online"],
                 serial_number=serial_number,
                 software_version=device[NODE_DEVICES]["softwareVersion"],
@@ -532,3 +536,72 @@ class AmazonEchoApi:
             )
 
         return final_devices_list
+
+    async def send_announcement(
+        self,
+        device: AmazonDevice,
+        message_title: str,
+        message_body: str,
+    ) -> None:
+        """Test send msg."""
+        locale = Locale.parse(f"und_{self._login_country_code}")
+
+        customer_id = device.device_account_id
+
+        if not self._login_stored_data:
+            _LOGGER.warning("Trying to send message before login")
+            return
+
+        node_data = {
+            "behaviorId": "PREVIEW",
+            "sequenceJson": {
+                "@type": "com.amazon.alexa.behaviors.model.Sequence",
+                "startNode": {
+                    "@type": "com.amazon.alexa.behaviors.model.SerialNode",
+                    "nodesToExecute": [
+                        {
+                            "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",  # noqa: E501
+                            "type": "AlexaAnnouncement",
+                            "operationPayload": {
+                                "deviceType": device.device_type,
+                                "deviceSerialNumber": device.serial_number,
+                                "locale": locale,
+                                "customerId": customer_id,
+                                "expireAfter": "PT5S",
+                                "content": [
+                                    {
+                                        "locale": locale,
+                                        "display": {
+                                            "title": message_title,
+                                            "body": message_body,
+                                        },
+                                        "speak": {
+                                            "type": "text",
+                                            "value": message_body,
+                                        },
+                                    },
+                                ],
+                                "target": {
+                                    "customerId": customer_id,
+                                    "devices": [
+                                        {
+                                            "deviceSerialNumber": device.serial_number,
+                                            "deviceTypeId": device.device_type,
+                                        },
+                                    ],
+                                },
+                                "skillId": "amzn1.ask.1p.routines.messaging",
+                            },
+                        },
+                    ],
+                },
+            },
+            "status": "ENABLED",
+        }
+
+        _LOGGER.debug("Preview data payload: %s", node_data)
+        await self._session_request(
+            "POST",
+            f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
+            node_data,
+        )
