@@ -27,6 +27,8 @@ from .const import (
     AMAZON_CLIENT_OS,
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
+    BIN_EXTENSION,
+    CSRF_COOKIE,
     DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
     DOMAIN_BY_COUNTRY,
@@ -50,7 +52,7 @@ class AmazonDevice:
     capabilities: list[str]
     device_family: str
     device_type: str
-    device_account_id: str
+    device_owner_customer_id: str
     online: bool
     serial_number: str
     software_version: str
@@ -88,6 +90,7 @@ class AmazonEchoApi:
         self._login_country_code = country_code
         self._domain = domain
         self._cookies = self._build_init_cookies()
+        self._csrf_cookie: str | None = None
         self._headers = DEFAULT_HEADERS
         self._save_raw_data = save_raw_data
         self._login_stored_data = login_data
@@ -230,11 +233,16 @@ class AmazonEchoApi:
     ) -> tuple[BeautifulSoup, Response]:
         """Return request response context data."""
         _LOGGER.debug("%s request: %s with payload %s", method, url, input_data)
+
+        cookies = self._website_cookies
+        if "preview" in url and self._csrf_cookie:
+            cookies.update({CSRF_COOKIE: self._csrf_cookie})
+
         resp = await self.session.request(
             method,
             url,
             data=input_data,
-            cookies=self._website_cookies,
+            cookies=cookies,
         )
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
@@ -274,7 +282,7 @@ class AmazonEchoApi:
 
         if type(raw_data) is dict:
             data = orjson.dumps(raw_data, option=orjson.OPT_INDENT_2).decode("utf-8")
-        elif extension == HTML_EXTENSION:
+        elif extension in [HTML_EXTENSION, BIN_EXTENSION]:
             data = raw_data
         else:
             data = orjson.dumps(
@@ -473,6 +481,7 @@ class AmazonEchoApi:
             self._login_stored_data,
             self._domain,
         )
+        auth.refresh_access_token()
         self._client_session(auth)
 
         return self._login_stored_data
@@ -491,14 +500,18 @@ class AmazonEchoApi:
         for key in URI_QUERIES:
             _, raw_resp = await self._session_request(
                 "GET",
-                f"https://alexa.amazon.{self._domain}{URI_QUERIES[key]}",
+                f"https://alexa.amazon.{self._domain}{URI_QUERIES[key]}?cached=false",
             )
             _LOGGER.debug("Response URL: %s", raw_resp.url)
             response_code = raw_resp.status_code
-            _LOGGER.debug("Response code: %s", response_code)
+            _LOGGER.debug("Response code: |%s|", response_code)
 
             response_data = raw_resp.text
             _LOGGER.debug("Response data: |%s|", response_data)
+
+            if not self._csrf_cookie:
+                self._csrf_cookie = raw_resp.cookies.get(CSRF_COOKIE)
+
             json_data = {} if len(raw_resp.content) == 0 else raw_resp.json()
 
             _LOGGER.debug("JSON data: |%s|", json_data)
@@ -526,7 +539,7 @@ class AmazonEchoApi:
                 capabilities=device[NODE_DEVICES]["capabilities"],
                 device_family=device[NODE_DEVICES]["deviceFamily"],
                 device_type=device[NODE_DEVICES]["deviceType"],
-                device_account_id=device[NODE_DEVICES]["deviceAccountId"],
+                device_owner_customer_id=device[NODE_DEVICES]["deviceOwnerCustomerId"],
                 online=device[NODE_DEVICES]["online"],
                 serial_number=serial_number,
                 software_version=device[NODE_DEVICES]["softwareVersion"],
@@ -540,17 +553,15 @@ class AmazonEchoApi:
     async def send_announcement(
         self,
         device: AmazonDevice,
-        message_title: str,
         message_body: str,
-    ) -> None:
+    ) -> dict[str, Any]:
         """Test send msg."""
-        locale = Locale.parse(f"und_{self._login_country_code}")
-
-        customer_id = device.device_account_id
+        locale_data = Locale.parse(f"und_{self._login_country_code}")
+        locale = f"{locale_data.language}-{locale_data.language}"
 
         if not self._login_stored_data:
             _LOGGER.warning("Trying to send message before login")
-            return
+            return {}
 
         node_data = {
             "behaviorId": "PREVIEW",
@@ -561,28 +572,15 @@ class AmazonEchoApi:
                     "nodesToExecute": [
                         {
                             "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",  # noqa: E501
-                            "type": "AlexaAnnouncement",
+                            "type": "Alexa.Speak",
                             "operationPayload": {
                                 "deviceType": device.device_type,
                                 "deviceSerialNumber": device.serial_number,
                                 "locale": locale,
-                                "customerId": customer_id,
-                                "expireAfter": "PT5S",
-                                "content": [
-                                    {
-                                        "locale": locale,
-                                        "display": {
-                                            "title": message_title,
-                                            "body": message_body,
-                                        },
-                                        "speak": {
-                                            "type": "text",
-                                            "value": message_body,
-                                        },
-                                    },
-                                ],
+                                "customerId": device.device_owner_customer_id,
+                                "textToSpeak": message_body,
                                 "target": {
-                                    "customerId": customer_id,
+                                    "customerId": device.device_owner_customer_id,
                                     "devices": [
                                         {
                                             "deviceSerialNumber": device.serial_number,
@@ -590,7 +588,7 @@ class AmazonEchoApi:
                                         },
                                     ],
                                 },
-                                "skillId": "amzn1.ask.1p.routines.messaging",
+                                "skillId": "amzn1.ask.1p.saysomething",
                             },
                         },
                     ],
@@ -605,3 +603,5 @@ class AmazonEchoApi:
             f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
             node_data,
         )
+
+        return node_data
