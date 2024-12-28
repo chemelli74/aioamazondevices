@@ -155,6 +155,9 @@ async def main() -> None:
         sys.exit(3)
     print("Session authenticated!")
 
+    device = next(iter(devices.values()))
+    payload = await api.send_announcement(device, "Test message from new library")
+    save_to_file("out/my_aioamazondevices_payload.json", payload)
     await api.close()
 
 
