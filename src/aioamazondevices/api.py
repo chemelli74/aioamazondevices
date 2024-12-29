@@ -242,9 +242,10 @@ class AmazonEchoApi:
 
         headers = DEFAULT_HEADERS
         if "preview" in url and self._csrf_cookie:
-            _LOGGER.debug("Adding <%s> to headers", CSRF_COOKIE)
+            csrf = {CSRF_COOKIE: self._csrf_cookie}
+            _LOGGER.debug("Adding <%s> to headers", csrf)
             cookies = None
-            headers.update({CSRF_COOKIE: self._csrf_cookie})
+            headers.update(csrf)
         else:
             cookies = self._website_cookies
 
@@ -576,37 +577,38 @@ class AmazonEchoApi:
             _LOGGER.warning("Trying to send message before login")
             return {}
 
+        sequence = {
+            "@type": "com.amazon.alexa.behaviors.model.Sequence",
+            "startNode": {
+                "@type": "com.amazon.alexa.behaviors.model.SerialNode",
+                "nodesToExecute": [
+                    {
+                        "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",  # noqa: E501
+                        "type": "Alexa.Speak",
+                        "operationPayload": {
+                            "deviceType": device.device_type,
+                            "deviceSerialNumber": device.serial_number,
+                            "locale": locale,
+                            "customerId": device.device_owner_customer_id,
+                            "textToSpeak": message_body,
+                            "target": {
+                                "customerId": device.device_owner_customer_id,
+                                "devices": [
+                                    {
+                                        "deviceSerialNumber": device.serial_number,
+                                        "deviceTypeId": device.device_type,
+                                    },
+                                ],
+                            },
+                            "skillId": "amzn1.ask.1p.saysomething",
+                        },
+                    },
+                ],
+            },
+        }
         node_data = {
             "behaviorId": "PREVIEW",
-            "sequenceJson": {
-                "@type": "com.amazon.alexa.behaviors.model.Sequence",
-                "startNode": {
-                    "@type": "com.amazon.alexa.behaviors.model.SerialNode",
-                    "nodesToExecute": [
-                        {
-                            "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",  # noqa: E501
-                            "type": "Alexa.Speak",
-                            "operationPayload": {
-                                "deviceType": device.device_type,
-                                "deviceSerialNumber": device.serial_number,
-                                "locale": locale,
-                                "customerId": device.device_owner_customer_id,
-                                "textToSpeak": message_body,
-                                "target": {
-                                    "customerId": device.device_owner_customer_id,
-                                    "devices": [
-                                        {
-                                            "deviceSerialNumber": device.serial_number,
-                                            "deviceTypeId": device.device_type,
-                                        },
-                                    ],
-                                },
-                                "skillId": "amzn1.ask.1p.saysomething",
-                            },
-                        },
-                    ],
-                },
-            },
+            "sequenceJson": orjson.dumps(sequence).decode("utf-8"),
             "status": "ENABLED",
         }
 
