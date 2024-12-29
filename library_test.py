@@ -12,6 +12,7 @@ import orjson
 from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonEchoApi
+from aioamazondevices.const import SAVE_PATH
 from aioamazondevices.exceptions import (
     AmazonError,
     CannotAuthenticate,
@@ -38,7 +39,13 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
     )
     parser.add_argument("--password", "-p", type=str, help="Set Amazon login password")
     parser.add_argument("--otp_code", "-o", type=str, help="Set Amazon OTP code")
-    parser.add_argument("--login_data_file", "-ld", type=str, help="Login data file")
+    parser.add_argument(
+        "--login_data_file",
+        "-ld",
+        type=str,
+        default=f"{SAVE_PATH}/login-data.json",
+        help="Login data file",
+    )
     parser.add_argument(
         "--save_raw_data",
         "-s",
@@ -134,14 +141,14 @@ async def main() -> None:
     print("Login data:", login_data)
     print("-" * 20)
 
-    save_to_file("out/output-login-data.json", login_data)
+    save_to_file(f"{SAVE_PATH}/output-login-data.json", login_data)
 
     print("-" * 20)
     devices = await api.get_devices_data()
     print("Devices:", devices)
     print("-" * 20)
 
-    save_to_file("out/output-devices.json", devices)
+    save_to_file(f"{SAVE_PATH}/output-devices.json", devices)
 
     await api.close()
 
