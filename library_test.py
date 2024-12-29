@@ -116,7 +116,7 @@ async def main() -> None:
 
     try:
         try:
-            if Path(args.login_data_file).exists():
+            if login_data_stored:
                 login_data = await api.login_mode_stored_data()
             else:
                 login_data = await api.login_mode_interactive(
