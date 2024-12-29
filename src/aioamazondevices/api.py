@@ -238,6 +238,16 @@ class AmazonEchoApi:
             input_data,
             json_data,
         )
+        _LOGGER.debug("%s request: %s with payload %s", method, url, input_data)
+
+        headers = DEFAULT_HEADERS
+        if "preview" in url and self._csrf_cookie:
+            _LOGGER.debug("Adding <%s> to headers", CSRF_COOKIE)
+            cookies = None
+            headers.update({CSRF_COOKIE: self._csrf_cookie})
+        else:
+            cookies = self._website_cookies
+
         resp = await self.session.request(
             method,
             url,
