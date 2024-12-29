@@ -25,6 +25,7 @@ DOMAIN_BY_ISO3166_COUNTRY = {
         "domain": "com.br",
     },
 }
+
 # Amazon APP info
 AMAZON_APP_BUNDLE_ID = "com.amazon.echo"
 AMAZON_APP_ID = "MAPiOSLib/6.0/ToHideRetailLink"
