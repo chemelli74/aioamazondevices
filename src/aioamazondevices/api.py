@@ -234,15 +234,20 @@ class AmazonEchoApi:
         """Return request response context data."""
         _LOGGER.debug("%s request: %s with payload %s", method, url, input_data)
 
-        cookies = self._website_cookies
+        headers = DEFAULT_HEADERS
         if "preview" in url and self._csrf_cookie:
-            cookies.update({CSRF_COOKIE: self._csrf_cookie})
+            _LOGGER.debug("Adding <%s> to headers", CSRF_COOKIE)
+            cookies = None
+            headers.update({CSRF_COOKIE: self._csrf_cookie})
+        else:
+            cookies = self._website_cookies
 
         resp = await self.session.request(
             method,
             url,
             data=input_data,
             cookies=cookies,
+            headers=headers,
         )
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
