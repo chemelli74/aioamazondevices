@@ -134,6 +134,7 @@ async def main() -> None:
     except AmazonError:
         await api.close()
         sys.exit(2)
+        sys.exit(2)
 
     print("Logged-in.")
 

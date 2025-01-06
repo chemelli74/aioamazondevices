@@ -621,3 +621,25 @@ class AmazonEchoApi:
         )
 
         return node_data
+
+    async def auth_check_status(self) -> bool:
+        """Check AUTH status."""
+        _, raw_resp = await self._session_request(
+            "GET",
+            f"https://alexa.amazon.{self._domain}/api/bootstrap?version=0",
+        )
+        if raw_resp.status_code != HTTPStatus.OK:
+            _LOGGER.debug(
+                "Session not authenticated: reply error %s",
+                raw_resp.status_code,
+            )
+            return False
+
+        resp_json = raw_resp.json()
+        if not (authentication := resp_json.get("authentication")):
+            _LOGGER.debug('Session not authenticated: reply missing "authentication"')
+            return False
+
+        authenticated = authentication.get("authenticated")
+        _LOGGER.debug("Session authenticated: %s", authenticated)
+        return bool(authenticated)
