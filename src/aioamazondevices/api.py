@@ -465,6 +465,7 @@ class AmazonEchoApi:
         }
 
         register_device = await self._register_device(device_login_data)
+        self._login_stored_data = register_device
 
         _LOGGER.info("Register device: %s", register_device)
         return register_device
@@ -474,7 +475,7 @@ class AmazonEchoApi:
         if not self._login_stored_data:
             _LOGGER.debug(
                 "Cannot find previous login data,\
-                    use login_interactive() method instead",
+                    use login_mode_interactive() method instead",
             )
             raise WrongMethod
 
