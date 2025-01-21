@@ -133,7 +133,7 @@ async def main() -> None:
             raise
     except AmazonError:
         await api.close()
-        sys.exit(1)
+        sys.exit(2)
 
     print("Logged-in.")
 
@@ -150,6 +150,13 @@ async def main() -> None:
 
     save_to_file(f"{SAVE_PATH}/output-devices.json", devices)
 
+    if not (await api.auth_check_status()):
+        print("!!! Error: Session not authenticated !!!")
+        sys.exit(3)
+
+    device = next(iter(devices.values()))
+    payload = await api.send_announcement(device, "Test message from new library")
+    save_to_file("out/my_aioamazondevices_payload.json", payload)
     await api.close()
 
 
