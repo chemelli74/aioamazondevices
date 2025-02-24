@@ -17,7 +17,6 @@ from babel import Locale
 from bs4 import BeautifulSoup, Tag
 from httpx import URL, AsyncClient, Auth, Response
 
-from .auth import Authenticator
 from .const import (
     _LOGGER,
     AMAZON_APP_BUNDLE_ID,
@@ -484,12 +483,7 @@ class AmazonEchoApi:
             self._login_email,
         )
 
-        auth = Authenticator.from_dict(
-            self._login_stored_data,
-            self._domain,
-        )
-        auth.refresh_access_token()
-        self._client_session(auth)
+        self._client_session()
 
         return self._login_stored_data
 
