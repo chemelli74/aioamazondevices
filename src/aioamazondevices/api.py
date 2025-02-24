@@ -492,12 +492,7 @@ class AmazonEchoApi:
             self._login_email,
         )
 
-        auth = Authenticator.from_dict(
-            self._login_stored_data,
-            self._domain,
-        )
-        auth.refresh_access_token()
-        self._client_session(auth)
+        self._client_session()
 
         return self._login_stored_data
 
