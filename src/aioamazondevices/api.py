@@ -15,7 +15,7 @@ from urllib.parse import parse_qs, urlencode
 import orjson
 from babel import Locale
 from bs4 import BeautifulSoup, Tag
-from httpx import URL, AsyncClient, Auth, Response
+from httpx import URL, AsyncClient, Response
 
 from .const import (
     _LOGGER,
@@ -212,7 +212,7 @@ class AmazonEchoApi:
         parsed_url = parse_qs(url.query.decode())
         return parsed_url["openid.oa2.authorization_code"][0]
 
-    def _client_session(self, auth: Auth | None = None) -> None:
+    def _client_session(self) -> None:
         """Create httpx ClientSession."""
         if not hasattr(self, "session") or self.session.is_closed:
             _LOGGER.debug("Creating HTTP ClientSession")
@@ -221,7 +221,6 @@ class AmazonEchoApi:
                 headers=DEFAULT_HEADERS,
                 cookies=self._cookies,
                 follow_redirects=True,
-                auth=auth,
             )
 
     async def _session_request(
