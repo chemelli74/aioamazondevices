@@ -97,7 +97,7 @@ class AmazonEchoApi:
         if not self._login_stored_data:
             return {}
 
-        return cast(dict, self._login_stored_data["website_cookies"])
+        return cast("dict", self._login_stored_data["website_cookies"])
 
     def _serial_number(self) -> str:
         """Get or calculate device serial number."""
@@ -108,7 +108,7 @@ class AmazonEchoApi:
 
         _LOGGER.debug("Found previous login data, loading serial number")
         return cast(
-            str,
+            "str",
             self._login_stored_data["device_info"]["device_serial_number"],
         )
 

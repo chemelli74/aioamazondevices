@@ -92,7 +92,7 @@ def read_from_file(data_file: str) -> dict[str, Any]:
         return {}
 
     with Path.open(file, "rb") as f:
-        return cast(dict[str, Any], json.load(f))
+        return cast("dict[str, Any]", json.load(f))
 
 
 async def main() -> None:
