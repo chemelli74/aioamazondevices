@@ -43,6 +43,7 @@ DEFAULT_HEADERS = {
     "Accept-Language": "en-US",
     "Accept-Encoding": "gzip",
 }
+CSRF_COOKIE = "csrf"
 
 NODE_DEVICES = "devices"
 NODE_DO_NOT_DISTURB = "doNotDisturbDeviceStatusList"
@@ -60,6 +61,7 @@ URI_QUERIES = {
 SAVE_PATH = "out"
 HTML_EXTENSION = ".html"
 JSON_EXTENSION = ".json"
+BIN_EXTENSION = ".bin"
 
 DEVICE_TYPE_TO_MODEL = {
     "A1RABVCI4QCIKC": "Echo Dot (Gen3)",
