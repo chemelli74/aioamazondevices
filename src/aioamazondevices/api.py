@@ -8,14 +8,16 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from http import HTTPStatus
+from http.cookies import SimpleCookie
 from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
+from aiohttp import ClientResponse, ClientSession
 from babel import Locale
 from bs4 import BeautifulSoup, Tag
-from httpx import URL, AsyncClient, Response
+from yarl import URL
 
 from .const import (
     _LOGGER,
@@ -95,14 +97,14 @@ class AmazonEchoApi:
         self._login_stored_data = login_data
         self._serial = self._serial_number()
 
-        self.session: AsyncClient
+        self.session: ClientSession
 
-    def _load_website_cookies(self) -> dict[str, Any]:
+    def _load_website_cookies(self) -> list[SimpleCookie]:
         """Get website cookies, if avaliables."""
         if not self._login_stored_data:
-            return {}
+            return []
 
-        return cast("dict", self._login_stored_data["website_cookies"])
+        return cast("list", self._login_stored_data["website_cookies"])
 
     def _serial_number(self) -> str:
         """Get or calculate device serial number."""
@@ -213,13 +215,12 @@ class AmazonEchoApi:
 
     def _client_session(self) -> None:
         """Create HTTP client session."""
-        if not hasattr(self, "session") or self.session.is_closed:
-            _LOGGER.debug("Creating HTTP session (httpx)")
-            self.session = AsyncClient(
-                base_url=f"https://www.amazon.{self._domain}",
+        if not hasattr(self, "session") or self.session.closed:
+            _LOGGER.debug("Creating HTTP session (aiohttp)")
+            self.session = ClientSession(
                 headers=DEFAULT_HEADERS,
                 cookies=self._cookies,
-                follow_redirects=True,
+                skip_auto_headers=["User-Agent", "Content-Type"],
             )
 
     async def _session_request(
@@ -228,7 +229,7 @@ class AmazonEchoApi:
         url: str,
         input_data: dict[str, Any] | None = None,
         json_data: bool = False,
-    ) -> tuple[BeautifulSoup, Response]:
+    ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
             "%s request: %s with payload %s [json=%s]",
@@ -253,24 +254,25 @@ class AmazonEchoApi:
             method,
             url,
             data=input_data if not json_data else orjson.dumps(input_data),
-            cookies=self._load_website_cookies(),
-            headers=headers,
+            cookies=self._website_cookies,
+            headers={"Content-Type": "application/json"} if json_data else None,
+            allow_redirects=True,
         )
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
             "Response %s for url %s with content type: %s",
-            resp.status_code,
+            resp.status,
             url,
             content_type,
         )
 
         await self._save_to_file(
-            resp.text,
+            await resp.text(),
             url,
             mimetypes.guess_extension(content_type.split(";")[0]) or ".raw",
         )
 
-        return BeautifulSoup(resp.content, "html.parser"), resp
+        return BeautifulSoup(await resp.read(), "html.parser"), resp
 
     async def _save_to_file(
         self,
@@ -364,7 +366,7 @@ class AmazonEchoApi:
         )
         resp_json = resp.json()
 
-        if resp.status_code != HTTPStatus.OK:
+        if resp.status != HTTPStatus.OK:
             _LOGGER.error(
                 "Cannot register device for %s: %s",
                 self._login_email,
@@ -499,8 +501,8 @@ class AmazonEchoApi:
     async def close(self) -> None:
         """Close http client session."""
         if hasattr(self, "session"):
-            _LOGGER.debug("Closing HTTP session (httpx)")
-            await self.session.aclose()
+            _LOGGER.debug("Closing HTTP session (aiohttp)")
+            await self.session.close()
 
     async def get_devices_data(
         self,
@@ -513,10 +515,10 @@ class AmazonEchoApi:
                 url=f"https://alexa.amazon.{self._domain}{URI_QUERIES[key]}",
             )
             _LOGGER.debug("Response URL: %s", raw_resp.url)
-            response_code = raw_resp.status_code
+            response_code = raw_resp.status
             _LOGGER.debug("Response code: |%s|", response_code)
 
-            response_data = raw_resp.text
+            response_data = await raw_resp.text()
             _LOGGER.debug("Response data: |%s|", response_data)
 
             if not self._csrf_cookie:

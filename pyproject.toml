@@ -22,12 +22,13 @@ packages = [
 "Changelog" = "https://github.com/chemelli74/aioamazondevices/blob/main/CHANGELOG.md"
 
 [tool.poetry.dependencies]
+aiohttp = "*"
 python = "^3.12"
 babel = "*"
 beautifulsoup4 = "*"
 colorlog = "*"
-httpx = "*"
 orjson = "*"
+yarl = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1"
