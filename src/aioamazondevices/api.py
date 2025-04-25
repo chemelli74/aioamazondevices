@@ -233,8 +233,9 @@ class AmazonEchoApi:
         )
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
-            "Response %s with content type: %s",
+            "Response %s for url %s with content type: %s",
             resp.status_code,
+            url,
             content_type,
         )
 
@@ -410,7 +411,9 @@ class AmazonEchoApi:
         )
 
         if not login_soup.find("input", id="auth-mfa-otpcode"):
-            _LOGGER.debug('Cannot find "auth-mfa-otpcode" in html source')
+            _LOGGER.debug(
+                'Cannot find "auth-mfa-otpcode" in html source [%s]', login_url
+            )
             raise CannotAuthenticate
 
         login_method, login_url = self._get_request_from_soup(login_soup)
@@ -490,7 +493,7 @@ class AmazonEchoApi:
 
             response_data = raw_resp.text
             _LOGGER.debug("Response data: |%s|", response_data)
-            json_data = {} if len(raw_resp.content) == 0 else raw_resp.json()
+            json_data = {} if len(response_data) == 0 else raw_resp.json()
 
             _LOGGER.debug("JSON data: |%s|", json_data)
 
