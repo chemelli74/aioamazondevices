@@ -207,9 +207,9 @@ class AmazonEchoApi:
         return parsed_url["openid.oa2.authorization_code"][0]
 
     def _client_session(self) -> None:
-        """Create httpx ClientSession."""
+        """Create HTTP client session."""
         if not hasattr(self, "session") or self.session.is_closed:
-            _LOGGER.debug("Creating HTTP ClientSession")
+            _LOGGER.debug("Creating HTTP session (httpx)")
             self.session = AsyncClient(
                 base_url=f"https://www.amazon.{self._domain}",
                 headers=DEFAULT_HEADERS,
@@ -222,14 +222,22 @@ class AmazonEchoApi:
         method: str,
         url: str,
         input_data: dict[str, Any] | None = None,
+        json_data: bool = False,
     ) -> tuple[BeautifulSoup, Response]:
         """Return request response context data."""
-        _LOGGER.debug("%s request: %s with payload %s", method, url, input_data)
+        _LOGGER.debug(
+            "%s request: %s with payload %s [json=%s]",
+            method,
+            url,
+            input_data,
+            json_data,
+        )
         resp = await self.session.request(
             method,
             url,
-            data=input_data,
+            data=input_data if not json_data else orjson.dumps(input_data),
             cookies=self._website_cookies,
+            headers={"Content-Type": "application/json"} if json_data else None,
         )
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
@@ -330,13 +338,12 @@ class AmazonEchoApi:
             ],
         }
 
-        headers = {"Content-Type": "application/json"}
-
         register_url = f"https://api.amazon.{self._domain}/auth/register"
-        resp = await self.session.post(
+        _, resp = await self._session_request(
+            "POST",
             register_url,
-            json=body,
-            headers=headers,
+            input_data=body,
+            json_data=True,
         )
         resp_json = resp.json()
 
@@ -472,9 +479,9 @@ class AmazonEchoApi:
         return self._login_stored_data
 
     async def close(self) -> None:
-        """Close httpx session."""
+        """Close http client session."""
         if hasattr(self, "session"):
-            _LOGGER.debug("Closing httpx session")
+            _LOGGER.debug("Closing HTTP session (httpx)")
             await self.session.aclose()
 
     async def get_devices_data(
