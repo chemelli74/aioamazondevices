@@ -1,5 +1,49 @@
 # Changelog
 
+## v1.1.0 (2025-04-25)
+
+### Features
+
+- Replace session.post with _session_request (#149) ([`55aa4eb`](https://github.com/chemelli74/aioamazondevices/commit/55aa4eb29123dd98bc5facc8d7d097bf6bc9bdfc))
+
+
+### Build system
+
+- Bump h11 from 0.14.0 to 0.16.0 (#147) ([`e3b90e1`](https://github.com/chemelli74/aioamazondevices/commit/e3b90e10bcd654f47dee7cc81596fdce9ac095d6))
+- Improve environment (#146) ([`718dd03`](https://github.com/chemelli74/aioamazondevices/commit/718dd03c258864335ead34cec080228773e87f25))
+- Bump rsa from 4.9 to 4.9.1 (#144) ([`4d7ed78`](https://github.com/chemelli74/aioamazondevices/commit/4d7ed78e46f149897ee179b582df02b277ca35d8))
+- Bump beautifulsoup4 from 4.13.3 to 4.13.4 (#143) ([`23a15c9`](https://github.com/chemelli74/aioamazondevices/commit/23a15c9891e35867b18ce10acd8e4dc963387980))
+- Bump pytest-cov from 6.0.0 to 6.1.1 (#139) ([`0c5e05c`](https://github.com/chemelli74/aioamazondevices/commit/0c5e05c9e741742bda06694c46ad68590118de6c))
+- Bump orjson from 3.10.15 to 3.10.16 (#137) ([`5d5aeec`](https://github.com/chemelli74/aioamazondevices/commit/5d5aeecacd6133b2fcbb0bfddce9f0e6426ba89c))
+- Ruff rules update (#133) ([`62f92fb`](https://github.com/chemelli74/aioamazondevices/commit/62f92fb86bd9599dda0652d5fcda67ab11a3e3ef))
+- Bump pytest from 8.3.4 to 8.3.5 (#129) ([`99264b6`](https://github.com/chemelli74/aioamazondevices/commit/99264b6ef309e7b314cafe0b6c4cd96ef7ee02bd))
+- Bump python-semantic-release/python-semantic-release from 9.20.0 to 9.21.0 (#127) ([`fcae1ba`](https://github.com/chemelli74/aioamazondevices/commit/fcae1ba30692c5b5dd0236464eeaca240123e81f))
+- Bump python-semantic-release/python-semantic-release from 9.19.1 to 9.20.0 (#125) ([`6c8fe74`](https://github.com/chemelli74/aioamazondevices/commit/6c8fe749c83e0642f46de9538df49768c9b23ca1))
+- Bump python-semantic-release/python-semantic-release from 9.19.0 to 9.19.1 (#124) ([`b7034ee`](https://github.com/chemelli74/aioamazondevices/commit/b7034ee8baba22aaf0ed23f16ba4f17de6fcda2c))
+- Bump python-semantic-release/python-semantic-release from 9.18.0 to 9.19.0 (#122) ([`d36c277`](https://github.com/chemelli74/aioamazondevices/commit/d36c2771227d9e07d5286dfe064271bc0732fc79))
+- Bump beautifulsoup4 from 4.13.0 to 4.13.3 (#121) ([`483ae44`](https://github.com/chemelli74/aioamazondevices/commit/483ae446f913ce7d1e07f934cda20190697fad44))
+- Bump python-semantic-release/python-semantic-release from 9.17.0 to 9.18.0 (#119) ([`2f18c9a`](https://github.com/chemelli74/aioamazondevices/commit/2f18c9acf3798835645ade2dbd949c05bbff650d))
+- Bump beautifulsoup4 from 4.12.3 to 4.13.0 (#117) ([`04e3c8c`](https://github.com/chemelli74/aioamazondevices/commit/04e3c8c33853702e14540717559191bf1aba8974))
+- Bump python-semantic-release/python-semantic-release from 9.16.1 to 9.17.0 (#115) ([`e5f147c`](https://github.com/chemelli74/aioamazondevices/commit/e5f147cd50d4e0c072b034124a974249d7723dcd))
+- Bump orjson from 3.10.14 to 3.10.15 (#113) ([`fd3c424`](https://github.com/chemelli74/aioamazondevices/commit/fd3c424999e0b634dec72d927befe2881d6b95b2))
+- Bump wagoid/commitlint-github-action from 6.2.0 to 6.2.1 (#112) ([`43cc69a`](https://github.com/chemelli74/aioamazondevices/commit/43cc69ad50e163d99bbe3cdb61ecff08ec870c0b))
+- Bump python-semantic-release/python-semantic-release from 9.15.2 to 9.16.1 (#110) ([`799a6a4`](https://github.com/chemelli74/aioamazondevices/commit/799a6a4ec773fd4ac045029fb45e1af6d83f25da))
+- Bump orjson from 3.10.13 to 3.10.14 (#111) ([`e721a89`](https://github.com/chemelli74/aioamazondevices/commit/e721a8996c0a967791376a54f9b309302e4b4b7c))
+- Bump orjson from 3.10.12 to 3.10.13 (#108) ([`42c4703`](https://github.com/chemelli74/aioamazondevices/commit/42c4703f524a4b86829a478cc96dc2c3bc1c1cc1))
+- Bump wagoid/commitlint-github-action from 6.1.2 to 6.2.0 (#105) ([`9d976f0`](https://github.com/chemelli74/aioamazondevices/commit/9d976f00a1df3bf5484d7f3a35244732cbcc4571))
+- Bump python-semantic-release/python-semantic-release from 9.15.1 to 9.15.2 (#103) ([`312f6a0`](https://github.com/chemelli74/aioamazondevices/commit/312f6a08415274eabf1649d123d53ef4441eb064))
+
+
+### Refactoring
+
+- Removed unneeded auth (#134) ([`e90e87d`](https://github.com/chemelli74/aioamazondevices/commit/e90e87d8e8c37ccf0b6017dad838a71529a65b4b))
+
+
+### Testing
+
+- Fix library_test args (#107) ([`a317ee0`](https://github.com/chemelli74/aioamazondevices/commit/a317ee0b44a8c13493c845172a1346b2b870be65))
+
+
 ## v1.0.0 (2024-12-09)
 
 ### Bug fixes
@@ -275,4 +319,3 @@
 - Bump pytest from 7.4.4 to 8.1.1 ([`9e12952`](https://github.com/chemelli74/aioamazondevices/commit/9e12952a785f269437d33f65eba0481481a3d075))
 - Mypy and prettier fixes ([`e9a1903`](https://github.com/chemelli74/aioamazondevices/commit/e9a1903d9cace7984b264dad44586f4b4bb53e46))
 - Configure base tools ([`ff0481b`](https://github.com/chemelli74/aioamazondevices/commit/ff0481be810f5c7a10265ad86e7299d6d023b727))
-
