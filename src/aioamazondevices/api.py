@@ -340,8 +340,8 @@ class AmazonEchoApi:
 
         register_url = f"https://api.amazon.{self._domain}/auth/register"
         _, resp = await self._session_request(
-            "POST",
-            register_url,
+            method="POST",
+            url=register_url,
             input_data=body,
             json_data=True,
         )
@@ -404,7 +404,7 @@ class AmazonEchoApi:
         _LOGGER.debug("Build oauth URL")
         login_url = self._build_oauth_url(code_verifier, client_id)
 
-        login_soup, _ = await self._session_request("GET", login_url)
+        login_soup, _ = await self._session_request(method="GET", url=login_url)
         login_method, login_url = self._get_request_from_soup(login_soup)
         login_inputs = self._get_inputs_from_soup(login_soup)
         login_inputs["email"] = self._login_email
@@ -412,9 +412,9 @@ class AmazonEchoApi:
 
         _LOGGER.debug("Register at %s", login_url)
         login_soup, _ = await self._session_request(
-            login_method,
-            login_url,
-            login_inputs,
+            method=login_method,
+            url=login_url,
+            input_data=login_inputs,
         )
 
         if not login_soup.find("input", id="auth-mfa-otpcode"):
@@ -431,9 +431,9 @@ class AmazonEchoApi:
         login_inputs["rememberDevice"] = "false"
 
         login_soup, login_resp = await self._session_request(
-            login_method,
-            login_url,
-            login_inputs,
+            method=login_method,
+            url=login_url,
+            input_data=login_inputs,
         )
 
         authcode_url = None
@@ -491,8 +491,8 @@ class AmazonEchoApi:
         devices: dict[str, Any] = {}
         for key in URI_QUERIES:
             _, raw_resp = await self._session_request(
-                "GET",
-                f"https://alexa.amazon.{self._domain}{URI_QUERIES[key]}",
+                method="GET",
+                url=f"https://alexa.amazon.{self._domain}{URI_QUERIES[key]}",
             )
             _LOGGER.debug("Response URL: %s", raw_resp.url)
             response_code = raw_resp.status_code
