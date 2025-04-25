@@ -1,5 +1,6 @@
 target-version = "py312"
 
+lint.logger-objects = ["aioamazondevices.const._LOGGER"]
 lint.select = ["ALL"]
 
 lint.ignore = [
