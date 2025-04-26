@@ -94,7 +94,6 @@ class AmazonEchoApi:
         self._save_raw_data = save_raw_data
         self._login_stored_data = login_data
         self._serial = self._serial_number()
-        self._website_cookies: dict[str, Any] = self._load_website_cookies()
 
         self.session: AsyncClient
 
@@ -240,20 +239,22 @@ class AmazonEchoApi:
         )
 
         headers = DEFAULT_HEADERS
-        if "preview" in url and self._csrf_cookie:
+        if self._csrf_cookie and CSRF_COOKIE not in headers:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
             _LOGGER.debug("Adding <%s> to headers", csrf)
-            cookies = None
             headers.update(csrf)
-        else:
-            cookies = self._website_cookies
+
+        if json_data:
+            json_header = {"Content-Type": "application/json"}
+            _LOGGER.debug("Adding %s to headers", json_header)
+            headers.update(json_header)
 
         resp = await self.session.request(
             method,
             url,
             data=input_data if not json_data else orjson.dumps(input_data),
-            cookies=cookies,
-            headers={"Content-Type": "application/json"} if json_data else None,
+            cookies=self._load_website_cookies(),
+            headers=headers,
         )
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
@@ -631,9 +632,10 @@ class AmazonEchoApi:
 
         _LOGGER.debug("Preview data payload: %s", node_data)
         await self._session_request(
-            "POST",
-            f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
-            node_data,
+            method="POST",
+            url=f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
+            input_data=node_data,
+            json_data=True,
         )
 
         return node_data
