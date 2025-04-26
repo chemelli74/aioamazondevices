@@ -568,14 +568,14 @@ class AmazonEchoApi:
             method="GET",
             url=f"https://alexa.amazon.{self._domain}/api/bootstrap?version=0",
         )
-        if raw_resp.status_code != HTTPStatus.OK:
+        if raw_resp.status != HTTPStatus.OK:
             _LOGGER.debug(
                 "Session not authenticated: reply error %s",
-                raw_resp.status_code,
+                raw_resp.status,
             )
             return False
 
-        resp_json = raw_resp.json()
+        resp_json = await raw_resp.json()
         if not (authentication := resp_json.get("authentication")):
             _LOGGER.debug('Session not authenticated: reply missing "authentication"')
             return False
