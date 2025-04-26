@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aioamazondevices"
-version = "1.1.0"
+version = "1.2.0"
 description = "Python library to control Amazon devices"
 authors = ["Simone Chemelli <simone.chemelli@gmail.com>"]
 license = "Apache-2.0"

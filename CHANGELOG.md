@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.2.0 (2025-04-26)
+
+### Features
+
+- Add session auth status (#152) ([`d91cc50`](https://github.com/chemelli74/aioamazondevices/commit/d91cc5034d4be05931420bacbe433e85c4f67491))
+
+
+### Unknown
+
 ## v1.1.0 (2025-04-25)
 
 ### Features
