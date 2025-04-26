@@ -465,7 +465,7 @@ class AmazonEchoApi:
         if not self._login_stored_data:
             _LOGGER.debug(
                 "Cannot find previous login data,\
-                    use login_interactive() method instead",
+                    use login_mode_interactive() method instead",
             )
             raise WrongMethod
 
@@ -536,3 +536,25 @@ class AmazonEchoApi:
             )
 
         return final_devices_list
+
+    async def auth_check_status(self) -> bool:
+        """Check AUTH status."""
+        _, raw_resp = await self._session_request(
+            method="GET",
+            url=f"https://alexa.amazon.{self._domain}/api/bootstrap?version=0",
+        )
+        if raw_resp.status_code != HTTPStatus.OK:
+            _LOGGER.debug(
+                "Session not authenticated: reply error %s",
+                raw_resp.status_code,
+            )
+            return False
+
+        resp_json = raw_resp.json()
+        if not (authentication := resp_json.get("authentication")):
+            _LOGGER.debug('Session not authenticated: reply missing "authentication"')
+            return False
+
+        authenticated = authentication.get("authenticated")
+        _LOGGER.debug("Session authenticated: %s", authenticated)
+        return bool(authenticated)
