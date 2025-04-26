@@ -253,7 +253,7 @@ class AmazonEchoApi:
             method,
             url,
             data=input_data if not json_data else orjson.dumps(input_data),
-            cookies=self._website_cookies,
+            cookies=cookies,
             headers={"Content-Type": "application/json"} if json_data else None,
         )
         content_type: str = resp.headers.get("Content-Type", "")
@@ -522,7 +522,7 @@ class AmazonEchoApi:
             if not self._csrf_cookie:
                 self._csrf_cookie = raw_resp.cookies.get(CSRF_COOKIE)
 
-            json_data = {} if len(raw_resp.content) == 0 else raw_resp.json()
+            json_data = {} if len(response_data) == 0 else raw_resp.json()
 
             _LOGGER.debug("JSON data: |%s|", json_data)
 
