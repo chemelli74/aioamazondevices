@@ -238,7 +238,6 @@ class AmazonEchoApi:
             input_data,
             json_data,
         )
-        _LOGGER.debug("%s request: %s with payload %s", method, url, input_data)
 
         headers = DEFAULT_HEADERS
         if "preview" in url and self._csrf_cookie:
@@ -563,8 +562,8 @@ class AmazonEchoApi:
     async def auth_check_status(self) -> bool:
         """Check AUTH status."""
         _, raw_resp = await self._session_request(
-            "GET",
-            f"https://alexa.amazon.{self._domain}/api/bootstrap?version=0",
+            method="GET",
+            url=f"https://alexa.amazon.{self._domain}/api/bootstrap?version=0",
         )
         if raw_resp.status_code != HTTPStatus.OK:
             _LOGGER.debug(

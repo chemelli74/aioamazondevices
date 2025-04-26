@@ -134,7 +134,6 @@ async def main() -> None:
     except AmazonError:
         await api.close()
         sys.exit(2)
-        sys.exit(2)
 
     print("Logged-in.")
 
@@ -159,6 +158,7 @@ async def main() -> None:
     device = next(iter(devices.values()))
     payload = await api.send_announcement(device, "Test message from new library")
     save_to_file("out/my_aioamazondevices_payload.json", payload)
+
     await api.close()
 
 
