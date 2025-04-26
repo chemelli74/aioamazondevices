@@ -41,12 +41,22 @@ Install this via pip (or your favourite package manager):
 
 `pip install aioamazondevices`
 
-## Usage
+## Test
 
-Start by importing it:
+Test the library with:
 
-```python
-import aioamazondevices
+`python library_test.py`
+
+The script accept command line arguments or a library_test.json config file:
+
+```json
+{
+  "country": "IT",
+  "email": "<my_address@gmail.com>",
+  "password": "<my_password>",
+  "login_data_file": "out/login_data.json",
+  "save_raw_data": "True"
+}
 ```
 
 ## Contributors ✨
