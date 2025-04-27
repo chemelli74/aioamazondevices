@@ -50,7 +50,7 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         "--device_name",
         "-dn",
         type=str,
-        help="Device name for sending messages",
+        help="Device name to send messages to",
     )
     parser.add_argument(
         "--save_raw_data",
