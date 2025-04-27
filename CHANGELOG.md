@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.3.0 (2025-04-27)
+
+### Features
+
+- Add call_alexa_speak() method (#98) ([`1e83769`](https://github.com/chemelli74/aioamazondevices/commit/1e8376985d6ee9e5ad6624c06be1ea412ca57ef2))
+
+
 ## v1.2.0 (2025-04-26)
 
 ### Features
