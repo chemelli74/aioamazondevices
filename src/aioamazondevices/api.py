@@ -13,6 +13,7 @@ from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
+from babel import Locale
 from bs4 import BeautifulSoup, Tag
 from httpx import URL, AsyncClient, Response
 
@@ -25,6 +26,8 @@ from .const import (
     AMAZON_CLIENT_OS,
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
+    BIN_EXTENSION,
+    CSRF_COOKIE,
     DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
     DOMAIN_BY_ISO3166_COUNTRY,
@@ -48,6 +51,7 @@ class AmazonDevice:
     capabilities: list[str]
     device_family: str
     device_type: str
+    device_owner_customer_id: str
     online: bool
     serial_number: str
     software_version: str
@@ -82,13 +86,14 @@ class AmazonEchoApi:
 
         self._login_email = login_email
         self._login_password = login_password
+        self._login_country_code = country_code
         self._domain = domain
         self._cookies = self._build_init_cookies()
+        self._csrf_cookie: str | None = None
         self._headers = DEFAULT_HEADERS
         self._save_raw_data = save_raw_data
         self._login_stored_data = login_data
         self._serial = self._serial_number()
-        self._website_cookies: dict[str, Any] = self._load_website_cookies()
 
         self.session: AsyncClient
 
@@ -232,12 +237,24 @@ class AmazonEchoApi:
             input_data,
             json_data,
         )
+
+        headers = DEFAULT_HEADERS
+        if self._csrf_cookie and CSRF_COOKIE not in headers:
+            csrf = {CSRF_COOKIE: self._csrf_cookie}
+            _LOGGER.debug("Adding <%s> to headers", csrf)
+            headers.update(csrf)
+
+        if json_data:
+            json_header = {"Content-Type": "application/json"}
+            _LOGGER.debug("Adding %s to headers", json_header)
+            headers.update(json_header)
+
         resp = await self.session.request(
             method,
             url,
             data=input_data if not json_data else orjson.dumps(input_data),
-            cookies=self._website_cookies,
-            headers={"Content-Type": "application/json"} if json_data else None,
+            cookies=self._load_website_cookies(),
+            headers=headers,
         )
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
@@ -278,7 +295,7 @@ class AmazonEchoApi:
 
         if type(raw_data) is dict:
             data = orjson.dumps(raw_data, option=orjson.OPT_INDENT_2).decode("utf-8")
-        elif extension == HTML_EXTENSION:
+        elif extension in [HTML_EXTENSION, BIN_EXTENSION]:
             data = raw_data
         else:
             data = orjson.dumps(
@@ -456,6 +473,7 @@ class AmazonEchoApi:
         }
 
         register_device = await self._register_device(device_login_data)
+        self._login_stored_data = register_device
 
         _LOGGER.info("Register device: %s", register_device)
         return register_device
@@ -496,10 +514,14 @@ class AmazonEchoApi:
             )
             _LOGGER.debug("Response URL: %s", raw_resp.url)
             response_code = raw_resp.status_code
-            _LOGGER.debug("Response code: %s", response_code)
+            _LOGGER.debug("Response code: |%s|", response_code)
 
             response_data = raw_resp.text
             _LOGGER.debug("Response data: |%s|", response_data)
+
+            if not self._csrf_cookie:
+                self._csrf_cookie = raw_resp.cookies.get(CSRF_COOKIE)
+
             json_data = {} if len(response_data) == 0 else raw_resp.json()
 
             _LOGGER.debug("JSON data: |%s|", json_data)
@@ -527,6 +549,7 @@ class AmazonEchoApi:
                 capabilities=device[NODE_DEVICES]["capabilities"],
                 device_family=device[NODE_DEVICES]["deviceFamily"],
                 device_type=device[NODE_DEVICES]["deviceType"],
+                device_owner_customer_id=device[NODE_DEVICES]["deviceOwnerCustomerId"],
                 online=device[NODE_DEVICES]["online"],
                 serial_number=serial_number,
                 software_version=device[NODE_DEVICES]["softwareVersion"],
@@ -558,3 +581,61 @@ class AmazonEchoApi:
         authenticated = authentication.get("authenticated")
         _LOGGER.debug("Session authenticated: %s", authenticated)
         return bool(authenticated)
+
+    async def call_alexa_speak(
+        self,
+        device: AmazonDevice,
+        message_body: str,
+    ) -> dict[str, Any]:
+        """Call Alexa.Speak to send a message."""
+        locale_data = Locale.parse(f"und_{self._login_country_code}")
+        locale = f"{locale_data.language}-{locale_data.language}"
+
+        if not self._login_stored_data:
+            _LOGGER.warning("Trying to send message before login")
+            return {}
+
+        sequence = {
+            "@type": "com.amazon.alexa.behaviors.model.Sequence",
+            "startNode": {
+                "@type": "com.amazon.alexa.behaviors.model.SerialNode",
+                "nodesToExecute": [
+                    {
+                        "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",  # noqa: E501
+                        "type": "Alexa.Speak",
+                        "operationPayload": {
+                            "deviceType": device.device_type,
+                            "deviceSerialNumber": device.serial_number,
+                            "locale": locale,
+                            "customerId": device.device_owner_customer_id,
+                            "textToSpeak": message_body,
+                            "target": {
+                                "customerId": device.device_owner_customer_id,
+                                "devices": [
+                                    {
+                                        "deviceSerialNumber": device.serial_number,
+                                        "deviceTypeId": device.device_type,
+                                    },
+                                ],
+                            },
+                            "skillId": "amzn1.ask.1p.saysomething",
+                        },
+                    },
+                ],
+            },
+        }
+        node_data = {
+            "behaviorId": "PREVIEW",
+            "sequenceJson": orjson.dumps(sequence).decode("utf-8"),
+            "status": "ENABLED",
+        }
+
+        _LOGGER.debug("Preview data payload: %s", node_data)
+        await self._session_request(
+            method="POST",
+            url=f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
+            input_data=node_data,
+            json_data=True,
+        )
+
+        return node_data

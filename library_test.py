@@ -47,6 +47,12 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         help="Login data file",
     )
     parser.add_argument(
+        "--device_name",
+        "-dn",
+        type=str,
+        help="Device name to send messages to",
+    )
+    parser.add_argument(
         "--save_raw_data",
         "-s",
         type=str,
@@ -154,6 +160,16 @@ async def main() -> None:
         print("!!! Error: Session not authenticated !!!")
         sys.exit(3)
     print("Session authenticated!")
+
+    if args.device_name:
+        device = next(
+            dev for dev in devices.values() if dev.account_name == args.device_name
+        )
+    else:
+        device = next(iter(devices.values()))
+    print("Sending message to:", device.account_name)
+    payload = await api.call_alexa_speak(device, "Test message from new library")
+    save_to_file("out/my_aioamazondevices_payload.json", payload)
 
     await api.close()
 
