@@ -50,7 +50,7 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         "--device_name",
         "-dn",
         type=str,
-        help="Device name for announcement",
+        help="Device name for sending messages",
     )
     parser.add_argument(
         "--save_raw_data",
@@ -167,7 +167,7 @@ async def main() -> None:
         )
     else:
         device = next(iter(devices.values()))
-    print("Sending announcement to:", device.account_name)
+    print("Sending message to:", device.account_name)
     payload = await api.call_alexa_speak(device, "Test message from new library")
     save_to_file("out/my_aioamazondevices_payload.json", payload)
 
