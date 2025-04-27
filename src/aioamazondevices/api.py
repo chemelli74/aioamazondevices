@@ -254,8 +254,8 @@ class AmazonEchoApi:
             method,
             url,
             data=input_data if not json_data else orjson.dumps(input_data),
-            cookies=self._website_cookies,
-            headers={"Content-Type": "application/json"} if json_data else None,
+            cookies=self._load_website_cookies(),
+            headers=headers,
             allow_redirects=True,
         )
         content_type: str = resp.headers.get("Content-Type", "")
