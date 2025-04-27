@@ -582,12 +582,12 @@ class AmazonEchoApi:
         _LOGGER.debug("Session authenticated: %s", authenticated)
         return bool(authenticated)
 
-    async def send_announcement(
+    async def call_alexa_speak(
         self,
         device: AmazonDevice,
         message_body: str,
     ) -> dict[str, Any]:
-        """Test send msg."""
+        """Call Alexa.Speak to send a message."""
         locale_data = Locale.parse(f"und_{self._login_country_code}")
         locale = f"{locale_data.language}-{locale_data.language}"
 

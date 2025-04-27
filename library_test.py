@@ -168,7 +168,7 @@ async def main() -> None:
     else:
         device = next(iter(devices.values()))
     print("Sending announcement to:", device.account_name)
-    payload = await api.send_announcement(device, "Test message from new library")
+    payload = await api.call_alexa_speak(device, "Test message from new library")
     save_to_file("out/my_aioamazondevices_payload.json", payload)
 
     await api.close()
