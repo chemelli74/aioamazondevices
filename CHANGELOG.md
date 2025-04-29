@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.4.0 (2025-04-29)
+
+### Features
+
+- Move from httpx to aiohttp (#151) ([`7471c2b`](https://github.com/chemelli74/aioamazondevices/commit/7471c2b1a25726be2b3b23f1a109115f27a36ec8))
+
+
+### Build system
+
+- Cleanup after #134 (#154) ([`c7bc2dd`](https://github.com/chemelli74/aioamazondevices/commit/c7bc2dd846052559dfab1272d2941608885040f8))
+
+
 ## v1.3.0 (2025-04-27)
 
 ### Features
