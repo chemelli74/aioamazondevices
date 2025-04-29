@@ -521,13 +521,7 @@ class AmazonEchoApi:
             _LOGGER.debug("Response data: |%s|", response_data)
 
             if not self._csrf_cookie:
-                cookies = self.session.cookie_jar.filter_cookies(
-                    f"http://www.amazon.{self._domain}"
-                )
-                csrf_cookie = next(
-                    cookie for _, cookie in cookies.items() if cookie.key == CSRF_COOKIE
-                )
-                self._csrf_cookie = csrf_cookie.value
+                self._csrf_cookie = raw_resp.cookies.get(CSRF_COOKIE).value
 
             json_data = {} if len(response_data) == 0 else await raw_resp.json()
 
