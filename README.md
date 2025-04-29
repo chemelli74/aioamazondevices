@@ -54,7 +54,8 @@ The script accept command line arguments or a library_test.json config file:
   "country": "IT",
   "email": "<my_address@gmail.com>",
   "password": "<my_password>",
-  "device_name": "Echo Dot Livingroom",
+  "device_name_speak": "Echo Dot Livingroom",
+  "device_name_announcement": "Everywhere",
   "login_data_file": "out/login_data.json",
   "save_raw_data": "True"
 }

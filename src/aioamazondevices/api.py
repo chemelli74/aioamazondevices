@@ -588,18 +588,64 @@ class AmazonEchoApi:
         _LOGGER.debug("Session authenticated: %s", authenticated)
         return bool(authenticated)
 
-    async def call_alexa_speak(
-        self,
-        device: AmazonDevice,
-        message_body: str,
-    ) -> dict[str, Any]:
-        """Call Alexa.Speak to send a message."""
+    async def _send_message(
+        self, device: AmazonDevice, message_type: str, message_body: str
+    ) -> None:
+        """Define sequence part of the payload."""
         locale_data = Locale.parse(f"und_{self._login_country_code}")
         locale = f"{locale_data.language}-{locale_data.language}"
 
         if not self._login_stored_data:
             _LOGGER.warning("Trying to send message before login")
-            return {}
+            return
+
+        if message_type == "Alexa.Speak":
+            payload = {
+                "deviceType": device.device_type,
+                "deviceSerialNumber": device.serial_number,
+                "locale": locale,
+                "customerId": device.device_owner_customer_id,
+                "textToSpeak": message_body,
+                "target": {
+                    "customerId": device.device_owner_customer_id,
+                    "devices": [
+                        {
+                            "deviceSerialNumber": device.serial_number,
+                            "deviceTypeId": device.device_type,
+                        },
+                    ],
+                },
+                "skillId": "amzn1.ask.1p.saysomething",
+            }
+        else:
+            payload = {
+                "deviceType": device.device_type,
+                "deviceSerialNumber": device.serial_number,
+                "locale": locale,
+                "customerId": device.device_owner_customer_id,
+                "expireAfter": "PT5S",
+                "content": {
+                    "locale": locale,
+                    "display": {
+                        "title": "Home Assistant",
+                        "body": message_body,
+                    },
+                    "speak": {
+                        "type": "text",
+                        "value": message_body,
+                    },
+                },
+                "target": {
+                    "customerId": device.device_owner_customer_id,
+                    "devices": [
+                        {
+                            "deviceSerialNumber": device.serial_number,
+                            "deviceTypeId": device.device_type,
+                        },
+                    ],
+                },
+                "skillId": "amzn1.ask.1p.routines.messaging",
+            }
 
         sequence = {
             "@type": "com.amazon.alexa.behaviors.model.Sequence",
@@ -608,28 +654,13 @@ class AmazonEchoApi:
                 "nodesToExecute": [
                     {
                         "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",  # noqa: E501
-                        "type": "Alexa.Speak",
-                        "operationPayload": {
-                            "deviceType": device.device_type,
-                            "deviceSerialNumber": device.serial_number,
-                            "locale": locale,
-                            "customerId": device.device_owner_customer_id,
-                            "textToSpeak": message_body,
-                            "target": {
-                                "customerId": device.device_owner_customer_id,
-                                "devices": [
-                                    {
-                                        "deviceSerialNumber": device.serial_number,
-                                        "deviceTypeId": device.device_type,
-                                    },
-                                ],
-                            },
-                            "skillId": "amzn1.ask.1p.saysomething",
-                        },
+                        "type": message_type,
+                        "operationPayload": payload,
                     },
                 ],
             },
         }
+
         node_data = {
             "behaviorId": "PREVIEW",
             "sequenceJson": orjson.dumps(sequence).decode("utf-8"),
@@ -644,4 +675,20 @@ class AmazonEchoApi:
             json_data=True,
         )
 
-        return node_data
+        return
+
+    async def call_alexa_speak(
+        self,
+        device: AmazonDevice,
+        message_body: str,
+    ) -> None:
+        """Call Alexa.Speak to send a message."""
+        return await self._send_message(device, "Alexa.Speak", message_body)
+
+    async def call_alexa_announcement(
+        self,
+        device: AmazonDevice,
+        message_body: str,
+    ) -> None:
+        """Call AlexaAnnouncement to send a message."""
+        return await self._send_message(device, "AlexaAnnouncement", message_body)

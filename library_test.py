@@ -47,10 +47,16 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         help="Login data file",
     )
     parser.add_argument(
-        "--device_name",
-        "-dn",
+        "--device_name_speak",
+        "-dns",
         type=str,
-        help="Device name to send messages to",
+        help="Device name to send message via 'Alexa.Speak'",
+    )
+    parser.add_argument(
+        "--device_name_announcement",
+        "-dna",
+        type=str,
+        help="Device name to send message via 'AlexaAnnouncement'",
     )
     parser.add_argument(
         "--save_raw_data",
@@ -161,15 +167,29 @@ async def main() -> None:
         sys.exit(3)
     print("Session authenticated!")
 
-    if args.device_name:
+    if args.device_name_speak:
         device = next(
-            dev for dev in devices.values() if dev.account_name == args.device_name
+            dev
+            for dev in devices.values()
+            if dev.account_name == args.device_name_speak
         )
     else:
         device = next(iter(devices.values()))
-    print("Sending message to:", device.account_name)
-    payload = await api.call_alexa_speak(device, "Test message from new library")
-    save_to_file("out/my_aioamazondevices_payload.json", payload)
+    print("Sending message via 'Alexa.Speak' to:", device.account_name)
+    await api.call_alexa_speak(device, "Test Speak message from new library")
+
+    if args.device_name_announcement:
+        device = next(
+            dev
+            for dev in devices.values()
+            if dev.account_name == args.device_name_announcement
+        )
+    else:
+        device = next(iter(devices.values()))
+    print("Sending message via 'AlexaAnnouncement' to:", device.account_name)
+    await api.call_alexa_announcement(
+        device, "Test Announcement message from new library"
+    )
 
     await api.close()
 
