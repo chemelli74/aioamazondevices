@@ -74,4 +74,6 @@ DEVICE_TYPE_TO_MODEL = {
     "A3S5BH2HU6VAYF": "Echo Dot (Gen2)",
     "A4ZXE0RM7LQ7A": "Echo Dot (Gen5)",
     "AKNO1N0KSFN8L": "Echo Dot (Gen1)",
+    "A3C9PE6TNYLTCH": "Speaker Group",
+    "A1Q6UGEXJZWJQ0": "Fire TV Stick 4K",
 }
