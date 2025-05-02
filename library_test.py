@@ -186,6 +186,12 @@ async def main() -> None:
         )
     else:
         device = next(iter(devices.values()))
+
+    # Wait Alexa.Speak finishes before proceeding
+    sleep = 4
+    print("Waiting for %ss before next test", sleep)
+    await asyncio.sleep(sleep)
+
     print("Sending message via 'AlexaAnnouncement' to:", device.account_name)
     await api.call_alexa_announcement(
         device, "Test Announcement message from new library"
