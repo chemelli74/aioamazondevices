@@ -312,7 +312,7 @@ class AmazonEchoApi:
 
         _LOGGER.warning("Saving data to %s", fullpath)
 
-        with Path.open(fullpath, "w+") as file:
+        with Path.open(fullpath, mode="w", encoding="utf-8") as file:
             file.write(data)
             file.write("\n")
 
