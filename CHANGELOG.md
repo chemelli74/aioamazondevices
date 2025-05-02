@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.4.1 (2025-05-02)
+
+### Bug fixes
+
+- Force file encoding for windows compatibility (#159) ([`e0b952c`](https://github.com/chemelli74/aioamazondevices/commit/e0b952c62c0c8e8383999c29ec4a285771460c2b))
+
+
+### Build system
+
+- Add more files to cleanup script (#158) ([`9895f4a`](https://github.com/chemelli74/aioamazondevices/commit/9895f4a5aa5c86906c00dfeef862ec410fb69ecd))
+- Cleanup script (#156) ([`1b5c22f`](https://github.com/chemelli74/aioamazondevices/commit/1b5c22f8669a218cc64074f1f747de1476433b7b))
+
+
 ## v1.4.0 (2025-04-29)
 
 ### Features
