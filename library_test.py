@@ -83,7 +83,7 @@ def save_to_file(filename: str, data_dict: dict[str, Any]) -> None:
         data_dict,
         option=orjson.OPT_INDENT_2,
     ).decode("utf-8")
-    with Path.open(Path(filename), "w+") as file:
+    with Path.open(Path(filename), mode="w", encoding="utf-8") as file:
         file.write(data_json)
         file.write("\n")
 
