@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.4.2 (2025-05-03)
+
+### Bug fixes
+
+- Improve aiohttp support (#161) ([`8ffdc7f`](https://github.com/chemelli74/aioamazondevices/commit/8ffdc7f746848db15fd3affcdca68a04bc196db3))
+
+
 ## v1.4.1 (2025-05-02)
 
 ### Bug fixes
