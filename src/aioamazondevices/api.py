@@ -8,7 +8,6 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from http import HTTPStatus
-from http.cookies import SimpleCookie
 from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
@@ -99,12 +98,12 @@ class AmazonEchoApi:
 
         self.session: ClientSession
 
-    def _load_website_cookies(self) -> list[SimpleCookie]:
+    def _load_website_cookies(self) -> dict[str, str]:
         """Get website cookies, if avaliables."""
         if not self._login_stored_data:
-            return []
+            return {}
 
-        return cast("list", self._login_stored_data["website_cookies"])
+        return cast("dict", self._login_stored_data["website_cookies"])
 
     def _serial_number(self) -> str:
         """Get or calculate device serial number."""
@@ -363,7 +362,7 @@ class AmazonEchoApi:
             input_data=body,
             json_data=True,
         )
-        resp_json = resp.json()
+        resp_json = await resp.json()
 
         if resp.status != HTTPStatus.OK:
             _LOGGER.error(
@@ -374,7 +373,7 @@ class AmazonEchoApi:
             raise CannotRegisterDevice(resp_json)
 
         await self._save_to_file(
-            resp.text,
+            await resp.text(),
             url=register_url,
             extension=JSON_EXTENSION,
         )
