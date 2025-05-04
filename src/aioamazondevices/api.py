@@ -8,6 +8,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from http import HTTPStatus
+from http.cookies import Morsel
 from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
@@ -254,7 +255,6 @@ class AmazonEchoApi:
             data=input_data if not json_data else orjson.dumps(input_data),
             cookies=self._load_website_cookies(),
             headers=headers,
-            allow_redirects=True,
         )
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
@@ -520,7 +520,8 @@ class AmazonEchoApi:
             _LOGGER.debug("Response data: |%s|", response_data)
 
             if not self._csrf_cookie:
-                self._csrf_cookie = raw_resp.cookies.get(CSRF_COOKIE).value
+                self._csrf_cookie = raw_resp.cookies.get(CSRF_COOKIE, Morsel()).value
+                _LOGGER.error("CSRF cookie value: <%s>", self._csrf_cookie)
 
             json_data = {} if len(response_data) == 0 else await raw_resp.json()
 
