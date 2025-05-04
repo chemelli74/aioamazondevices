@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.5.0 (2025-05-04)
+
+### Features
+
+- Add call_alexa_announcement() method (#155) ([`047b335`](https://github.com/chemelli74/aioamazondevices/commit/047b3357d56387cfd2102ee9d41fd67cc40fc8f4))
+
+
 ## v1.4.2 (2025-05-03)
 
 ### Bug fixes
