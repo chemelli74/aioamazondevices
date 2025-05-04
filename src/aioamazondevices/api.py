@@ -536,27 +536,32 @@ class AmazonEchoApi:
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in devices.values():
+            devices_node = device[NODE_DEVICES]
+            preferences_node = device[NODE_PREFERENCES]
+            do_not_disturb_node = device[NODE_DO_NOT_DISTURB]
+            bluetooth_node = device[NODE_BLUETOOTH]
             # Remove stale, orphaned and virtual devices
             if (
                 NODE_DEVICES not in device
-                or device[NODE_DEVICES].get("deviceType") == AMAZON_DEVICE_TYPE
+                or devices_node.get("deviceType") == AMAZON_DEVICE_TYPE
             ):
                 continue
 
-            serial_number: str = device[NODE_DEVICES]["serialNumber"]
-            preferences = device.get(NODE_PREFERENCES)
+            serial_number: str = devices_node["serialNumber"]
             final_devices_list[serial_number] = AmazonDevice(
-                account_name=device[NODE_DEVICES]["accountName"],
-                capabilities=device[NODE_DEVICES]["capabilities"],
-                device_family=device[NODE_DEVICES]["deviceFamily"],
-                device_type=device[NODE_DEVICES]["deviceType"],
-                device_owner_customer_id=device[NODE_DEVICES]["deviceOwnerCustomerId"],
-                online=device[NODE_DEVICES]["online"],
+                account_name=devices_node["accountName"],
+                capabilities=devices_node["capabilities"],
+                device_family=devices_node["deviceFamily"],
+                device_type=devices_node["deviceType"],
+                device_owner_customer_id=devices_node["deviceOwnerCustomerId"],
+                online=devices_node["online"],
                 serial_number=serial_number,
-                software_version=device[NODE_DEVICES]["softwareVersion"],
-                do_not_disturb=device[NODE_DO_NOT_DISTURB]["enabled"],
-                response_style=preferences["responseStyle"] if preferences else None,
-                bluetooth_state=device[NODE_BLUETOOTH]["online"],
+                software_version=devices_node["softwareVersion"],
+                do_not_disturb=do_not_disturb_node["enabled"],
+                response_style=preferences_node["responseStyle"]
+                if preferences_node
+                else None,
+                bluetooth_state=bluetooth_node["online"],
             )
 
         return final_devices_list
