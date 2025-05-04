@@ -54,6 +54,7 @@ class AmazonDevice:
     device_family: str
     device_type: str
     device_owner_customer_id: str
+    device_cluster_members: list[str]
     online: bool
     serial_number: str
     software_version: str
@@ -96,6 +97,7 @@ class AmazonEchoApi:
         self._save_raw_data = save_raw_data
         self._login_stored_data = login_data
         self._serial = self._serial_number()
+        self._list_for_clusters: dict[str, str] = {}
 
         self.session: ClientSession
 
@@ -537,7 +539,7 @@ class AmazonEchoApi:
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in devices.values():
             devices_node = device[NODE_DEVICES]
-            preferences_node = device[NODE_PREFERENCES]
+            preferences_node = device.get(NODE_PREFERENCES)
             do_not_disturb_node = device[NODE_DO_NOT_DISTURB]
             bluetooth_node = device[NODE_BLUETOOTH]
             # Remove stale, orphaned and virtual devices
@@ -554,15 +556,25 @@ class AmazonEchoApi:
                 device_family=devices_node["deviceFamily"],
                 device_type=devices_node["deviceType"],
                 device_owner_customer_id=devices_node["deviceOwnerCustomerId"],
+                device_cluster_members=(
+                    devices_node["clusterMembers"] or [serial_number]
+                ),
                 online=devices_node["online"],
                 serial_number=serial_number,
                 software_version=devices_node["softwareVersion"],
                 do_not_disturb=do_not_disturb_node["enabled"],
-                response_style=preferences_node["responseStyle"]
-                if preferences_node
-                else None,
+                response_style=(
+                    preferences_node["responseStyle"] if preferences_node else None
+                ),
                 bluetooth_state=bluetooth_node["online"],
             )
+
+        self._list_for_clusters.update(
+            {
+                device.serial_number: device.device_type
+                for device in final_devices_list.values()
+            }
+        )
 
         return final_devices_list
 
@@ -591,7 +603,7 @@ class AmazonEchoApi:
     async def _send_message(
         self, device: AmazonDevice, message_type: str, message_body: str
     ) -> None:
-        """Define sequence part of the payload."""
+        """Send message to specific device."""
         locale_data = Locale.parse(f"und_{self._login_country_code}")
         locale = f"{locale_data.language}-{locale_data.language}"
 
@@ -599,6 +611,7 @@ class AmazonEchoApi:
             _LOGGER.warning("Trying to send message before login")
             return
 
+        payload: dict[str, Any]
         if message_type == "Alexa.Speak":
             payload = {
                 "deviceType": device.device_type,
@@ -618,31 +631,37 @@ class AmazonEchoApi:
                 "skillId": "amzn1.ask.1p.saysomething",
             }
         else:
+            playback_devices: list[dict[str, str]] = [
+                {
+                    "deviceSerialNumber": serial,
+                    "deviceTypeId": self._list_for_clusters[serial],
+                }
+                for serial in device.device_cluster_members
+                if serial in self._list_for_clusters
+            ]
+
             payload = {
                 "deviceType": device.device_type,
                 "deviceSerialNumber": device.serial_number,
                 "locale": locale,
                 "customerId": device.device_owner_customer_id,
                 "expireAfter": "PT5S",
-                "content": {
-                    "locale": locale,
-                    "display": {
-                        "title": "Home Assistant",
-                        "body": message_body,
-                    },
-                    "speak": {
-                        "type": "text",
-                        "value": message_body,
-                    },
-                },
+                "content": [
+                    {
+                        "locale": locale,
+                        "display": {
+                            "title": "Home Assistant",
+                            "body": message_body,
+                        },
+                        "speak": {
+                            "type": "text",
+                            "value": message_body,
+                        },
+                    }
+                ],
                 "target": {
                     "customerId": device.device_owner_customer_id,
-                    "devices": [
-                        {
-                            "deviceSerialNumber": device.serial_number,
-                            "deviceTypeId": device.device_type,
-                        },
-                    ],
+                    "devices": playback_devices,
                 },
                 "skillId": "amzn1.ask.1p.routines.messaging",
             }
