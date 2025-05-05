@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.6.0 (2025-05-05)
+
+### Features
+
+- Add call_alexa_sound() method (#169) ([`d304d14`](https://github.com/chemelli74/aioamazondevices/commit/d304d14fefc195fc510727e86496b8eee8483083))
+
+
+### Refactoring
+
+- Introduce amazonsequencetype and optimize library_test code (#168) ([`dffbcdc`](https://github.com/chemelli74/aioamazondevices/commit/dffbcdcd2bd7dc933cfaf453adedccbbb8059267))
+- Introduce base_payload (#167) ([`51177ae`](https://github.com/chemelli74/aioamazondevices/commit/51177ae0bea90090712e7d7c7d3e1b4724a2a04b))
+
+
+### Build system
+
+- Bump python-semantic-release/python-semantic-release from 9.21.0 to 9.21.1 (#166) ([`a8cee32`](https://github.com/chemelli74/aioamazondevices/commit/a8cee327f7fbf3da73720936be85d9a4891255c0))
+- Bump orjson from 3.10.16 to 3.10.18 (#165) ([`6bcfc64`](https://github.com/chemelli74/aioamazondevices/commit/6bcfc64d7ec716a1f5fe33b8983e696adfeb71bc))
+
+
 ## v1.5.0 (2025-05-04)
 
 ### Features
