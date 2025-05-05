@@ -20,14 +20,14 @@ repos:
       - id: check-yaml
       - id: detect-private-key
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.7
+    rev: v0.11.8
     hooks:
       - id: ruff
         args:
           - --fix
       - id: ruff-format
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.6.0
+    rev: v4.6.1
     hooks:
       - id: commitizen
         stages: [commit-msg]
@@ -37,7 +37,7 @@ repos:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/python-poetry/poetry
-    rev: 2.1.2
+    rev: 2.1.3
     hooks:
       - id: poetry-check
         args: ["--lock"]
