@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.7.0 (2025-05-05)
+
+### Features
+
+- Add call_alexa_music() method (#170) ([`9131e5c`](https://github.com/chemelli74/aioamazondevices/commit/9131e5c4323444bc75ce9eef033e1eb3f5048515))
+
+
+### Testing
+
+- Fix find device in library_test (#171) ([`8afc7a7`](https://github.com/chemelli74/aioamazondevices/commit/8afc7a73f45b71a83a923e8697858b23d368b2b1))
+
+
 ## v1.6.0 (2025-05-05)
 
 ### Features
