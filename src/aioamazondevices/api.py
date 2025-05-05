@@ -69,6 +69,7 @@ class AmazonSequenceType(StrEnum):
 
     Announcement = "AlexaAnnouncement"
     Speak = "Alexa.Speak"
+    Sound = "Alexa.Sound"
 
 
 class AmazonEchoApi:
@@ -674,6 +675,12 @@ class AmazonEchoApi:
                 },
                 "skillId": "amzn1.ask.1p.routines.messaging",
             }
+        elif message_type == AmazonSequenceType.Sound:
+            payload = {
+                **base_payload,
+                "soundStringId": message_body,
+                "skillId": "amzn1.ask.1p.sound",
+            }
 
         sequence = {
             "@type": "com.amazon.alexa.behaviors.model.Sequence",
@@ -722,3 +729,11 @@ class AmazonEchoApi:
         return await self._send_message(
             device, AmazonSequenceType.Announcement, message_body
         )
+
+    async def call_alexa_sound(
+        self,
+        device: AmazonDevice,
+        message_body: str,
+    ) -> None:
+        """Call Alexa.Sound to send a message."""
+        return await self._send_message(device, AmazonSequenceType.Sound, message_body)
