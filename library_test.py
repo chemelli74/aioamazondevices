@@ -183,11 +183,15 @@ async def main() -> None:
     save_to_file(f"{SAVE_PATH}/output-devices.json", devices)
 
     device_single = find_device(
-        devices, args.single_device_name, lambda d: not d.device_cluster_members
+        devices, args.single_device_name, lambda d: len(d.device_cluster_members) == 1
     )
     device_cluster = find_device(
-        devices, args.cluster_device_name, lambda d: bool(d.device_cluster_members)
+        devices, args.cluster_device_name, lambda d: len(d.device_cluster_members) > 1
     )
+
+    print("Selected devices:")
+    print("- single : ", device_single)
+    print("- cluster: ", device_cluster)
 
     if not await api.auth_check_status():
         print("!!! Error: Session not authenticated !!!")
