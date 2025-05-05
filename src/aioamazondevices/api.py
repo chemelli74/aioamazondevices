@@ -611,13 +611,17 @@ class AmazonEchoApi:
             _LOGGER.warning("Trying to send message before login")
             return
 
+        base_payload = {
+            "deviceType": device.device_type,
+            "deviceSerialNumber": device.serial_number,
+            "locale": locale,
+            "customerId": device.device_owner_customer_id,
+        }
+
         payload: dict[str, Any]
         if message_type == "Alexa.Speak":
             payload = {
-                "deviceType": device.device_type,
-                "deviceSerialNumber": device.serial_number,
-                "locale": locale,
-                "customerId": device.device_owner_customer_id,
+                **base_payload,
                 "textToSpeak": message_body,
                 "target": {
                     "customerId": device.device_owner_customer_id,
@@ -641,10 +645,7 @@ class AmazonEchoApi:
             ]
 
             payload = {
-                "deviceType": device.device_type,
-                "deviceSerialNumber": device.serial_number,
-                "locale": locale,
-                "customerId": device.device_owner_customer_id,
+                **base_payload,
                 "expireAfter": "PT5S",
                 "content": [
                     {
