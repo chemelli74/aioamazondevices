@@ -622,7 +622,7 @@ class AmazonEchoApi:
         device: AmazonDevice,
         message_type: str,
         message_body: str,
-        message_source: str | None = None,
+        message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
         locale_data = Locale.parse(f"und_{self._login_country_code}")
@@ -761,7 +761,7 @@ class AmazonEchoApi:
         self,
         device: AmazonDevice,
         message_body: str,
-        message_source: str,
+        message_source: AmazonMusicSource,
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
         return await self._send_message(
