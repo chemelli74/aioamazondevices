@@ -12,7 +12,7 @@ from typing import Any, cast
 import orjson
 from colorlog import ColoredFormatter
 
-from aioamazondevices.api import AmazonDevice, AmazonEchoApi
+from aioamazondevices.api import AmazonDevice, AmazonEchoApi, AmazonMusicSource
 from aioamazondevices.const import SAVE_PATH
 from aioamazondevices.exceptions import (
     AmazonError,
@@ -212,6 +212,20 @@ async def main() -> None:
 
     print("Sending sound via 'Alexa.Sound' to:", device_single.account_name)
     await api.call_alexa_sound(device_single, "amzn_sfx_doorbell_chime_01")
+
+    await wait_action_complete()
+
+    radio = "BBC one"
+    source = AmazonMusicSource.Radio
+    print(f"Playing {radio} from {source} on {device_single.account_name}")
+    await api.call_alexa_music(device_single, radio, source)
+
+    await wait_action_complete(15)
+
+    music = "taylor swift"
+    source = AmazonMusicSource.AmazonMusic
+    print(f"Playing {music} from {source} on {device_single.account_name}")
+    await api.call_alexa_music(device_single, music, source)
 
     await api.close()
 
