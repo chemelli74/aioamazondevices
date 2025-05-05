@@ -204,6 +204,11 @@ async def main() -> None:
         device_cluster, "Test Announcement message from new library"
     )
 
+    await wait_action_complete()
+
+    print("Sending sound via 'Alexa.Sound' to:", device_single.account_name)
+    await api.call_alexa_sound(device_single, "amzn_sfx_doorbell_chime_01")
+
     await api.close()
 
 
