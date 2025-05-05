@@ -7,6 +7,7 @@ import secrets
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from http import HTTPStatus
 from http.cookies import Morsel
 from pathlib import Path
@@ -61,6 +62,13 @@ class AmazonDevice:
     do_not_disturb: bool
     response_style: str | None
     bluetooth_state: bool
+
+
+class AmazonSequenceType(StrEnum):
+    """Amazon sequence types."""
+
+    Announcement = "AlexaAnnouncement"
+    Speak = "Alexa.Speak"
 
 
 class AmazonEchoApi:
@@ -619,7 +627,7 @@ class AmazonEchoApi:
         }
 
         payload: dict[str, Any]
-        if message_type == "Alexa.Speak":
+        if message_type == AmazonSequenceType.Speak:
             payload = {
                 **base_payload,
                 "textToSpeak": message_body,
@@ -634,7 +642,7 @@ class AmazonEchoApi:
                 },
                 "skillId": "amzn1.ask.1p.saysomething",
             }
-        else:
+        elif message_type == AmazonSequenceType.Announcement:
             playback_devices: list[dict[str, str]] = [
                 {
                     "deviceSerialNumber": serial,
@@ -703,7 +711,7 @@ class AmazonEchoApi:
         message_body: str,
     ) -> None:
         """Call Alexa.Speak to send a message."""
-        return await self._send_message(device, "Alexa.Speak", message_body)
+        return await self._send_message(device, AmazonSequenceType.Speak, message_body)
 
     async def call_alexa_announcement(
         self,
@@ -711,4 +719,6 @@ class AmazonEchoApi:
         message_body: str,
     ) -> None:
         """Call AlexaAnnouncement to send a message."""
-        return await self._send_message(device, "AlexaAnnouncement", message_body)
+        return await self._send_message(
+            device, AmazonSequenceType.Announcement, message_body
+        )
