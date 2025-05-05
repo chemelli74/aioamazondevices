@@ -7,6 +7,7 @@ import secrets
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from http import HTTPStatus
 from http.cookies import Morsel
 from pathlib import Path
@@ -65,6 +66,22 @@ class AmazonDevice:
     do_not_disturb: bool
     response_style: str | None
     bluetooth_state: bool
+
+
+class AmazonSequenceType(StrEnum):
+    """Amazon sequence types."""
+
+    Announcement = "AlexaAnnouncement"
+    Speak = "Alexa.Speak"
+    Sound = "Alexa.Sound"
+    Music = "Alexa.Music.PlaySearchPhrase"
+
+
+class AmazonMusicSource(StrEnum):
+    """Amazon music sources."""
+
+    Radio = "TUNEIN"
+    AmazonMusic = "AMAZON_MUSIC"
 
 
 class AmazonEchoApi:
@@ -612,7 +629,11 @@ class AmazonEchoApi:
         return bool(authenticated)
 
     async def _send_message(
-        self, device: AmazonDevice, message_type: str, message_body: str
+        self,
+        device: AmazonDevice,
+        message_type: str,
+        message_body: str,
+        message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
         locale_data = Locale.parse(f"und_{self._login_country_code}")
@@ -622,13 +643,17 @@ class AmazonEchoApi:
             _LOGGER.warning("Trying to send message before login")
             return
 
+        base_payload = {
+            "deviceType": device.device_type,
+            "deviceSerialNumber": device.serial_number,
+            "locale": locale,
+            "customerId": device.device_owner_customer_id,
+        }
+
         payload: dict[str, Any]
-        if message_type == "Alexa.Speak":
+        if message_type == AmazonSequenceType.Speak:
             payload = {
-                "deviceType": device.device_type,
-                "deviceSerialNumber": device.serial_number,
-                "locale": locale,
-                "customerId": device.device_owner_customer_id,
+                **base_payload,
                 "textToSpeak": message_body,
                 "target": {
                     "customerId": device.device_owner_customer_id,
@@ -641,7 +666,7 @@ class AmazonEchoApi:
                 },
                 "skillId": "amzn1.ask.1p.saysomething",
             }
-        else:
+        elif message_type == AmazonSequenceType.Announcement:
             playback_devices: list[dict[str, str]] = [
                 {
                     "deviceSerialNumber": serial,
@@ -652,10 +677,7 @@ class AmazonEchoApi:
             ]
 
             payload = {
-                "deviceType": device.device_type,
-                "deviceSerialNumber": device.serial_number,
-                "locale": locale,
-                "customerId": device.device_owner_customer_id,
+                **base_payload,
                 "expireAfter": "PT5S",
                 "content": [
                     {
@@ -675,6 +697,19 @@ class AmazonEchoApi:
                     "devices": playback_devices,
                 },
                 "skillId": "amzn1.ask.1p.routines.messaging",
+            }
+        elif message_type == AmazonSequenceType.Sound:
+            payload = {
+                **base_payload,
+                "soundStringId": message_body,
+                "skillId": "amzn1.ask.1p.sound",
+            }
+        elif message_type == AmazonSequenceType.Music:
+            payload = {
+                **base_payload,
+                "searchPhrase": message_body,
+                "sanitizedSearchPhrase": message_body,
+                "musicProviderId": message_source,
             }
 
         sequence = {
@@ -713,7 +748,7 @@ class AmazonEchoApi:
         message_body: str,
     ) -> None:
         """Call Alexa.Speak to send a message."""
-        return await self._send_message(device, "Alexa.Speak", message_body)
+        return await self._send_message(device, AmazonSequenceType.Speak, message_body)
 
     async def call_alexa_announcement(
         self,
@@ -721,4 +756,25 @@ class AmazonEchoApi:
         message_body: str,
     ) -> None:
         """Call AlexaAnnouncement to send a message."""
-        return await self._send_message(device, "AlexaAnnouncement", message_body)
+        return await self._send_message(
+            device, AmazonSequenceType.Announcement, message_body
+        )
+
+    async def call_alexa_sound(
+        self,
+        device: AmazonDevice,
+        message_body: str,
+    ) -> None:
+        """Call Alexa.Sound to play sound."""
+        return await self._send_message(device, AmazonSequenceType.Sound, message_body)
+
+    async def call_alexa_music(
+        self,
+        device: AmazonDevice,
+        message_body: str,
+        message_source: AmazonMusicSource,
+    ) -> None:
+        """Call Alexa.Music.PlaySearchPhrase to play music."""
+        return await self._send_message(
+            device, AmazonSequenceType.Music, message_body, message_source
+        )

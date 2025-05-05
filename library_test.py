@@ -5,13 +5,14 @@ import json
 import logging
 import sys
 from argparse import ArgumentParser, Namespace
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any, cast
 
 import orjson
 from colorlog import ColoredFormatter
 
-from aioamazondevices.api import AmazonEchoApi
+from aioamazondevices.api import AmazonDevice, AmazonEchoApi, AmazonMusicSource
 from aioamazondevices.const import SAVE_PATH
 from aioamazondevices.exceptions import (
     AmazonError,
@@ -47,16 +48,16 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         help="Login data file",
     )
     parser.add_argument(
-        "--device_name_speak",
-        "-dns",
+        "--single_device_name",
+        "-sdn",
         type=str,
-        help="Device name to send message via 'Alexa.Speak'",
+        help="Single device name to send message via 'Alexa.Speak'",
     )
     parser.add_argument(
-        "--device_name_announcement",
-        "-dna",
+        "--cluster_device_name",
+        "-cdn",
         type=str,
-        help="Device name to send message via 'AlexaAnnouncement'",
+        help="Cluster device name to send message via 'AlexaAnnouncement'",
     )
     parser.add_argument(
         "--save_raw_data",
@@ -105,6 +106,25 @@ def read_from_file(data_file: str) -> dict[str, Any]:
 
     with Path.open(file, "rb") as f:
         return cast("dict[str, Any]", json.load(f))
+
+
+def find_device(
+    devices: dict[str, AmazonDevice],
+    name: str | None,
+    condition: Callable[[AmazonDevice], bool],
+) -> AmazonDevice:
+    """Extract device from list."""
+    return next(
+        dev
+        for dev in devices.values()
+        if ((dev.account_name == name) if name else condition(dev))
+    )
+
+
+async def wait_action_complete(sleep: int = 4) -> None:
+    """Wait for an action to complete."""
+    print(f"Waiting for {sleep}s before next test")
+    await asyncio.sleep(sleep)
 
 
 async def main() -> None:
@@ -162,40 +182,50 @@ async def main() -> None:
 
     save_to_file(f"{SAVE_PATH}/output-devices.json", devices)
 
+    device_single = find_device(
+        devices, args.single_device_name, lambda d: len(d.device_cluster_members) == 1
+    )
+    device_cluster = find_device(
+        devices, args.cluster_device_name, lambda d: len(d.device_cluster_members) > 1
+    )
+
+    print("Selected devices:")
+    print("- single : ", device_single)
+    print("- cluster: ", device_cluster)
+
     if not await api.auth_check_status():
         print("!!! Error: Session not authenticated !!!")
         sys.exit(3)
     print("Session authenticated!")
 
-    if args.device_name_speak:
-        device = next(
-            dev
-            for dev in devices.values()
-            if dev.account_name == args.device_name_speak
-        )
-    else:
-        device = next(iter(devices.values()))
-    print("Sending message via 'Alexa.Speak' to:", device.account_name)
-    await api.call_alexa_speak(device, "Test Speak message from new library")
+    print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
+    await api.call_alexa_speak(device_single, "Test Speak message from new library")
 
-    if args.device_name_announcement:
-        device = next(
-            dev
-            for dev in devices.values()
-            if dev.account_name == args.device_name_announcement
-        )
-    else:
-        device = next(iter(devices.values()))
+    await wait_action_complete()
 
-    # Wait Alexa.Speak finishes before proceeding
-    sleep = 4
-    print(f"Waiting for {sleep}s before next test")
-    await asyncio.sleep(sleep)
-
-    print("Sending message via 'AlexaAnnouncement' to:", device.account_name)
+    print("Sending message via 'AlexaAnnouncement' to:", device_cluster.account_name)
     await api.call_alexa_announcement(
-        device, "Test Announcement message from new library"
+        device_cluster, "Test Announcement message from new library"
     )
+
+    await wait_action_complete()
+
+    print("Sending sound via 'Alexa.Sound' to:", device_single.account_name)
+    await api.call_alexa_sound(device_single, "amzn_sfx_doorbell_chime_01")
+
+    await wait_action_complete()
+
+    radio = "BBC one"
+    source = AmazonMusicSource.Radio
+    print(f"Playing {radio} from {source} on {device_single.account_name}")
+    await api.call_alexa_music(device_single, radio, source)
+
+    await wait_action_complete(15)
+
+    music = "taylor swift"
+    source = AmazonMusicSource.AmazonMusic
+    print(f"Playing {music} from {source} on {device_single.account_name}")
+    await api.call_alexa_music(device_single, music, source)
 
     await api.close()
 
