@@ -70,6 +70,14 @@ class AmazonSequenceType(StrEnum):
     Announcement = "AlexaAnnouncement"
     Speak = "Alexa.Speak"
     Sound = "Alexa.Sound"
+    Music = "Alexa.Music.PlaySearchPhrase"
+
+
+class AmazonMusicSource(StrEnum):
+    """Amazon music sources."""
+
+    Radio = "TUNEIN"
+    AmazonMusic = "AMAZON_MUSIC"
 
 
 class AmazonEchoApi:
@@ -610,7 +618,11 @@ class AmazonEchoApi:
         return bool(authenticated)
 
     async def _send_message(
-        self, device: AmazonDevice, message_type: str, message_body: str
+        self,
+        device: AmazonDevice,
+        message_type: str,
+        message_body: str,
+        message_source: str | None = None,
     ) -> None:
         """Send message to specific device."""
         locale_data = Locale.parse(f"und_{self._login_country_code}")
@@ -681,6 +693,13 @@ class AmazonEchoApi:
                 "soundStringId": message_body,
                 "skillId": "amzn1.ask.1p.sound",
             }
+        elif message_type == AmazonSequenceType.Music:
+            payload = {
+                **base_payload,
+                "searchPhrase": message_body,
+                "sanitizedSearchPhrase": message_body,
+                "musicProviderId": message_source,
+            }
 
         sequence = {
             "@type": "com.amazon.alexa.behaviors.model.Sequence",
@@ -735,5 +754,16 @@ class AmazonEchoApi:
         device: AmazonDevice,
         message_body: str,
     ) -> None:
-        """Call Alexa.Sound to send a message."""
+        """Call Alexa.Sound to play sound."""
         return await self._send_message(device, AmazonSequenceType.Sound, message_body)
+
+    async def call_alexa_music(
+        self,
+        device: AmazonDevice,
+        message_body: str,
+        message_source: str,
+    ) -> None:
+        """Call Alexa.Music.PlaySearchPhrase to play music."""
+        return await self._send_message(
+            device, AmazonSequenceType.Music, message_body, message_source
+        )
