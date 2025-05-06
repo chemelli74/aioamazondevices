@@ -23,6 +23,7 @@ packages = [
 
 [tool.poetry.dependencies]
 aiohttp = "*"
+httpx = "*"
 python = "^3.12"
 babel = "*"
 beautifulsoup4 = "*"
