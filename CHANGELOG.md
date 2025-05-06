@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.8.0 (2025-05-06)
+
+### Features
+
+- Add call_alexa_text_command() method (#173) ([`5aa730e`](https://github.com/chemelli74/aioamazondevices/commit/5aa730eb990800d4c0f4c2319589d5c4c12f64b2))
+
+
 ## v1.7.0 (2025-05-05)
 
 ### Features
