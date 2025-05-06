@@ -227,6 +227,11 @@ async def main() -> None:
     print(f"Playing {music} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, music, source)
 
+    await wait_action_complete(15)
+
+    print(f"Text command on {device_single.account_name}")
+    await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
+
     await api.close()
 
 
