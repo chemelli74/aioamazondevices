@@ -75,6 +75,7 @@ class AmazonSequenceType(StrEnum):
     Speak = "Alexa.Speak"
     Sound = "Alexa.Sound"
     Music = "Alexa.Music.PlaySearchPhrase"
+    TextCommand = "Alexa.TextCommand"
 
 
 class AmazonMusicSource(StrEnum):
@@ -711,6 +712,12 @@ class AmazonEchoApi:
                 "sanitizedSearchPhrase": message_body,
                 "musicProviderId": message_source,
             }
+        elif message_type == AmazonSequenceType.TextCommand:
+            payload = {
+                **base_payload,
+                "skillId": "amzn1.ask.1p.tellalexa",
+                "text": message_body,
+            }
 
         sequence = {
             "@type": "com.amazon.alexa.behaviors.model.Sequence",
@@ -777,4 +784,14 @@ class AmazonEchoApi:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
         return await self._send_message(
             device, AmazonSequenceType.Music, message_body, message_source
+        )
+
+    async def call_alexa_text_command(
+        self,
+        device: AmazonDevice,
+        message_body: str,
+    ) -> None:
+        """Call Alexa.Sound to play sound."""
+        return await self._send_message(
+            device, AmazonSequenceType.TextCommand, message_body
         )
