@@ -44,6 +44,10 @@ from .const import (
     URI_QUERIES,
 )
 from .exceptions import CannotAuthenticate, CannotRegisterDevice, WrongMethod
+from .httpx import HttpxClientResponseWrapper, HttpxClientSession
+
+# Values: "aiohttp", or "httpx"
+LIBRARY = "httpx"
 
 
 @dataclass
@@ -236,11 +240,18 @@ class AmazonEchoApi:
     def _client_session(self) -> None:
         """Create HTTP client session."""
         if not hasattr(self, "session") or self.session.closed:
-            _LOGGER.debug("Creating HTTP session (aiohttp)")
-            self.session = ClientSession(
-                headers=DEFAULT_HEADERS,
-                cookies=self._cookies,
-            )
+            _LOGGER.debug("Creating HTTP session (%s)", LIBRARY)
+            if LIBRARY == "httpx":
+                self.session = HttpxClientSession(
+                    headers=DEFAULT_HEADERS,
+                    cookies=self._cookies,
+                    follow_redirects=True,
+                )
+            else:
+                self.session = ClientSession(
+                    headers=DEFAULT_HEADERS,
+                    cookies=self._cookies,
+                )
 
     async def _session_request(
         self,
@@ -248,7 +259,7 @@ class AmazonEchoApi:
         url: str,
         input_data: dict[str, Any] | None = None,
         json_data: bool = False,
-    ) -> tuple[BeautifulSoup, ClientResponse]:
+    ) -> tuple[BeautifulSoup, ClientResponse | HttpxClientResponseWrapper]:
         """Return request response context data."""
         _LOGGER.debug(
             "%s request: %s with payload %s [json=%s]",
@@ -519,7 +530,7 @@ class AmazonEchoApi:
     async def close(self) -> None:
         """Close http client session."""
         if hasattr(self, "session"):
-            _LOGGER.debug("Closing HTTP session (aiohttp)")
+            _LOGGER.debug("Closing HTTP session (%s)", LIBRARY)
             await self.session.close()
 
     async def get_devices_data(
