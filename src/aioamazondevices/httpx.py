@@ -70,7 +70,7 @@ class HttpxClientResponseWrapper:
 
     def raise_for_status(self) -> Response:
         """Raise for status."""
-        self._response.raise_for_status()
+        return self._response.raise_for_status()
 
     def __repr__(self) -> str:
         """Repr."""
