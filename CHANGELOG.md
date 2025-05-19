@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.9.0 (2025-05-19)
+
+### Features
+
+- Allow easy swap of libraries (#164) ([`e67b3e6`](https://github.com/chemelli74/aioamazondevices/commit/e67b3e63c414831615e87327a4736125afbe0573))
+
+
+### Build system
+
+- Switch to python 3.13 (#176) ([`66f55f2`](https://github.com/chemelli74/aioamazondevices/commit/66f55f24e695edb7141094f4fc43b730d197d6b5))
+
+
 ## v1.8.0 (2025-05-06)
 
 ### Features
