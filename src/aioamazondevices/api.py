@@ -552,7 +552,7 @@ class AmazonEchoApi:
 
             if not self._csrf_cookie:
                 self._csrf_cookie = raw_resp.cookies.get(CSRF_COOKIE, Morsel()).value
-                _LOGGER.error("CSRF cookie value: <%s>", self._csrf_cookie)
+                _LOGGER.debug("CSRF cookie value: <%s>", self._csrf_cookie)
 
             json_data = {} if len(response_data) == 0 else await raw_resp.json()
 
