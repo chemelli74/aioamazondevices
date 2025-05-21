@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.10.0 (2025-05-21)
+
+### Features
+
+- Add set_do_not_disturb() method (#179) ([`19d42f1`](https://github.com/chemelli74/aioamazondevices/commit/19d42f15613ea195d36cf4b57eb9117b31f562cd))
+
+
 ## v1.9.0 (2025-05-19)
 
 ### Features
