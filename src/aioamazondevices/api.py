@@ -795,3 +795,15 @@ class AmazonEchoApi:
         return await self._send_message(
             device, AmazonSequenceType.TextCommand, message_body
         )
+
+    async def set_do_not_disturb(self, device: AmazonDevice, state: bool) -> None:
+        """Set do_not_disturb flag."""
+        payload = {
+            "deviceSerialNumber": device.serial_number,
+            "deviceType": device.device_type,
+            "enabled": state,
+        }
+        url = f"https://alexa.amazon.{self._domain}/api/dnd/status"
+        await self._session_request(
+            method="PUT", url=url, input_data=payload, json_data=True
+        )
