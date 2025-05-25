@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.0.0 (2025-05-25)
+
+### Features
+
+- Model and hw_version details (#180) ([`24708bb`](https://github.com/chemelli74/aioamazondevices/commit/24708bb84ddc18c7085cafb9cf280306190d5b95))
+
+
 ## v1.10.0 (2025-05-21)
 
 ### Features
