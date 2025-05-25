@@ -63,17 +63,55 @@ HTML_EXTENSION = ".html"
 JSON_EXTENSION = ".json"
 BIN_EXTENSION = ".bin"
 
+SKEAKER_GROUP_MODEL = "Speaker Group"
+
 DEVICE_TYPE_TO_MODEL = {
-    "A1RABVCI4QCIKC": "Echo Dot (Gen3)",
-    "A2DS1Q2TPDJ48U": "Echo Dot Clock (Gen5)",
-    "A2H4LV5GIZ1JFT": "Echo Dot Clock (Gen4)",
-    "A2U21SRK4QGSE1": "Echo Dot Clock (Gen4)",
-    "A32DDESGESSHZA": "Echo Dot (Gen3)",
-    "A32DOYMUN6DTXA": "Echo Dot (Gen3)",
-    "A3RMGO6LYLH7YN": "Echo Dot (Gen4)",
-    "A3S5BH2HU6VAYF": "Echo Dot (Gen2)",
-    "A4ZXE0RM7LQ7A": "Echo Dot (Gen5)",
-    "AKNO1N0KSFN8L": "Echo Dot (Gen1)",
-    "A3C9PE6TNYLTCH": "Speaker Group",
-    "A1Q6UGEXJZWJQ0": "Fire TV Stick 4K",
+    "A1RABVCI4QCIKC": {
+        "model": "Echo Dot",
+        "hw_version": "Gen3",
+    },
+    "A2DS1Q2TPDJ48U": {
+        "model": "Echo Dot Clock",
+        "hw_version": "Gen5",
+    },
+    "A2H4LV5GIZ1JFT": {
+        "model": "Echo Dot Clock",
+        "hw_version": "Gen4",
+    },
+    "A2U21SRK4QGSE1": {
+        "model": "Echo Dot Clock",
+        "hw_version": "Gen4",
+    },
+    "A32DDESGESSHZA": {
+        "model": "Echo Dot",
+        "hw_version": "Gen3",
+    },
+    "A32DOYMUN6DTXA": {
+        "model": "Echo Dot",
+        "hw_version": "Gen3",
+    },
+    "A3RMGO6LYLH7YN": {
+        "model": "Echo Dot",
+        "hw_version": "Gen4",
+    },
+    "A3S5BH2HU6VAYF": {
+        "model": "Echo Dot",
+        "hw_version": "Gen2",
+    },
+    "A4ZXE0RM7LQ7A": {
+        "model": "Echo Dot",
+        "hw_version": "Gen5",
+    },
+    "AKNO1N0KSFN8L": {
+        "model": "Echo Dot",
+        "hw_version": "Gen1",
+    },
+    "A3C9PE6TNYLTCH": {
+        "model": SKEAKER_GROUP_MODEL,
+        "hw_version": None,
+    },
+    "A1Q6UGEXJZWJQ0": {
+        "model": "Fire TV Stick",
+        "hw_version": "4K",
+    },
 }
