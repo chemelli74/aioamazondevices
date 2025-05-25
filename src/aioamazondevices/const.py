@@ -63,7 +63,7 @@ HTML_EXTENSION = ".html"
 JSON_EXTENSION = ".json"
 BIN_EXTENSION = ".bin"
 
-SKEAKER_GROUP_MODEL = "Speaker Group"
+SPEAKER_GROUP_MODEL = "Speaker Group"
 
 DEVICE_TYPE_TO_MODEL = {
     "A1RABVCI4QCIKC": {
@@ -107,7 +107,7 @@ DEVICE_TYPE_TO_MODEL = {
         "hw_version": "Gen1",
     },
     "A3C9PE6TNYLTCH": {
-        "model": SKEAKER_GROUP_MODEL,
+        "model": SPEAKER_GROUP_MODEL,
         "hw_version": None,
     },
     "A1Q6UGEXJZWJQ0": {
