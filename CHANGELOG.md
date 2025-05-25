@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.0.1 (2025-05-25)
+
+### Bug fixes
+
+- Speaker group typo (#181) ([`edb3d2c`](https://github.com/chemelli74/aioamazondevices/commit/edb3d2cced441ec97a0b37b07b0361b96072dbf1))
+
+
 ## v2.0.0 (2025-05-25)
 
 ### Features
