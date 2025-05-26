@@ -65,7 +65,7 @@ The script accept command line arguments or a library_test.json config file:
 
 Library logs a warning if an unknown device type is linked to your Amazon account.
 
-Please open an issue [here](https://github.com/chemelli74/aioamazondevices/issues) are provide the following information:
+Please open an issue [here](https://github.com/chemelli74/aioamazondevices/issues) and provide the following information:
 
 - device type
 - model
