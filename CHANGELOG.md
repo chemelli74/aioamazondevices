@@ -1,10 +1,10 @@
 # Changelog
 
-## v2.1.1-rc.1 (2025-05-26)
+## v2.1.1 (2025-05-26)
 
 ### Bug fixes
 
-- Make get_model_details() sync ([`2e728ec`](https://github.com/chemelli74/aioamazondevices/commit/2e728ec1effe0a76c09230bd3435ef7e66b4a560))
+- Make get_model_details() sync ([`cb53712`](https://github.com/chemelli74/aioamazondevices/commit/cb537123bc1219953ade01e4268eeecfa4462625))
 
 
 ## v2.1.0 (2025-05-26)
