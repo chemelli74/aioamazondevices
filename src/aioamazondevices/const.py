@@ -65,7 +65,7 @@ BIN_EXTENSION = ".bin"
 
 SPEAKER_GROUP_MODEL = "Speaker Group"
 
-DEVICE_TYPE_TO_MODEL = {
+DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A1RABVCI4QCIKC": {
         "model": "Echo Dot",
         "hw_version": "Gen3",

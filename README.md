@@ -61,6 +61,18 @@ The script accept command line arguments or a library_test.json config file:
 }
 ```
 
+## Unknown device type
+
+Library logs a warning if an unknown device type is linked to your Amazon account.
+
+Please open an issue [here](https://github.com/chemelli74/aioamazondevices/issues) and provide the following information:
+
+- device type
+- model
+- generation
+
+Current device list: `DEVICE_TYPE_TO_MODEL` from [const.py](https://github.com/chemelli74/aioamazondevices/blob/main/src/aioamazondevices/const.py)
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
