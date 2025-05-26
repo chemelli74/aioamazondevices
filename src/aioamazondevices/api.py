@@ -33,6 +33,7 @@ from .const import (
     CSRF_COOKIE,
     DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
+    DEVICE_TYPE_TO_MODEL,
     DOMAIN_BY_ISO3166_COUNTRY,
     HTML_EXTENSION,
     JSON_EXTENSION,
@@ -628,6 +629,22 @@ class AmazonEchoApi:
         authenticated = authentication.get("authenticated")
         _LOGGER.debug("Session authenticated: %s", authenticated)
         return bool(authenticated)
+
+    async def get_model_details(
+        self, device: AmazonDevice
+    ) -> dict[str, str | None] | None:
+        """Return model datails."""
+        model_details: dict[str, str | None] | None = DEVICE_TYPE_TO_MODEL.get(
+            device.device_type
+        )
+        if not model_details:
+            _LOGGER.warning(
+                "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices?tab=readme-ov-file#unknon-device-type",
+                device.device_type,
+                device.account_name,
+            )
+
+        return model_details
 
     async def _send_message(
         self,
