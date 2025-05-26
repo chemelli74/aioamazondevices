@@ -630,9 +630,7 @@ class AmazonEchoApi:
         _LOGGER.debug("Session authenticated: %s", authenticated)
         return bool(authenticated)
 
-    async def get_model_details(
-        self, device: AmazonDevice
-    ) -> dict[str, str | None] | None:
+    def get_model_details(self, device: AmazonDevice) -> dict[str, str | None] | None:
         """Return model datails."""
         model_details: dict[str, str | None] | None = DEVICE_TYPE_TO_MODEL.get(
             device.device_type
