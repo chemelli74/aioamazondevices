@@ -22,6 +22,12 @@ lint.ignore = [
     "PLR0915",   # Too many statements
     "T201",      # `print` found
 ]
+"src/aioamazondevices/sounds.py" = [
+    "E501",      # Line too long
+]
+"scripts/*" = [
+    "INP001",   # Missing an __init__.py file
+]
 "tests/*" = [
     "S101",     # Use of `assert` detected
 ]
