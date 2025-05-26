@@ -634,8 +634,8 @@ class AmazonEchoApi:
         self, device: AmazonDevice
     ) -> dict[str, str | None] | None:
         """Return model datails."""
-        model_details: dict[str, str | None] = DEVICE_TYPE_TO_MODEL.get(
-            device.device_type, {}
+        model_details: dict[str, str | None] | None = DEVICE_TYPE_TO_MODEL.get(
+            device.device_type
         )
         if not model_details:
             _LOGGER.warning(
