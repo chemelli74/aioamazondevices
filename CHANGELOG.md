@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.2.0 (2025-05-26)
+
+### Features
+
+- Add sounds_list ([`15aadd9`](https://github.com/chemelli74/aioamazondevices/commit/15aadd92381b6bd376d6f0d694ba18658c3f8819))
+
+
 ## v2.1.1 (2025-05-26)
 
 ### Bug fixes
