@@ -1,120 +1,132 @@
 # Changelog
 
+## v2.1.0-rc.1 (2025-05-26)
+
+### Features
+
+- Add get_model_details() method ([`b4dd7b3`](https://github.com/chemelli74/aioamazondevices/commit/b4dd7b3b1bf2abfdef75c6d7eb3bf780f3dbdfa7))
+
+
+### Bug fixes
+
+- Speaker group typo ([`edb3d2c`](https://github.com/chemelli74/aioamazondevices/commit/edb3d2cced441ec97a0b37b07b0361b96072dbf1))
+
+
 ## v2.0.0 (2025-05-25)
 
 ### Features
 
-- Model and hw_version details (#180) ([`24708bb`](https://github.com/chemelli74/aioamazondevices/commit/24708bb84ddc18c7085cafb9cf280306190d5b95))
+- Model and hw_version details ([`24708bb`](https://github.com/chemelli74/aioamazondevices/commit/24708bb84ddc18c7085cafb9cf280306190d5b95))
 
 
 ## v1.10.0 (2025-05-21)
 
 ### Features
 
-- Add set_do_not_disturb() method (#179) ([`19d42f1`](https://github.com/chemelli74/aioamazondevices/commit/19d42f15613ea195d36cf4b57eb9117b31f562cd))
+- Add set_do_not_disturb() method ([`19d42f1`](https://github.com/chemelli74/aioamazondevices/commit/19d42f15613ea195d36cf4b57eb9117b31f562cd))
 
 
 ## v1.9.0 (2025-05-19)
 
 ### Features
 
-- Allow easy swap of libraries (#164) ([`e67b3e6`](https://github.com/chemelli74/aioamazondevices/commit/e67b3e63c414831615e87327a4736125afbe0573))
+- Allow easy swap of libraries ([`e67b3e6`](https://github.com/chemelli74/aioamazondevices/commit/e67b3e63c414831615e87327a4736125afbe0573))
 
 
 ### Build system
 
-- Switch to python 3.13 (#176) ([`66f55f2`](https://github.com/chemelli74/aioamazondevices/commit/66f55f24e695edb7141094f4fc43b730d197d6b5))
+- Switch to python 3.13 ([`66f55f2`](https://github.com/chemelli74/aioamazondevices/commit/66f55f24e695edb7141094f4fc43b730d197d6b5))
 
 
 ## v1.8.0 (2025-05-06)
 
 ### Features
 
-- Add call_alexa_text_command() method (#173) ([`5aa730e`](https://github.com/chemelli74/aioamazondevices/commit/5aa730eb990800d4c0f4c2319589d5c4c12f64b2))
+- Add call_alexa_text_command() method ([`5aa730e`](https://github.com/chemelli74/aioamazondevices/commit/5aa730eb990800d4c0f4c2319589d5c4c12f64b2))
 
 
 ## v1.7.0 (2025-05-05)
 
 ### Features
 
-- Add call_alexa_music() method (#170) ([`9131e5c`](https://github.com/chemelli74/aioamazondevices/commit/9131e5c4323444bc75ce9eef033e1eb3f5048515))
+- Add call_alexa_music() method ([`9131e5c`](https://github.com/chemelli74/aioamazondevices/commit/9131e5c4323444bc75ce9eef033e1eb3f5048515))
 
 
 ### Testing
 
-- Fix find device in library_test (#171) ([`8afc7a7`](https://github.com/chemelli74/aioamazondevices/commit/8afc7a73f45b71a83a923e8697858b23d368b2b1))
+- Fix find device in library_test ([`8afc7a7`](https://github.com/chemelli74/aioamazondevices/commit/8afc7a73f45b71a83a923e8697858b23d368b2b1))
 
 
 ## v1.6.0 (2025-05-05)
 
 ### Features
 
-- Add call_alexa_sound() method (#169) ([`d304d14`](https://github.com/chemelli74/aioamazondevices/commit/d304d14fefc195fc510727e86496b8eee8483083))
+- Add call_alexa_sound() method ([`d304d14`](https://github.com/chemelli74/aioamazondevices/commit/d304d14fefc195fc510727e86496b8eee8483083))
 
 
 ### Refactoring
 
-- Introduce amazonsequencetype and optimize library_test code (#168) ([`dffbcdc`](https://github.com/chemelli74/aioamazondevices/commit/dffbcdcd2bd7dc933cfaf453adedccbbb8059267))
-- Introduce base_payload (#167) ([`51177ae`](https://github.com/chemelli74/aioamazondevices/commit/51177ae0bea90090712e7d7c7d3e1b4724a2a04b))
+- Introduce amazonsequencetype and optimize library_test code ([`dffbcdc`](https://github.com/chemelli74/aioamazondevices/commit/dffbcdcd2bd7dc933cfaf453adedccbbb8059267))
+- Introduce base_payload ([`51177ae`](https://github.com/chemelli74/aioamazondevices/commit/51177ae0bea90090712e7d7c7d3e1b4724a2a04b))
 
 
 ### Build system
 
-- Bump python-semantic-release/python-semantic-release from 9.21.0 to 9.21.1 (#166) ([`a8cee32`](https://github.com/chemelli74/aioamazondevices/commit/a8cee327f7fbf3da73720936be85d9a4891255c0))
-- Bump orjson from 3.10.16 to 3.10.18 (#165) ([`6bcfc64`](https://github.com/chemelli74/aioamazondevices/commit/6bcfc64d7ec716a1f5fe33b8983e696adfeb71bc))
+- Bump python-semantic-release/python-semantic-release from 9.21.0 to 9.21.1 ([`a8cee32`](https://github.com/chemelli74/aioamazondevices/commit/a8cee327f7fbf3da73720936be85d9a4891255c0))
+- Bump orjson from 3.10.16 to 3.10.18 ([`6bcfc64`](https://github.com/chemelli74/aioamazondevices/commit/6bcfc64d7ec716a1f5fe33b8983e696adfeb71bc))
 
 
 ## v1.5.0 (2025-05-04)
 
 ### Features
 
-- Add call_alexa_announcement() method (#155) ([`047b335`](https://github.com/chemelli74/aioamazondevices/commit/047b3357d56387cfd2102ee9d41fd67cc40fc8f4))
+- Add call_alexa_announcement() method ([`047b335`](https://github.com/chemelli74/aioamazondevices/commit/047b3357d56387cfd2102ee9d41fd67cc40fc8f4))
 
 
 ## v1.4.2 (2025-05-03)
 
 ### Bug fixes
 
-- Improve aiohttp support (#161) ([`8ffdc7f`](https://github.com/chemelli74/aioamazondevices/commit/8ffdc7f746848db15fd3affcdca68a04bc196db3))
+- Improve aiohttp support ([`8ffdc7f`](https://github.com/chemelli74/aioamazondevices/commit/8ffdc7f746848db15fd3affcdca68a04bc196db3))
 
 
 ## v1.4.1 (2025-05-02)
 
 ### Bug fixes
 
-- Force file encoding for windows compatibility (#159) ([`e0b952c`](https://github.com/chemelli74/aioamazondevices/commit/e0b952c62c0c8e8383999c29ec4a285771460c2b))
+- Force file encoding for windows compatibility ([`e0b952c`](https://github.com/chemelli74/aioamazondevices/commit/e0b952c62c0c8e8383999c29ec4a285771460c2b))
 
 
 ### Build system
 
-- Add more files to cleanup script (#158) ([`9895f4a`](https://github.com/chemelli74/aioamazondevices/commit/9895f4a5aa5c86906c00dfeef862ec410fb69ecd))
-- Cleanup script (#156) ([`1b5c22f`](https://github.com/chemelli74/aioamazondevices/commit/1b5c22f8669a218cc64074f1f747de1476433b7b))
+- Add more files to cleanup script ([`9895f4a`](https://github.com/chemelli74/aioamazondevices/commit/9895f4a5aa5c86906c00dfeef862ec410fb69ecd))
+- Cleanup script ([`1b5c22f`](https://github.com/chemelli74/aioamazondevices/commit/1b5c22f8669a218cc64074f1f747de1476433b7b))
 
 
 ## v1.4.0 (2025-04-29)
 
 ### Features
 
-- Move from httpx to aiohttp (#151) ([`7471c2b`](https://github.com/chemelli74/aioamazondevices/commit/7471c2b1a25726be2b3b23f1a109115f27a36ec8))
+- Move from httpx to aiohttp ([`7471c2b`](https://github.com/chemelli74/aioamazondevices/commit/7471c2b1a25726be2b3b23f1a109115f27a36ec8))
 
 
 ### Build system
 
-- Cleanup after #134 (#154) ([`c7bc2dd`](https://github.com/chemelli74/aioamazondevices/commit/c7bc2dd846052559dfab1272d2941608885040f8))
+- Cleanup after #134 ([`c7bc2dd`](https://github.com/chemelli74/aioamazondevices/commit/c7bc2dd846052559dfab1272d2941608885040f8))
 
 
 ## v1.3.0 (2025-04-27)
 
 ### Features
 
-- Add call_alexa_speak() method (#98) ([`1e83769`](https://github.com/chemelli74/aioamazondevices/commit/1e8376985d6ee9e5ad6624c06be1ea412ca57ef2))
+- Add call_alexa_speak() method ([`1e83769`](https://github.com/chemelli74/aioamazondevices/commit/1e8376985d6ee9e5ad6624c06be1ea412ca57ef2))
 
 
 ## v1.2.0 (2025-04-26)
 
 ### Features
 
-- Add session auth status (#152) ([`d91cc50`](https://github.com/chemelli74/aioamazondevices/commit/d91cc5034d4be05931420bacbe433e85c4f67491))
+- Add session auth status ([`d91cc50`](https://github.com/chemelli74/aioamazondevices/commit/d91cc5034d4be05931420bacbe433e85c4f67491))
 
 
 ### Unknown
@@ -123,160 +135,160 @@
 
 ### Features
 
-- Replace session.post with _session_request (#149) ([`55aa4eb`](https://github.com/chemelli74/aioamazondevices/commit/55aa4eb29123dd98bc5facc8d7d097bf6bc9bdfc))
+- Replace session.post with _session_request ([`55aa4eb`](https://github.com/chemelli74/aioamazondevices/commit/55aa4eb29123dd98bc5facc8d7d097bf6bc9bdfc))
 
 
 ### Build system
 
-- Bump h11 from 0.14.0 to 0.16.0 (#147) ([`e3b90e1`](https://github.com/chemelli74/aioamazondevices/commit/e3b90e10bcd654f47dee7cc81596fdce9ac095d6))
-- Improve environment (#146) ([`718dd03`](https://github.com/chemelli74/aioamazondevices/commit/718dd03c258864335ead34cec080228773e87f25))
-- Bump rsa from 4.9 to 4.9.1 (#144) ([`4d7ed78`](https://github.com/chemelli74/aioamazondevices/commit/4d7ed78e46f149897ee179b582df02b277ca35d8))
-- Bump beautifulsoup4 from 4.13.3 to 4.13.4 (#143) ([`23a15c9`](https://github.com/chemelli74/aioamazondevices/commit/23a15c9891e35867b18ce10acd8e4dc963387980))
-- Bump pytest-cov from 6.0.0 to 6.1.1 (#139) ([`0c5e05c`](https://github.com/chemelli74/aioamazondevices/commit/0c5e05c9e741742bda06694c46ad68590118de6c))
-- Bump orjson from 3.10.15 to 3.10.16 (#137) ([`5d5aeec`](https://github.com/chemelli74/aioamazondevices/commit/5d5aeecacd6133b2fcbb0bfddce9f0e6426ba89c))
-- Ruff rules update (#133) ([`62f92fb`](https://github.com/chemelli74/aioamazondevices/commit/62f92fb86bd9599dda0652d5fcda67ab11a3e3ef))
-- Bump pytest from 8.3.4 to 8.3.5 (#129) ([`99264b6`](https://github.com/chemelli74/aioamazondevices/commit/99264b6ef309e7b314cafe0b6c4cd96ef7ee02bd))
-- Bump python-semantic-release/python-semantic-release from 9.20.0 to 9.21.0 (#127) ([`fcae1ba`](https://github.com/chemelli74/aioamazondevices/commit/fcae1ba30692c5b5dd0236464eeaca240123e81f))
-- Bump python-semantic-release/python-semantic-release from 9.19.1 to 9.20.0 (#125) ([`6c8fe74`](https://github.com/chemelli74/aioamazondevices/commit/6c8fe749c83e0642f46de9538df49768c9b23ca1))
-- Bump python-semantic-release/python-semantic-release from 9.19.0 to 9.19.1 (#124) ([`b7034ee`](https://github.com/chemelli74/aioamazondevices/commit/b7034ee8baba22aaf0ed23f16ba4f17de6fcda2c))
-- Bump python-semantic-release/python-semantic-release from 9.18.0 to 9.19.0 (#122) ([`d36c277`](https://github.com/chemelli74/aioamazondevices/commit/d36c2771227d9e07d5286dfe064271bc0732fc79))
-- Bump beautifulsoup4 from 4.13.0 to 4.13.3 (#121) ([`483ae44`](https://github.com/chemelli74/aioamazondevices/commit/483ae446f913ce7d1e07f934cda20190697fad44))
-- Bump python-semantic-release/python-semantic-release from 9.17.0 to 9.18.0 (#119) ([`2f18c9a`](https://github.com/chemelli74/aioamazondevices/commit/2f18c9acf3798835645ade2dbd949c05bbff650d))
-- Bump beautifulsoup4 from 4.12.3 to 4.13.0 (#117) ([`04e3c8c`](https://github.com/chemelli74/aioamazondevices/commit/04e3c8c33853702e14540717559191bf1aba8974))
-- Bump python-semantic-release/python-semantic-release from 9.16.1 to 9.17.0 (#115) ([`e5f147c`](https://github.com/chemelli74/aioamazondevices/commit/e5f147cd50d4e0c072b034124a974249d7723dcd))
-- Bump orjson from 3.10.14 to 3.10.15 (#113) ([`fd3c424`](https://github.com/chemelli74/aioamazondevices/commit/fd3c424999e0b634dec72d927befe2881d6b95b2))
-- Bump wagoid/commitlint-github-action from 6.2.0 to 6.2.1 (#112) ([`43cc69a`](https://github.com/chemelli74/aioamazondevices/commit/43cc69ad50e163d99bbe3cdb61ecff08ec870c0b))
-- Bump python-semantic-release/python-semantic-release from 9.15.2 to 9.16.1 (#110) ([`799a6a4`](https://github.com/chemelli74/aioamazondevices/commit/799a6a4ec773fd4ac045029fb45e1af6d83f25da))
-- Bump orjson from 3.10.13 to 3.10.14 (#111) ([`e721a89`](https://github.com/chemelli74/aioamazondevices/commit/e721a8996c0a967791376a54f9b309302e4b4b7c))
-- Bump orjson from 3.10.12 to 3.10.13 (#108) ([`42c4703`](https://github.com/chemelli74/aioamazondevices/commit/42c4703f524a4b86829a478cc96dc2c3bc1c1cc1))
-- Bump wagoid/commitlint-github-action from 6.1.2 to 6.2.0 (#105) ([`9d976f0`](https://github.com/chemelli74/aioamazondevices/commit/9d976f00a1df3bf5484d7f3a35244732cbcc4571))
-- Bump python-semantic-release/python-semantic-release from 9.15.1 to 9.15.2 (#103) ([`312f6a0`](https://github.com/chemelli74/aioamazondevices/commit/312f6a08415274eabf1649d123d53ef4441eb064))
+- Bump h11 from 0.14.0 to 0.16.0 ([`e3b90e1`](https://github.com/chemelli74/aioamazondevices/commit/e3b90e10bcd654f47dee7cc81596fdce9ac095d6))
+- Improve environment ([`718dd03`](https://github.com/chemelli74/aioamazondevices/commit/718dd03c258864335ead34cec080228773e87f25))
+- Bump rsa from 4.9 to 4.9.1 ([`4d7ed78`](https://github.com/chemelli74/aioamazondevices/commit/4d7ed78e46f149897ee179b582df02b277ca35d8))
+- Bump beautifulsoup4 from 4.13.3 to 4.13.4 ([`23a15c9`](https://github.com/chemelli74/aioamazondevices/commit/23a15c9891e35867b18ce10acd8e4dc963387980))
+- Bump pytest-cov from 6.0.0 to 6.1.1 ([`0c5e05c`](https://github.com/chemelli74/aioamazondevices/commit/0c5e05c9e741742bda06694c46ad68590118de6c))
+- Bump orjson from 3.10.15 to 3.10.16 ([`5d5aeec`](https://github.com/chemelli74/aioamazondevices/commit/5d5aeecacd6133b2fcbb0bfddce9f0e6426ba89c))
+- Ruff rules update ([`62f92fb`](https://github.com/chemelli74/aioamazondevices/commit/62f92fb86bd9599dda0652d5fcda67ab11a3e3ef))
+- Bump pytest from 8.3.4 to 8.3.5 ([`99264b6`](https://github.com/chemelli74/aioamazondevices/commit/99264b6ef309e7b314cafe0b6c4cd96ef7ee02bd))
+- Bump python-semantic-release/python-semantic-release from 9.20.0 to 9.21.0 ([`fcae1ba`](https://github.com/chemelli74/aioamazondevices/commit/fcae1ba30692c5b5dd0236464eeaca240123e81f))
+- Bump python-semantic-release/python-semantic-release from 9.19.1 to 9.20.0 ([`6c8fe74`](https://github.com/chemelli74/aioamazondevices/commit/6c8fe749c83e0642f46de9538df49768c9b23ca1))
+- Bump python-semantic-release/python-semantic-release from 9.19.0 to 9.19.1 ([`b7034ee`](https://github.com/chemelli74/aioamazondevices/commit/b7034ee8baba22aaf0ed23f16ba4f17de6fcda2c))
+- Bump python-semantic-release/python-semantic-release from 9.18.0 to 9.19.0 ([`d36c277`](https://github.com/chemelli74/aioamazondevices/commit/d36c2771227d9e07d5286dfe064271bc0732fc79))
+- Bump beautifulsoup4 from 4.13.0 to 4.13.3 ([`483ae44`](https://github.com/chemelli74/aioamazondevices/commit/483ae446f913ce7d1e07f934cda20190697fad44))
+- Bump python-semantic-release/python-semantic-release from 9.17.0 to 9.18.0 ([`2f18c9a`](https://github.com/chemelli74/aioamazondevices/commit/2f18c9acf3798835645ade2dbd949c05bbff650d))
+- Bump beautifulsoup4 from 4.12.3 to 4.13.0 ([`04e3c8c`](https://github.com/chemelli74/aioamazondevices/commit/04e3c8c33853702e14540717559191bf1aba8974))
+- Bump python-semantic-release/python-semantic-release from 9.16.1 to 9.17.0 ([`e5f147c`](https://github.com/chemelli74/aioamazondevices/commit/e5f147cd50d4e0c072b034124a974249d7723dcd))
+- Bump orjson from 3.10.14 to 3.10.15 ([`fd3c424`](https://github.com/chemelli74/aioamazondevices/commit/fd3c424999e0b634dec72d927befe2881d6b95b2))
+- Bump wagoid/commitlint-github-action from 6.2.0 to 6.2.1 ([`43cc69a`](https://github.com/chemelli74/aioamazondevices/commit/43cc69ad50e163d99bbe3cdb61ecff08ec870c0b))
+- Bump python-semantic-release/python-semantic-release from 9.15.2 to 9.16.1 ([`799a6a4`](https://github.com/chemelli74/aioamazondevices/commit/799a6a4ec773fd4ac045029fb45e1af6d83f25da))
+- Bump orjson from 3.10.13 to 3.10.14 ([`e721a89`](https://github.com/chemelli74/aioamazondevices/commit/e721a8996c0a967791376a54f9b309302e4b4b7c))
+- Bump orjson from 3.10.12 to 3.10.13 ([`42c4703`](https://github.com/chemelli74/aioamazondevices/commit/42c4703f524a4b86829a478cc96dc2c3bc1c1cc1))
+- Bump wagoid/commitlint-github-action from 6.1.2 to 6.2.0 ([`9d976f0`](https://github.com/chemelli74/aioamazondevices/commit/9d976f00a1df3bf5484d7f3a35244732cbcc4571))
+- Bump python-semantic-release/python-semantic-release from 9.15.1 to 9.15.2 ([`312f6a0`](https://github.com/chemelli74/aioamazondevices/commit/312f6a08415274eabf1649d123d53ef4441eb064))
 
 
 ### Refactoring
 
-- Removed unneeded auth (#134) ([`e90e87d`](https://github.com/chemelli74/aioamazondevices/commit/e90e87d8e8c37ccf0b6017dad838a71529a65b4b))
+- Removed unneeded auth ([`e90e87d`](https://github.com/chemelli74/aioamazondevices/commit/e90e87d8e8c37ccf0b6017dad838a71529a65b4b))
 
 
 ### Testing
 
-- Fix library_test args (#107) ([`a317ee0`](https://github.com/chemelli74/aioamazondevices/commit/a317ee0b44a8c13493c845172a1346b2b870be65))
+- Fix library_test args ([`a317ee0`](https://github.com/chemelli74/aioamazondevices/commit/a317ee0b44a8c13493c845172a1346b2b870be65))
 
 
 ## v1.0.0 (2024-12-09)
 
 ### Bug fixes
 
-- Use iso 3166 standard for country codes (#102) ([`0fa4e96`](https://github.com/chemelli74/aioamazondevices/commit/0fa4e968678e13c34d1352e7b53cd5224b533779))
+- Use iso 3166 standard for country codes ([`0fa4e96`](https://github.com/chemelli74/aioamazondevices/commit/0fa4e968678e13c34d1352e7b53cd5224b533779))
 
 
 ### Build system
 
-- Bump httpx from 0.28.0 to 0.28.1 (#99) ([`c853dc3`](https://github.com/chemelli74/aioamazondevices/commit/c853dc3fe5c0e75491152f7cd9592ff03c79a717))
+- Bump httpx from 0.28.0 to 0.28.1 ([`c853dc3`](https://github.com/chemelli74/aioamazondevices/commit/c853dc3fe5c0e75491152f7cd9592ff03c79a717))
 
 
 ## v0.13.0 (2024-12-03)
 
 ### Features
 
-- Load login data from dict (#97) ([`d881d16`](https://github.com/chemelli74/aioamazondevices/commit/d881d16d5d4331217b323f80ee69a6c357a16028))
+- Load login data from dict ([`d881d16`](https://github.com/chemelli74/aioamazondevices/commit/d881d16d5d4331217b323f80ee69a6c357a16028))
 
 
 ### Build system
 
-- Bump python-semantic-release/python-semantic-release from 9.15.0 to 9.15.1 (#96) ([`ef13a01`](https://github.com/chemelli74/aioamazondevices/commit/ef13a012a0e46468547be4b01952c49fcc90a4f6))
+- Bump python-semantic-release/python-semantic-release from 9.15.0 to 9.15.1 ([`ef13a01`](https://github.com/chemelli74/aioamazondevices/commit/ef13a012a0e46468547be4b01952c49fcc90a4f6))
 
 
 ## v0.12.0 (2024-12-02)
 
 ### Features
 
-- Return parsed devices data (#94) ([`114da17`](https://github.com/chemelli74/aioamazondevices/commit/114da17ce89a5c521eeff91f8590cfe61a55fce9))
+- Return parsed devices data ([`114da17`](https://github.com/chemelli74/aioamazondevices/commit/114da17ce89a5c521eeff91f8590cfe61a55fce9))
 
 
 ## v0.11.1 (2024-12-02)
 
 ### Bug fixes
 
-- Properties for amazondevice class (#93) ([`a0a2af6`](https://github.com/chemelli74/aioamazondevices/commit/a0a2af69d53433a351ed468f5b607dd562f3319e))
+- Properties for amazondevice class ([`a0a2af6`](https://github.com/chemelli74/aioamazondevices/commit/a0a2af69d53433a351ed468f5b607dd562f3319e))
 
 
 ## v0.11.0 (2024-12-02)
 
 ### Features
 
-- Add device models (#92) ([`8baaa6b`](https://github.com/chemelli74/aioamazondevices/commit/8baaa6ba47059b00c38afb4d2ae2716219ac8fa9))
+- Add device models ([`8baaa6b`](https://github.com/chemelli74/aioamazondevices/commit/8baaa6ba47059b00c38afb4d2ae2716219ac8fa9))
 
 
 ### Build system
 
-- Bump python-semantic-release/python-semantic-release from 9.14.0 to 9.15.0 (#91) ([`d20c580`](https://github.com/chemelli74/aioamazondevices/commit/d20c5802c9438dda1172e616978eda356f4d6ad3))
-- Bump pytest from 8.3.3 to 8.3.4 (#90) ([`711373d`](https://github.com/chemelli74/aioamazondevices/commit/711373df071b22463742ce6b4af744b385ff59e1))
-- Bump httpx from 0.27.2 to 0.28.0 (#89) ([`923ed8c`](https://github.com/chemelli74/aioamazondevices/commit/923ed8c9c9e9e052cfc87818d365e5b82e6ca33d))
-- Bump orjson from 3.10.11 to 3.10.12 (#87) ([`71482db`](https://github.com/chemelli74/aioamazondevices/commit/71482db191ce4a46b5d6ac3ce7bfe78ae4a2aa6b))
-- Bump codecov/codecov-action from 4 to 5 (#85) ([`c92c4f2`](https://github.com/chemelli74/aioamazondevices/commit/c92c4f2ce38d0d4783d103a6cbd275047b9f70d0))
+- Bump python-semantic-release/python-semantic-release from 9.14.0 to 9.15.0 ([`d20c580`](https://github.com/chemelli74/aioamazondevices/commit/d20c5802c9438dda1172e616978eda356f4d6ad3))
+- Bump pytest from 8.3.3 to 8.3.4 ([`711373d`](https://github.com/chemelli74/aioamazondevices/commit/711373df071b22463742ce6b4af744b385ff59e1))
+- Bump httpx from 0.27.2 to 0.28.0 ([`923ed8c`](https://github.com/chemelli74/aioamazondevices/commit/923ed8c9c9e9e052cfc87818d365e5b82e6ca33d))
+- Bump orjson from 3.10.11 to 3.10.12 ([`71482db`](https://github.com/chemelli74/aioamazondevices/commit/71482db191ce4a46b5d6ac3ce7bfe78ae4a2aa6b))
+- Bump codecov/codecov-action from 4 to 5 ([`c92c4f2`](https://github.com/chemelli74/aioamazondevices/commit/c92c4f2ce38d0d4783d103a6cbd275047b9f70d0))
 
 
 ## v0.10.0 (2024-11-13)
 
 ### Features
 
-- Add login from stored data (#78) ([`36af872`](https://github.com/chemelli74/aioamazondevices/commit/36af8723723ef7a4257230cb548d416614a82b8c))
+- Add login from stored data ([`36af872`](https://github.com/chemelli74/aioamazondevices/commit/36af8723723ef7a4257230cb548d416614a82b8c))
+- Add login from stored data ([`36af872`](https://github.com/chemelli74/aioamazondevices/commit/36af8723723ef7a4257230cb548d416614a82b8c))
 
 
 ### Build system
 
-- Bump python-semantic-release/python-semantic-release (#83) ([`b39e995`](https://github.com/chemelli74/aioamazondevices/commit/b39e995e5d74adb3098f6a1049244021d087fccc))
+- Bump python-semantic-release/python-semantic-release ([`b39e995`](https://github.com/chemelli74/aioamazondevices/commit/b39e995e5d74adb3098f6a1049244021d087fccc))
 
 
 ### Refactoring
 
-- Small headers cleanup (#82) ([`e4fafe1`](https://github.com/chemelli74/aioamazondevices/commit/e4fafe1b18889413249fe51d1d680eb0eb7856a5))
+- Small headers cleanup ([`e4fafe1`](https://github.com/chemelli74/aioamazondevices/commit/e4fafe1b18889413249fe51d1d680eb0eb7856a5))
 
 
 ## v0.9.0 (2024-11-10)
 
 ### Features
 
-- Devices cleanup and data consolidation (#81) ([`d6a911c`](https://github.com/chemelli74/aioamazondevices/commit/d6a911cc1a28fa269fa158bf1ee60860a421be4a))
-- Add library_test data saving (#80) ([`12f0cc8`](https://github.com/chemelli74/aioamazondevices/commit/12f0cc88bef2a8b88e4f4fc44b5243ade5b1c303))
+- Devices cleanup and data consolidation ([`d6a911c`](https://github.com/chemelli74/aioamazondevices/commit/d6a911cc1a28fa269fa158bf1ee60860a421be4a))
+- Add library_test data saving ([`12f0cc8`](https://github.com/chemelli74/aioamazondevices/commit/12f0cc88bef2a8b88e4f4fc44b5243ade5b1c303))
 
 
 ### Refactoring
 
-- Renamed param and var to a better naming (#77) ([`d5f4da6`](https://github.com/chemelli74/aioamazondevices/commit/d5f4da677c26b419c959c9b1b925f09afaf21f8e))
+- Renamed param and var to a better naming ([`d5f4da6`](https://github.com/chemelli74/aioamazondevices/commit/d5f4da677c26b419c959c9b1b925f09afaf21f8e))
 
 
 ### Testing
 
-- Add more vscode launch options (#76) ([`fdac075`](https://github.com/chemelli74/aioamazondevices/commit/fdac075e54ad78600db4e3069e71c5f0051ec803))
-- Add .coveragerc (#69) ([`d3cbc5e`](https://github.com/chemelli74/aioamazondevices/commit/d3cbc5e5e279c08491bb3d93851f5703b0e2b053))
+- Add more vscode launch options ([`fdac075`](https://github.com/chemelli74/aioamazondevices/commit/fdac075e54ad78600db4e3069e71c5f0051ec803))
+- Add .coveragerc ([`d3cbc5e`](https://github.com/chemelli74/aioamazondevices/commit/d3cbc5e5e279c08491bb3d93851f5703b0e2b053))
 
 
 ### Build system
 
-- Bump python-semantic-release/python-semantic-release (#75) ([`520b94a`](https://github.com/chemelli74/aioamazondevices/commit/520b94a29e3aeff2668ce47d152daf97e7911340))
-- Bump python-semantic-release/python-semantic-release (#74) ([`61b9c65`](https://github.com/chemelli74/aioamazondevices/commit/61b9c655af1f5252e521c2b3c9656b432aace1c4))
-- Bump orjson from 3.10.10 to 3.10.11 (#72) ([`850e41f`](https://github.com/chemelli74/aioamazondevices/commit/850e41ff986c28d1ad00c78235f78ff4240388ae))
-- Bump pytest-cov from 5.0.0 to 6.0.0 (#71) ([`5871ed5`](https://github.com/chemelli74/aioamazondevices/commit/5871ed5dc8d68b08aa78b021ad77bcb904beaf9a))
-- Bump colorlog from 6.8.2 to 6.9.0 (#70) ([`29a9c7b`](https://github.com/chemelli74/aioamazondevices/commit/29a9c7b5273454651d4b0eeb7312ba81fbfdc1ad))
+- Bump python-semantic-release/python-semantic-release ([`520b94a`](https://github.com/chemelli74/aioamazondevices/commit/520b94a29e3aeff2668ce47d152daf97e7911340))
+- Bump python-semantic-release/python-semantic-release ([`61b9c65`](https://github.com/chemelli74/aioamazondevices/commit/61b9c655af1f5252e521c2b3c9656b432aace1c4))
+- Bump orjson from 3.10.10 to 3.10.11 ([`850e41f`](https://github.com/chemelli74/aioamazondevices/commit/850e41ff986c28d1ad00c78235f78ff4240388ae))
+- Bump pytest-cov from 5.0.0 to 6.0.0 ([`5871ed5`](https://github.com/chemelli74/aioamazondevices/commit/5871ed5dc8d68b08aa78b021ad77bcb904beaf9a))
+- Bump colorlog from 6.8.2 to 6.9.0 ([`29a9c7b`](https://github.com/chemelli74/aioamazondevices/commit/29a9c7b5273454651d4b0eeb7312ba81fbfdc1ad))
 
 
 ## v0.8.0 (2024-11-01)
 
 ### Build system
 
-- Revert to standard semantic release (#67) ([`874b330`](https://github.com/chemelli74/aioamazondevices/commit/874b330d0faf4c8248fb007f9c67ad61bceadfd8))
+- Revert to standard semantic release ([`874b330`](https://github.com/chemelli74/aioamazondevices/commit/874b330d0faf4c8248fb007f9c67ad61bceadfd8))
 
 
 ### Features
 
-- Drop python 3.11 support (#66) ([`317ba8d`](https://github.com/chemelli74/aioamazondevices/commit/317ba8d90ca55bac1c344170762e799a22cca449))
+- Drop python 3.11 support ([`317ba8d`](https://github.com/chemelli74/aioamazondevices/commit/317ba8d90ca55bac1c344170762e799a22cca449))
+- Drop python 3.11 support ([`317ba8d`](https://github.com/chemelli74/aioamazondevices/commit/317ba8d90ca55bac1c344170762e799a22cca449))
 
 
 ## v0.7.3 (2024-10-31)
-
-### Unknown
 
 ### Bug fixes
 
@@ -291,16 +303,12 @@
 
 ## v0.7.2 (2024-10-22)
 
-### Unknown
-
 ### Bug fixes
 
 - Avoid registering a new device at each login cicle ([`0681a85`](https://github.com/chemelli74/aioamazondevices/commit/0681a8566b8856f940ef1bc910bdc9f6adb8a905))
 
 
 ## v0.7.1 (2024-10-22)
-
-### Unknown
 
 ### Bug fixes
 
@@ -318,11 +326,7 @@
 
 ## v0.7.0 (2024-10-08)
 
-### Unknown
-
 ## v0.6.0 (2024-10-08)
-
-### Unknown
 
 ### Bug fixes
 
@@ -337,16 +341,12 @@
 
 ## v0.5.1 (2024-10-08)
 
-### Unknown
-
 ### Bug fixes
 
 - Removed .idea directory - was accidently committetd ([`716b221`](https://github.com/chemelli74/aioamazondevices/commit/716b221d2082880a88767f367db3a1676a99371d))
 
 
 ## v0.5.0 (2024-10-08)
-
-### Unknown
 
 ### Features
 
@@ -355,16 +355,12 @@
 
 ## v0.4.0 (2024-10-08)
 
-### Unknown
-
 ### Features
 
 - Modified output functionality ([`141e57a`](https://github.com/chemelli74/aioamazondevices/commit/141e57a9d9145bb4ec5f6ff484336c3f82cec083))
 
 
 ## v0.3.0 (2024-10-08)
-
-### Unknown
 
 ### Features
 
@@ -373,8 +369,6 @@
 
 
 ## v0.2.0 (2024-10-03)
-
-### Unknown
 
 ### Features
 
@@ -400,8 +394,6 @@
 
 ## v0.1.1 (2024-05-22)
 
-### Unknown
-
 ### Bug fixes
 
 - Force country code lower case ([`8951bf9`](https://github.com/chemelli74/aioamazondevices/commit/8951bf93c9f80e3fa5a6da23fcaeceb71ca457e2))
@@ -414,8 +406,6 @@
 
 ## v0.1.0 (2024-05-07)
 
-### Unknown
-
 ### Features
 
 - First coding ([`a407a5e`](https://github.com/chemelli74/aioamazondevices/commit/a407a5e66d48ba4ea6307a5fd161ab8397f7b54b))
@@ -427,8 +417,6 @@
 
 
 ## v0.0.0 (2024-04-24)
-
-### Unknown
 
 ### Build system
 
