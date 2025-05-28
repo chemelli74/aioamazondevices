@@ -13,6 +13,7 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     },
     "gb": {
         "domain": "co.uk",
+        "openid.assoc_handle": "gbflex",
     },
     "au": {
         "domain": "com.au",
