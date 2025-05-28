@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.0.0-rc.1 (2025-05-28)
+
+### Features
+
+- Improve amazon sounds management ([`c1bd88a`](https://github.com/chemelli74/aioamazondevices/commit/c1bd88ac35fe48a0c3ea7f126c9c1f382f3aac43))
+
+
 ## v2.2.0 (2025-05-26)
 
 ### Features
