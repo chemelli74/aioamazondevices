@@ -55,7 +55,10 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
-        args: ["--skip=src/aioamazondevices/sounds.py"]
+        args:
+          [
+            "--skip=src/aioamazondevices/sounds.py, scripts/sounds_strings.json, scripts/sounds_services.yaml",
+          ]
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.15.0
     hooks:
