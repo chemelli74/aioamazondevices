@@ -7,6 +7,13 @@
 - Improve amazon sounds management ([`c1bd88a`](https://github.com/chemelli74/aioamazondevices/commit/c1bd88ac35fe48a0c3ea7f126c9c1f382f3aac43))
 
 
+## v2.2.1 (2025-05-28)
+
+### Bug fixes
+
+- Add missing models ([`c8c2de5`](https://github.com/chemelli74/aioamazondevices/commit/c8c2de540f533080d95ba3964d17387196161b9a))
+
+
 ## v2.2.0 (2025-05-26)
 
 ### Features
