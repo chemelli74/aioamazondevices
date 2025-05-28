@@ -1,10 +1,10 @@
 # Changelog
 
-## v2.2.1-rc.1 (2025-05-27)
+## v2.2.1 (2025-05-28)
 
 ### Bug fixes
 
-- Add 2 missing models ([`72fa924`](https://github.com/chemelli74/aioamazondevices/commit/72fa9241a1c4c09dd5814c3d063c9049d93ad58c))
+- Add missing models ([`c8c2de5`](https://github.com/chemelli74/aioamazondevices/commit/c8c2de540f533080d95ba3964d17387196161b9a))
 
 
 ## v2.2.0 (2025-05-26)
