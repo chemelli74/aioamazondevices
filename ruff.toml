@@ -26,10 +26,11 @@ lint.ignore = [
     "E501",      # Line too long
 ]
 "scripts/*" = [
-    "INP001",   # Missing an __init__.py file
+    "INP001",    # Missing an __init__.py file
+    "T201",      # `print` found
 ]
 "tests/*" = [
-    "S101",     # Use of `assert` detected
+    "S101",      # Use of `assert` detected
 ]
 
 [lint.mccabe]
