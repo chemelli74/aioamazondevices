@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.0.1-rc.1 (2025-05-29)
+
+### Bug fixes
+
+- Rework assoc_handle login parameter ([`24494cd`](https://github.com/chemelli74/aioamazondevices/commit/24494cddefd61b259402c143ab1cf49c72759c86))
+
+
 ## v3.0.0 (2025-05-28)
 
 ### Features
