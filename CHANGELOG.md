@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.0.1 (2025-05-29)
+
+### Bug fixes
+
+- Link typo ([`1c961d5`](https://github.com/chemelli74/aioamazondevices/commit/1c961d5412b6c433bd4d43b1a3f95eab2634e996))
+
+
 ## v3.0.0 (2025-05-28)
 
 ### Features
