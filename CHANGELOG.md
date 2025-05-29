@@ -1,10 +1,10 @@
 # Changelog
 
-## v3.0.2-rc.1 (2025-05-29)
+## v3.0.2 (2025-05-29)
 
 ### Bug fixes
 
-- Add more models and sort them ([`c74c51e`](https://github.com/chemelli74/aioamazondevices/commit/c74c51e0002a079d2d17293d718818de8da1e333))
+- Add more models and sort them ([`26c3519`](https://github.com/chemelli74/aioamazondevices/commit/26c3519a716a955535ec245425ac6bb905a1e295))
 
 
 ## v3.0.1 (2025-05-29)
