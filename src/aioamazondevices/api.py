@@ -637,7 +637,7 @@ class AmazonEchoApi:
         )
         if not model_details:
             _LOGGER.warning(
-                "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices?tab=readme-ov-file#unknon-device-type",
+                "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices?tab=readme-ov-file#unknown-device-type",
                 device.device_type,
                 device.account_name,
             )
