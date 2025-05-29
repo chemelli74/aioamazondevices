@@ -66,6 +66,18 @@ BIN_EXTENSION = ".bin"
 SPEAKER_GROUP_MODEL = "Speaker Group"
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
+    "A10A33FOX2NUBK": {
+        "model": "Echo Spot",
+        "hw_version": "Gen1",
+    },
+    "A11QM4H9HGV71H": {
+        "model": "Echo Show 5",
+        "hw_version": "Gen3",
+    },
+    "A1Q6UGEXJZWJQ0": {
+        "model": "Fire TV Stick",
+        "hw_version": "4K",
+    },
     "A1RABVCI4QCIKC": {
         "model": "Echo Dot",
         "hw_version": "Gen3",
@@ -78,9 +90,21 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot Clock",
         "hw_version": "Gen4",
     },
+    "A2LWARUGJLBYEW": {
+        "model": "Fire TV Stick",
+        "hw_version": "Gen2",
+    },
+    "A2M4YX06LWP8WI": {
+        "model": "Fire Tablet",
+        "hw_version": "Gen1",
+    },
     "A2U21SRK4QGSE1": {
         "model": "Echo Dot Clock",
         "hw_version": "Gen4",
+    },
+    "A303PJF6ISQ7IC": {
+        "model": "Echo Auto",
+        "hw_version": "Gen1",
     },
     "A32DDESGESSHZA": {
         "model": "Echo Dot",
@@ -90,6 +114,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot",
         "hw_version": "Gen3",
     },
+    "A3C9PE6TNYLTCH": {
+        "model": "Speaker Group",
+        "hw_version": "None",
+    },
     "A3RMGO6LYLH7YN": {
         "model": "Echo Dot",
         "hw_version": "Gen4",
@@ -98,28 +126,28 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot",
         "hw_version": "Gen2",
     },
+    "A4ZP7ZC4PI6TO": {
+        "model": "Echo Show 3",
+        "hw_version": "Gen1",
+    },
     "A4ZXE0RM7LQ7A": {
         "model": "Echo Dot",
         "hw_version": "Gen5",
+    },
+    "A7WXQPH584YP": {
+        "model": "Echo Dot",
+        "hw_version": "Gen2",
+    },
+    "AB72C64C86AW2": {
+        "model": "Echo Dot",
+        "hw_version": "Gen2",
     },
     "AKNO1N0KSFN8L": {
         "model": "Echo Dot",
         "hw_version": "Gen1",
     },
-    "A3C9PE6TNYLTCH": {
-        "model": SPEAKER_GROUP_MODEL,
-        "hw_version": None,
-    },
-    "A1Q6UGEXJZWJQ0": {
-        "model": "Fire TV Stick",
-        "hw_version": "4K",
-    },
-    "A10A33FOX2NUBK": {
-        "model": "Echo Spot",
-        "hw_version": "Gen1",
-    },
-    "AB72C64C86AW2": {
-        "model": "Echo Dot",
+    "G2A0V704840708AP": {
+        "model": "Echo Plus",
         "hw_version": "Gen2",
     },
 }
