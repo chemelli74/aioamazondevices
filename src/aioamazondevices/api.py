@@ -122,7 +122,7 @@ class AmazonEchoApi:
         self._serial = self._serial_number()
         self._list_for_clusters: dict[str, str] = {}
 
-        self.session: ClientSession
+        self.session: ClientSession | HttpxClientSession
 
     def _load_website_cookies(self) -> dict[str, str]:
         """Get website cookies, if avaliables."""
