@@ -49,7 +49,7 @@ from .exceptions import CannotAuthenticate, CannotRegisterDevice, WrongMethod
 from .httpx import HttpxClientResponseWrapper, HttpxClientSession
 
 # Values: "aiohttp", or "httpx"
-LIBRARY = "aiohttp"
+LIBRARY = "httpx"
 
 
 @dataclass
