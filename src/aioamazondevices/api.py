@@ -117,7 +117,6 @@ class AmazonEchoApi:
         self._domain = domain
         self._cookies = self._build_init_cookies()
         self._csrf_cookie: str | None = None
-        self._headers = DEFAULT_HEADERS
         self._save_raw_data = save_raw_data
         self._login_stored_data = login_data
         self._serial = self._serial_number()
@@ -163,7 +162,7 @@ class AmazonEchoApi:
         map_md_str = orjson.dumps(map_md_dict).decode("utf-8")
         map_md = base64.b64encode(map_md_str.encode()).decode().rstrip("=")
 
-        return {"frc": frc, "map-md": map_md, "amzn-app-id": AMAZON_APP_ID}
+        return {"amzn-app-id": AMAZON_APP_ID, "frc": frc, "map-md": map_md}
 
     def _create_code_verifier(self, length: int = 32) -> bytes:
         """Create code verifier."""
@@ -284,9 +283,13 @@ class AmazonEchoApi:
             _LOGGER.debug("Adding %s to headers", json_header)
             headers.update(json_header)
 
+        _url: YARL_URL | str = url
+        if LIBRARY == "aiohttp":
+            _url = YARL_URL(url, encoded=True)
+
         resp = await self.session.request(
             method,
-            url,
+            _url,
             data=input_data if not json_data else orjson.dumps(input_data),
             cookies=self._load_website_cookies(),
             headers=headers,

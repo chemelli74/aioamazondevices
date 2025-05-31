@@ -42,6 +42,7 @@ DEFAULT_HEADERS = {
     ),
     "Accept-Language": "en-US",
     "Accept-Encoding": "gzip",
+    "Connection": "keep-alive",
 }
 CSRF_COOKIE = "csrf"
 
