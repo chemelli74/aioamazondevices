@@ -18,7 +18,8 @@ import orjson
 from aiohttp import ClientResponse, ClientSession
 from babel import Locale
 from bs4 import BeautifulSoup, Tag
-from yarl import URL
+from httpx import URL as HTTPX_URL
+from yarl import URL as YARL_URL
 
 from .const import (
     _LOGGER,
@@ -213,11 +214,11 @@ class AmazonEchoApi:
         form = soup.find("form", {"name": "signIn"}) or soup.find("form")
 
         if not isinstance(form, Tag):
-            raise TypeError("No form found in page or something other is going wrong.")
+            raise TypeError("Unable to find form in login response")
 
         inputs = {}
         for field in form.find_all("input"):
-            if field.get("type") and field["type"] == "hidden":
+            if isinstance(field, Tag) and field.get("type", "") == "hidden":
                 inputs[field["name"]] = field.get("value", "")
 
         return inputs
@@ -227,14 +228,16 @@ class AmazonEchoApi:
         _LOGGER.debug("Get request data from HTML source")
         form = soup.find("form", {"name": "signIn"}) or soup.find("form")
         if isinstance(form, Tag):
-            method = form["method"]
-            url = form["action"]
+            method = form.get("method")
+            url = form.get("action")
             if isinstance(method, str) and isinstance(url, str):
                 return method, url
-        raise TypeError("Unable to extract form data from response.")
+        raise TypeError("Unable to extract form data from response")
 
-    def _extract_code_from_url(self, url: URL) -> str:
+    def _extract_code_from_url(self, url: YARL_URL | HTTPX_URL) -> str:
         """Extract the access token from url query after login."""
+        if not isinstance(url.query, bytes):
+            raise TypeError(f"Unable to extract authorization code from url: {url}")
         parsed_url = parse_qs(url.query.decode())
         return parsed_url["openid.oa2.authorization_code"][0]
 
@@ -325,7 +328,8 @@ class AmazonEchoApi:
             base_filename = url
         fullpath = Path(output_dir, base_filename + extension)
 
-        if type(raw_data) is dict:
+        data: str
+        if isinstance(raw_data, dict):
             data = orjson.dumps(raw_data, option=orjson.OPT_INDENT_2).decode("utf-8")
         elif extension in [HTML_EXTENSION, BIN_EXTENSION]:
             data = raw_data
