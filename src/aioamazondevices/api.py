@@ -265,18 +265,16 @@ class AmazonEchoApi:
     async def _parse_cookies_from_headers(
         self, headers: CIMultiDictProxy[str]
     ) -> dict[str, str]:
-        """Parse cookis with a value from headers."""
+        """Parse cookies with a value from headers."""
         cookies_with_value: dict[str, str] = {}
 
-        for key, value in headers.items():
-            if key == "Set-Cookie":
-                c = SimpleCookie()
-                c.load(value)
-                c2 = {k: v.value for k, v in c.items()}
-                for ck, cv in c2.items():
-                    if cv in [None, "-", ""]:
-                        continue
-                    cookies_with_value.update({ck: cv})
+        for value in headers.getall("Set-Cookie", []):
+            cookie = SimpleCookie()
+            cookie.load(value)
+
+            for name, morsel in cookie.items():
+                if morsel.value and morsel.value not in ("-", ""):
+                    cookies_with_value[name] = morsel.value
 
         _LOGGER.debug("Cookies from headers: %s", cookies_with_value)
         return cookies_with_value
