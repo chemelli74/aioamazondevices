@@ -19,6 +19,7 @@ from aiohttp import ClientResponse, ClientSession
 from babel import Locale
 from bs4 import BeautifulSoup, Tag
 from httpx import URL as HTTPX_URL
+from multidict import MultiDictProxy
 from yarl import URL as YARL_URL
 
 from .const import (
@@ -235,9 +236,14 @@ class AmazonEchoApi:
 
     def _extract_code_from_url(self, url: YARL_URL | HTTPX_URL) -> str:
         """Extract the access token from url query after login."""
-        if not isinstance(url.query, bytes):
+        parsed_url: dict[str, list[str]] = {}
+        if isinstance(url.query, bytes):
+            parsed_url = parse_qs(url.query.decode())
+        elif isinstance(url.query, MultiDictProxy):
+            for key, value in url.query.items():
+                parsed_url[key] = [value]
+        else:
             raise TypeError(f"Unable to extract authorization code from url: {url}")
-        parsed_url = parse_qs(url.query.decode())
         return parsed_url["openid.oa2.authorization_code"][0]
 
     def _client_session(self) -> None:
@@ -491,22 +497,13 @@ class AmazonEchoApi:
             url=login_url,
             input_data=login_inputs,
         )
+        _LOGGER.debug("Login response url:%s", login_resp.url)
 
-        authcode_url = None
-        _LOGGER.debug("Login query: %s", login_resp.url.query)
-        if b"openid.oa2.authorization_code" in login_resp.url.query:
-            authcode_url = login_resp.url
-        elif len(login_resp.history) > 0:
-            for history in login_resp.history:
-                if b"openid.oa2.authorization_code" in history.url.query:
-                    authcode_url = history.url
-                    break
-
-        if authcode_url is None:
-            raise CannotAuthenticate
+        authcode = self._extract_code_from_url(login_resp.url)
+        _LOGGER.debug("Login extracted authcode: %s", authcode)
 
         device_login_data = {
-            "authorization_code": self._extract_code_from_url(authcode_url),
+            "authorization_code": authcode,
             "code_verifier": code_verifier,
             "domain": self._domain,
         }
