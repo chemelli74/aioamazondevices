@@ -62,8 +62,8 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
     parser.add_argument(
         "--save_raw_data",
         "-s",
-        type=str,
-        default="False",
+        action="store_true",
+        default=False,
         help="Save HTML source on disk",
     )
     parser.add_argument(
@@ -74,14 +74,17 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         Command line options override those in the file.",
     )
 
-    arguments = parser.parse_args()
+    arguments_cli = parser.parse_args()
+    args = vars(arguments_cli)
     # Re-parse the command line
-    # taking the options in the optional JSON file as a basis
-    if arguments.configfile and Path(arguments.configfile).exists():
-        with Path.open(arguments.configfile) as f:
-            arguments = parser.parse_args(namespace=Namespace(**json.load(f)))
+    # taking the options in the optional JSON file as additional arguments to cli
+    cfg_file = arguments_cli.configfile
+    if cfg_file and Path(cfg_file).exists():
+        with Path.open(cfg_file) as f:
+            arguments_cfg = parser.parse_args(namespace=Namespace(**json.load(f)))
+        args.update(vars(arguments_cfg))
 
-    return parser, arguments
+    return parser, Namespace(**args)
 
 
 def save_to_file(filename: str, data_dict: dict[str, Any]) -> None:
@@ -90,6 +93,7 @@ def save_to_file(filename: str, data_dict: dict[str, Any]) -> None:
         data_dict,
         option=orjson.OPT_INDENT_2,
     ).decode("utf-8")
+    Path(filename).parent.mkdir(parents=True, exist_ok=True)
     with Path.open(Path(filename), mode="w", encoding="utf-8") as file:
         file.write(data_json)
         file.write("\n")
@@ -143,7 +147,7 @@ async def main() -> None:
         args.email,
         args.password,
         login_data_stored,
-        args.save_raw_data.lower() in ("yes", "true", "1"),
+        args.save_raw_data,
     )
 
     try:
@@ -180,14 +184,23 @@ async def main() -> None:
     print("Devices:", devices)
     print("-" * 20)
 
+    if not devices:
+        print("!!! Error: No devices found !!!")
+        sys.exit(3)
+
     save_to_file(f"{SAVE_PATH}/output-devices.json", devices)
 
     device_single = find_device(
         devices, args.single_device_name, lambda d: len(d.device_cluster_members) == 1
     )
-    device_cluster = find_device(
-        devices, args.cluster_device_name, lambda d: len(d.device_cluster_members) > 1
-    )
+    if args.cluster_device_name:
+        device_cluster = find_device(
+            devices,
+            args.cluster_device_name,
+            lambda d: len(d.device_cluster_members) > 1,
+        )
+    else:
+        device_cluster = device_single
 
     print("Selected devices:")
     print("- single : ", device_single)
@@ -195,7 +208,7 @@ async def main() -> None:
 
     if not await api.auth_check_status():
         print("!!! Error: Session not authenticated !!!")
-        sys.exit(3)
+        sys.exit(4)
     print("Session authenticated!")
 
     print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
