@@ -15,7 +15,7 @@ from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
-from aiohttp import ClientResponse, ClientSession
+from aiohttp import ClientResponse, ClientSession, CookieJar
 from babel import Locale
 from bs4 import BeautifulSoup, Tag
 from httpx import URL as HTTPX_URL
@@ -251,9 +251,13 @@ class AmazonEchoApi:
                     follow_redirects=True,
                 )
             else:
+                cookie_jar = CookieJar(quote_cookie=False)
+                cookie_jar.update_cookies(
+                    self._cookies, YARL_URL(f"amazon.{self._domain}")
+                )
                 self.session = ClientSession(
                     headers=DEFAULT_HEADERS,
-                    cookies=self._cookies,
+                    cookie_jar=cookie_jar,
                 )
 
     async def _session_request(
