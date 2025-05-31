@@ -9,17 +9,17 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from http import HTTPStatus
-from http.cookies import Morsel
+from http.cookies import Morsel, SimpleCookie
 from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
-from aiohttp import ClientResponse, ClientSession, CookieJar
+from aiohttp import ClientResponse, ClientSession
 from babel import Locale
 from bs4 import BeautifulSoup, Tag
 from httpx import URL as HTTPX_URL
-from multidict import MultiDictProxy
+from multidict import CIMultiDictProxy, MultiDictProxy
 from yarl import URL as YARL_URL
 
 from .const import (
@@ -50,7 +50,7 @@ from .exceptions import CannotAuthenticate, CannotRegisterDevice, WrongMethod
 from .httpx import HttpxClientResponseWrapper, HttpxClientSession
 
 # Values: "aiohttp", or "httpx"
-LIBRARY = "httpx"
+LIBRARY = "aiohttp"
 
 
 @dataclass
@@ -257,14 +257,29 @@ class AmazonEchoApi:
                     follow_redirects=True,
                 )
             else:
-                cookie_jar = CookieJar(quote_cookie=False)
-                cookie_jar.update_cookies(
-                    self._cookies, YARL_URL(f"amazon.{self._domain}")
-                )
                 self.session = ClientSession(
                     headers=DEFAULT_HEADERS,
-                    cookie_jar=cookie_jar,
+                    cookies=self._cookies,
                 )
+
+    async def _parse_cookies_from_headers(
+        self, headers: CIMultiDictProxy[str]
+    ) -> dict[str, str]:
+        """Parse cookis with a value from headers."""
+        cookies_with_value: dict[str, str] = {}
+
+        for key, value in headers.items():
+            if key == "Set-Cookie":
+                c = SimpleCookie()
+                c.load(value)
+                c2 = {k: v.value for k, v in c.items()}
+                for ck, cv in c2.items():
+                    if cv in [None, "-", ""]:
+                        continue
+                    cookies_with_value.update({ck: cv})
+
+        _LOGGER.debug("Cookies from headers: %s", cookies_with_value)
+        return cookies_with_value
 
     async def _session_request(
         self,
@@ -293,6 +308,9 @@ class AmazonEchoApi:
             _LOGGER.debug("Adding %s to headers", json_header)
             headers.update(json_header)
 
+        _cookies = (
+            self._load_website_cookies() if self._login_stored_data else self._cookies
+        )
         _url: YARL_URL | str = url
         if LIBRARY == "aiohttp":
             _url = YARL_URL(url, encoded=True)
@@ -301,9 +319,11 @@ class AmazonEchoApi:
             method,
             _url,
             data=input_data if not json_data else orjson.dumps(input_data),
-            cookies=self._load_website_cookies(),
+            cookies=_cookies,
             headers=headers,
         )
+        self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
+
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
             "Response %s for url %s with content type: %s",
