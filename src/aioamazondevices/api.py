@@ -33,6 +33,7 @@ from .const import (
     AMAZON_DEVICE_TYPE,
     BIN_EXTENSION,
     CSRF_COOKIE,
+    DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
     DEVICE_TYPE_TO_MODEL,
     DOMAIN_BY_ISO3166_COUNTRY,
@@ -103,11 +104,18 @@ class AmazonEchoApi:
         country_code = login_country_code.lower()
 
         locale = DOMAIN_BY_ISO3166_COUNTRY.get(country_code)
+        domain = locale["domain"] if locale else country_code
+
+        if locale and (assoc := locale.get("openid.assoc_handle")):
+            assoc_handle = assoc
+        else:
+            assoc_handle = f"{DEFAULT_ASSOC_HANDLE}_{country_code}"
+        self._assoc_handle = assoc_handle
 
         self._login_email = login_email
         self._login_password = login_password
         self._login_country_code = country_code
-        self._domain = locale["domain"] if locale else country_code
+        self._domain = domain
         self._cookies = self._build_init_cookies()
         self._csrf_cookie: str | None = None
         self._save_raw_data = save_raw_data
@@ -181,22 +189,22 @@ class AmazonEchoApi:
         code_challenge = self._create_s256_code_challenge(code_verifier)
 
         oauth_params = {
-            "accountStatusPolicy": "P1",
-            "forceMobileLayout": "true",
-            "openid.assoc_handle": f"{self._login_country_code}flex",
-            "openid.claimed_id": "http://specs.openid.net/auth/2.0/identifier_select",
-            "openid.identity": "http://specs.openid.net/auth/2.0/identifier_select",
-            "openid.mode": "checkid_setup",
-            "openid.ns": "http://specs.openid.net/auth/2.0",
-            "openid.ns.oa2": "http://www.amazon.com/ap/ext/oauth/2",
-            "openid.ns.pape": "http://specs.openid.net/extensions/pape/1.0",
-            "openid.oa2.client_id": f"device:{client_id}",
-            "openid.oa2.code_challenge": code_challenge,
-            "openid.oa2.code_challenge_method": "S256",
             "openid.oa2.response_type": "code",
-            "openid.oa2.scope": "device_auth_access",
-            "openid.pape.max_auth_age": "0",
+            "openid.oa2.code_challenge_method": "S256",
+            "openid.oa2.code_challenge": code_challenge,
             "openid.return_to": f"https://www.amazon.{self._domain}/ap/maplanding",
+            "openid.assoc_handle": self._assoc_handle,
+            "openid.identity": "http://specs.openid.net/auth/2.0/identifier_select",
+            "accountStatusPolicy": "P1",
+            "openid.claimed_id": "http://specs.openid.net/auth/2.0/identifier_select",
+            "openid.mode": "checkid_setup",
+            "openid.ns.oa2": "http://www.amazon.com/ap/ext/oauth/2",
+            "openid.oa2.client_id": f"device:{client_id}",
+            "openid.ns.pape": "http://specs.openid.net/extensions/pape/1.0",
+            "openid.oa2.scope": "device_auth_access",
+            "forceMobileLayout": "true",
+            "openid.ns": "http://specs.openid.net/auth/2.0",
+            "openid.pape.max_auth_age": "0",
         }
 
         return f"https://www.amazon.{self._domain}/ap/signin?{urlencode(oauth_params)}"
