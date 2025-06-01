@@ -13,6 +13,7 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     },
     "gb": {
         "domain": "co.uk",
+        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_uk",
     },
     "au": {
         "domain": "com.au",

@@ -1,9 +1,12 @@
 # Changelog
 
+## v3.0.4-rc.1 (2025-06-01)
+
 ## v3.0.3 (2025-06-01)
 
 ### Bug fixes
 
+- Rework assoc_handle login parameter ([`9977d1c`](https://github.com/chemelli74/aioamazondevices/commit/9977d1c07bc3ca017bce3b4553e228ccccd5c7c2))
 - Add more models ([`3931401`](https://github.com/chemelli74/aioamazondevices/commit/39314018a92894130a865d60731406abf4e38376))
 
 
