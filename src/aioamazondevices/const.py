@@ -76,12 +76,16 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": "Gen3",
     },
     "A1Q6UGEXJZWJQ0": {
-        "model": "Fire TV Stick",
-        "hw_version": "4K",
+        "model": "Fire TV Stick 4K",
+        "hw_version": "Gen2",
     },
     "A1RABVCI4QCIKC": {
         "model": "Echo Dot",
         "hw_version": "Gen3",
+    },
+    "A271DR1789MXDS": {
+        "model": "Fire Tablet 7",
+        "hw_version": "Gen12",
     },
     "A2DS1Q2TPDJ48U": {
         "model": "Echo Dot Clock",
@@ -96,8 +100,8 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": "Gen2",
     },
     "A2M4YX06LWP8WI": {
-        "model": "Fire Tablet",
-        "hw_version": "Gen1",
+        "model": "Fire Tablet 7",
+        "hw_version": "Gen5",
     },
     "A2U21SRK4QGSE1": {
         "model": "Echo Dot Clock",
@@ -106,6 +110,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A303PJF6ISQ7IC": {
         "model": "Echo Auto",
         "hw_version": "Gen1",
+    },
+    "A30YDR2MK8HMRV": {
+        "model": "Echo Dot",
+        "hw_version": "Gen3",
     },
     "A32DDESGESSHZA": {
         "model": "Echo Dot",
@@ -127,6 +135,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot",
         "hw_version": "Gen2",
     },
+    "A3VRME03NAXFUB": {
+        "model": "Echo Flex",
+        "hw_version": "None",
+    },
     "A4ZP7ZC4PI6TO": {
         "model": "Echo Show 3",
         "hw_version": "Gen1",
@@ -146,6 +158,18 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "AKNO1N0KSFN8L": {
         "model": "Echo Dot",
         "hw_version": "Gen1",
+    },
+    "AKPGW064GI9HE": {
+        "model": " Fire TV Stick 4K",
+        "hw_version": "Gen1",
+    },
+    "ATNLRCEBX3W4P": {
+        "model": "Fire Tablet HD 10",
+        "hw_version": "Gen11",
+    },
+    "AVU7CPPF2ZRAS": {
+        "model": "Fire Tablet HD 8 Plus",
+        "hw_version": "Gen10",
     },
     "G2A0V704840708AP": {
         "model": "Echo Plus",
