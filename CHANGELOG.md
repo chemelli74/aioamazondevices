@@ -1,10 +1,23 @@
 # Changelog
 
-## v3.0.3-rc.1 (2025-05-29)
+## v3.0.3 (2025-06-01)
 
 ### Bug fixes
 
-- Add more models ([`3cb4967`](https://github.com/chemelli74/aioamazondevices/commit/3cb4967f1b1003d7e26570da4e025e3727dc5721))
+- Add more models ([`3931401`](https://github.com/chemelli74/aioamazondevices/commit/39314018a92894130a865d60731406abf4e38376))
+
+
+### Testing
+
+- Update cleanup script ([`9a6f01f`](https://github.com/chemelli74/aioamazondevices/commit/9a6f01f12c195bfa38a7d8e180fc0e58e6e3be49))
+- Improve library_test script ([`614de28`](https://github.com/chemelli74/aioamazondevices/commit/614de28414126423a9a82f1982c0ffaa4cdc8f3d))
+
+
+### Refactoring
+
+- Authcode ([`f9b5346`](https://github.com/chemelli74/aioamazondevices/commit/f9b5346dddbefa982d3b5f168ef3923a9fcb7103))
+- Align requests between httpx and aiohttp ([`f2cd615`](https://github.com/chemelli74/aioamazondevices/commit/f2cd61557466bbe6cccfac14d2316acbff471bcc))
+- Pylance warnings ([`459e0d6`](https://github.com/chemelli74/aioamazondevices/commit/459e0d6a6a597be2dd76f75e9f95447c0cfbc097))
 
 
 ## v3.0.2 (2025-05-29)
