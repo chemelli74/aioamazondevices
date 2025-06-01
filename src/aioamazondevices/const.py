@@ -110,6 +110,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Auto",
         "hw_version": "Gen1",
     },
+    "A30YDR2MK8HMRV": {
+        "model": "Echo Dot",
+        "hw_version": "Gen3",
+    },
     "A32DDESGESSHZA": {
         "model": "Echo Dot",
         "hw_version": "Gen3",
@@ -129,6 +133,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A3S5BH2HU6VAYF": {
         "model": "Echo Dot",
         "hw_version": "Gen2",
+    },
+    "A3VRME03NAXFUB": {
+        "model": "Echo Flex",
+        "hw_version": "None",
     },
     "A4ZP7ZC4PI6TO": {
         "model": "Echo Show 3",
