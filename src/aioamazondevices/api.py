@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from http import HTTPStatus
-from http.cookies import Morsel
+from http.cookies import Morsel, SimpleCookie
 from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
@@ -19,7 +19,7 @@ from aiohttp import ClientResponse, ClientSession
 from babel import Locale
 from bs4 import BeautifulSoup, Tag
 from httpx import URL as HTTPX_URL
-from multidict import MultiDictProxy
+from multidict import CIMultiDictProxy, MultiDictProxy
 from yarl import URL as YARL_URL
 
 from .const import (
@@ -50,7 +50,7 @@ from .exceptions import CannotAuthenticate, CannotRegisterDevice, WrongMethod
 from .httpx import HttpxClientResponseWrapper, HttpxClientSession
 
 # Values: "aiohttp", or "httpx"
-LIBRARY = "httpx"
+LIBRARY = "aiohttp"
 
 
 @dataclass
@@ -262,6 +262,23 @@ class AmazonEchoApi:
                     cookies=self._cookies,
                 )
 
+    async def _parse_cookies_from_headers(
+        self, headers: CIMultiDictProxy[str]
+    ) -> dict[str, str]:
+        """Parse cookies with a value from headers."""
+        cookies_with_value: dict[str, str] = {}
+
+        for value in headers.getall("Set-Cookie", ()):
+            cookie = SimpleCookie()
+            cookie.load(value)
+
+            for name, morsel in cookie.items():
+                if morsel.value and morsel.value not in ("-", ""):
+                    cookies_with_value[name] = morsel.value
+
+        _LOGGER.debug("Cookies from headers: %s", cookies_with_value)
+        return cookies_with_value
+
     async def _session_request(
         self,
         method: str,
@@ -289,6 +306,9 @@ class AmazonEchoApi:
             _LOGGER.debug("Adding %s to headers", json_header)
             headers.update(json_header)
 
+        _cookies = (
+            self._load_website_cookies() if self._login_stored_data else self._cookies
+        )
         _url: YARL_URL | str = url
         if LIBRARY == "aiohttp":
             _url = YARL_URL(url, encoded=True)
@@ -297,9 +317,11 @@ class AmazonEchoApi:
             method,
             _url,
             data=input_data if not json_data else orjson.dumps(input_data),
-            cookies=self._load_website_cookies(),
+            cookies=_cookies,
             headers=headers,
         )
+        self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
+
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
             "Response %s for url %s with content type: %s",
