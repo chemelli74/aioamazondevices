@@ -268,7 +268,7 @@ class AmazonEchoApi:
         """Parse cookies with a value from headers."""
         cookies_with_value: dict[str, str] = {}
 
-        for value in headers.getall("Set-Cookie", []):
+        for value in headers.getall("Set-Cookie", ()):
             cookie = SimpleCookie()
             cookie.load(value)
 
