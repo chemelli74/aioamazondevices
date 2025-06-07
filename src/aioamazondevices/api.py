@@ -494,33 +494,43 @@ class AmazonEchoApi:
             "GET",
             url=f"https://alexa.amazon.{self._domain}{URI_IDS}",
         )
-
         json_data = await raw_resp.json()
-        data_dict = orjson.loads(json_data["networkDetail"])
-        additional_data: dict[str, Any] = data_dict["locationDetails"][
-            "locationDetails"
-        ]["Default_Location"]["amazonBridgeDetails"]["amazonBridgeDetails"][
-            "LambdaBridge_AAA/SonarCloudService"
-        ]["applianceDetails"]["applianceDetails"]
+
+        network_detail = orjson.loads(json_data["networkDetail"])
+        # Navigate through the nested structure step by step
+        location_details = network_detail["locationDetails"]["locationDetails"]
+        default_location = location_details["Default_Location"]
+        amazon_bridge = default_location["amazonBridgeDetails"]["amazonBridgeDetails"]
+        lambda_bridge = amazon_bridge["LambdaBridge_AAA/SonarCloudService"]
+        appliance_details = lambda_bridge["applianceDetails"]["applianceDetails"]
 
         entity_ids_list: list[dict[str, str]] = []
-        for key, value in additional_data.items():
-            if key.startswith("AAA_SonarCloudService"):
-                for deviceidentifier in value["alexaDeviceIdentifierList"]:
-                    entity_id = value["entityId"]
-                    identifier = {
-                        "entityId": entity_id,
-                        "applianceId": value["applianceId"],
-                    }
-                    current_data = self._devices[
-                        deviceidentifier["dmsDeviceSerialNumber"]
-                    ]
-                    self._devices[deviceidentifier["dmsDeviceSerialNumber"]] = (
-                        current_data | {NODE_IDENTIFIER: identifier}
-                    )
-                    entity_ids_list.append(
-                        {"entityId": entity_id, "entityType": "ENTITY"}
-                    )
+        # Process each appliance that starts with AAA_SonarCloudService
+        for appliance_key, appliance_data in appliance_details.items():
+            if not appliance_key.startswith("AAA_SonarCloudService"):
+                continue
+
+            entity_id = appliance_data["entityId"]
+            appliance_id = appliance_data["applianceId"]
+
+            # Create identifier object for this appliance
+            identifier = {
+                "entityId": entity_id,
+                "applianceId": appliance_id,
+            }
+
+            # Update device information for each device in the identifier list
+            for device_identifier in appliance_data["alexaDeviceIdentifierList"]:
+                serial_number = device_identifier["dmsDeviceSerialNumber"]
+                current_device_data = self._devices[serial_number]
+
+                # Add identifier information to the device
+                self._devices[serial_number] = current_device_data | {
+                    NODE_IDENTIFIER: identifier
+                }
+
+            # Add to entity IDs list for sensor retrieval
+            entity_ids_list.append({"entityId": entity_id, "entityType": "ENTITY"})
 
         return entity_ids_list
 
