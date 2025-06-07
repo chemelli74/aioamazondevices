@@ -1,5 +1,22 @@
 # Changelog
 
+## v3.0.6-rc.1 (2025-06-07)
+
+### Bug fixes
+
+- Handle requests response errors ([`f247ee0`](https://github.com/chemelli74/aioamazondevices/commit/f247ee0639f15280d6305ca0748aade010c4242a))
+
+
+### Refactoring
+
+- Drop httpx support ([`23a082f`](https://github.com/chemelli74/aioamazondevices/commit/23a082f54233edea9a44e9e40a2677ea958bf4be))
+
+
+### Testing
+
+- Add no test feature to library_test ([`640afd6`](https://github.com/chemelli74/aioamazondevices/commit/640afd6e7bfa828fd74ca630138dd5b0bddadf39))
+
+
 ## v3.0.5 (2025-06-02)
 
 ### Bug fixes
