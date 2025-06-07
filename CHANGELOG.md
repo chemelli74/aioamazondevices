@@ -1,5 +1,17 @@
 # Changelog
 
+## v3.1.0-rc.1 (2025-06-07)
+
+### Features
+
+- Add temperature and illuminance sensors ([`8157db4`](https://github.com/chemelli74/aioamazondevices/commit/8157db402c2b8165c6d79fde25793f90b84b455a))
+
+
+### Testing
+
+- Add no test feature to library_test ([`640afd6`](https://github.com/chemelli74/aioamazondevices/commit/640afd6e7bfa828fd74ca630138dd5b0bddadf39))
+
+
 ## v3.0.5 (2025-06-02)
 
 ### Bug fixes
