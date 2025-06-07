@@ -57,7 +57,8 @@ The script accept command line arguments or a library_test.json config file:
   "single_device_name": "Echo Dot Livingroom",
   "cluster_device_name": "Everywhere",
   "login_data_file": "out/login_data.json",
-  "save_raw_data": "True"
+  "save_raw_data": true,
+  "test": true
 }
 ```
 

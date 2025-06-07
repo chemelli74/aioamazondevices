@@ -63,8 +63,15 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         "--save_raw_data",
         "-s",
         action="store_true",
-        default=False,
+        default=True,
         help="Save HTML source on disk",
+    )
+    parser.add_argument(
+        "--test",
+        "-t",
+        action="store_true",
+        default=True,
+        help="Execute test actions",
     )
     parser.add_argument(
         "--configfile",
@@ -189,6 +196,10 @@ async def main() -> None:
         sys.exit(3)
 
     save_to_file(f"{SAVE_PATH}/output-devices.json", devices)
+
+    if not args.test:
+        print("!!! No testing requested, exiting !!!")
+        sys.exit(0)
 
     device_single = find_device(
         devices, args.single_device_name, lambda d: len(d.device_cluster_members) == 1
