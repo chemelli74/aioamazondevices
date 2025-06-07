@@ -18,9 +18,8 @@ import orjson
 from aiohttp import ClientResponse, ClientSession
 from babel import Locale
 from bs4 import BeautifulSoup, Tag
-from httpx import URL as HTTPX_URL
 from multidict import CIMultiDictProxy, MultiDictProxy
-from yarl import URL as YARL_URL
+from yarl import URL
 
 from .const import (
     _LOGGER,
@@ -47,10 +46,6 @@ from .const import (
     URI_QUERIES,
 )
 from .exceptions import CannotAuthenticate, CannotRegisterDevice, WrongMethod
-from .httpx import HttpxClientResponseWrapper, HttpxClientSession
-
-# Values: "aiohttp", or "httpx"
-LIBRARY = "aiohttp"
 
 
 @dataclass
@@ -123,7 +118,7 @@ class AmazonEchoApi:
         self._serial = self._serial_number()
         self._list_for_clusters: dict[str, str] = {}
 
-        self.session: ClientSession | HttpxClientSession
+        self.session: ClientSession
 
     def _load_website_cookies(self) -> dict[str, str]:
         """Get website cookies, if avaliables."""
@@ -234,7 +229,7 @@ class AmazonEchoApi:
                 return method, url
         raise TypeError("Unable to extract form data from response")
 
-    def _extract_code_from_url(self, url: YARL_URL | HTTPX_URL) -> str:
+    def _extract_code_from_url(self, url: URL) -> str:
         """Extract the access token from url query after login."""
         parsed_url: dict[str, list[str]] = {}
         if isinstance(url.query, bytes):
@@ -249,18 +244,11 @@ class AmazonEchoApi:
     def _client_session(self) -> None:
         """Create HTTP client session."""
         if not hasattr(self, "session") or self.session.closed:
-            _LOGGER.debug("Creating HTTP session (%s)", LIBRARY)
-            if LIBRARY == "httpx":
-                self.session = HttpxClientSession(
-                    headers=DEFAULT_HEADERS,
-                    cookies=self._cookies,
-                    follow_redirects=True,
-                )
-            else:
-                self.session = ClientSession(
-                    headers=DEFAULT_HEADERS,
-                    cookies=self._cookies,
-                )
+            _LOGGER.debug("Creating HTTP session (aiohttp)")
+            self.session = ClientSession(
+                headers=DEFAULT_HEADERS,
+                cookies=self._cookies,
+            )
 
     async def _parse_cookies_from_headers(
         self, headers: CIMultiDictProxy[str]
@@ -285,7 +273,7 @@ class AmazonEchoApi:
         url: str,
         input_data: dict[str, Any] | None = None,
         json_data: bool = False,
-    ) -> tuple[BeautifulSoup, ClientResponse | HttpxClientResponseWrapper]:
+    ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
             "%s request: %s with payload %s [json=%s]",
@@ -309,13 +297,9 @@ class AmazonEchoApi:
         _cookies = (
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
-        _url: YARL_URL | str = url
-        if LIBRARY == "aiohttp":
-            _url = YARL_URL(url, encoded=True)
-
         resp = await self.session.request(
             method,
-            _url,
+            URL(url, encoded=True),
             data=input_data if not json_data else orjson.dumps(input_data),
             cookies=_cookies,
             headers=headers,
@@ -557,7 +541,7 @@ class AmazonEchoApi:
     async def close(self) -> None:
         """Close http client session."""
         if hasattr(self, "session"):
-            _LOGGER.debug("Closing HTTP session (%s)", LIBRARY)
+            _LOGGER.debug("Closing HTTP session (aiohttp)")
             await self.session.close()
 
     async def get_devices_data(
