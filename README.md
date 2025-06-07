@@ -58,7 +58,7 @@ The script accept command line arguments or a library_test.json config file:
   "cluster_device_name": "Everywhere",
   "login_data_file": "out/login_data.json",
   "save_raw_data": true,
-  "test": false
+  "test": true
 }
 ```
 
