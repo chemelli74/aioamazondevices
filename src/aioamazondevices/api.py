@@ -2,7 +2,6 @@
 
 import base64
 import hashlib
-import json
 import mimetypes
 import secrets
 import uuid
@@ -497,7 +496,7 @@ class AmazonEchoApi:
         )
 
         json_data = await raw_resp.json()
-        data_dict = json.loads(json_data["networkDetail"])
+        data_dict = orjson.loads(json_data["networkDetail"])
         additional_data: dict[str, Any] = data_dict["locationDetails"][
             "locationDetails"
         ]["Default_Location"]["amazonBridgeDetails"]["amazonBridgeDetails"][
@@ -543,7 +542,7 @@ class AmazonEchoApi:
             _id = sensors["entity"]["entityId"]
             list_sensors: list[AmazonDeviceSensor] = []
             for sensor in sensors["capabilityStates"]:
-                sensor_json = json.loads(sensor)
+                sensor_json = orjson.loads(sensor)
                 if sensor_json["name"] in SENSORS:
                     _value = sensor_json["value"]
                     _value_dict = isinstance(_value, dict)
