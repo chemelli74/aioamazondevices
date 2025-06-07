@@ -8,7 +8,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 from http.cookies import Morsel, SimpleCookie
 from pathlib import Path
 from typing import Any, cast
@@ -408,7 +408,7 @@ class AmazonEchoApi:
 
         register_url = f"https://api.amazon.{self._domain}/auth/register"
         _, resp = await self._session_request(
-            method="POST",
+            method=HTTPMethod.POST,
             url=register_url,
             input_data=body,
             json_data=True,
@@ -472,7 +472,9 @@ class AmazonEchoApi:
         _LOGGER.debug("Build oauth URL")
         login_url = self._build_oauth_url(code_verifier, client_id)
 
-        login_soup, _ = await self._session_request(method="GET", url=login_url)
+        login_soup, _ = await self._session_request(
+            method=HTTPMethod.GET, url=login_url
+        )
         login_method, login_url = self._get_request_from_soup(login_soup)
         login_inputs = self._get_inputs_from_soup(login_soup)
         login_inputs["email"] = self._login_email
@@ -551,7 +553,7 @@ class AmazonEchoApi:
         devices: dict[str, Any] = {}
         for key in URI_QUERIES:
             _, raw_resp = await self._session_request(
-                method="GET",
+                method=HTTPMethod.GET,
                 url=f"https://alexa.amazon.{self._domain}{URI_QUERIES[key]}",
             )
             _LOGGER.debug("Response URL: %s", raw_resp.url)
@@ -621,7 +623,7 @@ class AmazonEchoApi:
     async def auth_check_status(self) -> bool:
         """Check AUTH status."""
         _, raw_resp = await self._session_request(
-            method="GET",
+            method=HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._domain}/api/bootstrap?version=0",
         )
         if raw_resp.status != HTTPStatus.OK:
@@ -766,7 +768,7 @@ class AmazonEchoApi:
 
         _LOGGER.debug("Preview data payload: %s", node_data)
         await self._session_request(
-            method="POST",
+            method=HTTPMethod.POST,
             url=f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
             input_data=node_data,
             json_data=True,
