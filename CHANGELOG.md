@@ -1,5 +1,22 @@
 # Changelog
 
+## v3.0.5-rc.1 (2025-06-07)
+
+### Testing
+
+- Add no test feature to library_test ([`473d019`](https://github.com/chemelli74/aioamazondevices/commit/473d01977cb03b3eff8b231a34022f1db3537f3f))
+
+
+### Bug fixes
+
+- Cookies for aiohttp ([`58f5bfc`](https://github.com/chemelli74/aioamazondevices/commit/58f5bfcb65a0be0f249d0d7b38e350046f4b543d))
+
+
+### Build system
+
+- Bump aiohttp from 3.11.18 to 3.12.6 ([`482e467`](https://github.com/chemelli74/aioamazondevices/commit/482e467be974ecdb4107b3d1df6aaf8cd6e21c90))
+
+
 ## v3.0.4 (2025-06-01)
 
 ### Bug fixes
