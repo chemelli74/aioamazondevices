@@ -45,7 +45,12 @@ from .const import (
     SAVE_PATH,
     URI_QUERIES,
 )
-from .exceptions import CannotAuthenticate, CannotRegisterDevice, WrongMethod
+from .exceptions import (
+    CannotAuthenticate,
+    CannotRegisterDevice,
+    RequestFailed,
+    WrongMethod,
+)
 
 
 @dataclass
@@ -313,6 +318,20 @@ class AmazonEchoApi:
             url,
             content_type,
         )
+
+        if resp.status != HTTPStatus.OK:
+            if resp.status in [
+                HTTPStatus.FORBIDDEN,
+                HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
+                HTTPStatus.UNAUTHORIZED,
+            ]:
+                raise CannotAuthenticate
+            # Endpoint 'ap/sigin' replies with error 404
+            # but reports the needed parameters anyway
+            if not (
+                resp.status == HTTPStatus.NOT_FOUND and "ap/sigin" in resp.url.name
+            ):
+                raise RequestFailed
 
         await self._save_to_file(
             await resp.text(),
