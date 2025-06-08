@@ -1,5 +1,28 @@
 # Changelog
 
+## v3.0.6 (2025-06-08)
+
+### Bug fixes
+
+- Add more device models ([`9c5df13`](https://github.com/chemelli74/aioamazondevices/commit/9c5df130fab42c6676b28f44f98dd571019138bb))
+
+
+### Documentation
+
+- Add more details for unknown device issues ([`d34d371`](https://github.com/chemelli74/aioamazondevices/commit/d34d371eb9228dee8718f2f5cf53c54055e61c11))
+
+
+### Refactoring
+
+- Use httpmethod ([`03d5463`](https://github.com/chemelli74/aioamazondevices/commit/03d546315bc4b7ae7bb8cd7fc1d02a1639e4e4a9))
+- Drop httpx support ([`23a082f`](https://github.com/chemelli74/aioamazondevices/commit/23a082f54233edea9a44e9e40a2677ea958bf4be))
+
+
+### Testing
+
+- Add no test feature to library_test ([`640afd6`](https://github.com/chemelli74/aioamazondevices/commit/640afd6e7bfa828fd74ca630138dd5b0bddadf39))
+
+
 ## v3.0.5 (2025-06-02)
 
 ### Bug fixes
