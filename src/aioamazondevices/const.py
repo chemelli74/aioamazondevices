@@ -74,7 +74,9 @@ URI_SENSORS = "/api/phoenix/state"
 SENSORS = [
     "temperature",
     "illuminance",
+    "detectionState",
 ]
+SENSOR_DETECTION_STATE_OFF = "NOT_DETECTED"
 
 # File extensions
 SAVE_PATH = "out"
