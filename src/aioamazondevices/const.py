@@ -175,7 +175,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "ADVBD696BHNV5": {
         "model": "Fire TV Stick",
         "hw_version": "Gen1",
-    },   
+    },
     "AIPK7MM90V7TB": {
         "model": "Echo Show 10",
         "hw_version": "Gen3",
