@@ -168,6 +168,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Fire Tablet HD 10",
         "hw_version": "Gen11",
     },
+    "AUPUQSVCVHXP0": {
+        "manufacturer": "ecobee",
+        "model": "Switch+",
+        "hw_version": "",
+    },
     "AVU7CPPF2ZRAS": {
         "model": "Fire Tablet HD 8 Plus",
         "hw_version": "Gen10",
