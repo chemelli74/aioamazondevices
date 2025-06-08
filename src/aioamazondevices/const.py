@@ -84,6 +84,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot",
         "hw_version": "Gen3",
     },
+    "A1Z88NGR2BK6A2": {
+        "model": "Echo Show 8",
+        "hw_version": "Gen1",
+    },
     "A271DR1789MXDS": {
         "model": "Fire Tablet 7",
         "hw_version": "Gen12",
@@ -96,6 +100,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot Clock",
         "hw_version": "Gen4",
     },
+    "A2JKHJ0PX4J3L3": {
+        "model": "Fire TV Cube",
+        "hw_version": "Gen2",
+    },
     "A2LWARUGJLBYEW": {
         "model": "Fire TV Stick",
         "hw_version": "Gen2",
@@ -107,6 +115,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A2U21SRK4QGSE1": {
         "model": "Echo Dot Clock",
         "hw_version": "Gen4",
+    },
+    "A2UONLFQW0PADH": {
+        "model": "Echo Show 8",
+        "hw_version": "Gen3",
     },
     "A303PJF6ISQ7IC": {
         "model": "Echo Auto",
@@ -149,12 +161,16 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": "Gen5",
     },
     "A7WXQPH584YP": {
-        "model": "Echo Dot",
+        "model": "Echo",
         "hw_version": "Gen2",
     },
     "AB72C64C86AW2": {
         "model": "Echo Dot",
         "hw_version": "Gen2",
+    },
+    "AIPK7MM90V7TB": {
+        "model": "Echo Show 10",
+        "hw_version": "Gen3",
     },
     "AKNO1N0KSFN8L": {
         "model": "Echo Dot",
