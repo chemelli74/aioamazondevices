@@ -97,7 +97,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": "Gen5",
     },
     "A2GFL5ZMWNE0PX": {
-        "model": " Fire TV",
+        "model": "Fire TV",
         "hw_version": "Gen3",
     },
     "A2H4LV5GIZ1JFT": {
@@ -185,7 +185,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": "Gen1",
     },
     "AKPGW064GI9HE": {
-        "model": " Fire TV Stick 4K",
+        "model": "Fire TV Stick 4K",
         "hw_version": "Gen1",
     },
     "ATNLRCEBX3W4P": {
