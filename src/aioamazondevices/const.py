@@ -96,6 +96,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot Clock",
         "hw_version": "Gen5",
     },
+    "A2GFL5ZMWNE0PX": {
+        "model": " Fire TV",
+        "hw_version": "Gen3",
+    },
     "A2H4LV5GIZ1JFT": {
         "model": "Echo Dot Clock",
         "hw_version": "Gen4",
@@ -168,6 +172,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot",
         "hw_version": "Gen2",
     },
+    "ADVBD696BHNV5": {
+        "model": "Fire TV Stick",
+        "hw_version": "Gen1",
+    },   
     "AIPK7MM90V7TB": {
         "model": "Echo Show 10",
         "hw_version": "Gen3",
