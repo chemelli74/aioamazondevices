@@ -169,8 +169,8 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": "Gen11",
     },
     "AUPUQSVCVHXP0": {
-        "manufacturer": "ecobee",
-        "model": "Switch+",
+        "manufacturer": "ecobee Inc.",
+        "model": "ecobee Switch+",
     },
     "AVU7CPPF2ZRAS": {
         "model": "Fire Tablet HD 8 Plus",
