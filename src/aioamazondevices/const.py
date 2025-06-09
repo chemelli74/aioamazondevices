@@ -72,11 +72,16 @@ URI_IDS = "/api/phoenix"
 URI_SENSORS = "/api/phoenix/state"
 
 SENSORS = [
-    "temperature",
+    "babyCryDetectionState",
+    "beepingApplianceDetectionState",
+    "coughDetectionState",
+    "dogBarkDetectionState",
+    "humanPresenceDetectionState",
     "illuminance",
-    "detectionState",
+    "temperature",
+    "waterSoundsDetectionState",
 ]
-SENSOR_DETECTION_STATE_OFF = "NOT_DETECTED"
+SENSOR_STATE_OFF = "NOT_DETECTED"
 
 # File extensions
 SAVE_PATH = "out"
