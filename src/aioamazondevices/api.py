@@ -89,7 +89,7 @@ class AmazonDevice:
     bluetooth_state: bool
     entity_id: str
     appliance_id: str
-    sensors: list[AmazonDeviceSensor]
+    sensors: dict[str, AmazonDeviceSensor]
 
 
 class AmazonSequenceType(StrEnum):
@@ -536,7 +536,7 @@ class AmazonEchoApi:
 
     async def _get_sensors_states(
         self, entity_ids_list: list[dict[str, str]]
-    ) -> dict[str, list[AmazonDeviceSensor]]:
+    ) -> dict[str, dict[str, AmazonDeviceSensor]]:
         """Retrieve devices sensors states."""
         _data = {"stateRequests": entity_ids_list}
         _, raw_resp = await self._session_request(
@@ -547,23 +547,26 @@ class AmazonEchoApi:
         )
         json_data = await raw_resp.json()
 
-        final_sensors: dict[str, list[AmazonDeviceSensor]] = {}
+        final_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
         for sensors in json_data["deviceStates"]:
             _id = sensors["entity"]["entityId"]
-            list_sensors: list[AmazonDeviceSensor] = []
+            dict_sensors: dict[str, AmazonDeviceSensor] = {}
             for sensor in sensors["capabilityStates"]:
                 sensor_json = orjson.loads(sensor)
                 if sensor_json["name"] in SENSORS:
                     _value = sensor_json["value"]
                     _value_dict = isinstance(_value, dict)
-                    list_sensors.append(
-                        AmazonDeviceSensor(
-                            name=sensor_json["name"],
-                            value=(_value["value"] if _value_dict else _value),
-                            scale=_value.get("scale") if _value_dict else None,
-                        )
+                    _name = sensor_json["name"]
+                    dict_sensors.update(
+                        {
+                            _name: AmazonDeviceSensor(
+                                name=_name,
+                                value=(_value["value"] if _value_dict else _value),
+                                scale=_value.get("scale") if _value_dict else None,
+                            )
+                        }
                     )
-            final_sensors.update({_id: list_sensors})
+            final_sensors.update({_id: dict_sensors})
         return final_sensors
 
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
