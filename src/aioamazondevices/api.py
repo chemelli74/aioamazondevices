@@ -52,16 +52,6 @@ from .const import (
 from .exceptions import CannotAuthenticate, CannotRegisterDevice, WrongMethod
 
 
-
-@dataclass
-class AmazonDeviceSensor:
-    """Amazon device sensor class."""
-
-    name: str
-    value: Any
-    scale: str | None
-
-
 @dataclass
 class AmazonDeviceSensor:
     """Amazon device sensor class."""
