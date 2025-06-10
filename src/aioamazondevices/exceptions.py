@@ -23,6 +23,10 @@ class CannotRegisterDevice(AmazonError):
     """Exception raised when device registration fails."""
 
 
+class RequestFailed(AmazonError):
+    """Exception raised when a request fails."""
+
+
 class WrongMethod(AmazonError):
     """Exception raised when the wrong login metho is used."""
 

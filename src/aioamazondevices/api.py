@@ -45,7 +45,12 @@ from .const import (
     SAVE_PATH,
     URI_QUERIES,
 )
-from .exceptions import CannotAuthenticate, CannotRegisterDevice, WrongMethod
+from .exceptions import (
+    CannotAuthenticate,
+    CannotRegisterDevice,
+    RequestFailed,
+    WrongMethod,
+)
 
 
 @dataclass
@@ -267,6 +272,14 @@ class AmazonEchoApi:
         _LOGGER.debug("Cookies from headers: %s", cookies_with_value)
         return cookies_with_value
 
+    async def _ignore_ap_sigin_error(self, response: ClientResponse) -> bool:
+        """Return true if error is due to /ap/sigin endpoint."""
+        # Endpoint 'ap/sigin' replies with error 404
+        # but reports the needed parameters anyway
+        return (
+            response.status == HTTPStatus.NOT_FOUND and "/ap/sigin" in response.url.name
+        )
+
     async def _session_request(
         self,
         method: str,
@@ -313,6 +326,16 @@ class AmazonEchoApi:
             url,
             content_type,
         )
+
+        if resp.status != HTTPStatus.OK:
+            if resp.status in [
+                HTTPStatus.FORBIDDEN,
+                HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
+                HTTPStatus.UNAUTHORIZED,
+            ]:
+                raise CannotAuthenticate
+            if not self._ignore_ap_sigin_error(resp):
+                raise RequestFailed
 
         await self._save_to_file(
             await resp.text(),
