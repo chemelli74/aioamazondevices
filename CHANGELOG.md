@@ -1,10 +1,10 @@
 # Changelog
 
-## v3.0.8-rc.1 (2025-06-10)
+## v3.0.8 (2025-06-10)
 
 ### Bug fixes
 
-- Handle requests response errors ([`163022f`](https://github.com/chemelli74/aioamazondevices/commit/163022f3a80ef5f4e93c129bae3c7d82fb5005c0))
+- Handle requests response errors ([`24ebb1d`](https://github.com/chemelli74/aioamazondevices/commit/24ebb1d4542943fdb9727a261fcc1186b686bb1f))
 
 
 ## v3.0.7 (2025-06-10)
