@@ -136,11 +136,6 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Show 8",
         "hw_version": "Gen3",
     },
-    "A2ZLL48PLMNVGR": {
-        "manufacturer": "LG",
-        "model": "OLED 55CX6LA",
-        "hw_version": None,
-    },
     "A303PJF6ISQ7IC": {
         "model": "Echo Auto",
         "hw_version": "Gen1",
