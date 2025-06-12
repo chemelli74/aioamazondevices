@@ -20,7 +20,6 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     },
     "jp": {
         "domain": "co.jp",
-        "openid.assoc_handle": "jpflex",
     },
     "br": {
         "domain": "com.br",
@@ -41,8 +40,9 @@ DEFAULT_HEADERS = {
         f"Mozilla/5.0 (iPhone; CPU iPhone OS {AMAZON_CLIENT_OS.replace('.', '_')} like Mac OS X) "  # noqa: E501
         "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
     ),
-    "Accept-Language": "en-US",
+    "Accept-Charset": "utf-8",
     "Accept-Encoding": "gzip",
+    "Accept-Language": "en-US",
     "Connection": "keep-alive",
 }
 CSRF_COOKIE = "csrf"
@@ -51,13 +51,37 @@ NODE_DEVICES = "devices"
 NODE_DO_NOT_DISTURB = "doNotDisturbDeviceStatusList"
 NODE_PREFERENCES = "devicePreferences"
 NODE_BLUETOOTH = "bluetoothStates"
+NODE_IDENTIFIER = "identifier"
+NODE_SENSORS = "sensors"
 
 URI_QUERIES = {
     NODE_DEVICES: "/api/devices-v2/device",
     NODE_DO_NOT_DISTURB: "/api/dnd/device-status-list",
     NODE_PREFERENCES: "/api/device-preferences",
     NODE_BLUETOOTH: "/api/bluetooth",
+    # "/api/ping"
+    # "/api/np/command"
+    # "/api/np/player"
+    # "/api/device-wifi-details"
+    # "/api/activities"
+    # "/api/behaviors/v2/automations"
+    # "/api/notifications"
 }
+
+URI_IDS = "/api/phoenix"
+URI_SENSORS = "/api/phoenix/state"
+
+SENSORS = [
+    "babyCryDetectionState",
+    "beepingApplianceDetectionState",
+    "coughDetectionState",
+    "dogBarkDetectionState",
+    "humanPresenceDetectionState",
+    "illuminance",
+    "temperature",
+    "waterSoundsDetectionState",
+]
+SENSOR_STATE_OFF = "NOT_DETECTED"
 
 # File extensions
 SAVE_PATH = "out"
@@ -65,7 +89,13 @@ HTML_EXTENSION = ".html"
 JSON_EXTENSION = ".json"
 BIN_EXTENSION = ".bin"
 
+SPEAKER_GROUP_FAMILY = "WHA"
 SPEAKER_GROUP_MODEL = "Speaker Group"
+
+DEVICE_TO_IGNORE: list[str] = [
+    AMAZON_DEVICE_TYPE,  # Alexa App for Mobile
+    "A1RTAM01W29CUP",  # Alexa App for PC
+]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A10A33FOX2NUBK": {
@@ -76,6 +106,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Show 5",
         "hw_version": "Gen3",
     },
+    "A15996VY63BQ2D": {
+        "model": "Echo Show 8",
+        "hw_version": "Gen2",
+    },
     "A1Q6UGEXJZWJQ0": {
         "model": "Fire TV Stick 4K",
         "hw_version": "Gen2",
@@ -84,9 +118,25 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot",
         "hw_version": "Gen3",
     },
+    "A1TD5Z1R8IWBHA ": {
+        "model": "Fire HD 8",
+        "hw_version": "Gen12",
+    },
+    "A1VGB7MHSIEYFK": {
+        "model": "Fire TV Cube",
+        "hw_version": "Gen3",
+    },
+    "A1WZKXFLI43K86": {
+        "model": "FireTV 4k MAX",
+        "hw_version": "Gen2",
+    },
     "A1Z88NGR2BK6A2": {
         "model": "Echo Show 8",
         "hw_version": "Gen1",
+    },
+    "A265XOI9586NML": {
+        "model": "Fire TV Stick with Alexa Voice Remote",
+        "hw_version": None,
     },
     "A271DR1789MXDS": {
         "model": "Fire Tablet 7",
@@ -142,7 +192,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     },
     "A3C9PE6TNYLTCH": {
         "model": "Speaker Group",
-        "hw_version": "None",
+        "hw_version": None,
+    },
+    "A3EVMLQTU6WL1W": {
+        "model": "FireTV 4k MAX",
+        "hw_version": "Gen1",
     },
     "A3RMGO6LYLH7YN": {
         "model": "Echo Dot",
@@ -154,7 +208,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     },
     "A3VRME03NAXFUB": {
         "model": "Echo Flex",
-        "hw_version": "None",
+        "hw_version": None,
     },
     "A4ZP7ZC4PI6TO": {
         "model": "Echo Show 3",
@@ -191,6 +245,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "ATNLRCEBX3W4P": {
         "model": "Fire Tablet HD 10",
         "hw_version": "Gen11",
+    },
+    "AUPUQSVCVHXP0": {
+        "manufacturer": "ecobee Inc.",
+        "model": "ecobee Switch+",
+        "hw_version": None,
     },
     "AVU7CPPF2ZRAS": {
         "model": "Fire Tablet HD 8 Plus",
