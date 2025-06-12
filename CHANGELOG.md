@@ -1,5 +1,38 @@
 # Changelog
 
+## v3.1.1 (2025-06-12)
+
+### Bug fixes
+
+- Update models list ([`5408d4a`](https://github.com/chemelli74/aioamazondevices/commit/5408d4a2b3c9bf56847513be1cd72bd9401a6239))
+
+
+## v3.1.0 (2025-06-12)
+
+### Features
+
+- Retrieve available sensors data ([`5fe258a`](https://github.com/chemelli74/aioamazondevices/commit/5fe258ae01d2f5e3f058ea649d2b909367f3d1ee))
+
+
+### Build system
+
+- Bump python-semantic-release/python-semantic-release from 10.0.2 to 10.1.0 ([`fbe9dab`](https://github.com/chemelli74/aioamazondevices/commit/fbe9dab283bab178117b9cbe33bdcd3a0432c2b6))
+
+
+## v3.0.10 (2025-06-12)
+
+### Bug fixes
+
+- Ignore alexa app for pc ([`fcfb674`](https://github.com/chemelli74/aioamazondevices/commit/fcfb6748d07c184c6233d08537026dec416c9488))
+
+
+## v3.0.9 (2025-06-12)
+
+### Bug fixes
+
+- Multibyte characters encoding ([`6016a0f`](https://github.com/chemelli74/aioamazondevices/commit/6016a0f8e74cd6ab13a8f060e4f2b64eaa81264f))
+
+
 ## v3.0.8 (2025-06-10)
 
 ### Bug fixes

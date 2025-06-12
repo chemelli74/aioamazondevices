@@ -188,7 +188,8 @@ async def main() -> None:
 
     print("-" * 20)
     devices = await api.get_devices_data()
-    print("Devices:", devices)
+    print("Devices count  :", len(devices))
+    print("Devices details:", devices)
     print("-" * 20)
 
     if not devices:
