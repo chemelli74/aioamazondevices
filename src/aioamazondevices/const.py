@@ -92,6 +92,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Show 8",
         "hw_version": "Gen1",
     },
+    "A265XOI9586NML": {
+        "model": "Fire TV Stick with Alexa Voice Remote",
+        "hw_version": None,
+    },
     "A271DR1789MXDS": {
         "model": "Fire Tablet 7",
         "hw_version": "Gen12",
