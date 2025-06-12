@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.0.10 (2025-06-12)
+
+### Bug fixes
+
+- Ignore alexa app for pc ([`fcfb674`](https://github.com/chemelli74/aioamazondevices/commit/fcfb6748d07c184c6233d08537026dec416c9488))
+
+
 ## v3.0.9 (2025-06-12)
 
 ### Bug fixes
