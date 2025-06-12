@@ -20,7 +20,6 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     },
     "jp": {
         "domain": "co.jp",
-        "openid.assoc_handle": "jpflex",
     },
     "br": {
         "domain": "com.br",
@@ -41,8 +40,9 @@ DEFAULT_HEADERS = {
         f"Mozilla/5.0 (iPhone; CPU iPhone OS {AMAZON_CLIENT_OS.replace('.', '_')} like Mac OS X) "  # noqa: E501
         "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
     ),
-    "Accept-Language": "en-US",
+    "Accept-Charset": "utf-8",
     "Accept-Encoding": "gzip",
+    "Accept-Language": "en-US",
     "Connection": "keep-alive",
 }
 CSRF_COOKIE = "csrf"

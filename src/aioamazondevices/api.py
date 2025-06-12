@@ -303,7 +303,7 @@ class AmazonEchoApi:
             headers.update(csrf)
 
         if json_data:
-            json_header = {"Content-Type": "application/json"}
+            json_header = {"Content-Type": "application/json; charset=utf-8"}
             _LOGGER.debug("Adding %s to headers", json_header)
             headers.update(json_header)
 
