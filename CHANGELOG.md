@@ -1,5 +1,17 @@
 # Changelog
 
+## v3.1.0 (2025-06-12)
+
+### Features
+
+- Retrieve available sensors data ([`5fe258a`](https://github.com/chemelli74/aioamazondevices/commit/5fe258ae01d2f5e3f058ea649d2b909367f3d1ee))
+
+
+### Build system
+
+- Bump python-semantic-release/python-semantic-release from 10.0.2 to 10.1.0 ([`fbe9dab`](https://github.com/chemelli74/aioamazondevices/commit/fbe9dab283bab178117b9cbe33bdcd3a0432c2b6))
+
+
 ## v3.0.10 (2025-06-12)
 
 ### Bug fixes
