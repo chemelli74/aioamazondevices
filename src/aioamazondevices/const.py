@@ -65,6 +65,7 @@ HTML_EXTENSION = ".html"
 JSON_EXTENSION = ".json"
 BIN_EXTENSION = ".bin"
 
+SPEAKER_GROUP_FAMILY = "WHA"
 SPEAKER_GROUP_MODEL = "Speaker Group"
 
 DEVICE_TO_IGNORE: list[str] = [
