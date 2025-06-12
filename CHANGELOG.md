@@ -1,10 +1,10 @@
 # Changelog
 
-## v3.0.9-rc.1 (2025-06-12)
+## v3.0.9 (2025-06-12)
 
 ### Bug fixes
 
-- Multibyte characters encoding ([`ef927d4`](https://github.com/chemelli74/aioamazondevices/commit/ef927d473056bdd165659382031d668c470963d1))
+- Multibyte characters encoding ([`6016a0f`](https://github.com/chemelli74/aioamazondevices/commit/6016a0f8e74cd6ab13a8f060e4f2b64eaa81264f))
 
 
 ## v3.0.8 (2025-06-10)
