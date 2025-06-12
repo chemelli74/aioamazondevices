@@ -213,4 +213,8 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Sonos ARC",
         "hw_model": None,
     },
+    "A265XOI9586NML": {
+        "model": "Fire TV Stick",
+        "hw_model": "Gen3",
+    },
 }
