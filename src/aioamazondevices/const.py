@@ -213,4 +213,5 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "manufacturer": "Sonos",
         "model": "Sonos Play 5",
         "hw_version": "Gen1",
+    }
 }
