@@ -89,7 +89,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": "Gen3",
     },
     "A1TD5Z1R8IWBHA ": {
-        "model": " Fire HD 8",
+        "model": "Fire HD 8",
         "hw_version": "Gen12",
     },
     "A1VGB7MHSIEYFK": {
