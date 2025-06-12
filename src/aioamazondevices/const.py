@@ -96,6 +96,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Fire TV Cube",
         "hw_version": "Gen3",
     },
+    "A1WZKXFLI43K86": {
+        "model": "FireTV 4k MAX",
+        "hw_version": "Gen2",
+    },
     "A1Z88NGR2BK6A2": {
         "model": "Echo Show 8",
         "hw_version": "Gen1",
@@ -155,6 +159,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A3C9PE6TNYLTCH": {
         "model": "Speaker Group",
         "hw_version": None,
+    },
+    "A3EVMLQTU6WL1W": {
+        "model": "FireTV 4k MAX",
+        "hw_version": "Gen1",
     },
     "A3RMGO6LYLH7YN": {
         "model": "Echo Dot",
