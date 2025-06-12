@@ -76,6 +76,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Show 5",
         "hw_version": "Gen3",
     },
+    "A15996VY63BQ2D": {
+        "model": "Echo Show 8",
+        "hw_version": "Gen2",
+    },
     "A1Q6UGEXJZWJQ0": {
         "model": "Fire TV Stick 4K",
         "hw_version": "Gen2",
@@ -138,7 +142,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     },
     "A3C9PE6TNYLTCH": {
         "model": "Speaker Group",
-        "hw_version": "None",
+        "hw_version": None,
     },
     "A3RMGO6LYLH7YN": {
         "model": "Echo Dot",
@@ -150,7 +154,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     },
     "A3VRME03NAXFUB": {
         "model": "Echo Flex",
-        "hw_version": "None",
+        "hw_version": None,
     },
     "A4ZP7ZC4PI6TO": {
         "model": "Echo Show 3",
@@ -177,7 +181,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": "Gen1",
     },
     "AKPGW064GI9HE": {
-        "model": " Fire TV Stick 4K",
+        "model": "Fire TV Stick 4K",
         "hw_version": "Gen1",
     },
     "ATNLRCEBX3W4P": {
