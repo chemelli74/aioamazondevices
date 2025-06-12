@@ -207,11 +207,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     },
     "A15ERDAKK5HQQG": {
         "model": "Sonos Era 100",
-        "hw_version": S39,
+        "hw_version": "S39",
     },
     "A2Z8O30CD35N8F": {
         "model": "Sonos ARC",
-        "hw_model": S19,
+        "hw_model": "S19",
     },
     "A265XOI9586NML": {
         "model": "Fire TV Stick",
