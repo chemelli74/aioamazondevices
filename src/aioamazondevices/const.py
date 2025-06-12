@@ -37,6 +37,10 @@ DOMAIN_BY_ISO3166_COUNTRY = {
         "domain": "com",
         "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
     },
+    "mx": {
+        "domain": "com.mx",
+        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_mx",
+    },
 }
 
 # Amazon APP info
