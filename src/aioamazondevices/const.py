@@ -67,6 +67,11 @@ BIN_EXTENSION = ".bin"
 
 SPEAKER_GROUP_MODEL = "Speaker Group"
 
+DEVICE_TO_IGNORE: list[str] = [
+    AMAZON_DEVICE_TYPE,  # Alexa App for Mobile
+    "A1RTAM01W29CUP",  # Alexa App for PC
+]
+
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A10A33FOX2NUBK": {
         "model": "Echo Spot",
