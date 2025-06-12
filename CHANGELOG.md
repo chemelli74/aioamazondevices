@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.1 (2025-06-12)
+
+### Bug fixes
+
+- Update models list ([`5408d4a`](https://github.com/chemelli74/aioamazondevices/commit/5408d4a2b3c9bf56847513be1cd72bd9401a6239))
+
+
 ## v3.1.0 (2025-06-12)
 
 ### Features
