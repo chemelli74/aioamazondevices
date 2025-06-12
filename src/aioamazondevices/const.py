@@ -205,4 +205,12 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Fire TV Stick 4K Max",
         "hw_version": "Gen1",
     },
+    "A15ERDAKK5HQQG": {
+        "model": "Sonos Era 100",
+        "hw_version": None,
+    },
+    "A2Z8O30CD35N8F": {
+        "model": "Sonos ARC",
+        "hw_model": None,
+    },
 }
