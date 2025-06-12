@@ -512,12 +512,9 @@ class AmazonEchoApi:
             # Update device information for each device in the identifier list
             for device_identifier in appliance_data["alexaDeviceIdentifierList"]:
                 serial_number = device_identifier["dmsDeviceSerialNumber"]
-                current_device_data = self._devices[serial_number]
 
                 # Add identifier information to the device
-                self._devices[serial_number] = current_device_data | {
-                    NODE_IDENTIFIER: identifier
-                }
+                self._devices[serial_number] |= {NODE_IDENTIFIER: identifier}
 
             # Add to entity IDs list for sensor retrieval
             entity_ids_list.append({"entityId": entity_id, "entityType": "ENTITY"})
