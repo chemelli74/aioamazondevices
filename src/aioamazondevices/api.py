@@ -34,6 +34,7 @@ from .const import (
     CSRF_COOKIE,
     DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
+    DEVICE_TO_IGNORE,
     DEVICE_TYPE_TO_MODEL,
     DOMAIN_BY_ISO3166_COUNTRY,
     HTML_EXTENSION,
@@ -610,7 +611,7 @@ class AmazonEchoApi:
             # Remove stale, orphaned and virtual devices
             if (
                 NODE_DEVICES not in device
-                or devices_node.get("deviceType") == AMAZON_DEVICE_TYPE
+                or devices_node.get("deviceType") in DEVICE_TO_IGNORE
             ):
                 continue
 
