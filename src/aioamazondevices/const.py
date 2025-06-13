@@ -255,10 +255,6 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Plus",
         "hw_version": "Gen2",
     },
-    "A1RTAM01W29CUP": {
-        "model": "Alexa App for PC",
-        "hw_version": None,
-    },
     "ADVBD696BHNV5": {
         "model": "Fire TV Stick",
         "hw_versoin": "Gen1",
@@ -266,10 +262,5 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A1TD5Z1R8IWBHA": {
         "model": "Fire Table HD 8",
         "hw_version": "Gen12",
-    },
-    "A15ERDAKK5HQQG": {
-        "manufacturer": "Sonos",
-        "model": "Sonos Play 5",
-        "hw_version": "Gen1",
     },
 }
