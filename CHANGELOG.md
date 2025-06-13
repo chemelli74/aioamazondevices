@@ -1,10 +1,10 @@
 # Changelog
 
-## v3.1.2-rc.1 (2025-06-13)
+## v3.1.2 (2025-06-13)
 
 ### Bug fixes
 
-- Handle account with old devices only ([`af2de49`](https://github.com/chemelli74/aioamazondevices/commit/af2de49cbd170c7bafd84ed5ebe2ddae9b685032))
+- Handle account with old devices only ([`91ba802`](https://github.com/chemelli74/aioamazondevices/commit/91ba80211df033b04a7269917893b6b812e5b01a))
 
 
 ## v3.1.1 (2025-06-12)
