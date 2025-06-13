@@ -1,6 +1,5 @@
 """Test script for aioamazondevices library."""
 
-import getpass
 import asyncio
 import getpass
 import json
