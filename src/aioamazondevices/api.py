@@ -709,6 +709,7 @@ class AmazonEchoApi:
             identifier_node = device.get(NODE_IDENTIFIER, {})
 
             # Add sensors
+            sensors = {}
             if identifier_node:
                 for _device_id, _device_sensors in devices_sensors.items():
                     if _device_id == identifier_node["entityId"]:
