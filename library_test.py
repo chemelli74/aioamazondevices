@@ -202,15 +202,32 @@ async def main() -> None:
         print("!!! No testing requested, exiting !!!")
         sys.exit(0)
 
-    device_single = find_device(
-        devices, args.single_device_name, lambda d: len(d.device_cluster_members) == 1
-    )
+    try:      
+       device_single = find_device(
+           devices, args.single_device_name, lambda d: len(d.device_cluster_members) == 1
+       )
+    except StopIteration:
+       print(f"Unable to find requested device {args.single_device_name}, use one of this devices :")
+       for device in devices.values():
+         if len(device.device_cluster_members) == 1:
+            print(f"\t{device.account_name}")
+       sys.exit(0)
+       
+
     if args.cluster_device_name:
-        device_cluster = find_device(
-            devices,
-            args.cluster_device_name,
-            lambda d: len(d.device_cluster_members) > 1,
-        )
+        try:
+            device_cluster = find_device(
+                devices,
+                args.cluster_device_name,
+                lambda d: len(d.device_cluster_members) > 1,
+            )
+        except StopIteration:
+           print(f"Unable to find requested cluster_device {args.cluster_device_name}, use one of this devices :")
+           for device in devices.values():
+             if len(device.device_cluster_members) > 1:
+                print(f"\t{device.account_name}")
+           sys.exit(0)
+        
     else:
         device_cluster = device_single
 
