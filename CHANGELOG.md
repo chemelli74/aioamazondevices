@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.3-rc.1 (2025-06-14)
+
+### Bug fixes
+
+- Add sensors only for linked devices ([`528c466`](https://github.com/chemelli74/aioamazondevices/commit/528c466c8ed685453df48167fa17eee46c8cd26f))
+
+
 ## v3.1.2 (2025-06-13)
 
 ### Bug fixes
