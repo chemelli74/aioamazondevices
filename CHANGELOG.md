@@ -1,5 +1,31 @@
 # Changelog
 
+## v3.1.2 (2025-06-13)
+
+### Bug fixes
+
+- Handle account with old devices only ([`91ba802`](https://github.com/chemelli74/aioamazondevices/commit/91ba80211df033b04a7269917893b6b812e5b01a))
+
+
+## v3.1.1 (2025-06-12)
+
+### Bug fixes
+
+- Update models list ([`5408d4a`](https://github.com/chemelli74/aioamazondevices/commit/5408d4a2b3c9bf56847513be1cd72bd9401a6239))
+
+
+## v3.1.0 (2025-06-12)
+
+### Features
+
+- Retrieve available sensors data ([`5fe258a`](https://github.com/chemelli74/aioamazondevices/commit/5fe258ae01d2f5e3f058ea649d2b909367f3d1ee))
+
+
+### Build system
+
+- Bump python-semantic-release/python-semantic-release from 10.0.2 to 10.1.0 ([`fbe9dab`](https://github.com/chemelli74/aioamazondevices/commit/fbe9dab283bab178117b9cbe33bdcd3a0432c2b6))
+
+
 ## v3.0.10 (2025-06-12)
 
 ### Bug fixes
