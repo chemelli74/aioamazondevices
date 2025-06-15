@@ -352,7 +352,7 @@ class AmazonEchoApi:
                 HTTPStatus.UNAUTHORIZED,
             ]:
                 raise CannotAuthenticate
-            if not self._ignore_ap_sigin_error(resp):
+            if not await self._ignore_ap_sigin_error(resp):
                 raise RequestFailed
 
         await self._save_to_file(
