@@ -53,3 +53,7 @@ class AuthMissingSigningData(AmazonError):
 
 class AuthMissingWebsiteCookies(AmazonError):
     """Exception raised when website cookies are missing."""
+
+
+class UnexpectedResponse(AmazonError):
+    """Exception raised when response does not match what is expected."""
