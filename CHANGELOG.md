@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.4 (2025-06-15)
+
+### Bug fixes
+
+- Missing await in response error ([`516451f`](https://github.com/chemelli74/aioamazondevices/commit/516451fbd381baa61251bee4090677bd94bc6021))
+
+
 ## v3.1.3 (2025-06-14)
 
 ### Bug fixes
