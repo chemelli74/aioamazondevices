@@ -55,6 +55,7 @@ from .exceptions import (
     CannotRegisterDevice,
     RequestFailed,
     WrongMethod,
+    UnexpectedResponse,
 )
 
 
@@ -508,6 +509,12 @@ class AmazonEchoApi:
             "GET",
             url=f"https://alexa.amazon.{self._domain}{URI_IDS}",
         )
+
+        if raw_resp.status != HTTPStatus.OK:
+            _LOGGER.error("Error in device ID response %s", raw_resp.status)
+            _LOGGER.debug("Device IDs response was %s", raw_resp)
+            raise UnexpectedResponse
+
         json_data = await raw_resp.json()
 
         network_detail = orjson.loads(json_data["networkDetail"])
@@ -558,6 +565,12 @@ class AmazonEchoApi:
             input_data=_data,
             json_data=True,
         )
+
+        if raw_resp.status != HTTPStatus.OK:
+            _LOGGER.error("Error in sensor states response %s", raw_resp.status)
+            _LOGGER.debug("Sensor states response was %s", raw_resp)
+            raise UnexpectedResponse
+
         json_data = await raw_resp.json()
 
         final_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
@@ -699,8 +712,11 @@ class AmazonEchoApi:
                 else:
                     self._devices[dev_serial] = {key: data}
 
-        entity_ids_list = await self._get_devices_ids()
-        devices_sensors = await self._get_sensors_states(entity_ids_list)
+        try:
+            entity_ids_list = await self._get_devices_ids()
+            devices_sensors = await self._get_sensors_states(entity_ids_list)
+        except KeyError:
+            raise UnexpectedResponse
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():
