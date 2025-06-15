@@ -716,7 +716,7 @@ class AmazonEchoApi:
             entity_ids_list = await self._get_devices_ids()
             devices_sensors = await self._get_sensors_states(entity_ids_list)
         except KeyError:
-            raise UnexpectedResponse
+            raise UnexpectedResponse from KeyError
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():
