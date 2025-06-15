@@ -54,8 +54,8 @@ from .exceptions import (
     CannotAuthenticate,
     CannotRegisterDevice,
     RequestFailed,
-    WrongMethod,
     UnexpectedResponse,
+    WrongMethod,
 )
 
 
