@@ -397,8 +397,7 @@ class AmazonEchoApi:
     async def handle_http_429(self, response: ClientResponse) -> None:
         """Handle Amazon HTTP 429 Too Many Requests."""
         if response.status == HTTPStatus.TOO_MANY_REQUESTS:
-            retry_after = response.headers.get("Retry-After")
-            wait_time = int(retry_after) if retry_after else 10
+            wait_time = 10
             _LOGGER.warning(
                 "Too many requests to %s, retrying in %d seconds",
                 response.url,
