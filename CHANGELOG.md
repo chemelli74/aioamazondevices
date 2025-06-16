@@ -1,8 +1,15 @@
 # Changelog
 
-## v3.1.5-rc.1 (2025-06-16)
+## v3.1.5 (2025-06-16)
 
-- Optimize exception handling ([`96a3081`](https://github.com/chemelli74/aioamazondevices/commit/96a3081f47d8a70aa3c855cf4f9c0eff88d35f98))
+### Bug fixes
+
+- Optimize exception handling ([`8a9d091`](https://github.com/chemelli74/aioamazondevices/commit/8a9d091516fd2dc77c17529b490a81bd1714d120))
+
+
+### Build system
+
+- Cleanup httpx leftover ([`2bdd73a`](https://github.com/chemelli74/aioamazondevices/commit/2bdd73a6bfc434c23d609f97857a42492ee3d154))
 
 
 ## v3.1.4 (2025-06-15)
