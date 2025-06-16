@@ -431,7 +431,7 @@ class AmazonEchoApi:
                 for name, value in resp.headers.items():
                     file.write(f"\t{name}: {value}\n")
 
-                # The response data is alredy saved on other file
+                # The response data is already saved on other file
 
     async def _register_device(
         self,
