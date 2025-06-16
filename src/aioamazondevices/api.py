@@ -351,7 +351,6 @@ class AmazonEchoApi:
                 headers=headers,
             )
 
-
         self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
 
         content_type: str = resp.headers.get("Content-Type", "")
