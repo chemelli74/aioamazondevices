@@ -338,7 +338,7 @@ class AmazonEchoApi:
                 headers=headers,
             )
         except (TimeoutError, ClientConnectorError) as exc:
-            raise CannotConnect("Connection error during %s", method) from exc
+            raise CannotConnect(f"Connection error during {method}") from exc
 
         self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
 
@@ -359,7 +359,7 @@ class AmazonEchoApi:
                 raise CannotAuthenticate(HTTPStatus(resp.status).phrase)
             if not await self._ignore_ap_sigin_error(resp):
                 raise CannotRetrieveData(
-                    "Request failed with HTTP error %s", HTTPStatus(resp.status).phrase
+                    f"Request failed: {HTTPStatus(resp.status).phrase}"
                 )
 
         await self._save_to_file(
@@ -470,7 +470,7 @@ class AmazonEchoApi:
                 self._login_email,
                 msg,
             )
-            raise CannotRegisterDevice("%s: %s", HTTPStatus(resp.status).phrase, msg)
+            raise CannotRegisterDevice(f"{HTTPStatus(resp.status).phrase}: {msg}")
 
         await self._save_to_file(
             await resp.text(),
