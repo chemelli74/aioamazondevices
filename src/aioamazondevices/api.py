@@ -1,5 +1,6 @@
 """Support for Amazon devices."""
 
+import asyncio
 import base64
 import hashlib
 import mimetypes
@@ -340,6 +341,17 @@ class AmazonEchoApi:
         except (TimeoutError, ClientConnectorError) as exc:
             raise CannotConnect(f"Connection error during {method}") from exc
 
+        if resp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            await self.handle_http_429(resp)
+            resp = await self.session.request(
+                method,
+                URL(url, encoded=True),
+                data=input_data if not json_data else orjson.dumps(input_data),
+                cookies=_cookies,
+                headers=headers,
+            )
+
+
         self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
 
         content_type: str = resp.headers.get("Content-Type", "")
@@ -369,6 +381,18 @@ class AmazonEchoApi:
         )
 
         return BeautifulSoup(await resp.read(), "html.parser"), resp
+
+    async def handle_http_429(self, response):
+        """Handle Amazon HTTP 429 Too Many Requests."""
+        if response.status == HTTPStatus.TOO_MANY_REQUESTS:
+            retry_after = response.headers.get("Retry-After")
+            wait_time = int(retry_after) if retry_after else 10
+            _LOGGER.warning(
+                "Too many requests to %s, retrying in %d seconds",
+                response.url,
+                wait_time,
+            )
+            await asyncio.sleep(wait_time)
 
     async def _save_to_file(
         self,
