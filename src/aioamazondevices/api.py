@@ -291,12 +291,12 @@ class AmazonEchoApi:
         _LOGGER.debug("Cookies from headers: %s", cookies_with_value)
         return cookies_with_value
 
-    async def _ignore_ap_sigin_error(self, response: ClientResponse) -> bool:
-        """Return true if error is due to /ap/sigin endpoint."""
-        # Endpoint 'ap/sigin' replies with error 404
+    async def _ignore_ap_signin_error(self, response: ClientResponse, url: str) -> bool:
+        """Return true if error is due to /ap/signin endpoint."""
+        # Endpoint 'ap/signin' replies with error 404
         # but reports the needed parameters anyway
         return (
-            response.status == HTTPStatus.NOT_FOUND and "/ap/sigin" in response.url.name
+            response.status == HTTPStatus.NOT_FOUND and ("/ap/signin" in url or "/ap/sigin" in url)
         )
 
     async def _session_request(
@@ -350,6 +350,13 @@ class AmazonEchoApi:
             content_type,
         )
 
+        await self._save_to_file(
+            await resp.text(),
+            url,
+            mimetypes.guess_extension(content_type.split(";")[0]) or ".raw",
+            resp=resp
+        )
+
         if resp.status != HTTPStatus.OK:
             if resp.status in [
                 HTTPStatus.FORBIDDEN,
@@ -357,7 +364,7 @@ class AmazonEchoApi:
                 HTTPStatus.UNAUTHORIZED,
             ]:
                 raise CannotAuthenticate(HTTPStatus(resp.status).phrase)
-            if not await self._ignore_ap_sigin_error(resp):
+            if not await self._ignore_ap_signin_error(resp, url):
                 raise CannotRetrieveData(
                     f"Request failed: {HTTPStatus(resp.status).phrase}"
                 )
@@ -376,6 +383,7 @@ class AmazonEchoApi:
         url: str,
         extension: str = HTML_EXTENSION,
         output_path: str = SAVE_PATH,
+        resp: ClientResponse = None
     ) -> None:
         """Save response data to disk."""
         if not self._save_raw_data or not raw_data:
@@ -413,6 +421,15 @@ class AmazonEchoApi:
         with Path.open(fullpath, mode="w", encoding="utf-8") as file:
             file.write(data)
             file.write("\n")
+
+        if resp:
+           with Path.open(str(fullpath) + ".response", mode="w", encoding="utf-8") as file:
+             file.write(str(resp.status) + "\n")
+             file.write("Headers: \n")             
+             for name, value in resp.headers.items():
+                 file.write(f"\t{name}: {value}\n")
+                 
+             # The response data is alredy saved on other file
 
     async def _register_device(
         self,
