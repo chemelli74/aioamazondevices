@@ -347,13 +347,18 @@ class AmazonEchoApi:
         while resp.status == HTTPStatus.TOO_MANY_REQUESTS and retry_count < max_retries:
             await self.handle_http_429(resp)
             retry_count += 1
-            resp = await self.session.request(
-                method,
-                URL(url, encoded=True),
-                data=input_data if not json_data else orjson.dumps(input_data),
-                cookies=_cookies,
-                headers=headers,
-            )
+            try:
+                resp = await self.session.request(
+                    method,
+                    URL(url, encoded=True),
+                    data=input_data if not json_data else orjson.dumps(input_data),
+                    cookies=_cookies,
+                    headers=headers,
+                )
+            except (TimeoutError, ClientConnectorError) as exc:
+                raise CannotConnect(
+                    f"Connection error during {method} when handling the HTTP code 429"
+                ) from exc
 
         if retry_count == max_retries and resp.status == HTTPStatus.TOO_MANY_REQUESTS:
             _LOGGER.error(
