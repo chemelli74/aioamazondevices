@@ -1,5 +1,13 @@
 # Changelog
 
+## v3.1.4-rc.1 (2025-06-16)
+
+### Bug fixes
+
+- Optimize exception handling ([`96a3081`](https://github.com/chemelli74/aioamazondevices/commit/96a3081f47d8a70aa3c855cf4f9c0eff88d35f98))
+- Missing await in response error ([`516451f`](https://github.com/chemelli74/aioamazondevices/commit/516451fbd381baa61251bee4090677bd94bc6021))
+
+
 ## v3.1.3 (2025-06-14)
 
 ### Bug fixes
