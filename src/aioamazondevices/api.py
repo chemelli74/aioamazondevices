@@ -351,7 +351,6 @@ class AmazonEchoApi:
                 headers=headers,
             )
 
-
         self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
 
         content_type: str = resp.headers.get("Content-Type", "")
@@ -382,7 +381,7 @@ class AmazonEchoApi:
 
         return BeautifulSoup(await resp.read(), "html.parser"), resp
 
-    async def handle_http_429(self, response):
+    async def handle_http_429(self, response: ClientResponse) -> None:
         """Handle Amazon HTTP 429 Too Many Requests."""
         if response.status == HTTPStatus.TOO_MANY_REQUESTS:
             retry_after = response.headers.get("Retry-After")
