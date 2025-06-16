@@ -15,7 +15,7 @@ from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
-from aiohttp import ClientResponse, ClientSession
+from aiohttp import ClientConnectorError, ClientResponse, ClientSession
 from babel import Locale
 from bs4 import BeautifulSoup, Tag
 from multidict import CIMultiDictProxy, MultiDictProxy
@@ -52,8 +52,9 @@ from .const import (
 )
 from .exceptions import (
     CannotAuthenticate,
+    CannotConnect,
     CannotRegisterDevice,
-    RequestFailed,
+    CannotRetrieveData,
     WrongMethod,
 )
 
@@ -328,13 +329,17 @@ class AmazonEchoApi:
         _cookies = (
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
-        resp = await self.session.request(
-            method,
-            URL(url, encoded=True),
-            data=input_data if not json_data else orjson.dumps(input_data),
-            cookies=_cookies,
-            headers=headers,
-        )
+        try:
+            resp = await self.session.request(
+                method,
+                URL(url, encoded=True),
+                data=input_data if not json_data else orjson.dumps(input_data),
+                cookies=_cookies,
+                headers=headers,
+            )
+        except (TimeoutError, ClientConnectorError) as exc:
+            raise CannotConnect(f"Connection error during {method}") from exc
+
         self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
 
         content_type: str = resp.headers.get("Content-Type", "")
@@ -351,9 +356,11 @@ class AmazonEchoApi:
                 HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
                 HTTPStatus.UNAUTHORIZED,
             ]:
-                raise CannotAuthenticate
+                raise CannotAuthenticate(HTTPStatus(resp.status).phrase)
             if not await self._ignore_ap_sigin_error(resp):
-                raise RequestFailed("Request failed with HTTP error %s", resp.status)
+                raise CannotRetrieveData(
+                    f"Request failed: {HTTPStatus(resp.status).phrase}"
+                )
 
         await self._save_to_file(
             await resp.text(),
@@ -457,12 +464,13 @@ class AmazonEchoApi:
         resp_json = await resp.json()
 
         if resp.status != HTTPStatus.OK:
+            msg = resp_json["response"]["error"]["message"]
             _LOGGER.error(
                 "Cannot register device for %s: %s",
                 self._login_email,
-                resp_json["response"]["error"]["message"],
+                msg,
             )
-            raise CannotRegisterDevice(resp_json)
+            raise CannotRegisterDevice(f"{HTTPStatus(resp.status).phrase}: {msg}")
 
         await self._save_to_file(
             await resp.text(),
