@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.6 (2025-06-16)
+
+### Bug fixes
+
+- Add new zealand and fix australia ([`f6e06d6`](https://github.com/chemelli74/aioamazondevices/commit/f6e06d61c591e3e2eb0c4e193a5dbe6c5f22a8c6))
+
+
 ## v3.1.5 (2025-06-16)
 
 ### Bug fixes
