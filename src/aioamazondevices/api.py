@@ -341,14 +341,27 @@ class AmazonEchoApi:
         except (TimeoutError, ClientConnectorError) as exc:
             raise CannotConnect(f"Connection error during {method}") from exc
 
-        if resp.status == HTTPStatus.TOO_MANY_REQUESTS:
+        retry_count = 0
+        max_retries = 5
+
+        while resp.status == HTTPStatus.TOO_MANY_REQUESTS and retry_count < max_retries:
             await self.handle_http_429(resp)
+            retry_count += 1
             resp = await self.session.request(
                 method,
                 URL(url, encoded=True),
                 data=input_data if not json_data else orjson.dumps(input_data),
                 cookies=_cookies,
                 headers=headers,
+            )
+
+        if retry_count == max_retries and resp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            _LOGGER.error(
+                "Max retries reached for %s, giving up",
+                URL(url, encoded=True),
+            )
+            raise CannotRetrieveData(
+                f"Max retries reached for {method} request to {url}"
             )
 
         self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
