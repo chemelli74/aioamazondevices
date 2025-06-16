@@ -1,10 +1,10 @@
 # Changelog
 
-## v3.1.7-rc.1 (2025-06-16)
+## v3.1.7 (2025-06-16)
 
 ### Bug fixes
 
-- Ignore signin logic ([`e995ee7`](https://github.com/chemelli74/aioamazondevices/commit/e995ee7ea9354a676ecca664d2497e6ad78a1e77))
+- Ignore signin logic ([`7636e3a`](https://github.com/chemelli74/aioamazondevices/commit/7636e3a1811f59f1879456f32b72b4af7d375c7d))
 
 
 ### Build system
