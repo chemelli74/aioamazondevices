@@ -49,6 +49,7 @@ from .const import (
     URI_IDS,
     URI_QUERIES,
     URI_SENSORS,
+    URI_SIGNIN,
 )
 from .exceptions import (
     CannotAuthenticate,
@@ -226,7 +227,9 @@ class AmazonEchoApi:
             "openid.pape.max_auth_age": "0",
         }
 
-        return f"https://www.amazon.{self._domain}/ap/signin?{urlencode(oauth_params)}"
+        return (
+            f"https://www.amazon.{self._domain}{URI_SIGNIN}?{urlencode(oauth_params)}"
+        )
 
     def _get_inputs_from_soup(self, soup: BeautifulSoup) -> dict[str, str]:
         """Extract hidden form input fields from a Amazon login page."""
@@ -291,13 +294,16 @@ class AmazonEchoApi:
         _LOGGER.debug("Cookies from headers: %s", cookies_with_value)
         return cookies_with_value
 
-    async def _ignore_ap_sigin_error(self, response: ClientResponse) -> bool:
-        """Return true if error is due to /ap/sigin endpoint."""
-        # Endpoint 'ap/sigin' replies with error 404
+    async def _ignore_ap_signin_error(self, response: ClientResponse) -> bool:
+        """Return true if error is due to signin endpoint."""
+        # Endpoint URI_SIGNIN replies with error 404
         # but reports the needed parameters anyway
-        return (
-            response.status == HTTPStatus.NOT_FOUND and "/ap/sigin" in response.url.name
-        )
+        if history := response.history:
+            return (
+                response.status == HTTPStatus.NOT_FOUND
+                and URI_SIGNIN in history[0].request_info.url.path
+            )
+        return False
 
     async def _session_request(
         self,
@@ -357,7 +363,7 @@ class AmazonEchoApi:
                 HTTPStatus.UNAUTHORIZED,
             ]:
                 raise CannotAuthenticate(HTTPStatus(resp.status).phrase)
-            if not await self._ignore_ap_sigin_error(resp):
+            if not await self._ignore_ap_signin_error(resp):
                 raise CannotRetrieveData(
                     f"Request failed: {HTTPStatus(resp.status).phrase}"
                 )
