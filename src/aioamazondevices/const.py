@@ -111,9 +111,17 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Show 5",
         "hw_version": "Gen3",
     },
+    "A13W6HQIHKEN3Z": {
+        "model": "Echo Auto",
+        "hw_version": "Gen2",
+    },
     "A15996VY63BQ2D": {
         "model": "Echo Show 8",
         "hw_version": "Gen2",
+    },
+    "A1EIANJ7PNB0Q7": {
+        "model": "Echo Show 15",
+        "hw_version": "Gen1",
     },
     "A1Q6UGEXJZWJQ0": {
         "model": "Fire TV Stick 4K",
@@ -130,6 +138,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A1VGB7MHSIEYFK": {
         "model": "Fire TV Cube",
         "hw_version": "Gen3",
+    },
+    "A1WAR447VT003J": {
+        "manufacturer": "Yamaha",
+        "model": "RX A4 Aventage",
+        "hw_version": None,
     },
     "A1WZKXFLI43K86": {
         "model": "FireTV 4k MAX",
@@ -151,6 +164,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot Clock",
         "hw_version": "Gen5",
     },
+    "A2GFL5ZMWNE0PX": {
+        "model": "Fire TV",
+        "hw_version": "Gen3",
+    },
     "A2H4LV5GIZ1JFT": {
         "model": "Echo Dot Clock",
         "hw_version": "Gen4",
@@ -168,7 +185,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": "Gen5",
     },
     "A2U21SRK4QGSE1": {
-        "model": "Echo Dot Clock",
+        "model": "Echo Dot",
         "hw_version": "Gen4",
     },
     "A2UONLFQW0PADH": {
@@ -191,13 +208,30 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot",
         "hw_version": "Gen3",
     },
+    "A33S43L213VSHQ ": {
+        "model": "Smart TV 4K",
+        "hw_version": "4 Series",
+    },
     "A3C9PE6TNYLTCH": {
         "model": "Speaker Group",
         "hw_version": None,
     },
+    "A3EH2E0YZ30OD6": {
+        "model": "Echo Spot",
+        "hw_version": "Gen2",
+    },
     "A3EVMLQTU6WL1W": {
         "model": "FireTV 4k MAX",
         "hw_version": "Gen1",
+    },
+    "A3HF4YRA2L7XGC": {
+        "model": "Fire TV Cube",
+        "hw_version": "Gen1",
+    },
+    "A3NPD82ABCPIDP": {
+        "manufacturer": "Sonos Inc.",
+        "model": "Sonos Beam",
+        "hw_version": None,
     },
     "A3RMGO6LYLH7YN": {
         "model": "Echo Dot",
@@ -219,12 +253,17 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot",
         "hw_version": "Gen5",
     },
+    "A50R5P5LEX87M ": {
+        "manufacturer": "JBL",
+        "model": "JBL BAR 500",
+        "hw_version": None,
+    },
     "A7WXQPH584YP": {
         "model": "Echo",
         "hw_version": "Gen2",
     },
     "AB72C64C86AW2": {
-        "model": "Echo Dot",
+        "model": "Echo",
         "hw_version": "Gen2",
     },
     "ADVBD696BHNV5": {
@@ -241,6 +280,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     },
     "AKPGW064GI9HE": {
         "model": "Fire TV Stick 4K",
+        "hw_version": "Gen1",
+    },
+    "ASQZWP4GPYUT7": {
+        "model": "Echo pop",
         "hw_version": "Gen1",
     },
     "ATNLRCEBX3W4P": {
