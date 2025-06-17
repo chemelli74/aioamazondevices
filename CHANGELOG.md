@@ -1,10 +1,15 @@
 # Changelog
 
-## v3.1.11-rc.1 (2025-06-17)
+## v3.1.11 (2025-06-17)
 
 ### Bug fixes
 
-- Add more models ([`45347e6`](https://github.com/chemelli74/aioamazondevices/commit/45347e68ee775bb870488975ae409edc838b7fdc))
+- Add more models ([`1679531`](https://github.com/chemelli74/aioamazondevices/commit/1679531f13f648ea51ce4e8f3f0ba7134e8b2656))
+
+
+### Testing
+
+- Improve library test script ([`ed50a2f`](https://github.com/chemelli74/aioamazondevices/commit/ed50a2fbf7c6af0da1adc65c91bcfc1f5630ff44))
 
 
 ## v3.1.10 (2025-06-17)
