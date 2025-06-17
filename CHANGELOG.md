@@ -1,10 +1,10 @@
 # Changelog
 
-## v3.1.9-rc.1 (2025-06-17)
+## v3.1.9 (2025-06-17)
 
 ### Bug fixes
 
-- Missing sensor key for very old devices ([`87f60b2`](https://github.com/chemelli74/aioamazondevices/commit/87f60b2dab7fa9878362d3fd97f459dcd1e34e9d))
+- Missing sensor key for very old devices ([`6dbde8a`](https://github.com/chemelli74/aioamazondevices/commit/6dbde8abbf522addf52cf20b5723e73d79303b60))
 
 
 ## v3.1.8 (2025-06-17)
