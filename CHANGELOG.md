@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.11-rc.1 (2025-06-17)
+
+### Bug fixes
+
+- Add more models ([`45347e6`](https://github.com/chemelli74/aioamazondevices/commit/45347e68ee775bb870488975ae409edc838b7fdc))
+
+
 ## v3.1.10 (2025-06-17)
 
 ### Bug fixes
