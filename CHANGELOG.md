@@ -1,5 +1,13 @@
 # Changelog
 
+## v3.1.8-rc.1 (2025-06-17)
+
+### Bug fixes
+
+- Login uri typo ([`8f4c5b3`](https://github.com/chemelli74/aioamazondevices/commit/8f4c5b357ad7e8198d46f9ce0aa16a5d09a06def))
+- Update user-agent ([`6178187`](https://github.com/chemelli74/aioamazondevices/commit/6178187f70b55bdb66d716b1581b8ff29a114106))
+
+
 ## v3.1.7 (2025-06-16)
 
 ### Bug fixes
