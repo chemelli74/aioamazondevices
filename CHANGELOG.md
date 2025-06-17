@@ -1,10 +1,10 @@
 # Changelog
 
-## v3.1.10-rc.1 (2025-06-17)
+## v3.1.10 (2025-06-17)
 
 ### Bug fixes
 
-- Login uri typo ([`cdf7ff3`](https://github.com/chemelli74/aioamazondevices/commit/cdf7ff3eb2010e26975a19d83a93dadaf9507dbd))
+- Login uri typo ([`8eba423`](https://github.com/chemelli74/aioamazondevices/commit/8eba423aa0bf4a42f8c3802be624eb2970090f48))
 
 
 ## v3.1.9 (2025-06-17)
