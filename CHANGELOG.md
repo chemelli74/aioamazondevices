@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.8 (2025-06-17)
+
+### Bug fixes
+
+- Update user-agent ([`6178187`](https://github.com/chemelli74/aioamazondevices/commit/6178187f70b55bdb66d716b1581b8ff29a114106))
+
+
 ## v3.1.7 (2025-06-16)
 
 ### Bug fixes
