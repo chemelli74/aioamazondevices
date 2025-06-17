@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.12 (2025-06-17)
+
+### Bug fixes
+
+- Add argentina and austria settings ([`00e0ed6`](https://github.com/chemelli74/aioamazondevices/commit/00e0ed67aa76ca6af005ccee109c15607a303600))
+
+
 ## v3.1.11 (2025-06-17)
 
 ### Bug fixes
