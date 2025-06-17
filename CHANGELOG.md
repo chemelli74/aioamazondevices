@@ -1,5 +1,18 @@
 # Changelog
 
+## v3.1.7 (2025-06-16)
+
+### Bug fixes
+
+- Ignore signin logic ([`7636e3a`](https://github.com/chemelli74/aioamazondevices/commit/7636e3a1811f59f1879456f32b72b4af7d375c7d))
+
+
+### Build system
+
+- Bump aiohttp from 3.12.11 to 3.12.13 ([`90d6947`](https://github.com/chemelli74/aioamazondevices/commit/90d69470fdbfd164596f5643e880733bb08fbe23))
+- Bump pytest-cov from 6.1.1 to 6.2.1 ([`30bbcf3`](https://github.com/chemelli74/aioamazondevices/commit/30bbcf31039501624fc39d77b7ca4a5834188d76))
+
+
 ## v3.1.6 (2025-06-16)
 
 ### Bug fixes
