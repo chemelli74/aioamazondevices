@@ -72,7 +72,7 @@ URI_QUERIES = {
     # "/api/notifications"
 }
 
-URI_SIGNIN = "/api/signin"
+URI_SIGNIN = "/ap/signin"
 URI_IDS = "/api/phoenix"
 URI_SENSORS = "/api/phoenix/state"
 
