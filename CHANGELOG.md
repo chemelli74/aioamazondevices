@@ -1,5 +1,79 @@
 # Changelog
 
+## v3.1.10 (2025-06-17)
+
+### Bug fixes
+
+- Login uri typo ([`8eba423`](https://github.com/chemelli74/aioamazondevices/commit/8eba423aa0bf4a42f8c3802be624eb2970090f48))
+
+
+## v3.1.9 (2025-06-17)
+
+### Bug fixes
+
+- Missing sensor key for very old devices ([`6dbde8a`](https://github.com/chemelli74/aioamazondevices/commit/6dbde8abbf522addf52cf20b5723e73d79303b60))
+
+
+## v3.1.8 (2025-06-17)
+
+### Bug fixes
+
+- Update user-agent ([`6178187`](https://github.com/chemelli74/aioamazondevices/commit/6178187f70b55bdb66d716b1581b8ff29a114106))
+
+
+## v3.1.7 (2025-06-16)
+
+### Bug fixes
+
+- Ignore signin logic ([`7636e3a`](https://github.com/chemelli74/aioamazondevices/commit/7636e3a1811f59f1879456f32b72b4af7d375c7d))
+
+
+### Build system
+
+- Bump aiohttp from 3.12.11 to 3.12.13 ([`90d6947`](https://github.com/chemelli74/aioamazondevices/commit/90d69470fdbfd164596f5643e880733bb08fbe23))
+- Bump pytest-cov from 6.1.1 to 6.2.1 ([`30bbcf3`](https://github.com/chemelli74/aioamazondevices/commit/30bbcf31039501624fc39d77b7ca4a5834188d76))
+
+
+## v3.1.6 (2025-06-16)
+
+### Bug fixes
+
+- Add new zealand and fix australia ([`f6e06d6`](https://github.com/chemelli74/aioamazondevices/commit/f6e06d61c591e3e2eb0c4e193a5dbe6c5f22a8c6))
+
+
+## v3.1.5 (2025-06-16)
+
+### Bug fixes
+
+- Optimize exception handling ([`8a9d091`](https://github.com/chemelli74/aioamazondevices/commit/8a9d091516fd2dc77c17529b490a81bd1714d120))
+
+
+### Build system
+
+- Cleanup httpx leftover ([`2bdd73a`](https://github.com/chemelli74/aioamazondevices/commit/2bdd73a6bfc434c23d609f97857a42492ee3d154))
+
+
+## v3.1.4 (2025-06-15)
+
+### Bug fixes
+
+- Missing await in response error ([`516451f`](https://github.com/chemelli74/aioamazondevices/commit/516451fbd381baa61251bee4090677bd94bc6021))
+
+
+## v3.1.3 (2025-06-14)
+
+### Bug fixes
+
+- Add sensors only for linked devices ([`d40b96e`](https://github.com/chemelli74/aioamazondevices/commit/d40b96e56fa3837257ceef899608663d4f05b477))
+
+
+## v3.1.2 (2025-06-13)
+
+### Bug fixes
+
+- Handle account with old devices only ([`91ba802`](https://github.com/chemelli74/aioamazondevices/commit/91ba80211df033b04a7269917893b6b812e5b01a))
+
+
 ## v3.1.1 (2025-06-12)
 
 ### Bug fixes

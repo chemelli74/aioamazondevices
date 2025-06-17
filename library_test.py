@@ -125,11 +125,18 @@ def find_device(
     condition: Callable[[AmazonDevice], bool],
 ) -> AmazonDevice:
     """Extract device from list."""
-    return next(
-        dev
-        for dev in devices.values()
-        if ((dev.account_name == name) if name else condition(dev))
-    )
+    try:
+        return next(
+            dev
+            for dev in devices.values()
+            if ((dev.account_name == name) if name else condition(dev))
+        )
+    except StopIteration:
+        print(f"Unable to find requested device {name}, use one of this devices :")
+        for device in devices.values():
+            if condition(device):
+                print(f"\t{device.account_name}")
+        sys.exit(0)
 
 
 async def wait_action_complete(sleep: int = 4) -> None:
@@ -187,19 +194,27 @@ async def main() -> None:
     save_to_file(f"{SAVE_PATH}/output-login-data.json", login_data)
 
     print("-" * 20)
-    devices = await api.get_devices_data()
+    try:
+        devices = await api.get_devices_data()
+    except (CannotAuthenticate, CannotConnect, CannotRegisterDevice) as exc:
+        print(exc)
+        await api.close()
+        sys.exit(3)
+
     print("Devices count  :", len(devices))
     print("Devices details:", devices)
     print("-" * 20)
 
     if not devices:
-        print("!!! Error: No devices found !!!")
-        sys.exit(3)
+        print("!!! Warning: No devices found !!!")
+        await api.close()
+        sys.exit(0)
 
     save_to_file(f"{SAVE_PATH}/output-devices.json", devices)
 
     if not args.test:
         print("!!! No testing requested, exiting !!!")
+        await api.close()
         sys.exit(0)
 
     device_single = find_device(
@@ -220,6 +235,7 @@ async def main() -> None:
 
     if not await api.auth_check_status():
         print("!!! Error: Session not authenticated !!!")
+        await api.close()
         sys.exit(4)
     print("Session authenticated!")
 
@@ -265,7 +281,7 @@ def set_logging() -> None:
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger("asyncio").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("aiohttp").setLevel(logging.WARNING)
     logging.getLogger("charset_normalizer").setLevel(logging.WARNING)
     fmt = (
         "%(asctime)s.%(msecs)03d %(levelname)s (%(threadName)s) [%(name)s] %(message)s"
