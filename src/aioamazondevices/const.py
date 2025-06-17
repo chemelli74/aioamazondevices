@@ -35,15 +35,14 @@ DOMAIN_BY_ISO3166_COUNTRY = {
 AMAZON_APP_BUNDLE_ID = "com.amazon.echo"
 AMAZON_APP_ID = "MAPiOSLib/6.0/ToHideRetailLink"
 AMAZON_APP_NAME = "AioAmazonDevices"
-AMAZON_APP_VERSION = "2.2.556530.0"
+AMAZON_APP_VERSION = "2.2.663733.0"
 AMAZON_DEVICE_SOFTWARE_VERSION = "35602678"
 AMAZON_DEVICE_TYPE = "A2IVLV5VM2W81"
-AMAZON_CLIENT_OS = "16.6"
+AMAZON_CLIENT_OS = "18.5"
 
 DEFAULT_HEADERS = {
     "User-Agent": (
-        f"Mozilla/5.0 (iPhone; CPU iPhone OS {AMAZON_CLIENT_OS.replace('.', '_')} like Mac OS X) "  # noqa: E501
-        "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+        f"AmazonWebView/AmazonAlexa/{AMAZON_APP_VERSION}/iOS/{AMAZON_CLIENT_OS}/iPhone"
     ),
     "Accept-Charset": "utf-8",
     "Accept-Encoding": "gzip",
