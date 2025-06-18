@@ -98,6 +98,7 @@ class AmazonSequenceType(StrEnum):
     Sound = "Alexa.Sound"
     Music = "Alexa.Music.PlaySearchPhrase"
     TextCommand = "Alexa.TextCommand"
+    LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
 
 
 class AmazonMusicSource(StrEnum):
@@ -900,6 +901,18 @@ class AmazonEchoApi:
                 "skillId": "amzn1.ask.1p.tellalexa",
                 "text": message_body,
             }
+        elif message_type == AmazonSequenceType.LaunchSkill:
+            payload = {
+                **base_payload,
+                "targetDevice": {
+                    "deviceType": device.device_type,
+                    "deviceSerialNumber": device.serial_number,
+                },
+                "connectionRequest": {
+                    "uri": "connection://AMAZON.Launch/" + message_body,
+                    "input": {},
+                },
+            }
 
         sequence = {
             "@type": "com.amazon.alexa.behaviors.model.Sequence",
@@ -976,6 +989,16 @@ class AmazonEchoApi:
         """Call Alexa.Sound to play sound."""
         return await self._send_message(
             device, AmazonSequenceType.TextCommand, message_body
+        )
+
+    async def call_alexa_skill(
+        self,
+        device: AmazonDevice,
+        message_body: str,
+    ) -> None:
+        """Call Alexa.LaunchSkill to launch a skill."""
+        return await self._send_message(
+            device, AmazonSequenceType.LaunchSkill, message_body
         )
 
     async def set_do_not_disturb(self, device: AmazonDevice, state: bool) -> None:
