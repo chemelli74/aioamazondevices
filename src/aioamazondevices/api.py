@@ -569,7 +569,10 @@ class AmazonEchoApi:
         location_details = network_detail["locationDetails"]["locationDetails"]
         default_location = location_details["Default_Location"]
         amazon_bridge = default_location["amazonBridgeDetails"]["amazonBridgeDetails"]
-        lambda_bridge = amazon_bridge["LambdaBridge_AAA/SonarCloudService"]
+        lambda_bridge = amazon_bridge.get("LambdaBridge_AAA/SonarCloudService")
+        if not lambda_bridge:
+            # Some very old devices lack the key for sensors data
+            return []
         appliance_details = lambda_bridge["applianceDetails"]["applianceDetails"]
 
         entity_ids_list: list[dict[str, str]] = []
@@ -754,7 +757,9 @@ class AmazonEchoApi:
                     self._devices[dev_serial] = {key: data}
 
         entity_ids_list = await self._get_devices_ids()
-        devices_sensors = await self._get_sensors_states(entity_ids_list)
+        devices_sensors = (
+            await self._get_sensors_states(entity_ids_list) if entity_ids_list else {}
+        )
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():

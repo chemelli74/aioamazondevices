@@ -1,5 +1,45 @@
 # Changelog
 
+## v3.1.12 (2025-06-17)
+
+### Bug fixes
+
+- Add argentina and austria settings ([`00e0ed6`](https://github.com/chemelli74/aioamazondevices/commit/00e0ed67aa76ca6af005ccee109c15607a303600))
+
+
+## v3.1.11 (2025-06-17)
+
+### Bug fixes
+
+- Add more models ([`1679531`](https://github.com/chemelli74/aioamazondevices/commit/1679531f13f648ea51ce4e8f3f0ba7134e8b2656))
+
+
+### Testing
+
+- Improve library test script ([`ed50a2f`](https://github.com/chemelli74/aioamazondevices/commit/ed50a2fbf7c6af0da1adc65c91bcfc1f5630ff44))
+
+
+## v3.1.10 (2025-06-17)
+
+### Bug fixes
+
+- Login uri typo ([`8eba423`](https://github.com/chemelli74/aioamazondevices/commit/8eba423aa0bf4a42f8c3802be624eb2970090f48))
+
+
+## v3.1.9 (2025-06-17)
+
+### Bug fixes
+
+- Missing sensor key for very old devices ([`6dbde8a`](https://github.com/chemelli74/aioamazondevices/commit/6dbde8abbf522addf52cf20b5723e73d79303b60))
+
+
+## v3.1.8 (2025-06-17)
+
+### Bug fixes
+
+- Update user-agent ([`6178187`](https://github.com/chemelli74/aioamazondevices/commit/6178187f70b55bdb66d716b1581b8ff29a114106))
+
+
 ## v3.1.7 (2025-06-16)
 
 ### Bug fixes
