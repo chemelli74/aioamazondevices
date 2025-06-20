@@ -28,7 +28,6 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     },
     "mx": {
         "domain": "com.mx",
-        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_mx",
     },
 }
 
