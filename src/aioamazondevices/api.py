@@ -65,7 +65,7 @@ class AmazonDeviceSensor:
     """Amazon device sensor class."""
 
     name: str
-    value: Any
+    value: str | int | float
     scale: str | None
 
 
