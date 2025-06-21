@@ -1,5 +1,17 @@
 # Changelog
 
+## v3.1.13 (2025-06-21)
+
+### Bug fixes
+
+- Add mexico settings ([`9a71a14`](https://github.com/chemelli74/aioamazondevices/commit/9a71a14aaec320231cd4b541d4be88ad2f3f4593))
+
+
+### Refactoring
+
+- Improve typing ([`e61dc16`](https://github.com/chemelli74/aioamazondevices/commit/e61dc16690fd9c35331f5f529e668fbf55ad8fa0))
+
+
 ## v3.1.12 (2025-06-17)
 
 ### Bug fixes
