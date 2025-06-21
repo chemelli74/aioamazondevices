@@ -7,9 +7,20 @@ _LOGGER = logging.getLogger(__package__)
 DEFAULT_ASSOC_HANDLE = "amzn_dp_project_dee_ios"
 
 DOMAIN_BY_ISO3166_COUNTRY = {
-    "us": {
+    "ar": {
         "domain": "com",
         "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
+    },
+    "at": {
+        "domain": "de",
+        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_de",
+    },
+    "au": {
+        "domain": "com.au",
+        "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
+    },
+    "br": {
+        "domain": "com.br",
     },
     "gb": {
         "domain": "co.uk",
@@ -18,6 +29,9 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     "jp": {
         "domain": "co.jp",
     },
+    "mx": {
+        "domain": "com.mx",
+    },
     "nz": {
         "domain": "com.au",
         "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
@@ -25,9 +39,6 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     "us": {
         "domain": "com",
         "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
-    },
-    "mx": {
-        "domain": "com.mx",
     },
 }
 
