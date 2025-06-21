@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.13-rc.1 (2025-06-21)
+
+### Bug fixes
+
+- Add more countries settings ([`d7d42df`](https://github.com/chemelli74/aioamazondevices/commit/d7d42dff4fd92bda897bc496e3dfb4a45f4bf83c))
+
+
 ## v3.1.12 (2025-06-17)
 
 ### Bug fixes
