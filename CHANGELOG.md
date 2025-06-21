@@ -1,6 +1,11 @@
 # Changelog
 
-## v3.1.14-rc.1 (2025-06-21)
+## v3.1.14 (2025-06-21)
+
+### Bug fixes
+
+- Add more countries settings ([`1972a76`](https://github.com/chemelli74/aioamazondevices/commit/1972a7653a0db7bd546ca543338ecc9b359c7c7c))
+
 
 ## v3.1.13 (2025-06-21)
 
@@ -12,13 +17,6 @@
 ### Refactoring
 
 - Improve typing ([`e61dc16`](https://github.com/chemelli74/aioamazondevices/commit/e61dc16690fd9c35331f5f529e668fbf55ad8fa0))
-
-
-## v3.1.13-rc.1 (2025-06-21)
-
-### Bug fixes
-
-- Add more countries settings ([`d7d42df`](https://github.com/chemelli74/aioamazondevices/commit/d7d42dff4fd92bda897bc496e3dfb4a45f4bf83c))
 
 
 ## v3.1.12 (2025-06-17)
