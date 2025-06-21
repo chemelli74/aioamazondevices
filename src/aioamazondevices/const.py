@@ -29,6 +29,9 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     "jp": {
         "domain": "co.jp",
     },
+    "mx": {
+        "domain": "com.mx",
+    },
     "nz": {
         "domain": "com.au",
         "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
