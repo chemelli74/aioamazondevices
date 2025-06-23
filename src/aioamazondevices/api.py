@@ -16,8 +16,8 @@ from urllib.parse import parse_qs, urlencode
 
 import orjson
 from aiohttp import ClientConnectorError, ClientResponse, ClientSession
-from babel import Locale
 from bs4 import BeautifulSoup, Tag
+from langcodes import Language
 from multidict import CIMultiDictProxy, MultiDictProxy
 from yarl import URL
 
@@ -819,8 +819,9 @@ class AmazonEchoApi:
         message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
-        locale_data = Locale.parse(f"und_{self._login_country_code}")
-        locale = f"{locale_data.language}-{locale_data.language}"
+        lang_object = Language.make(territory=self._login_country_code)
+        lang_maximized = lang_object.maximize()
+        locale = f"{lang_maximized.language}-{lang_maximized.region}"
 
         if not self._login_stored_data:
             _LOGGER.warning("Trying to send message before login")
