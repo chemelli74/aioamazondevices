@@ -819,7 +819,7 @@ class AmazonEchoApi:
         message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
-        lang_object = Language.make(territory=self._login_country_code)
+        lang_object = Language.make(territory=self._login_country_code.upper())
         lang_maximized = lang_object.maximize()
         locale = f"{lang_maximized.language}-{lang_maximized.region}"
 
