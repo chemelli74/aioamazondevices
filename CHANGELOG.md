@@ -1,41 +1,10 @@
 # Changelog
 
-## v3.1.19 (2025-06-24)
+## v3.2.0-rc.1 (2025-06-23)
 
-### Bug fixes
+### Features
 
-- Re-release ([`d634be6`](https://github.com/chemelli74/aioamazondevices/commit/d634be6c120c2b558c3d8e8a2aebfcbf960133ce))
-
-
-## v3.1.18 (2025-06-24)
-
-### Bug fixes
-
-- Ignore devices earlier ([`a38e839`](https://github.com/chemelli74/aioamazondevices/commit/a38e839d170e7d4dcb962432d263b69602552c25))
-
-
-## v3.1.17 (2025-06-24)
-
-### Bug fixes
-
-- Project classifier ([`6eb3a27`](https://github.com/chemelli74/aioamazondevices/commit/6eb3a27b89d70dc55a01f3c33221d8cc34eb360b))
-
-
-## v3.1.16 (2025-06-24)
-
-### Bug fixes
-
-- Redact sensitive data from debug logs ([`0d1b912`](https://github.com/chemelli74/aioamazondevices/commit/0d1b912e212e5dabc7b3b5f17944d9faae499c7c))
-
-
-## v3.1.15 (2025-06-24)
-
-### Bug fixes
-
-- Pyproject syntax ([`9316387`](https://github.com/chemelli74/aioamazondevices/commit/931638764fadf7248e9d06b1126d290ae4cca0b0))
-- Add more models ([`7260921`](https://github.com/chemelli74/aioamazondevices/commit/72609219f938f56d24e9b56e5c52e3f5c74b3450))
-- Ignore android mobile app ([`82c6169`](https://github.com/chemelli74/aioamazondevices/commit/82c61698437c8437575d0d7370937c6213d5fd4f))
-- Change library for language detection ([`553b246`](https://github.com/chemelli74/aioamazondevices/commit/553b2463b48aa42cb5ce5426e2d492ac2e4fedbe))
+- Queues api calls to avoid hitting the limit ([`f397d84`](https://github.com/chemelli74/aioamazondevices/commit/f397d846e31b4bd25261caa94ff74be1f61be3d4))
 
 
 ### Build system
