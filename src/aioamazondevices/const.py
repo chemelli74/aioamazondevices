@@ -4,6 +4,8 @@ import logging
 
 _LOGGER = logging.getLogger(__package__)
 
+SLEEP_BETWEEN_API_CALLS = 0.5
+
 DEFAULT_ASSOC_HANDLE = "amzn_dp_project_dee_ios"
 
 TO_REDACT = {

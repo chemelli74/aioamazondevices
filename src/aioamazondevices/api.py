@@ -1,5 +1,6 @@
 """Support for Amazon devices."""
 
+import asyncio
 import base64
 import hashlib
 import mimetypes
@@ -46,6 +47,7 @@ from .const import (
     NODE_PREFERENCES,
     SAVE_PATH,
     SENSORS,
+    SLEEP_BETWEEN_API_CALLS,
     URI_IDS,
     URI_QUERIES,
     URI_SENSORS,
@@ -142,6 +144,9 @@ class AmazonEchoApi:
         self._login_stored_data = login_data
         self._serial = self._serial_number()
         self._list_for_clusters: dict[str, str] = {}
+
+        self._last_message_sent: datetime | None = None
+        self._semaphore = asyncio.Semaphore()
 
         self.session: ClientSession
         self._devices: dict[str, Any] = {}
@@ -925,14 +930,33 @@ class AmazonEchoApi:
         }
 
         _LOGGER.debug("Preview data payload: %s", node_data)
+
+        await self._semaphore.acquire()
+        await self._delay_api_call()
+
         await self._session_request(
             method=HTTPMethod.POST,
             url=f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
             input_data=node_data,
             json_data=True,
         )
+        self._last_message_sent = datetime.now(tz=UTC)
+        self._semaphore.release()
 
         return
+
+    async def _delay_api_call(self) -> None:
+        """Sleep between one call and the next one."""
+        if not self._last_message_sent:
+            return
+
+        delta_seconds = SLEEP_BETWEEN_API_CALLS - round(
+            (datetime.now(tz=UTC) - self._last_message_sent).total_seconds(),
+            2,
+        )
+        if delta_seconds > 0:
+            _LOGGER.debug("Sleeping for %s seconds before next API call", delta_seconds)
+        await asyncio.sleep(delta_seconds)
 
     async def call_alexa_speak(
         self,
