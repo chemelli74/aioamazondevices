@@ -1,5 +1,22 @@
 # Changelog
 
+## v3.1.15 (2025-06-24)
+
+### Bug fixes
+
+- Change library for language detection ([`553b246`](https://github.com/chemelli74/aioamazondevices/commit/553b2463b48aa42cb5ce5426e2d492ac2e4fedbe))
+
+
+### Build system
+
+- Bump pytest from 8.4.0 to 8.4.1 ([`0fbb433`](https://github.com/chemelli74/aioamazondevices/commit/0fbb4335b720b325a6598aa923c70cbafd9fcaeb))
+
+
+### Refactoring
+
+- Update pyproject.toml ([`2545297`](https://github.com/chemelli74/aioamazondevices/commit/254529798e35ffd98947cc0e8e214c9a1c11b323))
+
+
 ## v3.1.14 (2025-06-21)
 
 ### Bug fixes
