@@ -140,6 +140,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Show 15",
         "hw_version": "Gen1",
     },
+    "A1NL4BVLQ4L3N3": {
+        "model": "Echo Show",
+        "hw_version": "Gen1",
+    },
     "A1Q6UGEXJZWJQ0": {
         "model": "Fire TV Stick 4K",
         "hw_version": "Gen2",
@@ -163,6 +167,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     },
     "A1WZKXFLI43K86": {
         "model": "FireTV 4k MAX",
+        "hw_version": "Gen2",
+    },
+    "A1XWJRHALS1REP": {
+        "model": "Echo Show 5",
         "hw_version": "Gen2",
     },
     "A1Z88NGR2BK6A2": {
@@ -196,6 +204,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A2LWARUGJLBYEW": {
         "model": "Fire TV Stick",
         "hw_version": "Gen2",
+    },
+    "A2M35JJZWCQOMZ": {
+        "model": "Echo Plus",
+        "hw_version": "Gen1",
     },
     "A2M4YX06LWP8WI": {
         "model": "Fire Tablet 7",
@@ -252,6 +264,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A3NPD82ABCPIDP": {
         "manufacturer": "Sonos Inc.",
         "model": "Sonos Beam",
+        "hw_version": None,
+    },
+    "A3RBAYBE7VM004": {
+        "model": "Echo Studio",
         "hw_version": None,
     },
     "A3RMGO6LYLH7YN": {
