@@ -8,19 +8,18 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
-from http import HTTPStatus
-from http.cookies import Morsel
+from http import HTTPMethod, HTTPStatus
+from http.cookies import Morsel, SimpleCookie
 from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
-from aiohttp import ClientResponse, ClientSession
-from babel import Locale
+from aiohttp import ClientConnectorError, ClientResponse, ClientSession
 from bs4 import BeautifulSoup, Tag
-from httpx import URL as HTTPX_URL
-from multidict import MultiDictProxy
-from yarl import URL as YARL_URL
+from langcodes import Language
+from multidict import CIMultiDictProxy, MultiDictProxy
+from yarl import URL
 
 from .const import (
     _LOGGER,
@@ -35,6 +34,7 @@ from .const import (
     CSRF_COOKIE,
     DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
+    DEVICE_TO_IGNORE,
     DEVICE_TYPE_TO_MODEL,
     DOMAIN_BY_ISO3166_COUNTRY,
     HTML_EXTENSION,
@@ -42,15 +42,32 @@ from .const import (
     NODE_BLUETOOTH,
     NODE_DEVICES,
     NODE_DO_NOT_DISTURB,
+    NODE_IDENTIFIER,
     NODE_PREFERENCES,
     SAVE_PATH,
+    SENSORS,
+    URI_IDS,
     URI_QUERIES,
+    URI_SENSORS,
+    URI_SIGNIN,
 )
-from .exceptions import CannotAuthenticate, CannotRegisterDevice, WrongMethod
-from .httpx import HttpxClientResponseWrapper, HttpxClientSession
+from .exceptions import (
+    CannotAuthenticate,
+    CannotConnect,
+    CannotRegisterDevice,
+    CannotRetrieveData,
+    WrongMethod,
+)
+from .utils import obfuscate_email, scrub_fields
 
-# Values: "aiohttp", or "httpx"
-LIBRARY = "httpx"
+
+@dataclass
+class AmazonDeviceSensor:
+    """Amazon device sensor class."""
+
+    name: str
+    value: str | int | float
+    scale: str | None
 
 
 @dataclass
@@ -69,6 +86,9 @@ class AmazonDevice:
     do_not_disturb: bool
     response_style: str | None
     bluetooth_state: bool
+    entity_id: str
+    appliance_id: str
+    sensors: dict[str, AmazonDeviceSensor]
 
 
 class AmazonSequenceType(StrEnum):
@@ -124,7 +144,8 @@ class AmazonEchoApi:
         self._serial = self._serial_number()
         self._list_for_clusters: dict[str, str] = {}
 
-        self.session: ClientSession | HttpxClientSession
+        self.session: ClientSession
+        self._devices: dict[str, Any] = {}
 
     def _load_website_cookies(self) -> dict[str, str]:
         """Get website cookies, if avaliables."""
@@ -208,7 +229,9 @@ class AmazonEchoApi:
             "openid.pape.max_auth_age": "0",
         }
 
-        return f"https://www.amazon.{self._domain}/ap/signin?{urlencode(oauth_params)}"
+        return (
+            f"https://www.amazon.{self._domain}{URI_SIGNIN}?{urlencode(oauth_params)}"
+        )
 
     def _get_inputs_from_soup(self, soup: BeautifulSoup) -> dict[str, str]:
         """Extract hidden form input fields from a Amazon login page."""
@@ -235,7 +258,7 @@ class AmazonEchoApi:
                 return method, url
         raise TypeError("Unable to extract form data from response")
 
-    def _extract_code_from_url(self, url: YARL_URL | HTTPX_URL) -> str:
+    def _extract_code_from_url(self, url: URL) -> str:
         """Extract the access token from url query after login."""
         parsed_url: dict[str, list[str]] = {}
         if isinstance(url.query, bytes):
@@ -250,18 +273,39 @@ class AmazonEchoApi:
     def _client_session(self) -> None:
         """Create HTTP client session."""
         if not hasattr(self, "session") or self.session.closed:
-            _LOGGER.debug("Creating HTTP session (%s)", LIBRARY)
-            if LIBRARY == "httpx":
-                self.session = HttpxClientSession(
-                    headers=DEFAULT_HEADERS,
-                    cookies=self._cookies,
-                    follow_redirects=True,
-                )
-            else:
-                self.session = ClientSession(
-                    headers=DEFAULT_HEADERS,
-                    cookies=self._cookies,
-                )
+            _LOGGER.debug("Creating HTTP session (aiohttp)")
+            self.session = ClientSession(
+                headers=DEFAULT_HEADERS,
+                cookies=self._cookies,
+            )
+
+    async def _parse_cookies_from_headers(
+        self, headers: CIMultiDictProxy[str]
+    ) -> dict[str, str]:
+        """Parse cookies with a value from headers."""
+        cookies_with_value: dict[str, str] = {}
+
+        for value in headers.getall("Set-Cookie", ()):
+            cookie = SimpleCookie()
+            cookie.load(value)
+
+            for name, morsel in cookie.items():
+                if morsel.value and morsel.value not in ("-", ""):
+                    cookies_with_value[name] = morsel.value
+
+        _LOGGER.debug("Cookies from headers: %s", cookies_with_value)
+        return cookies_with_value
+
+    async def _ignore_ap_signin_error(self, response: ClientResponse) -> bool:
+        """Return true if error is due to signin endpoint."""
+        # Endpoint URI_SIGNIN replies with error 404
+        # but reports the needed parameters anyway
+        if history := response.history:
+            return (
+                response.status == HTTPStatus.NOT_FOUND
+                and URI_SIGNIN in history[0].request_info.url.path
+            )
+        return False
 
     async def _session_request(
         self,
@@ -269,13 +313,13 @@ class AmazonEchoApi:
         url: str,
         input_data: dict[str, Any] | None = None,
         json_data: bool = False,
-    ) -> tuple[BeautifulSoup, ClientResponse | HttpxClientResponseWrapper]:
+    ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
             "%s request: %s with payload %s [json=%s]",
             method,
             url,
-            input_data,
+            scrub_fields(input_data) if input_data else None,
             json_data,
         )
 
@@ -286,21 +330,26 @@ class AmazonEchoApi:
             headers.update(csrf)
 
         if json_data:
-            json_header = {"Content-Type": "application/json"}
+            json_header = {"Content-Type": "application/json; charset=utf-8"}
             _LOGGER.debug("Adding %s to headers", json_header)
             headers.update(json_header)
 
-        _url: YARL_URL | str = url
-        if LIBRARY == "aiohttp":
-            _url = YARL_URL(url, encoded=True)
-
-        resp = await self.session.request(
-            method,
-            _url,
-            data=input_data if not json_data else orjson.dumps(input_data),
-            cookies=self._load_website_cookies(),
-            headers=headers,
+        _cookies = (
+            self._load_website_cookies() if self._login_stored_data else self._cookies
         )
+        try:
+            resp = await self.session.request(
+                method,
+                URL(url, encoded=True),
+                data=input_data if not json_data else orjson.dumps(input_data),
+                cookies=_cookies,
+                headers=headers,
+            )
+        except (TimeoutError, ClientConnectorError) as exc:
+            raise CannotConnect(f"Connection error during {method}") from exc
+
+        self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
+
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
             "Response %s for url %s with content type: %s",
@@ -308,6 +357,18 @@ class AmazonEchoApi:
             url,
             content_type,
         )
+
+        if resp.status != HTTPStatus.OK:
+            if resp.status in [
+                HTTPStatus.FORBIDDEN,
+                HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
+                HTTPStatus.UNAUTHORIZED,
+            ]:
+                raise CannotAuthenticate(HTTPStatus(resp.status).phrase)
+            if not await self._ignore_ap_signin_error(resp):
+                raise CannotRetrieveData(
+                    f"Request failed: {HTTPStatus(resp.status).phrase}"
+                )
 
         await self._save_to_file(
             await resp.text(),
@@ -403,7 +464,7 @@ class AmazonEchoApi:
 
         register_url = f"https://api.amazon.{self._domain}/auth/register"
         _, resp = await self._session_request(
-            method="POST",
+            method=HTTPMethod.POST,
             url=register_url,
             input_data=body,
             json_data=True,
@@ -411,12 +472,13 @@ class AmazonEchoApi:
         resp_json = await resp.json()
 
         if resp.status != HTTPStatus.OK:
+            msg = resp_json["response"]["error"]["message"]
             _LOGGER.error(
                 "Cannot register device for %s: %s",
-                self._login_email,
-                resp_json["response"]["error"]["message"],
+                obfuscate_email(self._login_email),
+                msg,
             )
-            raise CannotRegisterDevice(resp_json)
+            raise CannotRegisterDevice(f"{HTTPStatus(resp.status).phrase}: {msg}")
 
         await self._save_to_file(
             await resp.text(),
@@ -456,9 +518,96 @@ class AmazonEchoApi:
         await self._save_to_file(login_data, "login_data", JSON_EXTENSION)
         return login_data
 
+    async def _get_devices_ids(self) -> list[dict[str, str]]:
+        """Retrieve devices entityId and applianceId."""
+        _, raw_resp = await self._session_request(
+            "GET",
+            url=f"https://alexa.amazon.{self._domain}{URI_IDS}",
+        )
+        json_data = await raw_resp.json()
+
+        network_detail = orjson.loads(json_data["networkDetail"])
+        # Navigate through the nested structure step by step
+        location_details = network_detail["locationDetails"]["locationDetails"]
+        default_location = location_details["Default_Location"]
+        amazon_bridge = default_location["amazonBridgeDetails"]["amazonBridgeDetails"]
+        lambda_bridge = amazon_bridge.get("LambdaBridge_AAA/SonarCloudService")
+        if not lambda_bridge:
+            # Some very old devices lack the key for sensors data
+            return []
+        appliance_details = lambda_bridge["applianceDetails"]["applianceDetails"]
+
+        entity_ids_list: list[dict[str, str]] = []
+        # Process each appliance that starts with AAA_SonarCloudService
+        for appliance_key, appliance_data in appliance_details.items():
+            if not appliance_key.startswith("AAA_SonarCloudService"):
+                continue
+
+            entity_id = appliance_data["entityId"]
+            appliance_id = appliance_data["applianceId"]
+
+            # Create identifier object for this appliance
+            identifier = {
+                "entityId": entity_id,
+                "applianceId": appliance_id,
+            }
+
+            # Update device information for each device in the identifier list
+            for device_identifier in appliance_data["alexaDeviceIdentifierList"]:
+                serial_number = device_identifier["dmsDeviceSerialNumber"]
+
+                # Add identifier information to the device
+                # but only if the device was previously found
+                if serial_number in self._devices:
+                    self._devices[serial_number] |= {NODE_IDENTIFIER: identifier}
+
+            # Add to entity IDs list for sensor retrieval
+            entity_ids_list.append({"entityId": entity_id, "entityType": "ENTITY"})
+
+        return entity_ids_list
+
+    async def _get_sensors_states(
+        self, entity_ids_list: list[dict[str, str]]
+    ) -> dict[str, dict[str, AmazonDeviceSensor]]:
+        """Retrieve devices sensors states."""
+        _data = {"stateRequests": entity_ids_list}
+        _, raw_resp = await self._session_request(
+            "POST",
+            url=f"https://alexa.amazon.{self._domain}{URI_SENSORS}",
+            input_data=_data,
+            json_data=True,
+        )
+        json_data = await raw_resp.json()
+
+        final_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
+        for sensors in json_data["deviceStates"]:
+            _id = sensors["entity"]["entityId"]
+            dict_sensors: dict[str, AmazonDeviceSensor] = {}
+            for sensor in sensors["capabilityStates"]:
+                sensor_json = orjson.loads(sensor)
+                if sensor_json["name"] in SENSORS:
+                    _value = sensor_json["value"]
+                    _value_dict = isinstance(_value, dict)
+                    _name = sensor_json["name"]
+                    dict_sensors.update(
+                        {
+                            _name: AmazonDeviceSensor(
+                                name=_name,
+                                value=(_value["value"] if _value_dict else _value),
+                                scale=_value.get("scale") if _value_dict else None,
+                            )
+                        }
+                    )
+            final_sensors.update({_id: dict_sensors})
+        return final_sensors
+
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
-        _LOGGER.debug("Logging-in for %s [otp code %s]", self._login_email, otp_code)
+        _LOGGER.debug(
+            "Logging-in for %s [otp code: %s]",
+            obfuscate_email(self._login_email),
+            bool(otp_code),
+        )
         self._client_session()
 
         code_verifier = self._create_code_verifier()
@@ -467,7 +616,9 @@ class AmazonEchoApi:
         _LOGGER.debug("Build oauth URL")
         login_url = self._build_oauth_url(code_verifier, client_id)
 
-        login_soup, _ = await self._session_request(method="GET", url=login_url)
+        login_soup, _ = await self._session_request(
+            method=HTTPMethod.GET, url=login_url
+        )
         login_method, login_url = self._get_request_from_soup(login_soup)
         login_inputs = self._get_inputs_from_soup(login_soup)
         login_inputs["email"] = self._login_email
@@ -526,7 +677,7 @@ class AmazonEchoApi:
 
         _LOGGER.debug(
             "Logging-in for %s with stored data",
-            self._login_email,
+            obfuscate_email(self._login_email),
         )
 
         self._client_session()
@@ -536,17 +687,17 @@ class AmazonEchoApi:
     async def close(self) -> None:
         """Close http client session."""
         if hasattr(self, "session"):
-            _LOGGER.debug("Closing HTTP session (%s)", LIBRARY)
+            _LOGGER.debug("Closing HTTP session (aiohttp)")
             await self.session.close()
 
     async def get_devices_data(
         self,
     ) -> dict[str, AmazonDevice]:
         """Get Amazon devices data."""
-        devices: dict[str, Any] = {}
+        self._devices = {}
         for key in URI_QUERIES:
             _, raw_resp = await self._session_request(
-                method="GET",
+                method=HTTPMethod.GET,
                 url=f"https://alexa.amazon.{self._domain}{URI_QUERIES[key]}",
             )
             _LOGGER.debug("Response URL: %s", raw_resp.url)
@@ -566,21 +717,35 @@ class AmazonEchoApi:
 
             for data in json_data[key]:
                 dev_serial = data.get("serialNumber") or data.get("deviceSerialNumber")
-                if previous_data := devices.get(dev_serial):
-                    devices[dev_serial] = previous_data | {key: data}
+                if previous_data := self._devices.get(dev_serial):
+                    self._devices[dev_serial] = previous_data | {key: data}
                 else:
-                    devices[dev_serial] = {key: data}
+                    self._devices[dev_serial] = {key: data}
+
+        entity_ids_list = await self._get_devices_ids()
+        devices_sensors = (
+            await self._get_sensors_states(entity_ids_list) if entity_ids_list else {}
+        )
 
         final_devices_list: dict[str, AmazonDevice] = {}
-        for device in devices.values():
+        for device in self._devices.values():
             devices_node = device[NODE_DEVICES]
             preferences_node = device.get(NODE_PREFERENCES)
             do_not_disturb_node = device[NODE_DO_NOT_DISTURB]
             bluetooth_node = device[NODE_BLUETOOTH]
+            identifier_node = device.get(NODE_IDENTIFIER, {})
+
+            # Add sensors
+            sensors = {}
+            if identifier_node:
+                for _device_id, _device_sensors in devices_sensors.items():
+                    if _device_id == identifier_node["entityId"]:
+                        sensors = _device_sensors
+
             # Remove stale, orphaned and virtual devices
             if (
                 NODE_DEVICES not in device
-                or devices_node.get("deviceType") == AMAZON_DEVICE_TYPE
+                or devices_node.get("deviceType") in DEVICE_TO_IGNORE
             ):
                 continue
 
@@ -602,6 +767,9 @@ class AmazonEchoApi:
                     preferences_node["responseStyle"] if preferences_node else None
                 ),
                 bluetooth_state=bluetooth_node["online"],
+                entity_id=identifier_node.get("entityId"),
+                appliance_id=identifier_node.get("applianceId"),
+                sensors=sensors,
             )
 
         self._list_for_clusters.update(
@@ -616,7 +784,7 @@ class AmazonEchoApi:
     async def auth_check_status(self) -> bool:
         """Check AUTH status."""
         _, raw_resp = await self._session_request(
-            method="GET",
+            method=HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._domain}/api/bootstrap?version=0",
         )
         if raw_resp.status != HTTPStatus.OK:
@@ -657,8 +825,9 @@ class AmazonEchoApi:
         message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
-        locale_data = Locale.parse(f"und_{self._login_country_code}")
-        locale = f"{locale_data.language}-{locale_data.language}"
+        lang_object = Language.make(territory=self._login_country_code.upper())
+        lang_maximized = lang_object.maximize()
+        locale = f"{lang_maximized.language}-{lang_maximized.region}"
 
         if not self._login_stored_data:
             _LOGGER.warning("Trying to send message before login")
@@ -773,7 +942,7 @@ class AmazonEchoApi:
 
         _LOGGER.debug("Preview data payload: %s", node_data)
         await self._session_request(
-            method="POST",
+            method=HTTPMethod.POST,
             url=f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
             input_data=node_data,
             json_data=True,
