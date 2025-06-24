@@ -19,6 +19,7 @@ TO_REDACT = {
     "name",
     "password",
     "postalCode",
+    "searchCustomerId",
     "state",
     "street",
     "user_id",
