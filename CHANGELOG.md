@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.18 (2025-06-24)
+
+### Bug fixes
+
+- Ignore devices earlier ([`a38e839`](https://github.com/chemelli74/aioamazondevices/commit/a38e839d170e7d4dcb962432d263b69602552c25))
+
+
 ## v3.1.17 (2025-06-24)
 
 ### Bug fixes
