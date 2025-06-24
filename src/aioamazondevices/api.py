@@ -475,7 +475,7 @@ class AmazonEchoApi:
             _LOGGER.error(
                 "Cannot register device for %s: %s",
                 obfuscate_email(self._login_email),
-                resp_json["response"]["error"]["message"],
+                msg,
             )
             raise CannotRegisterDevice(f"{HTTPStatus(resp.status).phrase}: {msg}")
 
