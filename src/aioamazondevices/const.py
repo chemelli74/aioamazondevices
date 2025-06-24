@@ -115,7 +115,8 @@ SPEAKER_GROUP_FAMILY = "WHA"
 SPEAKER_GROUP_MODEL = "Speaker Group"
 
 DEVICE_TO_IGNORE: list[str] = [
-    AMAZON_DEVICE_TYPE,  # Alexa App for Mobile
+    AMAZON_DEVICE_TYPE,  # Alexa App for iOS
+    "A2TF17PFR55MTB",  # Alexa App for Android
     "A1RTAM01W29CUP",  # Alexa App for PC
 ]
 

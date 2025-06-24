@@ -1,10 +1,35 @@
 # Changelog
 
-## v3.1.15-rc.1 (2025-06-23)
+
+## v3.1.17-rc.1 (2025-06-23)
 
 ### Bug fixes
 
 - Add more models ([`3699f90`](https://github.com/chemelli74/aioamazondevices/commit/3699f90c7e0b29e01476a7b0214f83c2a90e987d))
+
+
+## v3.1.16 (2025-06-24)
+
+### Bug fixes
+
+- Ignore android mobile app ([`82c6169`](https://github.com/chemelli74/aioamazondevices/commit/82c61698437c8437575d0d7370937c6213d5fd4f))
+
+
+## v3.1.15 (2025-06-24)
+
+### Bug fixes
+
+- Change library for language detection ([`553b246`](https://github.com/chemelli74/aioamazondevices/commit/553b2463b48aa42cb5ce5426e2d492ac2e4fedbe))
+
+
+### Build system
+
+- Bump pytest from 8.4.0 to 8.4.1 ([`0fbb433`](https://github.com/chemelli74/aioamazondevices/commit/0fbb4335b720b325a6598aa923c70cbafd9fcaeb))
+
+
+### Refactoring
+
+- Update pyproject.toml ([`2545297`](https://github.com/chemelli74/aioamazondevices/commit/254529798e35ffd98947cc0e8e214c9a1c11b323))
 
 
 ## v3.1.14 (2025-06-21)
