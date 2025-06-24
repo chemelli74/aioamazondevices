@@ -723,7 +723,15 @@ class AmazonEchoApi:
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():
+            if NODE_DEVICES not in device:
+                _LOGGER.debug("%s not in %s", NODE_DEVICES, device)
+                continue
             devices_node = device[NODE_DEVICES]
+            if devices_node.get("deviceType") in DEVICE_TO_IGNORE:
+                _LOGGER.debug(
+                    "Skipping device type {%s}", devices_node.get("deviceType")
+                )
+                continue
             preferences_node = device.get(NODE_PREFERENCES)
             do_not_disturb_node = device[NODE_DO_NOT_DISTURB]
             bluetooth_node = device[NODE_BLUETOOTH]
@@ -735,13 +743,6 @@ class AmazonEchoApi:
                 for _device_id, _device_sensors in devices_sensors.items():
                     if _device_id == identifier_node["entityId"]:
                         sensors = _device_sensors
-
-            # Remove stale, orphaned and virtual devices
-            if (
-                NODE_DEVICES not in device
-                or devices_node.get("deviceType") in DEVICE_TO_IGNORE
-            ):
-                continue
 
             serial_number: str = devices_node["serialNumber"]
             final_devices_list[serial_number] = AmazonDevice(
