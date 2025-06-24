@@ -10,7 +10,7 @@ license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/chemelli74/aioamazondevices"
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Natural Language :: English",
     "Operating System :: OS Independent",
