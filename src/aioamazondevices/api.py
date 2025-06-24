@@ -58,7 +58,7 @@ from .exceptions import (
     CannotRetrieveData,
     WrongMethod,
 )
-from .utils import obfuscate_dict_field, obfuscate_email
+from .utils import obfuscate_email, scrub_fields
 
 
 @dataclass
@@ -318,7 +318,7 @@ class AmazonEchoApi:
             "%s request: %s with payload %s [json=%s]",
             method,
             url,
-            obfuscate_dict_field(input_data, "password") if input_data else None,
+            scrub_fields(input_data) if input_data else None,
             json_data,
         )
 

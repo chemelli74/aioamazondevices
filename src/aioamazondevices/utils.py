@@ -1,6 +1,9 @@
 """Utils module for Amazon devices."""
 
+from collections.abc import Collection
 from typing import Any
+
+from .const import TO_REDACT
 
 
 def obfuscate_email(email: str) -> str:
@@ -24,9 +27,32 @@ def obfuscate_email(email: str) -> str:
         return f"{obf_user}@{obf_domain}.{domain_ext}"
 
 
-def obfuscate_dict_field(data: dict[str, Any], key: str = "password") -> dict[str, Any]:
-    """Obfuscate the value associated with the key in a dictionary."""
-    result = data.copy()
-    if key in result and isinstance(result[key], str):
-        result[key] = "*" * len(result[key])
-    return result
+def scrub_fields(
+    obj: Any,  # noqa: ANN401
+    field_names: Collection[str] = TO_REDACT,
+    replacement: str = "[REDACTED]",
+) -> Any:  # noqa: ANN401
+    """Return a deep-copied version of *obj* with redacted keys."""
+    if isinstance(obj, dict):
+        result = {}
+        for k, v in obj.items():
+            # If the key itself is sensitive → overwrite its value
+            if k in field_names:
+                result[k] = replacement
+            else:
+                # Otherwise keep walking
+                result[k] = scrub_fields(v, field_names, replacement)
+        return result
+
+    if isinstance(obj, list):
+        return [scrub_fields(item, field_names, replacement) for item in obj]
+
+    if isinstance(obj, tuple):
+        return tuple(scrub_fields(item, field_names, replacement) for item in obj)
+
+    if isinstance(obj, set):
+        # Note: a set cannot contain mutable/unhashable items like dicts,
+        # so we assume its members are hashable after scrubbing.
+        return {scrub_fields(item, field_names, replacement) for item in obj}
+
+    return obj
