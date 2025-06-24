@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.16 (2025-06-24)
+
+### Bug fixes
+
+- Ignore android mobile app ([`82c6169`](https://github.com/chemelli74/aioamazondevices/commit/82c61698437c8437575d0d7370937c6213d5fd4f))
+
+
 ## v3.1.15 (2025-06-24)
 
 ### Bug fixes
