@@ -723,15 +723,11 @@ class AmazonEchoApi:
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():
-            if NODE_DEVICES not in device:
-                _LOGGER.debug("%s not in %s", NODE_DEVICES, device)
+            # Remove stale, orphaned and virtual devices
+            devices_node = device.get(NODE_DEVICES)
+            if not devices_node or (devices_node.get("deviceType") in DEVICE_TO_IGNORE):
                 continue
-            devices_node = device[NODE_DEVICES]
-            if devices_node.get("deviceType") in DEVICE_TO_IGNORE:
-                _LOGGER.debug(
-                    "Skipping device type {%s}", devices_node.get("deviceType")
-                )
-                continue
+
             preferences_node = device.get(NODE_PREFERENCES)
             do_not_disturb_node = device[NODE_DO_NOT_DISTURB]
             bluetooth_node = device[NODE_BLUETOOTH]
