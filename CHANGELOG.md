@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.17-rc.1 (2025-06-24)
+
+### Bug fixes
+
+- Project classifier ([`ff35c13`](https://github.com/chemelli74/aioamazondevices/commit/ff35c13e729ffe22da75066485b0d77fbc022413))
+
+
 ## v3.1.16 (2025-06-24)
 
 ### Bug fixes
