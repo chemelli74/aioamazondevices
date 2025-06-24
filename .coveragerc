@@ -4,4 +4,5 @@ omit =
     src/aioamazondevices/api.py
     src/aioamazondevices/exceptions.py
     src/aioamazondevices/sounds.py
+    src/aioamazondevices/utils.py
     library_test.py

@@ -6,6 +6,25 @@ _LOGGER = logging.getLogger(__package__)
 
 DEFAULT_ASSOC_HANDLE = "amzn_dp_project_dee_ios"
 
+TO_REDACT = {
+    "address1",
+    "address2",
+    "address3",
+    "city",
+    "county",
+    "deviceAccountId",
+    "deviceAddress",
+    "deviceOwnerCustomerId",
+    "given_name",
+    "name",
+    "password",
+    "postalCode",
+    "searchCustomerId",
+    "state",
+    "street",
+    "user_id",
+}
+
 DOMAIN_BY_ISO3166_COUNTRY = {
     "ar": {
         "domain": "com",
