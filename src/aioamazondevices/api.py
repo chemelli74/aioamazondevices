@@ -15,9 +15,9 @@ from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
-from aiohttp import ClientResponse, ClientSession
-from babel import Locale
+from aiohttp import ClientConnectorError, ClientResponse, ClientSession
 from bs4 import BeautifulSoup, Tag
+from langcodes import Language
 from multidict import CIMultiDictProxy, MultiDictProxy
 from yarl import URL
 
@@ -49,13 +49,16 @@ from .const import (
     URI_IDS,
     URI_QUERIES,
     URI_SENSORS,
+    URI_SIGNIN,
 )
 from .exceptions import (
     CannotAuthenticate,
+    CannotConnect,
     CannotRegisterDevice,
-    RequestFailed,
+    CannotRetrieveData,
     WrongMethod,
 )
+from .utils import obfuscate_email, scrub_fields
 
 
 @dataclass
@@ -63,7 +66,7 @@ class AmazonDeviceSensor:
     """Amazon device sensor class."""
 
     name: str
-    value: Any
+    value: str | int | float
     scale: str | None
 
 
@@ -225,7 +228,9 @@ class AmazonEchoApi:
             "openid.pape.max_auth_age": "0",
         }
 
-        return f"https://www.amazon.{self._domain}/ap/signin?{urlencode(oauth_params)}"
+        return (
+            f"https://www.amazon.{self._domain}{URI_SIGNIN}?{urlencode(oauth_params)}"
+        )
 
     def _get_inputs_from_soup(self, soup: BeautifulSoup) -> dict[str, str]:
         """Extract hidden form input fields from a Amazon login page."""
@@ -290,13 +295,16 @@ class AmazonEchoApi:
         _LOGGER.debug("Cookies from headers: %s", cookies_with_value)
         return cookies_with_value
 
-    async def _ignore_ap_sigin_error(self, response: ClientResponse) -> bool:
-        """Return true if error is due to /ap/sigin endpoint."""
-        # Endpoint 'ap/sigin' replies with error 404
+    async def _ignore_ap_signin_error(self, response: ClientResponse) -> bool:
+        """Return true if error is due to signin endpoint."""
+        # Endpoint URI_SIGNIN replies with error 404
         # but reports the needed parameters anyway
-        return (
-            response.status == HTTPStatus.NOT_FOUND and "/ap/sigin" in response.url.name
-        )
+        if history := response.history:
+            return (
+                response.status == HTTPStatus.NOT_FOUND
+                and URI_SIGNIN in history[0].request_info.url.path
+            )
+        return False
 
     async def _session_request(
         self,
@@ -310,7 +318,7 @@ class AmazonEchoApi:
             "%s request: %s with payload %s [json=%s]",
             method,
             url,
-            input_data,
+            scrub_fields(input_data) if input_data else None,
             json_data,
         )
 
@@ -328,13 +336,17 @@ class AmazonEchoApi:
         _cookies = (
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
-        resp = await self.session.request(
-            method,
-            URL(url, encoded=True),
-            data=input_data if not json_data else orjson.dumps(input_data),
-            cookies=_cookies,
-            headers=headers,
-        )
+        try:
+            resp = await self.session.request(
+                method,
+                URL(url, encoded=True),
+                data=input_data if not json_data else orjson.dumps(input_data),
+                cookies=_cookies,
+                headers=headers,
+            )
+        except (TimeoutError, ClientConnectorError) as exc:
+            raise CannotConnect(f"Connection error during {method}") from exc
+
         self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
 
         content_type: str = resp.headers.get("Content-Type", "")
@@ -351,9 +363,11 @@ class AmazonEchoApi:
                 HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
                 HTTPStatus.UNAUTHORIZED,
             ]:
-                raise CannotAuthenticate
-            if not self._ignore_ap_sigin_error(resp):
-                raise RequestFailed
+                raise CannotAuthenticate(HTTPStatus(resp.status).phrase)
+            if not await self._ignore_ap_signin_error(resp):
+                raise CannotRetrieveData(
+                    f"Request failed: {HTTPStatus(resp.status).phrase}"
+                )
 
         await self._save_to_file(
             await resp.text(),
@@ -457,12 +471,13 @@ class AmazonEchoApi:
         resp_json = await resp.json()
 
         if resp.status != HTTPStatus.OK:
+            msg = resp_json["response"]["error"]["message"]
             _LOGGER.error(
                 "Cannot register device for %s: %s",
-                self._login_email,
-                resp_json["response"]["error"]["message"],
+                obfuscate_email(self._login_email),
+                msg,
             )
-            raise CannotRegisterDevice(resp_json)
+            raise CannotRegisterDevice(f"{HTTPStatus(resp.status).phrase}: {msg}")
 
         await self._save_to_file(
             await resp.text(),
@@ -515,7 +530,10 @@ class AmazonEchoApi:
         location_details = network_detail["locationDetails"]["locationDetails"]
         default_location = location_details["Default_Location"]
         amazon_bridge = default_location["amazonBridgeDetails"]["amazonBridgeDetails"]
-        lambda_bridge = amazon_bridge["LambdaBridge_AAA/SonarCloudService"]
+        lambda_bridge = amazon_bridge.get("LambdaBridge_AAA/SonarCloudService")
+        if not lambda_bridge:
+            # Some very old devices lack the key for sensors data
+            return []
         appliance_details = lambda_bridge["applianceDetails"]["applianceDetails"]
 
         entity_ids_list: list[dict[str, str]] = []
@@ -538,7 +556,9 @@ class AmazonEchoApi:
                 serial_number = device_identifier["dmsDeviceSerialNumber"]
 
                 # Add identifier information to the device
-                self._devices[serial_number] |= {NODE_IDENTIFIER: identifier}
+                # but only if the device was previously found
+                if serial_number in self._devices:
+                    self._devices[serial_number] |= {NODE_IDENTIFIER: identifier}
 
             # Add to entity IDs list for sensor retrieval
             entity_ids_list.append({"entityId": entity_id, "entityType": "ENTITY"})
@@ -582,7 +602,11 @@ class AmazonEchoApi:
 
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
-        _LOGGER.debug("Logging-in for %s [otp code %s]", self._login_email, otp_code)
+        _LOGGER.debug(
+            "Logging-in for %s [otp code: %s]",
+            obfuscate_email(self._login_email),
+            bool(otp_code),
+        )
         self._client_session()
 
         code_verifier = self._create_code_verifier()
@@ -652,7 +676,7 @@ class AmazonEchoApi:
 
         _LOGGER.debug(
             "Logging-in for %s with stored data",
-            self._login_email,
+            obfuscate_email(self._login_email),
         )
 
         self._client_session()
@@ -698,7 +722,9 @@ class AmazonEchoApi:
                     self._devices[dev_serial] = {key: data}
 
         entity_ids_list = await self._get_devices_ids()
-        devices_sensors = await self._get_sensors_states(entity_ids_list)
+        devices_sensors = (
+            await self._get_sensors_states(entity_ids_list) if entity_ids_list else {}
+        )
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():
@@ -798,8 +824,9 @@ class AmazonEchoApi:
         message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
-        locale_data = Locale.parse(f"und_{self._login_country_code}")
-        locale = f"{locale_data.language}-{locale_data.language}"
+        lang_object = Language.make(territory=self._login_country_code.upper())
+        lang_maximized = lang_object.maximize()
+        locale = f"{lang_maximized.language}-{lang_maximized.region}"
 
         if not self._login_stored_data:
             _LOGGER.warning("Trying to send message before login")
