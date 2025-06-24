@@ -1,5 +1,13 @@
 # Changelog
 
+## v3.1.17-rc.1 (2025-06-24)
+
+### Bug fixes
+
+- Scrub_fields ([`d9a0130`](https://github.com/chemelli74/aioamazondevices/commit/d9a01309be7a2fbea0c160df75e4630e9d746486))
+- Hide sensiive data from debug logs ([`8446df1`](https://github.com/chemelli74/aioamazondevices/commit/8446df147bac8c34f165c546ffbd495682486119))
+
+
 ## v3.1.16 (2025-06-24)
 
 ### Bug fixes
