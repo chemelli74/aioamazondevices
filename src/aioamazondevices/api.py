@@ -17,8 +17,8 @@ from urllib.parse import parse_qs, urlencode
 
 import orjson
 from aiohttp import ClientConnectorError, ClientResponse, ClientSession
-from babel import Locale
 from bs4 import BeautifulSoup, Tag
+from langcodes import Language
 from multidict import CIMultiDictProxy, MultiDictProxy
 from yarl import URL
 
@@ -59,6 +59,7 @@ from .exceptions import (
     CannotRetrieveData,
     WrongMethod,
 )
+from .utils import obfuscate_email, scrub_fields
 
 
 @dataclass
@@ -66,7 +67,7 @@ class AmazonDeviceSensor:
     """Amazon device sensor class."""
 
     name: str
-    value: Any
+    value: str | int | float
     scale: str | None
 
 
@@ -318,7 +319,7 @@ class AmazonEchoApi:
             "%s request: %s with payload %s [json=%s]",
             method,
             url,
-            input_data,
+            scrub_fields(input_data) if input_data else None,
             json_data,
         )
 
@@ -513,7 +514,7 @@ class AmazonEchoApi:
             msg = resp_json["response"]["error"]["message"]
             _LOGGER.error(
                 "Cannot register device for %s: %s",
-                self._login_email,
+                obfuscate_email(self._login_email),
                 msg,
             )
             raise CannotRegisterDevice(f"{HTTPStatus(resp.status).phrase}: {msg}")
@@ -641,7 +642,11 @@ class AmazonEchoApi:
 
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
-        _LOGGER.debug("Logging-in for %s [otp code %s]", self._login_email, otp_code)
+        _LOGGER.debug(
+            "Logging-in for %s [otp code: %s]",
+            obfuscate_email(self._login_email),
+            bool(otp_code),
+        )
         self._client_session()
 
         code_verifier = self._create_code_verifier()
@@ -711,7 +716,7 @@ class AmazonEchoApi:
 
         _LOGGER.debug(
             "Logging-in for %s with stored data",
-            self._login_email,
+            obfuscate_email(self._login_email),
         )
 
         self._client_session()
@@ -859,8 +864,9 @@ class AmazonEchoApi:
         message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
-        locale_data = Locale.parse(f"und_{self._login_country_code}")
-        locale = f"{locale_data.language}-{locale_data.language}"
+        lang_object = Language.make(territory=self._login_country_code.upper())
+        lang_maximized = lang_object.maximize()
+        locale = f"{lang_maximized.language}-{lang_maximized.region}"
 
         if not self._login_stored_data:
             _LOGGER.warning("Trying to send message before login")

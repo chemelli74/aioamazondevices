@@ -6,6 +6,25 @@ _LOGGER = logging.getLogger(__package__)
 
 DEFAULT_ASSOC_HANDLE = "amzn_dp_project_dee_ios"
 
+TO_REDACT = {
+    "address1",
+    "address2",
+    "address3",
+    "city",
+    "county",
+    "deviceAccountId",
+    "deviceAddress",
+    "deviceOwnerCustomerId",
+    "given_name",
+    "name",
+    "password",
+    "postalCode",
+    "searchCustomerId",
+    "state",
+    "street",
+    "user_id",
+}
+
 DOMAIN_BY_ISO3166_COUNTRY = {
     "ar": {
         "domain": "com",
@@ -19,6 +38,9 @@ DOMAIN_BY_ISO3166_COUNTRY = {
         "domain": "com.au",
         "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
     },
+    "be": {
+        "domain": "com.be",
+    },
     "br": {
         "domain": "com.br",
     },
@@ -29,9 +51,15 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     "jp": {
         "domain": "co.jp",
     },
+    "mx": {
+        "domain": "com.mx",
+    },
     "nz": {
         "domain": "com.au",
         "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
+    },
+    "tr": {
+        "domain": "com.tr",
     },
     "us": {
         "domain": "com",
@@ -106,7 +134,8 @@ SPEAKER_GROUP_FAMILY = "WHA"
 SPEAKER_GROUP_MODEL = "Speaker Group"
 
 DEVICE_TO_IGNORE: list[str] = [
-    AMAZON_DEVICE_TYPE,  # Alexa App for Mobile
+    AMAZON_DEVICE_TYPE,  # Alexa App for iOS
+    "A2TF17PFR55MTB",  # Alexa App for Android
     "A1RTAM01W29CUP",  # Alexa App for PC
 ]
 
@@ -129,6 +158,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     },
     "A1EIANJ7PNB0Q7": {
         "model": "Echo Show 15",
+        "hw_version": "Gen1",
+    },
+    "A1NL4BVLQ4L3N3": {
+        "model": "Echo Show",
         "hw_version": "Gen1",
     },
     "A1Q6UGEXJZWJQ0": {
@@ -154,6 +187,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     },
     "A1WZKXFLI43K86": {
         "model": "FireTV 4k MAX",
+        "hw_version": "Gen2",
+    },
+    "A1XWJRHALS1REP": {
+        "model": "Echo Show 5",
         "hw_version": "Gen2",
     },
     "A1Z88NGR2BK6A2": {
@@ -188,9 +225,17 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Fire TV Stick",
         "hw_version": "Gen2",
     },
+    "A2M35JJZWCQOMZ": {
+        "model": "Echo Plus",
+        "hw_version": "Gen1",
+    },
     "A2M4YX06LWP8WI": {
         "model": "Fire Tablet 7",
         "hw_version": "Gen5",
+    },
+    "A2N49KXGVA18AR": {
+        "model": "Fire HD 10 Plus",
+        "hw_version": "Gen11",
     },
     "A2U21SRK4QGSE1": {
         "model": "Echo Dot",
@@ -241,6 +286,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Sonos Beam",
         "hw_version": None,
     },
+    "A3RBAYBE7VM004": {
+        "model": "Echo Studio",
+        "hw_version": None,
+    },
     "A3RMGO6LYLH7YN": {
         "model": "Echo Dot",
         "hw_version": "Gen4",
@@ -289,6 +338,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "AKPGW064GI9HE": {
         "model": "Fire TV Stick 4K",
         "hw_version": "Gen1",
+    },
+    "AP1F6KUH00XPV": {
+        "model": "Echo Stereo Pair",
+        "hw_version": "Virtual",
     },
     "ASQZWP4GPYUT7": {
         "model": "Echo pop",

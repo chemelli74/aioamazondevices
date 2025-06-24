@@ -1,5 +1,51 @@
 # Changelog
 
+## v3.1.16 (2025-06-24)
+
+### Bug fixes
+
+- Redact sensitive data from debug logs ([`0d1b912`](https://github.com/chemelli74/aioamazondevices/commit/0d1b912e212e5dabc7b3b5f17944d9faae499c7c))
+
+
+## v3.1.15 (2025-06-24)
+
+### Bug fixes
+
+- Pyproject syntax ([`9316387`](https://github.com/chemelli74/aioamazondevices/commit/931638764fadf7248e9d06b1126d290ae4cca0b0))
+- Add more models ([`7260921`](https://github.com/chemelli74/aioamazondevices/commit/72609219f938f56d24e9b56e5c52e3f5c74b3450))
+- Ignore android mobile app ([`82c6169`](https://github.com/chemelli74/aioamazondevices/commit/82c61698437c8437575d0d7370937c6213d5fd4f))
+- Change library for language detection ([`553b246`](https://github.com/chemelli74/aioamazondevices/commit/553b2463b48aa42cb5ce5426e2d492ac2e4fedbe))
+
+
+### Build system
+
+- Bump pytest from 8.4.0 to 8.4.1 ([`0fbb433`](https://github.com/chemelli74/aioamazondevices/commit/0fbb4335b720b325a6598aa923c70cbafd9fcaeb))
+
+
+### Refactoring
+
+- Update pyproject.toml ([`2545297`](https://github.com/chemelli74/aioamazondevices/commit/254529798e35ffd98947cc0e8e214c9a1c11b323))
+
+
+## v3.1.14 (2025-06-21)
+
+### Bug fixes
+
+- Add more countries settings ([`1972a76`](https://github.com/chemelli74/aioamazondevices/commit/1972a7653a0db7bd546ca543338ecc9b359c7c7c))
+
+
+## v3.1.13 (2025-06-21)
+
+### Bug fixes
+
+- Add mexico settings ([`9a71a14`](https://github.com/chemelli74/aioamazondevices/commit/9a71a14aaec320231cd4b541d4be88ad2f3f4593))
+
+
+### Refactoring
+
+- Improve typing ([`e61dc16`](https://github.com/chemelli74/aioamazondevices/commit/e61dc16690fd9c35331f5f529e668fbf55ad8fa0))
+
+
 ## v3.1.12 (2025-06-17)
 
 ### Bug fixes
