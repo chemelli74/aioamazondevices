@@ -1,6 +1,6 @@
 """aioamazondevices library."""
 
-__version__ = "3.1.16-rc.1"
+__version__ = "3.1.16"
 
 
 from .api import AmazonDevice, AmazonEchoApi
