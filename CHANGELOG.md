@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.19-rc.1 (2025-06-24)
+
+### Bug fixes
+
+- Re-release ([`62a593a`](https://github.com/chemelli74/aioamazondevices/commit/62a593abe89e539935afdbac202772b1ee6347a2))
+
+
 ## v3.1.18 (2025-06-24)
 
 ### Bug fixes
