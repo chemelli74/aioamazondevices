@@ -12,13 +12,16 @@ TO_REDACT = {
     "address3",
     "city",
     "county",
+    "deviceAccountId",
     "deviceAddress",
+    "deviceOwnerCustomerId",
     "given_name",
     "name",
     "password",
     "postalCode",
     "state",
     "street",
+    "user_id",
 }
 
 DOMAIN_BY_ISO3166_COUNTRY = {
