@@ -411,7 +411,9 @@ class AmazonEchoApi:
                     HTTPStatus.SERVICE_UNAVAILABLE,
                     HTTPStatus.TOO_MANY_REQUESTS,
                 ]:
-                    _LOGGER.debug("Sleeping for %s seconds before next API call", delay)
+                    _LOGGER.debug(
+                        "Sleeping for %s seconds before retrying API call", delay
+                    )
                     await asyncio.sleep(delay)
                     continue
                 if not await self._ignore_ap_signin_error(resp):
