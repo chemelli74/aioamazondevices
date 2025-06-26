@@ -144,9 +144,6 @@ class AmazonEchoApi:
         self._serial = self._serial_number()
         self._list_for_clusters: dict[str, str] = {}
 
-        self._last_message_sent: datetime | None = None
-        self._semaphore = asyncio.Semaphore()
-
         self.session: ClientSession
         self._devices: dict[str, Any] = {}
 
@@ -939,14 +936,12 @@ class AmazonEchoApi:
         }
 
         _LOGGER.debug("Preview data payload: %s", node_data)
-
         await self._session_request(
             method=HTTPMethod.POST,
             url=f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
             input_data=node_data,
             json_data=True,
         )
-        self._last_message_sent = datetime.now(tz=UTC)
 
         return
 
