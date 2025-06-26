@@ -479,11 +479,6 @@ class AmazonEchoApi:
             )
             raise CannotRegisterDevice(f"{HTTPStatus(resp.status).phrase}: {msg}")
 
-        await self._save_to_file(
-            await resp.text(),
-            url=register_url,
-            extension=JSON_EXTENSION,
-        )
         success_response = resp_json["response"]["success"]
 
         tokens = success_response["tokens"]
