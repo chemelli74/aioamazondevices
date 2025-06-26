@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.20-rc.1 (2025-06-26)
+
+### Bug fixes
+
+- Redact sensitive data from debug logs - part ii ([`6b4341f`](https://github.com/chemelli74/aioamazondevices/commit/6b4341fc0c5d90362093e731df7efbc47719e7e1))
+
+
 ## v3.1.19 (2025-06-24)
 
 ### Bug fixes
