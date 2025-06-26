@@ -368,6 +368,7 @@ class AmazonEchoApi:
         _cookies = (
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
+<<<<<<< HEAD
         self.session.cookie_jar.update_cookies(_cookies)
         try:
             resp = await self.session.request(
@@ -375,14 +376,54 @@ class AmazonEchoApi:
                 URL(url, encoded=True),
                 data=input_data if not json_data else orjson.dumps(input_data),
                 headers=headers,
+=======
+
+        for delay in [1, 2, 5, 8, 12, 21]:
+            try:
+                resp = await self.session.request(
+                    method,
+                    URL(url, encoded=True),
+                    data=input_data if not json_data else orjson.dumps(input_data),
+                    cookies=_cookies,
+                    headers=headers,
+                )
+            except (TimeoutError, ClientConnectorError) as exc:
+                raise CannotConnect(f"Connection error during {method}") from exc
+
+            content_type: str = resp.headers.get("Content-Type", "")
+            _LOGGER.debug(
+                "Response %s for url %s with content type: %s",
+                resp.status,
+                url,
+                content_type,
+>>>>>>> a3c0a71 (fix: handle API throttling)
             )
-        except (TimeoutError, ClientConnectorError) as exc:
-            raise CannotConnect(f"Connection error during {method}") from exc
+
+            if resp.status != HTTPStatus.OK:
+                if resp.status in [
+                    HTTPStatus.FORBIDDEN,
+                    HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
+                    HTTPStatus.UNAUTHORIZED,
+                ]:
+                    raise CannotAuthenticate(HTTPStatus(resp.status).phrase)
+                if resp.status in [
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    HTTPStatus.SERVICE_UNAVAILABLE,
+                    HTTPStatus.TOO_MANY_REQUESTS,
+                ]:
+                    _LOGGER.debug("Sleeping for %s seconds before next API call", delay)
+                    await asyncio.sleep(delay)
+                    continue
+                if not await self._ignore_ap_signin_error(resp):
+                    raise CannotRetrieveData(
+                        f"Request failed: {HTTPStatus(resp.status).phrase}"
+                    )
 
         if not self._csrf_cookie:
             self._csrf_cookie = resp.cookies.get(CSRF_COOKIE, Morsel()).value
             _LOGGER.debug("CSRF cookie value: <%s>", self._csrf_cookie)
 
+<<<<<<< HEAD
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
             "Response %s for url %s with content type: %s",
@@ -405,6 +446,8 @@ class AmazonEchoApi:
                     f"Request failed: {await self._http_phrase_error(resp.status)}"
                 )
 
+=======
+>>>>>>> a3c0a71 (fix: handle API throttling)
         await self._save_to_file(
             await resp.text(),
             url,
@@ -1019,12 +1062,20 @@ class AmazonEchoApi:
         }
 
         _LOGGER.debug("Preview data payload: %s", node_data)
+<<<<<<< HEAD
+=======
+
+>>>>>>> a3c0a71 (fix: handle API throttling)
         await self._session_request(
             method=HTTPMethod.POST,
             url=f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
             input_data=node_data,
             json_data=True,
         )
+<<<<<<< HEAD
+=======
+        self._last_message_sent = datetime.now(tz=UTC)
+>>>>>>> a3c0a71 (fix: handle API throttling)
 
         return
 
