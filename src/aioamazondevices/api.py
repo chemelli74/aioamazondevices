@@ -704,7 +704,6 @@ class AmazonEchoApi:
             _LOGGER.debug("Response code: |%s|", response_code)
 
             response_data = await raw_resp.text()
-            _LOGGER.debug("Response data: |%s|", response_data)
 
             if not self._csrf_cookie:
                 self._csrf_cookie = raw_resp.cookies.get(CSRF_COOKIE, Morsel()).value
@@ -712,7 +711,7 @@ class AmazonEchoApi:
 
             json_data = {} if len(response_data) == 0 else await raw_resp.json()
 
-            _LOGGER.debug("JSON data: |%s|", json_data)
+            _LOGGER.debug("JSON data: |%s|", scrub_fields(json_data))
 
             for data in json_data[key]:
                 dev_serial = data.get("serialNumber") or data.get("deviceSerialNumber")
