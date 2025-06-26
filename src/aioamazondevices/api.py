@@ -530,16 +530,43 @@ class AmazonEchoApi:
         location_details = network_detail["locationDetails"]["locationDetails"]
         default_location = location_details["Default_Location"]
         amazon_bridge = default_location["amazonBridgeDetails"]["amazonBridgeDetails"]
-        lambda_bridge = amazon_bridge.get("LambdaBridge_AAA/SonarCloudService")
-        if not lambda_bridge:
-            # Some very old devices lack the key for sensors data
-            return []
-        appliance_details = lambda_bridge["applianceDetails"]["applianceDetails"]
 
+        # New devices are based on LambdaBridge_AAA structure
+        lambda_bridge_aaa = amazon_bridge.get("LambdaBridge_AAA/SonarCloudService")
+        appliance_details_aaa = (
+            lambda_bridge_aaa["applianceDetails"]["applianceDetails"]
+            if lambda_bridge_aaa
+            else {}
+        )
+
+        entity_ids_list: list[dict[str, str]] = await self._get_entities_ids(
+            appliance_details_aaa, "AAA_SonarCloudService"
+        )
+
+        # Old devices are based on LambdaBridge_AlexaBridge structure
+        for bridge_key, bridge_value in amazon_bridge.items():
+            if "LambdaBridge_AlexaBridge/" in bridge_key:
+                # Value key:    "LambdaBridge_AlexaBridge/XXXXXXXXXXXXXX@XXXXXXXXXXXXXX"
+                # Value subkey: "AlexaBridge_XXXXXXXXXXXXXX@XXXXXXXXXXXXXX_XXXXXXXXXXXX"
+                subkey = bridge_key.split("_")[1].replace("/", "_")
+
+                appliance_details_alexa = bridge_value["applianceDetails"][
+                    "applianceDetails"
+                ]
+                entity_ids_list.extend(
+                    await self._get_entities_ids(appliance_details_alexa, subkey)
+                )
+
+        return entity_ids_list
+
+    async def _get_entities_ids(
+        self, appliance_details: dict[str, Any], searchkey: str
+    ) -> list[dict[str, str]]:
+        """Extract entityId and applianceId."""
         entity_ids_list: list[dict[str, str]] = []
-        # Process each appliance that starts with AAA_SonarCloudService
+        # Process each appliance that starts with "searchkey"
         for appliance_key, appliance_data in appliance_details.items():
-            if not appliance_key.startswith("AAA_SonarCloudService"):
+            if not appliance_key.startswith(searchkey):
                 continue
 
             entity_id = appliance_data["entityId"]
