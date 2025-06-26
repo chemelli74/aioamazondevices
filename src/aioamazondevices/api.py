@@ -47,7 +47,6 @@ from .const import (
     NODE_PREFERENCES,
     SAVE_PATH,
     SENSORS,
-    SLEEP_BETWEEN_API_CALLS,
     URI_IDS,
     URI_QUERIES,
     URI_SENSORS,
@@ -341,38 +340,48 @@ class AmazonEchoApi:
         _cookies = (
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
-        try:
-            resp = await self.session.request(
-                method,
-                URL(url, encoded=True),
-                data=input_data if not json_data else orjson.dumps(input_data),
-                cookies=_cookies,
-                headers=headers,
+
+        for delay in [1, 2, 5, 8, 12, 21]:
+            try:
+                resp = await self.session.request(
+                    method,
+                    URL(url, encoded=True),
+                    data=input_data if not json_data else orjson.dumps(input_data),
+                    cookies=_cookies,
+                    headers=headers,
+                )
+            except (TimeoutError, ClientConnectorError) as exc:
+                raise CannotConnect(f"Connection error during {method}") from exc
+
+            content_type: str = resp.headers.get("Content-Type", "")
+            _LOGGER.debug(
+                "Response %s for url %s with content type: %s",
+                resp.status,
+                url,
+                content_type,
             )
-        except (TimeoutError, ClientConnectorError) as exc:
-            raise CannotConnect(f"Connection error during {method}") from exc
+
+            if resp.status != HTTPStatus.OK:
+                if resp.status in [
+                    HTTPStatus.FORBIDDEN,
+                    HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
+                    HTTPStatus.UNAUTHORIZED,
+                ]:
+                    raise CannotAuthenticate(HTTPStatus(resp.status).phrase)
+                if resp.status in [
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    HTTPStatus.SERVICE_UNAVAILABLE,
+                    HTTPStatus.TOO_MANY_REQUESTS,
+                ]:
+                    _LOGGER.debug("Sleeping for %s seconds before next API call", delay)
+                    await asyncio.sleep(delay)
+                    continue
+                if not await self._ignore_ap_signin_error(resp):
+                    raise CannotRetrieveData(
+                        f"Request failed: {HTTPStatus(resp.status).phrase}"
+                    )
 
         self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
-
-        content_type: str = resp.headers.get("Content-Type", "")
-        _LOGGER.debug(
-            "Response %s for url %s with content type: %s",
-            resp.status,
-            url,
-            content_type,
-        )
-
-        if resp.status != HTTPStatus.OK:
-            if resp.status in [
-                HTTPStatus.FORBIDDEN,
-                HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
-                HTTPStatus.UNAUTHORIZED,
-            ]:
-                raise CannotAuthenticate(HTTPStatus(resp.status).phrase)
-            if not await self._ignore_ap_signin_error(resp):
-                raise CannotRetrieveData(
-                    f"Request failed: {HTTPStatus(resp.status).phrase}"
-                )
 
         await self._save_to_file(
             await resp.text(),
@@ -931,9 +940,6 @@ class AmazonEchoApi:
 
         _LOGGER.debug("Preview data payload: %s", node_data)
 
-        await self._semaphore.acquire()
-        await self._delay_api_call()
-
         await self._session_request(
             method=HTTPMethod.POST,
             url=f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
@@ -941,22 +947,8 @@ class AmazonEchoApi:
             json_data=True,
         )
         self._last_message_sent = datetime.now(tz=UTC)
-        self._semaphore.release()
 
         return
-
-    async def _delay_api_call(self) -> None:
-        """Sleep between one call and the next one."""
-        if not self._last_message_sent:
-            return
-
-        delta_seconds = SLEEP_BETWEEN_API_CALLS - round(
-            (datetime.now(tz=UTC) - self._last_message_sent).total_seconds(),
-            2,
-        )
-        if delta_seconds > 0:
-            _LOGGER.debug("Sleeping for %s seconds before next API call", delta_seconds)
-        await asyncio.sleep(delta_seconds)
 
     async def call_alexa_speak(
         self,
