@@ -399,27 +399,29 @@ class AmazonEchoApi:
 >>>>>>> a3c0a71 (fix: handle API throttling)
             )
 
-            if resp.status != HTTPStatus.OK:
-                if resp.status in [
-                    HTTPStatus.FORBIDDEN,
-                    HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
-                    HTTPStatus.UNAUTHORIZED,
-                ]:
-                    raise CannotAuthenticate(HTTPStatus(resp.status).phrase)
-                if resp.status in [
-                    HTTPStatus.INTERNAL_SERVER_ERROR,
-                    HTTPStatus.SERVICE_UNAVAILABLE,
-                    HTTPStatus.TOO_MANY_REQUESTS,
-                ]:
-                    _LOGGER.debug(
-                        "Sleeping for %s seconds before retrying API call", delay
-                    )
-                    await asyncio.sleep(delay)
-                    continue
-                if not await self._ignore_ap_signin_error(resp):
-                    raise CannotRetrieveData(
-                        f"Request failed: {HTTPStatus(resp.status).phrase}"
-                    )
+            if resp.status == HTTPStatus.OK:
+                break
+
+            if resp.status in [
+                HTTPStatus.FORBIDDEN,
+                HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
+                HTTPStatus.UNAUTHORIZED,
+            ]:
+                raise CannotAuthenticate(HTTPStatus(resp.status).phrase)
+
+            if resp.status in [
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                HTTPStatus.TOO_MANY_REQUESTS,
+            ]:
+                _LOGGER.debug("Sleeping for %s seconds before retrying API call", delay)
+                await asyncio.sleep(delay)
+                continue
+
+            if not await self._ignore_ap_signin_error(resp):
+                raise CannotRetrieveData(
+                    f"Request failed: {HTTPStatus(resp.status).phrase}"
+                )
 
         if not self._csrf_cookie:
             self._csrf_cookie = resp.cookies.get(CSRF_COOKIE, Morsel()).value
