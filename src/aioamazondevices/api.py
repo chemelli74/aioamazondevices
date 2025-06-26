@@ -662,7 +662,7 @@ class AmazonEchoApi:
         register_device = await self._register_device(device_login_data)
         self._login_stored_data = register_device
 
-        _LOGGER.info("Register device: %s", register_device)
+        _LOGGER.info("Register device: %s", scrub_fields(register_device))
         return register_device
 
     async def login_mode_stored_data(self) -> dict[str, Any]:
