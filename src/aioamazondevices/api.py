@@ -1063,9 +1063,12 @@ class AmazonEchoApi:
 
         _LOGGER.debug("Preview data payload: %s", node_data)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> a3c0a71 (fix: handle API throttling)
+=======
+>>>>>>> ccefe05 (chore: clean leftover)
         await self._session_request(
             method=HTTPMethod.POST,
             url=f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
@@ -1073,9 +1076,12 @@ class AmazonEchoApi:
             json_data=True,
         )
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         self._last_message_sent = datetime.now(tz=UTC)
 >>>>>>> a3c0a71 (fix: handle API throttling)
+=======
+>>>>>>> ccefe05 (chore: clean leftover)
 
         return
 
