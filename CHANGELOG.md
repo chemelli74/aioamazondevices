@@ -2,16 +2,18 @@
 
 ## v3.1.21-rc.1 (2025-06-26)
 
-### Bug fixes
-
-- Redact sensitive data from debug logs - part ii ([`6b4341f`](https://github.com/chemelli74/aioamazondevices/commit/6b4341fc0c5d90362093e731df7efbc47719e7e1))
-
-
 ## v3.1.20 (2025-06-26)
 
 ### Bug fixes
 
 - Inspect sensors for old devices ([`eb4fab1`](https://github.com/chemelli74/aioamazondevices/commit/eb4fab1af6e9bef3929d0fc3944c60750b43c676))
+
+
+## v3.1.20-rc.1 (2025-06-26)
+
+### Bug fixes
+
+- Redact sensitive data from debug logs - part ii ([`6b4341f`](https://github.com/chemelli74/aioamazondevices/commit/6b4341fc0c5d90362093e731df7efbc47719e7e1))
 
 
 ## v3.1.19 (2025-06-24)
