@@ -1,721 +1,2091 @@
-# Changelog
 
-## v3.2.0-rc.1 (2025-06-23)
 
-### Features
 
-- Queues api calls to avoid hitting the limit ([`f397d84`](https://github.com/chemelli74/aioamazondevices/commit/f397d846e31b4bd25261caa94ff74be1f61be3d4))
 
 
-### Build system
 
-- Bump pytest from 8.4.0 to 8.4.1 ([`0fbb433`](https://github.com/chemelli74/aioamazondevices/commit/0fbb4335b720b325a6598aa923c70cbafd9fcaeb))
+<!DOCTYPE html>
+<html
+  lang="en"
+  
+  data-color-mode="auto" data-light-theme="light" data-dark-theme="dark"
+  data-a11y-animated-images="system" data-a11y-link-underlines="true"
+  
+  >
+
+
+
+  <head>
+    <meta charset="utf-8">
+  <link rel="dns-prefetch" href="https://github.githubassets.com">
+  <link rel="dns-prefetch" href="https://avatars.githubusercontent.com">
+  <link rel="dns-prefetch" href="https://github-cloud.s3.amazonaws.com">
+  <link rel="dns-prefetch" href="https://user-images.githubusercontent.com/">
+  <link rel="preconnect" href="https://github.githubassets.com" crossorigin>
+  <link rel="preconnect" href="https://avatars.githubusercontent.com">
+
+  
+
+
+  <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/light-c59dc71e3a4c.css" /><link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/light_high_contrast-4bf0cb726930.css" /><link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/dark-89751e879f8b.css" /><link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/dark_high_contrast-67c7180a598a.css" /><link data-color-theme="light" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/light-c59dc71e3a4c.css" /><link data-color-theme="light_high_contrast" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/light_high_contrast-4bf0cb726930.css" /><link data-color-theme="light_colorblind" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/light_colorblind-6060e905eb78.css" /><link data-color-theme="light_colorblind_high_contrast" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/light_colorblind_high_contrast-04e818620b9c.css" /><link data-color-theme="light_tritanopia" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/light_tritanopia-ae65df249e0f.css" /><link data-color-theme="light_tritanopia_high_contrast" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/light_tritanopia_high_contrast-fdadc12a1ec2.css" /><link data-color-theme="dark" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/dark-89751e879f8b.css" /><link data-color-theme="dark_high_contrast" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/dark_high_contrast-67c7180a598a.css" /><link data-color-theme="dark_colorblind" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/dark_colorblind-4277e18a7c75.css" /><link data-color-theme="dark_colorblind_high_contrast" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/dark_colorblind_high_contrast-2e33ed61bc8c.css" /><link data-color-theme="dark_tritanopia" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/dark_tritanopia-48d44d87614d.css" /><link data-color-theme="dark_tritanopia_high_contrast" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/dark_tritanopia_high_contrast-6adcb5080302.css" /><link data-color-theme="dark_dimmed" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/dark_dimmed-250cee4c1ea8.css" /><link data-color-theme="dark_dimmed_high_contrast" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/dark_dimmed_high_contrast-e3802beb8c06.css" />
+
+
+    <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/primer-primitives-225433424a87.css" />
+    <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/primer-b4bd0459f984.css" />
+    <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/global-c97b3fad49a6.css" />
+    <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/github-58ac3ad6cb3f.css" />
+  <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/repository-fa462f1c51f1.css" />
+<link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/code-5aa9e25e0a2c.css" />
 
+  
 
-### Refactoring
 
-- Update pyproject.toml ([`2545297`](https://github.com/chemelli74/aioamazondevices/commit/254529798e35ffd98947cc0e8e214c9a1c11b323))
+  <script type="application/json" id="client-env">{"locale":"en","featureFlags":["alternate_user_config_repo","api_insights_show_missing_data_banner","appearance_settings","codespaces_prebuild_region_target_update","contact_requests_implicit_opt_in","contentful_lp_flex_features","contentful_lp_footnotes","copilot_chat_attach_multiple_images","copilot_chat_custom_instructions","copilot_chat_repo_custom_instructions_preview","copilot_chat_vision_in_claude","copilot_chat_vision_skip_thread_create","copilot_chat_wholearea_dd","copilot_custom_copilots_feature_preview","copilot_duplicate_thread","copilot_free_to_paid_telem","copilot_ftp_settings_upgrade","copilot_ftp_upgrade_to_pro_from_models","copilot_ftp_your_copilot_settings","copilot_immersive_draft_issue_template_required","copilot_immersive_structured_model_picker","copilot_new_conversation_starters","copilot_new_immersive_references_ui","copilot_no_floating_button","copilot_paste_text_files","copilot_read_shared_conversation","copilot_showcase_icebreakers","copilot_task_oriented_assistive_prompts","copilot_topics_as_references","copilot_workbench_iterate_panel","copilot_workbench_preview_analytics","copilot_workbench_refresh_on_wsod","copilot_workbench_user_limits","custom_copilots_128k_window","custom_copilots_capi_mode","custom_copilots_issues_prs","direct_to_salesforce","dotcom_chat_client_side_skills","failbot_report_error_react_apps_on_page","ghost_pilot_confidence_truncation_25","ghost_pilot_confidence_truncation_40","insert_before_patch","issues_preserve_tokens_in_urls","issues_react_blur_item_picker_on_close","issues_react_bots_timeline_pagination","issues_react_create_milestone","issues_react_prohibit_title_fallback","issues_react_remove_placeholders","issues_tab_counter_updates","lifecycle_label_name_updates","link_contact_sales_swp_marketo","marketing_pages_search_explore_provider","memex_mwl_filter_field_delimiter","nonreporting_relay_graphql_status_codes","primer_primitives_experimental","primer_react_css_modules_ga","primer_react_select_panel_with_modern_action_list","remove_child_patch","sample_network_conn_type","sanitize_nested_mathjax_macros","scheduled_reminders_updated_limits","site_homepage_contentful","site_msbuild_hide_integrations","site_msbuild_launch","site_msbuild_webgl_hero","spark_commit_on_default_branch","swp_enterprise_contact_form","use_copilot_avatar","use_paginated_repo_picker_cost_center_form","viewscreen_sandbox"]}</script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/high-contrast-cookie-a58297b2ebf8.js"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/wp-runtime-d26a9214ec24.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_oddbird_popover-polyfill_dist_popover-fn_js-a8c266e5f126.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_github_mini-throttle_dist_index_js-node_modules_stacktrace-parser_dist_s-1d3d52-babac9434833.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/ui_packages_failbot_failbot_ts-7cc3ec44644a.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/environment-89128d48c6ff.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_primer_behaviors_dist_esm_index_mjs-c44edfed7f0d.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_github_selector-observer_dist_index_esm_js-cdf2757bd188.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_github_relative-time-element_dist_index_js-5913bc24f35d.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_github_text-expander-element_dist_index_js-e50fb7a5fe8c.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/vendors-node_modules_github_auto-complete-element_dist_index_js-node_modules_github_catalyst_-8e9f78-c1e2fb329866.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/vendors-node_modules_github_filter-input-element_dist_index_js-node_modules_github_remote-inp-d8c643-251bc3964eb6.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_github_markdown-toolbar-element_dist_index_js-6a8c7d9a08fe.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_github_file-attachment-element_dist_index_js-node_modules_primer_view-co-cadbad-fad3eaf3c7ec.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/github-elements-2224a8aae785.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/element-registry-bde3cdbe9e92.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/vendors-node_modules_braintree_browser-detection_dist_browser-detection_js-node_modules_githu-bb80ec-34c4b68b1dd3.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_lit-html_lit-html_js-b93a87060d31.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_morphdom_dist_morphdom-esm_js-300e8e4e0414.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/vendors-node_modules_fzy_js_index_js-node_modules_github_paste-markdown_dist_index_js-63a26702fa42.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_github_turbo_dist_turbo_es2017-esm_js-595819d3686f.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/vendors-node_modules_github_remote-form_dist_index_js-node_modules_delegated-events_dist_inde-893f9f-1bcf38e06f01.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_color-convert_index_js-1a149db8dc99.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/vendors-node_modules_github_quote-selection_dist_index_js-node_modules_github_session-resume_-c1aa61-91618cb63471.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/ui_packages_updatable-content_updatable-content_ts-a5daa16ae903.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/app_assets_modules_github_behaviors_task-list_ts-app_assets_modules_github_sso_ts-ui_packages-900dde-f953ddf42948.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/app_assets_modules_github_sticky-scroll-into-view_ts-e45aabc67d13.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/app_assets_modules_github_behaviors_ajax-error_ts-app_assets_modules_github_behaviors_include-d0d0a6-a7da4270c5f4.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/app_assets_modules_github_behaviors_commenting_edit_ts-app_assets_modules_github_behaviors_ht-83c235-567e0f340e27.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/behaviors-728e40423fc5.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/vendors-node_modules_delegated-events_dist_index_js-node_modules_github_catalyst_lib_index_js-ea8eaa-eefe25567449.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/notifications-global-eadae94940d6.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_github_mini-throttle_dist_index_js-node_modules_github_catalyst_lib_inde-dbbea9-558c1f223d1d.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/code-menu-8c39716e9d81.js" defer="defer"></script>
+  
+  <script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/primer-react-a57080a0a6e8.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/react-core-2cf6ae02e69d.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/react-lib-8705026b409a.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/octicons-react-9fd6ca6872cc.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_emotion_is-prop-valid_dist_emotion-is-prop-valid_esm_js-node_modules_emo-b1c483-b5947865157f.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_github_catalyst_lib_index_js-node_modules_primer_live-region-element_dis-b2aea6-bfc50dd77594.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_dompurify_dist_purify_es_mjs-7457ebdd1a1f.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_lodash-es__Stack_js-node_modules_lodash-es__Uint8Array_js-node_modules_l-4faaa6-16c4e2c524de.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_lodash-es_isEqual_js-a0841ced23fc.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_tanstack_react-virtual_dist_esm_index_js-807aab04afeb.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_focus-visible_dist_focus-visible_js-node_modules_github_hydro-analytics--e21ffd-0b758af67e69.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/vendors-node_modules_fzy_js_index_js-node_modules_react-reverse-portal_dist_web_index_js-node-835def-721f0587143e.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/ui_packages_document-metadata_document-metadata_ts-ui_packages_history_history_ts-ui_packages-417c81-00e1a3522739.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/ui_packages_paths_index_ts-30c9ce58481b.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/ui_packages_ref-selector_RefSelector_tsx-d5cdb50eb045.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/ui_packages_commit-attribution_index_ts-ui_packages_commit-checks-status_index_ts-ui_packages-762eaa-c97683b55bd9.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/ui_packages_app-uuid_app-uuid_ts-ui_packages_fetch-headers_fetch-headers_ts-ui_packages_repos-0cd8c2-a5625d48fb4f.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/ui_packages_diffs_diff-parts_ts-d15c96aca8c4.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/ui_packages_code-view-shared_hooks_use-canonical-object_ts-ui_packages_code-view-shared_hooks-6097ef-c373fec85c74.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/app_assets_modules_github_blob-anchor_ts-ui_packages_code-nav_code-nav_ts-ui_packages_filter--8253c1-5fde020dbad1.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/react-code-view-5524657c8789.js" defer="defer"></script>
+<link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/primer-react.6278980231d1a55c5718.module.css" />
+<link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/react-code-view.4915ca2c68d1510cb07c.module.css" />
 
+  <script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/notifications-subscriptions-menu-610dc2945f49.js" defer="defer"></script>
+<link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/primer-react.6278980231d1a55c5718.module.css" />
+<link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/notifications-subscriptions-menu.07dab7f319b881c93ef5.module.css" />
 
-## v3.1.14 (2025-06-21)
 
-### Bug fixes
+  <title>aioamazondevices/CHANGELOG.md at main · chemelli74/aioamazondevices · GitHub</title>
 
-- Add more countries settings ([`1972a76`](https://github.com/chemelli74/aioamazondevices/commit/1972a7653a0db7bd546ca543338ecc9b359c7c7c))
 
 
-## v3.1.13 (2025-06-21)
+  <meta name="route-pattern" content="/:user_id/:repository/blob/*name(/*path)" data-turbo-transient>
+  <meta name="route-controller" content="blob" data-turbo-transient>
+  <meta name="route-action" content="show" data-turbo-transient>
+  <meta name="fetch-nonce" content="v2:07db4109-f758-44ea-a778-48ada2daaf49">
 
-### Bug fixes
+    
+  <meta name="current-catalog-service-hash" content="f3abb0cc802f3d7b95fc8762b94bdcb13bf39634c40c357301c4aa1d67a256fb">
 
-- Add mexico settings ([`9a71a14`](https://github.com/chemelli74/aioamazondevices/commit/9a71a14aaec320231cd4b541d4be88ad2f3f4593))
 
+  <meta name="request-id" content="FA97:221713:1296D04:132E8E8:685C9F96" data-pjax-transient="true"/><meta name="html-safe-nonce" content="f3e36b4197b66eb831d65926ad64c628bdeecff3246c33f7777801b864cc25e1" data-pjax-transient="true"/><meta name="visitor-payload" content="eyJyZWZlcnJlciI6IiIsInJlcXVlc3RfaWQiOiJGQTk3OjIyMTcxMzoxMjk2RDA0OjEzMkU4RTg6Njg1QzlGOTYiLCJ2aXNpdG9yX2lkIjoiNzYxNTE4ODU3OTA1Nzk2Njk5OCIsInJlZ2lvbl9lZGdlIjoiZnJhIiwicmVnaW9uX3JlbmRlciI6ImZyYSJ9" data-pjax-transient="true"/><meta name="visitor-hmac" content="ca91a8187ff4e9e9860a3e1cb4c04fabd3b64bd1a74606b7c9554d85f947cc50" data-pjax-transient="true"/>
 
-### Refactoring
 
-- Improve typing ([`e61dc16`](https://github.com/chemelli74/aioamazondevices/commit/e61dc16690fd9c35331f5f529e668fbf55ad8fa0))
+    <meta name="hovercard-subject-tag" content="repository:790853411" data-turbo-transient>
 
 
-## v3.1.12 (2025-06-17)
+  <meta name="github-keyboard-shortcuts" content="repository,source-code,file-tree,copilot" data-turbo-transient="true" />
+  
 
-### Bug fixes
+  <meta name="selected-link" value="repo_source" data-turbo-transient>
+  <link rel="assets" href="https://github.githubassets.com/">
 
-- Add argentina and austria settings ([`00e0ed6`](https://github.com/chemelli74/aioamazondevices/commit/00e0ed67aa76ca6af005ccee109c15607a303600))
+    <meta name="google-site-verification" content="Apib7-x98H0j5cPqHWwSMm6dNU4GmODRoqxLiDzdx9I">
 
+<meta name="octolytics-url" content="https://collector.github.com/github/collect" />
 
-## v3.1.11 (2025-06-17)
+  <meta name="analytics-location" content="/&lt;user-name&gt;/&lt;repo-name&gt;/blob/show" data-turbo-transient="true" />
 
-### Bug fixes
+  
 
-- Add more models ([`1679531`](https://github.com/chemelli74/aioamazondevices/commit/1679531f13f648ea51ce4e8f3f0ba7134e8b2656))
 
 
-### Testing
 
-- Improve library test script ([`ed50a2f`](https://github.com/chemelli74/aioamazondevices/commit/ed50a2fbf7c6af0da1adc65c91bcfc1f5630ff44))
+    <meta name="user-login" content="">
 
+  
 
-## v3.1.10 (2025-06-17)
+    <meta name="viewport" content="width=device-width">
 
-### Bug fixes
+    
 
-- Login uri typo ([`8eba423`](https://github.com/chemelli74/aioamazondevices/commit/8eba423aa0bf4a42f8c3802be624eb2970090f48))
+      <meta name="description" content="Python library to control Amazon devices. Contribute to chemelli74/aioamazondevices development by creating an account on GitHub.">
 
+      <link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="GitHub">
 
-## v3.1.9 (2025-06-17)
+    <link rel="fluid-icon" href="https://github.com/fluidicon.png" title="GitHub">
+    <meta property="fb:app_id" content="1401488693436528">
+    <meta name="apple-itunes-app" content="app-id=1477376905, app-argument=https://github.com/chemelli74/aioamazondevices/blob/main/CHANGELOG.md" />
 
-### Bug fixes
+      <meta name="twitter:image" content="https://opengraph.githubassets.com/e4588f862eba0004a1084ecdfd1e2f28251b9009cbffa0d7a07df80e17a01a91/chemelli74/aioamazondevices" /><meta name="twitter:site" content="@github" /><meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="aioamazondevices/CHANGELOG.md at main · chemelli74/aioamazondevices" /><meta name="twitter:description" content="Python library to control Amazon devices. Contribute to chemelli74/aioamazondevices development by creating an account on GitHub." />
+  <meta property="og:image" content="https://opengraph.githubassets.com/e4588f862eba0004a1084ecdfd1e2f28251b9009cbffa0d7a07df80e17a01a91/chemelli74/aioamazondevices" /><meta property="og:image:alt" content="Python library to control Amazon devices. Contribute to chemelli74/aioamazondevices development by creating an account on GitHub." /><meta property="og:image:width" content="1200" /><meta property="og:image:height" content="600" /><meta property="og:site_name" content="GitHub" /><meta property="og:type" content="object" /><meta property="og:title" content="aioamazondevices/CHANGELOG.md at main · chemelli74/aioamazondevices" /><meta property="og:url" content="https://github.com/chemelli74/aioamazondevices/blob/main/CHANGELOG.md" /><meta property="og:description" content="Python library to control Amazon devices. Contribute to chemelli74/aioamazondevices development by creating an account on GitHub." />
+  
 
-- Missing sensor key for very old devices ([`6dbde8a`](https://github.com/chemelli74/aioamazondevices/commit/6dbde8abbf522addf52cf20b5723e73d79303b60))
 
 
-## v3.1.8 (2025-06-17)
 
-### Bug fixes
+      <meta name="hostname" content="github.com">
 
-- Update user-agent ([`6178187`](https://github.com/chemelli74/aioamazondevices/commit/6178187f70b55bdb66d716b1581b8ff29a114106))
 
 
-## v3.1.7 (2025-06-16)
+        <meta name="expected-hostname" content="github.com">
 
-### Bug fixes
 
-- Ignore signin logic ([`7636e3a`](https://github.com/chemelli74/aioamazondevices/commit/7636e3a1811f59f1879456f32b72b4af7d375c7d))
+  <meta http-equiv="x-pjax-version" content="4a7afa08cc3509a52967113d99ac9423b34454ea654ea51e27c69f62d2a98357" data-turbo-track="reload">
+  <meta http-equiv="x-pjax-csp-version" content="352e51c42d5f5727a7c545752bf34d1f83f40219e7036c6959817149a51651bc" data-turbo-track="reload">
+  <meta http-equiv="x-pjax-css-version" content="a2d52df886357ba6c9064335023b466c54e50a05f078f146ad01cb01b261690e" data-turbo-track="reload">
+  <meta http-equiv="x-pjax-js-version" content="28eacaeec6564c51fb99e88496406d1e6e29a4371a86a0222b4a8ccffbd4b756" data-turbo-track="reload">
 
+  <meta name="turbo-cache-control" content="no-preview" data-turbo-transient="">
 
-### Build system
+      <meta name="turbo-cache-control" content="no-cache" data-turbo-transient>
 
-- Bump aiohttp from 3.12.11 to 3.12.13 ([`90d6947`](https://github.com/chemelli74/aioamazondevices/commit/90d69470fdbfd164596f5643e880733bb08fbe23))
-- Bump pytest-cov from 6.1.1 to 6.2.1 ([`30bbcf3`](https://github.com/chemelli74/aioamazondevices/commit/30bbcf31039501624fc39d77b7ca4a5834188d76))
+    <meta data-hydrostats="publish">
 
+  <meta name="go-import" content="github.com/chemelli74/aioamazondevices git https://github.com/chemelli74/aioamazondevices.git">
 
-## v3.1.6 (2025-06-16)
+  <meta name="octolytics-dimension-user_id" content="57354320" /><meta name="octolytics-dimension-user_login" content="chemelli74" /><meta name="octolytics-dimension-repository_id" content="790853411" /><meta name="octolytics-dimension-repository_nwo" content="chemelli74/aioamazondevices" /><meta name="octolytics-dimension-repository_public" content="true" /><meta name="octolytics-dimension-repository_is_fork" content="false" /><meta name="octolytics-dimension-repository_network_root_id" content="790853411" /><meta name="octolytics-dimension-repository_network_root_nwo" content="chemelli74/aioamazondevices" />
 
-### Bug fixes
 
-- Add new zealand and fix australia ([`f6e06d6`](https://github.com/chemelli74/aioamazondevices/commit/f6e06d61c591e3e2eb0c4e193a5dbe6c5f22a8c6))
 
+    
 
-## v3.1.5 (2025-06-16)
+    <meta name="turbo-body-classes" content="logged-out env-production page-responsive">
 
-### Bug fixes
 
-- Optimize exception handling ([`8a9d091`](https://github.com/chemelli74/aioamazondevices/commit/8a9d091516fd2dc77c17529b490a81bd1714d120))
+  <meta name="browser-stats-url" content="https://api.github.com/_private/browser/stats">
 
+  <meta name="browser-errors-url" content="https://api.github.com/_private/browser/errors">
 
-### Build system
+  <meta name="release" content="cb01a24a927bee0e91e4ac924dd3dd8e68438730">
 
-- Cleanup httpx leftover ([`2bdd73a`](https://github.com/chemelli74/aioamazondevices/commit/2bdd73a6bfc434c23d609f97857a42492ee3d154))
+  <link rel="mask-icon" href="https://github.githubassets.com/assets/pinned-octocat-093da3e6fa40.svg" color="#000000">
+  <link rel="alternate icon" class="js-site-favicon" type="image/png" href="https://github.githubassets.com/favicons/favicon.png">
+  <link rel="icon" class="js-site-favicon" type="image/svg+xml" href="https://github.githubassets.com/favicons/favicon.svg" data-base-href="https://github.githubassets.com/favicons/favicon">
 
+<meta name="theme-color" content="#1e2327">
+<meta name="color-scheme" content="light dark" />
 
-## v3.1.4 (2025-06-15)
 
-### Bug fixes
+  <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials">
 
-- Missing await in response error ([`516451f`](https://github.com/chemelli74/aioamazondevices/commit/516451fbd381baa61251bee4090677bd94bc6021))
+  </head>
 
+  <body class="logged-out env-production page-responsive" style="word-wrap: break-word;">
+    <div data-turbo-body class="logged-out env-production page-responsive" style="word-wrap: break-word;">
+      
 
-## v3.1.3 (2025-06-14)
 
-### Bug fixes
 
-- Add sensors only for linked devices ([`d40b96e`](https://github.com/chemelli74/aioamazondevices/commit/d40b96e56fa3837257ceef899608663d4f05b477))
+    <div class="position-relative header-wrapper js-header-wrapper ">
+      <a href="#start-of-content" data-skip-target-assigned="false" class="px-2 py-4 color-bg-accent-emphasis color-fg-on-emphasis show-on-focus js-skip-to-content">Skip to content</a>
 
+      <span data-view-component="true" class="progress-pjax-loader Progress position-fixed width-full">
+    <span style="width: 0%;" data-view-component="true" class="Progress-item progress-pjax-loader-bar left-0 top-0 color-bg-accent-emphasis"></span>
+</span>      
+      
+      <script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/ui_packages_ui-commands_ui-commands_ts-b755d908e0b1.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/keyboard-shortcuts-dialog-6bb6aa2945d5.js" defer="defer"></script>
+<link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/primer-react.6278980231d1a55c5718.module.css" />
+<link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/keyboard-shortcuts-dialog.47de85e2c17af43cefd5.module.css" />
 
-## v3.1.2 (2025-06-13)
+<react-partial
+  partial-name="keyboard-shortcuts-dialog"
+  data-ssr="false"
+  data-attempted-ssr="false"
+  data-react-profiling="false"
+>
+  
+  <script type="application/json" data-target="react-partial.embeddedData">{"props":{"docsUrl":"https://docs.github.com/get-started/accessibility/keyboard-shortcuts"}}</script>
+  <div data-target="react-partial.reactRoot"></div>
+</react-partial>
 
-### Bug fixes
 
-- Handle account with old devices only ([`91ba802`](https://github.com/chemelli74/aioamazondevices/commit/91ba80211df033b04a7269917893b6b812e5b01a))
 
 
-## v3.1.1 (2025-06-12)
+      
 
-### Bug fixes
+          
 
-- Update models list ([`5408d4a`](https://github.com/chemelli74/aioamazondevices/commit/5408d4a2b3c9bf56847513be1cd72bd9401a6239))
+              
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/vendors-node_modules_github_remote-form_dist_index_js-node_modules_delegated-events_dist_inde-94fd67-99b04cc350b5.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/sessions-eed3aa0554dd.js" defer="defer"></script>
+<header class="HeaderMktg header-logged-out js-details-container js-header Details f4 py-3" role="banner" data-is-top="true" data-color-mode=light data-light-theme=light data-dark-theme=dark>
+  <h2 class="sr-only">Navigation Menu</h2>
 
+  <button type="button" class="HeaderMktg-backdrop d-lg-none border-0 position-fixed top-0 left-0 width-full height-full js-details-target" aria-label="Toggle navigation">
+    <span class="d-none">Toggle navigation</span>
+  </button>
 
-## v3.1.0 (2025-06-12)
+  <div class="d-flex flex-column flex-lg-row flex-items-center px-3 px-md-4 px-lg-5 height-full position-relative z-1">
+    <div class="d-flex flex-justify-between flex-items-center width-full width-lg-auto">
+      <div class="flex-1">
+        <button aria-label="Toggle navigation" aria-expanded="false" type="button" data-view-component="true" class="js-details-target js-nav-padding-recalculate js-header-menu-toggle Button--link Button--medium Button d-lg-none color-fg-inherit p-1">  <span class="Button-content">
+    <span class="Button-label"><div class="HeaderMenu-toggle-bar rounded my-1"></div>
+            <div class="HeaderMenu-toggle-bar rounded my-1"></div>
+            <div class="HeaderMenu-toggle-bar rounded my-1"></div></span>
+  </span>
+</button>
+      </div>
 
-### Features
+      <a class="mr-lg-3 color-fg-inherit flex-order-2 js-prevent-focus-on-mobile-nav"
+        href="/"
+        aria-label="Homepage"
+        data-analytics-event="{&quot;category&quot;:&quot;Marketing nav&quot;,&quot;action&quot;:&quot;click to go to homepage&quot;,&quot;label&quot;:&quot;ref_page:Marketing;ref_cta:Logomark;ref_loc:Header&quot;}">
+        <svg height="32" aria-hidden="true" viewBox="0 0 24 24" version="1.1" width="32" data-view-component="true" class="octicon octicon-mark-github">
+    <path d="M12 1C5.923 1 1 5.923 1 12c0 4.867 3.149 8.979 7.521 10.436.55.096.756-.233.756-.522 0-.262-.013-1.128-.013-2.049-2.764.509-3.479-.674-3.699-1.292-.124-.317-.66-1.293-1.127-1.554-.385-.207-.936-.715-.014-.729.866-.014 1.485.797 1.691 1.128.99 1.663 2.571 1.196 3.204.907.096-.715.385-1.196.701-1.471-2.448-.275-5.005-1.224-5.005-5.432 0-1.196.426-2.186 1.128-2.956-.111-.275-.496-1.402.11-2.915 0 0 .921-.288 3.024 1.128a10.193 10.193 0 0 1 2.75-.371c.936 0 1.871.123 2.75.371 2.104-1.43 3.025-1.128 3.025-1.128.605 1.513.221 2.64.111 2.915.701.77 1.127 1.747 1.127 2.956 0 4.222-2.571 5.157-5.019 5.432.399.344.743 1.004.743 2.035 0 1.471-.014 2.654-.014 3.025 0 .289.206.632.756.522C19.851 20.979 23 16.854 23 12c0-6.077-4.922-11-11-11Z"></path>
+</svg>
+      </a>
 
-- Retrieve available sensors data ([`5fe258a`](https://github.com/chemelli74/aioamazondevices/commit/5fe258ae01d2f5e3f058ea649d2b909367f3d1ee))
+      <div class="d-flex flex-1 flex-order-2 text-right d-lg-none gap-2 flex-justify-end">
+          <a
+            href="/login?return_to=https%3A%2F%2Fgithub.com%2Fchemelli74%2Faioamazondevices%2Fblob%2Fmain%2FCHANGELOG.md"
+            class="HeaderMenu-link HeaderMenu-button d-inline-flex f5 no-underline border color-border-default rounded-2 px-2 py-1 color-fg-inherit js-prevent-focus-on-mobile-nav"
+            data-hydro-click="{&quot;event_type&quot;:&quot;authentication.click&quot;,&quot;payload&quot;:{&quot;location_in_page&quot;:&quot;site header menu&quot;,&quot;repository_id&quot;:null,&quot;auth_type&quot;:&quot;SIGN_UP&quot;,&quot;originating_url&quot;:&quot;https://github.com/chemelli74/aioamazondevices/blob/main/CHANGELOG.md&quot;,&quot;user_id&quot;:null}}" data-hydro-click-hmac="a5ecc7d679e074945e0be8b5fa27cf1d479c23f6fe5f1936087a1b085f50880f"
+            data-analytics-event="{&quot;category&quot;:&quot;Marketing nav&quot;,&quot;action&quot;:&quot;click to Sign in&quot;,&quot;label&quot;:&quot;ref_page:Marketing;ref_cta:Sign in;ref_loc:Header&quot;}"
+          >
+            Sign in
+          </a>
+              <div class="AppHeader-appearanceSettings">
+    <react-partial-anchor>
+      <button data-target="react-partial-anchor.anchor" id="icon-button-4654bc63-45d3-4cdc-bcec-2c4d870358b7" aria-labelledby="tooltip-28e19544-afe8-4f02-9324-03ad065caeaa" type="button" disabled="disabled" data-view-component="true" class="Button Button--iconOnly Button--invisible Button--medium AppHeader-button HeaderMenu-link border cursor-wait">  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-sliders Button-visual">
+    <path d="M15 2.75a.75.75 0 0 1-.75.75h-4a.75.75 0 0 1 0-1.5h4a.75.75 0 0 1 .75.75Zm-8.5.75v1.25a.75.75 0 0 0 1.5 0v-4a.75.75 0 0 0-1.5 0V2H1.75a.75.75 0 0 0 0 1.5H6.5Zm1.25 5.25a.75.75 0 0 0 0-1.5h-6a.75.75 0 0 0 0 1.5h6ZM15 8a.75.75 0 0 1-.75.75H11.5V10a.75.75 0 1 1-1.5 0V6a.75.75 0 0 1 1.5 0v1.25h2.75A.75.75 0 0 1 15 8Zm-9 5.25v-2a.75.75 0 0 0-1.5 0v1.25H1.75a.75.75 0 0 0 0 1.5H4.5v1.25a.75.75 0 0 0 1.5 0v-2Zm9 0a.75.75 0 0 1-.75.75h-6a.75.75 0 0 1 0-1.5h6a.75.75 0 0 1 .75.75Z"></path>
+</svg>
+</button><tool-tip id="tooltip-28e19544-afe8-4f02-9324-03ad065caeaa" for="icon-button-4654bc63-45d3-4cdc-bcec-2c4d870358b7" popover="manual" data-direction="s" data-type="label" data-view-component="true" class="sr-only position-absolute">Appearance settings</tool-tip>
 
+      <template data-target="react-partial-anchor.template">
+        <script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/ui_packages_document-metadata_document-metadata_ts-ui_packages_promise-with-resolvers-polyfil-40d47c-2b0274d4149e.js" defer="defer"></script>
+<script crossorigin="anonymous" type="application/javascript" src="https://github.githubassets.com/assets/appearance-settings-ca5eb47b4f39.js" defer="defer"></script>
+<link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/primer-react.6278980231d1a55c5718.module.css" />
+<link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/appearance-settings.4e1ca273f504ba849f8c.module.css" />
 
-### Build system
+<react-partial
+  partial-name="appearance-settings"
+  data-ssr="false"
+  data-attempted-ssr="false"
+  data-react-profiling="false"
+>
+  
+  <script type="application/json" data-target="react-partial.embeddedData">{"props":{}}</script>
+  <div data-target="react-partial.reactRoot"></div>
+</react-partial>
 
-- Bump python-semantic-release/python-semantic-release from 10.0.2 to 10.1.0 ([`fbe9dab`](https://github.com/chemelli74/aioamazondevices/commit/fbe9dab283bab178117b9cbe33bdcd3a0432c2b6))
+      </template>
+    </react-partial-anchor>
+  </div>
 
+      </div>
+    </div>
 
-## v3.0.10 (2025-06-12)
 
-### Bug fixes
+    <div class="HeaderMenu js-header-menu height-fit position-lg-relative d-lg-flex flex-column flex-auto top-0">
+      <div class="HeaderMenu-wrapper d-flex flex-column flex-self-start flex-lg-row flex-auto rounded rounded-lg-0">
+          <nav class="HeaderMenu-nav" aria-label="Global">
+            <ul class="d-lg-flex list-style-none">
 
-- Ignore alexa app for pc ([`fcfb674`](https://github.com/chemelli74/aioamazondevices/commit/fcfb6748d07c184c6233d08537026dec416c9488))
 
+                <li class="HeaderMenu-item position-relative flex-wrap flex-justify-between flex-items-center d-block d-lg-flex flex-lg-nowrap flex-lg-items-center js-details-container js-header-menu-item">
+      <button type="button" class="HeaderMenu-link border-0 width-full width-lg-auto px-0 px-lg-2 py-lg-2 no-wrap d-flex flex-items-center flex-justify-between js-details-target" aria-expanded="false">
+        Product
+        <svg opacity="0.5" aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-chevron-down HeaderMenu-icon ml-1">
+    <path d="M12.78 5.22a.749.749 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.06 0L3.22 6.28a.749.749 0 1 1 1.06-1.06L8 8.939l3.72-3.719a.749.749 0 0 1 1.06 0Z"></path>
+</svg>
+      </button>
 
-## v3.0.9 (2025-06-12)
+      <div class="HeaderMenu-dropdown dropdown-menu rounded m-0 p-0 pt-2 pt-lg-4 position-relative position-lg-absolute left-0 left-lg-n3 pb-2 pb-lg-4 d-lg-flex flex-wrap dropdown-menu-wide">
+          <div class="HeaderMenu-column pl-lg-4 px-lg-4">
+              <div class="">
 
-### Bug fixes
+                <ul class="list-style-none f5" >
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary d-flex flex-items-center Link--has-description pb-lg-3" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;github_copilot&quot;,&quot;context&quot;:&quot;product&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;github_copilot_link_product_navbar&quot;}" href="https://github.com/features/copilot">
+      <svg aria-hidden="true" height="24" viewBox="0 0 24 24" version="1.1" width="24" data-view-component="true" class="octicon octicon-copilot color-fg-subtle mr-3">
+    <path d="M23.922 16.992c-.861 1.495-5.859 5.023-11.922 5.023-6.063 0-11.061-3.528-11.922-5.023A.641.641 0 0 1 0 16.736v-2.869a.841.841 0 0 1 .053-.22c.372-.935 1.347-2.292 2.605-2.656.167-.429.414-1.055.644-1.517a10.195 10.195 0 0 1-.052-1.086c0-1.331.282-2.499 1.132-3.368.397-.406.89-.717 1.474-.952 1.399-1.136 3.392-2.093 6.122-2.093 2.731 0 4.767.957 6.166 2.093.584.235 1.077.546 1.474.952.85.869 1.132 2.037 1.132 3.368 0 .368-.014.733-.052 1.086.23.462.477 1.088.644 1.517 1.258.364 2.233 1.721 2.605 2.656a.832.832 0 0 1 .053.22v2.869a.641.641 0 0 1-.078.256ZM12.172 11h-.344a4.323 4.323 0 0 1-.355.508C10.703 12.455 9.555 13 7.965 13c-1.725 0-2.989-.359-3.782-1.259a2.005 2.005 0 0 1-.085-.104L4 11.741v6.585c1.435.779 4.514 2.179 8 2.179 3.486 0 6.565-1.4 8-2.179v-6.585l-.098-.104s-.033.045-.085.104c-.793.9-2.057 1.259-3.782 1.259-1.59 0-2.738-.545-3.508-1.492a4.323 4.323 0 0 1-.355-.508h-.016.016Zm.641-2.935c.136 1.057.403 1.913.878 2.497.442.544 1.134.938 2.344.938 1.573 0 2.292-.337 2.657-.751.384-.435.558-1.15.558-2.361 0-1.14-.243-1.847-.705-2.319-.477-.488-1.319-.862-2.824-1.025-1.487-.161-2.192.138-2.533.529-.269.307-.437.808-.438 1.578v.021c0 .265.021.562.063.893Zm-1.626 0c.042-.331.063-.628.063-.894v-.02c-.001-.77-.169-1.271-.438-1.578-.341-.391-1.046-.69-2.533-.529-1.505.163-2.347.537-2.824 1.025-.462.472-.705 1.179-.705 2.319 0 1.211.175 1.926.558 2.361.365.414 1.084.751 2.657.751 1.21 0 1.902-.394 2.344-.938.475-.584.742-1.44.878-2.497Z"></path><path d="M14.5 14.25a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1Zm-5 0a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1Z"></path>
+</svg>
+      <div>
+          <div class="color-fg-default h4">
+            GitHub Copilot
+          </div>
+        Write better code with AI
+      </div>
 
-- Multibyte characters encoding ([`6016a0f`](https://github.com/chemelli74/aioamazondevices/commit/6016a0f8e74cd6ab13a8f060e4f2b64eaa81264f))
+    
+</a></li>
 
+                    
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary d-flex flex-items-center Link--has-description pb-lg-3" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;github_models&quot;,&quot;context&quot;:&quot;product&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;github_models_link_product_navbar&quot;}" href="https://github.com/features/models">
+      <svg aria-hidden="true" height="24" viewBox="0 0 24 24" version="1.1" width="24" data-view-component="true" class="octicon octicon-ai-model color-fg-subtle mr-3">
+    <path d="M19.375 8.5a3.25 3.25 0 1 1-3.163 4h-3a3.252 3.252 0 0 1-4.443 2.509L7.214 17.76a3.25 3.25 0 1 1-1.342-.674l1.672-2.957A3.238 3.238 0 0 1 6.75 12c0-.907.371-1.727.97-2.316L6.117 6.846A3.253 3.253 0 0 1 1.875 3.75a3.25 3.25 0 1 1 5.526 2.32l1.603 2.836A3.25 3.25 0 0 1 13.093 11h3.119a3.252 3.252 0 0 1 3.163-2.5ZM10 10.25a1.75 1.75 0 1 0-.001 3.499A1.75 1.75 0 0 0 10 10.25ZM5.125 2a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5Zm12.5 9.75a1.75 1.75 0 1 0 3.5 0 1.75 1.75 0 0 0-3.5 0Zm-14.25 8.5a1.75 1.75 0 1 0 3.501-.001 1.75 1.75 0 0 0-3.501.001Z"></path>
+</svg>
+      <div>
+          <div class="color-fg-default h4">
+            GitHub Models
+              <span class="HeaderMenu-label">
+                New
+              </span>
+          </div>
+        Manage and compare prompts
+      </div>
 
-## v3.0.8 (2025-06-10)
+    
+</a></li>
 
-### Bug fixes
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary d-flex flex-items-center Link--has-description pb-lg-3" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;github_advanced_security&quot;,&quot;context&quot;:&quot;product&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;github_advanced_security_link_product_navbar&quot;}" href="https://github.com/security/advanced-security">
+      <svg aria-hidden="true" height="24" viewBox="0 0 24 24" version="1.1" width="24" data-view-component="true" class="octicon octicon-shield-check color-fg-subtle mr-3">
+    <path d="M16.53 9.78a.75.75 0 0 0-1.06-1.06L11 13.19l-1.97-1.97a.75.75 0 0 0-1.06 1.06l2.5 2.5a.75.75 0 0 0 1.06 0l5-5Z"></path><path d="m12.54.637 8.25 2.675A1.75 1.75 0 0 1 22 4.976V10c0 6.19-3.771 10.704-9.401 12.83a1.704 1.704 0 0 1-1.198 0C5.77 20.705 2 16.19 2 10V4.976c0-.758.489-1.43 1.21-1.664L11.46.637a1.748 1.748 0 0 1 1.08 0Zm-.617 1.426-8.25 2.676a.249.249 0 0 0-.173.237V10c0 5.46 3.28 9.483 8.43 11.426a.199.199 0 0 0 .14 0C17.22 19.483 20.5 15.461 20.5 10V4.976a.25.25 0 0 0-.173-.237l-8.25-2.676a.253.253 0 0 0-.154 0Z"></path>
+</svg>
+      <div>
+          <div class="color-fg-default h4">
+            GitHub Advanced Security
+          </div>
+        Find and fix vulnerabilities
+      </div>
 
-- Handle requests response errors ([`24ebb1d`](https://github.com/chemelli74/aioamazondevices/commit/24ebb1d4542943fdb9727a261fcc1186b686bb1f))
+    
+</a></li>
 
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary d-flex flex-items-center Link--has-description pb-lg-3" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;actions&quot;,&quot;context&quot;:&quot;product&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;actions_link_product_navbar&quot;}" href="https://github.com/features/actions">
+      <svg aria-hidden="true" height="24" viewBox="0 0 24 24" version="1.1" width="24" data-view-component="true" class="octicon octicon-workflow color-fg-subtle mr-3">
+    <path d="M1 3a2 2 0 0 1 2-2h6.5a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2H7v4.063C7 16.355 7.644 17 8.438 17H12.5v-2.5a2 2 0 0 1 2-2H21a2 2 0 0 1 2 2V21a2 2 0 0 1-2 2h-6.5a2 2 0 0 1-2-2v-2.5H8.437A2.939 2.939 0 0 1 5.5 15.562V11.5H3a2 2 0 0 1-2-2Zm2-.5a.5.5 0 0 0-.5.5v6.5a.5.5 0 0 0 .5.5h6.5a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5ZM14.5 14a.5.5 0 0 0-.5.5V21a.5.5 0 0 0 .5.5H21a.5.5 0 0 0 .5-.5v-6.5a.5.5 0 0 0-.5-.5Z"></path>
+</svg>
+      <div>
+          <div class="color-fg-default h4">
+            Actions
+          </div>
+        Automate any workflow
+      </div>
 
-## v3.0.7 (2025-06-10)
+    
+</a></li>
 
-### Bug fixes
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary d-flex flex-items-center Link--has-description" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;codespaces&quot;,&quot;context&quot;:&quot;product&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;codespaces_link_product_navbar&quot;}" href="https://github.com/features/codespaces">
+      <svg aria-hidden="true" height="24" viewBox="0 0 24 24" version="1.1" width="24" data-view-component="true" class="octicon octicon-codespaces color-fg-subtle mr-3">
+    <path d="M3.5 3.75C3.5 2.784 4.284 2 5.25 2h13.5c.966 0 1.75.784 1.75 1.75v7.5A1.75 1.75 0 0 1 18.75 13H5.25a1.75 1.75 0 0 1-1.75-1.75Zm-2 12c0-.966.784-1.75 1.75-1.75h17.5c.966 0 1.75.784 1.75 1.75v4a1.75 1.75 0 0 1-1.75 1.75H3.25a1.75 1.75 0 0 1-1.75-1.75ZM5.25 3.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h13.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Zm-2 12a.25.25 0 0 0-.25.25v4c0 .138.112.25.25.25h17.5a.25.25 0 0 0 .25-.25v-4a.25.25 0 0 0-.25-.25Z"></path><path d="M10 17.75a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1-.75-.75Zm-4 0a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 0 1.5h-.5a.75.75 0 0 1-.75-.75Z"></path>
+</svg>
+      <div>
+          <div class="color-fg-default h4">
+            Codespaces
+          </div>
+        Instant dev environments
+      </div>
 
-- Add ecobee switch+ ([`f2ff7d2`](https://github.com/chemelli74/aioamazondevices/commit/f2ff7d23df9cb47806214b31b9e6aa42bb42e152))
+    
+</a></li>
 
+                </ul>
+              </div>
+          </div>
+          <div class="HeaderMenu-column pl-lg-4 px-lg-4 pb-3 pb-lg-0">
+              <div class="border-bottom border-lg-bottom-0 pb-3">
 
-### Build system
+                <ul class="list-style-none f5" >
+                    
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary d-flex flex-items-center Link--has-description pb-lg-3" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;issues&quot;,&quot;context&quot;:&quot;product&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;issues_link_product_navbar&quot;}" href="https://github.com/features/issues">
+      <svg aria-hidden="true" height="24" viewBox="0 0 24 24" version="1.1" width="24" data-view-component="true" class="octicon octicon-issue-opened color-fg-subtle mr-3">
+    <path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1ZM2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12Zm9.5 2a2 2 0 1 1-.001-3.999A2 2 0 0 1 12 14Z"></path>
+</svg>
+      <div>
+          <div class="color-fg-default h4">
+            Issues
+          </div>
+        Plan and track work
+      </div>
 
-- Bump pytest from 8.3.5 to 8.4.0 ([`ae3ad6a`](https://github.com/chemelli74/aioamazondevices/commit/ae3ad6aef9e931fe0061338716e176df08833e61))
-- Bump aiohttp from 3.12.6 to 3.12.11 ([`99b0698`](https://github.com/chemelli74/aioamazondevices/commit/99b0698cda4124fce137e31842a1799bb90fc5de))
+    
+</a></li>
 
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary d-flex flex-items-center Link--has-description pb-lg-3" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;code_review&quot;,&quot;context&quot;:&quot;product&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;code_review_link_product_navbar&quot;}" href="https://github.com/features/code-review">
+      <svg aria-hidden="true" height="24" viewBox="0 0 24 24" version="1.1" width="24" data-view-component="true" class="octicon octicon-code-review color-fg-subtle mr-3">
+    <path d="M10.3 6.74a.75.75 0 0 1-.04 1.06l-2.908 2.7 2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04Zm3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7-2.908-2.7Z"></path><path d="M1.5 4.25c0-.966.784-1.75 1.75-1.75h17.5c.966 0 1.75.784 1.75 1.75v12.5a1.75 1.75 0 0 1-1.75 1.75h-9.69l-3.573 3.573A1.458 1.458 0 0 1 5 21.043V18.5H3.25a1.75 1.75 0 0 1-1.75-1.75ZM3.25 4a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h2.5a.75.75 0 0 1 .75.75v3.19l3.72-3.72a.749.749 0 0 1 .53-.22h10a.25.25 0 0 0 .25-.25V4.25a.25.25 0 0 0-.25-.25Z"></path>
+</svg>
+      <div>
+          <div class="color-fg-default h4">
+            Code Review
+          </div>
+        Manage code changes
+      </div>
 
-## v3.0.6 (2025-06-08)
+    
+</a></li>
 
-### Bug fixes
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary d-flex flex-items-center Link--has-description pb-lg-3" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;discussions&quot;,&quot;context&quot;:&quot;product&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;discussions_link_product_navbar&quot;}" href="https://github.com/features/discussions">
+      <svg aria-hidden="true" height="24" viewBox="0 0 24 24" version="1.1" width="24" data-view-component="true" class="octicon octicon-comment-discussion color-fg-subtle mr-3">
+    <path d="M1.75 1h12.5c.966 0 1.75.784 1.75 1.75v9.5A1.75 1.75 0 0 1 14.25 14H8.061l-2.574 2.573A1.458 1.458 0 0 1 3 15.543V14H1.75A1.75 1.75 0 0 1 0 12.25v-9.5C0 1.784.784 1 1.75 1ZM1.5 2.75v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25Z"></path><path d="M22.5 8.75a.25.25 0 0 0-.25-.25h-3.5a.75.75 0 0 1 0-1.5h3.5c.966 0 1.75.784 1.75 1.75v9.5A1.75 1.75 0 0 1 22.25 20H21v1.543a1.457 1.457 0 0 1-2.487 1.03L15.939 20H10.75A1.75 1.75 0 0 1 9 18.25v-1.465a.75.75 0 0 1 1.5 0v1.465c0 .138.112.25.25.25h5.5a.75.75 0 0 1 .53.22l2.72 2.72v-2.19a.75.75 0 0 1 .75-.75h2a.25.25 0 0 0 .25-.25v-9.5Z"></path>
+</svg>
+      <div>
+          <div class="color-fg-default h4">
+            Discussions
+          </div>
+        Collaborate outside of code
+      </div>
 
-- Add more device models ([`9c5df13`](https://github.com/chemelli74/aioamazondevices/commit/9c5df130fab42c6676b28f44f98dd571019138bb))
+    
+</a></li>
 
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary d-flex flex-items-center Link--has-description" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;code_search&quot;,&quot;context&quot;:&quot;product&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;code_search_link_product_navbar&quot;}" href="https://github.com/features/code-search">
+      <svg aria-hidden="true" height="24" viewBox="0 0 24 24" version="1.1" width="24" data-view-component="true" class="octicon octicon-code-square color-fg-subtle mr-3">
+    <path d="M10.3 8.24a.75.75 0 0 1-.04 1.06L7.352 12l2.908 2.7a.75.75 0 1 1-1.02 1.1l-3.5-3.25a.75.75 0 0 1 0-1.1l3.5-3.25a.75.75 0 0 1 1.06.04Zm3.44 1.06a.75.75 0 1 1 1.02-1.1l3.5 3.25a.75.75 0 0 1 0 1.1l-3.5 3.25a.75.75 0 1 1-1.02-1.1l2.908-2.7-2.908-2.7Z"></path><path d="M2 3.75C2 2.784 2.784 2 3.75 2h16.5c.966 0 1.75.784 1.75 1.75v16.5A1.75 1.75 0 0 1 20.25 22H3.75A1.75 1.75 0 0 1 2 20.25Zm1.75-.25a.25.25 0 0 0-.25.25v16.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"></path>
+</svg>
+      <div>
+          <div class="color-fg-default h4">
+            Code Search
+          </div>
+        Find more, search less
+      </div>
 
-### Documentation
+    
+</a></li>
 
-- Add more details for unknown device issues ([`d34d371`](https://github.com/chemelli74/aioamazondevices/commit/d34d371eb9228dee8718f2f5cf53c54055e61c11))
+                </ul>
+              </div>
+          </div>
+          <div class="HeaderMenu-column pl-lg-4 border-lg-left pr-lg-7">
+              <div class="border-bottom border-lg-bottom-0 border-bottom-0">
+                    <span class="d-block h4 color-fg-default my-1" id="product-explore-heading">Explore</span>
 
+                <ul class="list-style-none f5" aria-labelledby="product-explore-heading">
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;why_github&quot;,&quot;context&quot;:&quot;product&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;why_github_link_product_navbar&quot;}" href="https://github.com/why-github">
+      Why GitHub
 
-### Refactoring
+    
+</a></li>
 
-- Use httpmethod ([`03d5463`](https://github.com/chemelli74/aioamazondevices/commit/03d546315bc4b7ae7bb8cd7fc1d02a1639e4e4a9))
-- Drop httpx support ([`23a082f`](https://github.com/chemelli74/aioamazondevices/commit/23a082f54233edea9a44e9e40a2677ea958bf4be))
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;all_features&quot;,&quot;context&quot;:&quot;product&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;all_features_link_product_navbar&quot;}" href="https://github.com/features">
+      All features
 
+    
+</a></li>
 
-### Testing
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary Link--external" target="_blank" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;documentation&quot;,&quot;context&quot;:&quot;product&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;documentation_link_product_navbar&quot;}" href="https://docs.github.com">
+      Documentation
 
-- Add no test feature to library_test ([`640afd6`](https://github.com/chemelli74/aioamazondevices/commit/640afd6e7bfa828fd74ca630138dd5b0bddadf39))
+    <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-link-external HeaderMenu-external-icon color-fg-subtle">
+    <path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-3.5a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14h-8.5A1.75 1.75 0 0 1 2 12.25v-8.5C2 2.784 2.784 2 3.75 2Zm6.854-1h4.146a.25.25 0 0 1 .25.25v4.146a.25.25 0 0 1-.427.177L13.03 4.03 9.28 7.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.75-3.75-1.543-1.543A.25.25 0 0 1 10.604 1Z"></path>
+</svg>
+</a></li>
 
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary Link--external" target="_blank" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;github_skills&quot;,&quot;context&quot;:&quot;product&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;github_skills_link_product_navbar&quot;}" href="https://skills.github.com">
+      GitHub Skills
 
-## v3.0.5 (2025-06-02)
+    <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-link-external HeaderMenu-external-icon color-fg-subtle">
+    <path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-3.5a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14h-8.5A1.75 1.75 0 0 1 2 12.25v-8.5C2 2.784 2.784 2 3.75 2Zm6.854-1h4.146a.25.25 0 0 1 .25.25v4.146a.25.25 0 0 1-.427.177L13.03 4.03 9.28 7.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.75-3.75-1.543-1.543A.25.25 0 0 1 10.604 1Z"></path>
+</svg>
+</a></li>
 
-### Bug fixes
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary Link--external" target="_blank" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;blog&quot;,&quot;context&quot;:&quot;product&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;blog_link_product_navbar&quot;}" href="https://github.blog">
+      Blog
 
-- Cookies for aiohttp ([`58f5bfc`](https://github.com/chemelli74/aioamazondevices/commit/58f5bfcb65a0be0f249d0d7b38e350046f4b543d))
+    <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-link-external HeaderMenu-external-icon color-fg-subtle">
+    <path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-3.5a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14h-8.5A1.75 1.75 0 0 1 2 12.25v-8.5C2 2.784 2.784 2 3.75 2Zm6.854-1h4.146a.25.25 0 0 1 .25.25v4.146a.25.25 0 0 1-.427.177L13.03 4.03 9.28 7.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.75-3.75-1.543-1.543A.25.25 0 0 1 10.604 1Z"></path>
+</svg>
+</a></li>
 
+                </ul>
+              </div>
+          </div>
 
-### Build system
+      </div>
+</li>
 
-- Bump aiohttp from 3.11.18 to 3.12.6 ([`482e467`](https://github.com/chemelli74/aioamazondevices/commit/482e467be974ecdb4107b3d1df6aaf8cd6e21c90))
 
+                <li class="HeaderMenu-item position-relative flex-wrap flex-justify-between flex-items-center d-block d-lg-flex flex-lg-nowrap flex-lg-items-center js-details-container js-header-menu-item">
+      <button type="button" class="HeaderMenu-link border-0 width-full width-lg-auto px-0 px-lg-2 py-lg-2 no-wrap d-flex flex-items-center flex-justify-between js-details-target" aria-expanded="false">
+        Solutions
+        <svg opacity="0.5" aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-chevron-down HeaderMenu-icon ml-1">
+    <path d="M12.78 5.22a.749.749 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.06 0L3.22 6.28a.749.749 0 1 1 1.06-1.06L8 8.939l3.72-3.719a.749.749 0 0 1 1.06 0Z"></path>
+</svg>
+      </button>
 
-## v3.0.4 (2025-06-01)
+      <div class="HeaderMenu-dropdown dropdown-menu rounded m-0 p-0 pt-2 pt-lg-4 position-relative position-lg-absolute left-0 left-lg-n3 d-lg-flex flex-wrap dropdown-menu-wide">
+          <div class="HeaderMenu-column pl-lg-4 px-lg-4 pb-3 pb-lg-0">
+              <div class="border-bottom border-lg-bottom-0 mb-3 pb-3">
+                    <span class="d-block h4 color-fg-default my-1" id="solutions-by-company-size-heading">By company size</span>
 
-### Bug fixes
+                <ul class="list-style-none f5" aria-labelledby="solutions-by-company-size-heading">
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;enterprises&quot;,&quot;context&quot;:&quot;solutions&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;enterprises_link_solutions_navbar&quot;}" href="https://github.com/enterprise">
+      Enterprises
 
-- Openid.assoc_handle for uk accounts ([`e9f3123`](https://github.com/chemelli74/aioamazondevices/commit/e9f31237f79d4215989d77cd764d54b17dc99d55))
+    
+</a></li>
 
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;small_and_medium_teams&quot;,&quot;context&quot;:&quot;solutions&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;small_and_medium_teams_link_solutions_navbar&quot;}" href="https://github.com/team">
+      Small and medium teams
 
-## v3.0.3 (2025-06-01)
+    
+</a></li>
 
-### Bug fixes
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;startups&quot;,&quot;context&quot;:&quot;solutions&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;startups_link_solutions_navbar&quot;}" href="https://github.com/enterprise/startups">
+      Startups
 
-- Add more models ([`3931401`](https://github.com/chemelli74/aioamazondevices/commit/39314018a92894130a865d60731406abf4e38376))
+    
+</a></li>
 
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;nonprofits&quot;,&quot;context&quot;:&quot;solutions&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;nonprofits_link_solutions_navbar&quot;}" href="/solutions/industry/nonprofits">
+      Nonprofits
 
-### Testing
+    
+</a></li>
 
-- Update cleanup script ([`9a6f01f`](https://github.com/chemelli74/aioamazondevices/commit/9a6f01f12c195bfa38a7d8e180fc0e58e6e3be49))
-- Improve library_test script ([`614de28`](https://github.com/chemelli74/aioamazondevices/commit/614de28414126423a9a82f1982c0ffaa4cdc8f3d))
+                </ul>
+              </div>
+              <div class="border-bottom border-lg-bottom-0 pb-3">
+                    <span class="d-block h4 color-fg-default my-1" id="solutions-by-use-case-heading">By use case</span>
 
+                <ul class="list-style-none f5" aria-labelledby="solutions-by-use-case-heading">
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;devsecops&quot;,&quot;context&quot;:&quot;solutions&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;devsecops_link_solutions_navbar&quot;}" href="/solutions/use-case/devsecops">
+      DevSecOps
 
-### Refactoring
+    
+</a></li>
 
-- Authcode ([`f9b5346`](https://github.com/chemelli74/aioamazondevices/commit/f9b5346dddbefa982d3b5f168ef3923a9fcb7103))
-- Align requests between httpx and aiohttp ([`f2cd615`](https://github.com/chemelli74/aioamazondevices/commit/f2cd61557466bbe6cccfac14d2316acbff471bcc))
-- Pylance warnings ([`459e0d6`](https://github.com/chemelli74/aioamazondevices/commit/459e0d6a6a597be2dd76f75e9f95447c0cfbc097))
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;devops&quot;,&quot;context&quot;:&quot;solutions&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;devops_link_solutions_navbar&quot;}" href="/solutions/use-case/devops">
+      DevOps
 
+    
+</a></li>
 
-## v3.0.2 (2025-05-29)
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;ci_cd&quot;,&quot;context&quot;:&quot;solutions&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;ci_cd_link_solutions_navbar&quot;}" href="/solutions/use-case/ci-cd">
+      CI/CD
 
-### Bug fixes
+    
+</a></li>
 
-- Add more models and sort them ([`26c3519`](https://github.com/chemelli74/aioamazondevices/commit/26c3519a716a955535ec245425ac6bb905a1e295))
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;view_all_use_cases&quot;,&quot;context&quot;:&quot;solutions&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;view_all_use_cases_link_solutions_navbar&quot;}" href="/solutions/use-case">
+      View all use cases
 
+    
+</a></li>
 
-## v3.0.1 (2025-05-29)
+                </ul>
+              </div>
+          </div>
+          <div class="HeaderMenu-column pl-lg-4 border-lg-left pr-lg-7">
+              <div class="border-bottom border-lg-bottom-0 pb-3 pb-lg-0">
+                    <span class="d-block h4 color-fg-default my-1" id="solutions-by-industry-heading">By industry</span>
 
-### Bug fixes
+                <ul class="list-style-none f5" aria-labelledby="solutions-by-industry-heading">
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;healthcare&quot;,&quot;context&quot;:&quot;solutions&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;healthcare_link_solutions_navbar&quot;}" href="/solutions/industry/healthcare">
+      Healthcare
 
-- Link typo ([`1c961d5`](https://github.com/chemelli74/aioamazondevices/commit/1c961d5412b6c433bd4d43b1a3f95eab2634e996))
+    
+</a></li>
 
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;financial_services&quot;,&quot;context&quot;:&quot;solutions&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;financial_services_link_solutions_navbar&quot;}" href="/solutions/industry/financial-services">
+      Financial services
 
-## v3.0.0 (2025-05-28)
+    
+</a></li>
 
-### Features
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;manufacturing&quot;,&quot;context&quot;:&quot;solutions&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;manufacturing_link_solutions_navbar&quot;}" href="/solutions/industry/manufacturing">
+      Manufacturing
 
-- Improve amazon sounds management ([`ed0e2d3`](https://github.com/chemelli74/aioamazondevices/commit/ed0e2d38fe18c95ff1436f2193ccc1faf3ebb82e))
+    
+</a></li>
 
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;government&quot;,&quot;context&quot;:&quot;solutions&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;government_link_solutions_navbar&quot;}" href="/solutions/industry/government">
+      Government
 
-## v2.2.1 (2025-05-28)
+    
+</a></li>
 
-### Bug fixes
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;view_all_industries&quot;,&quot;context&quot;:&quot;solutions&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;view_all_industries_link_solutions_navbar&quot;}" href="/solutions/industry">
+      View all industries
 
-- Add missing models ([`c8c2de5`](https://github.com/chemelli74/aioamazondevices/commit/c8c2de540f533080d95ba3964d17387196161b9a))
+    
+</a></li>
 
+                </ul>
+              </div>
+          </div>
 
-## v2.2.0 (2025-05-26)
+         <div class="HeaderMenu-trailing-link rounded-bottom-2 flex-shrink-0 mt-lg-4 px-lg-4 py-4 py-lg-3 f5 text-semibold">
+            <a href="/solutions">
+              View all solutions
+              <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-chevron-right HeaderMenu-trailing-link-icon">
+    <path d="M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06Z"></path>
+</svg>
+</a>         </div>
+      </div>
+</li>
 
-### Features
 
-- Add sounds_list ([`15aadd9`](https://github.com/chemelli74/aioamazondevices/commit/15aadd92381b6bd376d6f0d694ba18658c3f8819))
+                <li class="HeaderMenu-item position-relative flex-wrap flex-justify-between flex-items-center d-block d-lg-flex flex-lg-nowrap flex-lg-items-center js-details-container js-header-menu-item">
+      <button type="button" class="HeaderMenu-link border-0 width-full width-lg-auto px-0 px-lg-2 py-lg-2 no-wrap d-flex flex-items-center flex-justify-between js-details-target" aria-expanded="false">
+        Resources
+        <svg opacity="0.5" aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-chevron-down HeaderMenu-icon ml-1">
+    <path d="M12.78 5.22a.749.749 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.06 0L3.22 6.28a.749.749 0 1 1 1.06-1.06L8 8.939l3.72-3.719a.749.749 0 0 1 1.06 0Z"></path>
+</svg>
+      </button>
 
+      <div class="HeaderMenu-dropdown dropdown-menu rounded m-0 p-0 pt-2 pt-lg-4 position-relative position-lg-absolute left-0 left-lg-n3 pb-2 pb-lg-4 d-lg-flex flex-wrap dropdown-menu-wide">
+          <div class="HeaderMenu-column pl-lg-4 px-lg-4 pb-3 pb-lg-0">
+              <div class="border-bottom border-lg-bottom-0 pb-3">
+                    <span class="d-block h4 color-fg-default my-1" id="resources-topics-heading">Topics</span>
 
-## v2.1.1 (2025-05-26)
+                <ul class="list-style-none f5" aria-labelledby="resources-topics-heading">
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;ai&quot;,&quot;context&quot;:&quot;resources&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;ai_link_resources_navbar&quot;}" href="/resources/articles/ai">
+      AI
 
-### Bug fixes
+    
+</a></li>
 
-- Make get_model_details() sync ([`cb53712`](https://github.com/chemelli74/aioamazondevices/commit/cb537123bc1219953ade01e4268eeecfa4462625))
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;devops&quot;,&quot;context&quot;:&quot;resources&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;devops_link_resources_navbar&quot;}" href="/resources/articles/devops">
+      DevOps
 
+    
+</a></li>
 
-## v2.1.0 (2025-05-26)
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;security&quot;,&quot;context&quot;:&quot;resources&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;security_link_resources_navbar&quot;}" href="/resources/articles/security">
+      Security
 
-### Features
+    
+</a></li>
 
-- Add get_model_details() method ([`294a257`](https://github.com/chemelli74/aioamazondevices/commit/294a2575122b8585acb60d912ea30d413012e10f))
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;software_development&quot;,&quot;context&quot;:&quot;resources&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;software_development_link_resources_navbar&quot;}" href="/resources/articles/software-development">
+      Software Development
 
+    
+</a></li>
 
-### Build system
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;view_all&quot;,&quot;context&quot;:&quot;resources&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;view_all_link_resources_navbar&quot;}" href="/resources/articles">
+      View all
 
-- Bump python-semantic-release/python-semantic-release from 9.21.1 to 10.0.2 ([`f976153`](https://github.com/chemelli74/aioamazondevices/commit/f976153c21d701b30964dfebce3b0a60b3e089b5))
+    
+</a></li>
+
+                </ul>
+              </div>
+          </div>
+          <div class="HeaderMenu-column pl-lg-4 border-lg-left pr-lg-7">
+              <div class="border-bottom border-lg-bottom-0 border-bottom-0">
+                    <span class="d-block h4 color-fg-default my-1" id="resources-explore-heading">Explore</span>
+
+                <ul class="list-style-none f5" aria-labelledby="resources-explore-heading">
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary Link--external" target="_blank" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;learning_pathways&quot;,&quot;context&quot;:&quot;resources&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;learning_pathways_link_resources_navbar&quot;}" href="https://resources.github.com/learn/pathways">
+      Learning Pathways
+
+    <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-link-external HeaderMenu-external-icon color-fg-subtle">
+    <path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-3.5a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14h-8.5A1.75 1.75 0 0 1 2 12.25v-8.5C2 2.784 2.784 2 3.75 2Zm6.854-1h4.146a.25.25 0 0 1 .25.25v4.146a.25.25 0 0 1-.427.177L13.03 4.03 9.28 7.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.75-3.75-1.543-1.543A.25.25 0 0 1 10.604 1Z"></path>
+</svg>
+</a></li>
+
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary Link--external" target="_blank" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;events_amp_webinars&quot;,&quot;context&quot;:&quot;resources&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;events_amp_webinars_link_resources_navbar&quot;}" href="https://resources.github.com">
+      Events &amp; Webinars
+
+    <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-link-external HeaderMenu-external-icon color-fg-subtle">
+    <path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-3.5a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14h-8.5A1.75 1.75 0 0 1 2 12.25v-8.5C2 2.784 2.784 2 3.75 2Zm6.854-1h4.146a.25.25 0 0 1 .25.25v4.146a.25.25 0 0 1-.427.177L13.03 4.03 9.28 7.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.75-3.75-1.543-1.543A.25.25 0 0 1 10.604 1Z"></path>
+</svg>
+</a></li>
+
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;ebooks_amp_whitepapers&quot;,&quot;context&quot;:&quot;resources&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;ebooks_amp_whitepapers_link_resources_navbar&quot;}" href="https://github.com/resources/whitepapers">
+      Ebooks &amp; Whitepapers
+
+    
+</a></li>
+
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;customer_stories&quot;,&quot;context&quot;:&quot;resources&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;customer_stories_link_resources_navbar&quot;}" href="https://github.com/customer-stories">
+      Customer Stories
+
+    
+</a></li>
+
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary Link--external" target="_blank" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;partners&quot;,&quot;context&quot;:&quot;resources&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;partners_link_resources_navbar&quot;}" href="https://partner.github.com">
+      Partners
 
+    <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-link-external HeaderMenu-external-icon color-fg-subtle">
+    <path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-3.5a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14h-8.5A1.75 1.75 0 0 1 2 12.25v-8.5C2 2.784 2.784 2 3.75 2Zm6.854-1h4.146a.25.25 0 0 1 .25.25v4.146a.25.25 0 0 1-.427.177L13.03 4.03 9.28 7.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.75-3.75-1.543-1.543A.25.25 0 0 1 10.604 1Z"></path>
+</svg>
+</a></li>
+
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;executive_insights&quot;,&quot;context&quot;:&quot;resources&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;executive_insights_link_resources_navbar&quot;}" href="https://github.com/solutions/executive-insights">
+      Executive Insights
+
+    
+</a></li>
+
+                </ul>
+              </div>
+          </div>
+
+      </div>
+</li>
+
+
+                <li class="HeaderMenu-item position-relative flex-wrap flex-justify-between flex-items-center d-block d-lg-flex flex-lg-nowrap flex-lg-items-center js-details-container js-header-menu-item">
+      <button type="button" class="HeaderMenu-link border-0 width-full width-lg-auto px-0 px-lg-2 py-lg-2 no-wrap d-flex flex-items-center flex-justify-between js-details-target" aria-expanded="false">
+        Open Source
+        <svg opacity="0.5" aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-chevron-down HeaderMenu-icon ml-1">
+    <path d="M12.78 5.22a.749.749 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.06 0L3.22 6.28a.749.749 0 1 1 1.06-1.06L8 8.939l3.72-3.719a.749.749 0 0 1 1.06 0Z"></path>
+</svg>
+      </button>
+
+      <div class="HeaderMenu-dropdown dropdown-menu rounded m-0 p-0 pt-2 pt-lg-4 position-relative position-lg-absolute left-0 left-lg-n3 pb-2 pb-lg-4">
+          <div class="HeaderMenu-column px-lg-4">
+              <div class="border-bottom mb-3 mb-lg-3 pb-3">
+
+                <ul class="list-style-none f5" >
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary d-flex flex-items-center Link--has-description" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;github_sponsors&quot;,&quot;context&quot;:&quot;open_source&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;github_sponsors_link_open_source_navbar&quot;}" href="/sponsors">
+      
+      <div>
+          <div class="color-fg-default h4">
+            GitHub Sponsors
+          </div>
+        Fund open source developers
+      </div>
+
+    
+</a></li>
+
+                </ul>
+              </div>
+              <div class="border-bottom mb-3 mb-lg-3 pb-3">
+
+                <ul class="list-style-none f5" >
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary d-flex flex-items-center Link--has-description" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;the_readme_project&quot;,&quot;context&quot;:&quot;open_source&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;the_readme_project_link_open_source_navbar&quot;}" href="https://github.com/readme">
+      
+      <div>
+          <div class="color-fg-default h4">
+            The ReadME Project
+          </div>
+        GitHub community articles
+      </div>
+
+    
+</a></li>
+
+                </ul>
+              </div>
+              <div class="border-bottom border-bottom-0">
+                    <span class="d-block h4 color-fg-default my-1" id="open-source-repositories-heading">Repositories</span>
+
+                <ul class="list-style-none f5" aria-labelledby="open-source-repositories-heading">
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;topics&quot;,&quot;context&quot;:&quot;open_source&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;topics_link_open_source_navbar&quot;}" href="https://github.com/topics">
+      Topics
+
+    
+</a></li>
+
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;trending&quot;,&quot;context&quot;:&quot;open_source&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;trending_link_open_source_navbar&quot;}" href="https://github.com/trending">
+      Trending
+
+    
+</a></li>
+
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;collections&quot;,&quot;context&quot;:&quot;open_source&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;collections_link_open_source_navbar&quot;}" href="https://github.com/collections">
+      Collections
+
+    
+</a></li>
+
+                </ul>
+              </div>
+          </div>
+
+      </div>
+</li>
+
+
+                <li class="HeaderMenu-item position-relative flex-wrap flex-justify-between flex-items-center d-block d-lg-flex flex-lg-nowrap flex-lg-items-center js-details-container js-header-menu-item">
+      <button type="button" class="HeaderMenu-link border-0 width-full width-lg-auto px-0 px-lg-2 py-lg-2 no-wrap d-flex flex-items-center flex-justify-between js-details-target" aria-expanded="false">
+        Enterprise
+        <svg opacity="0.5" aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-chevron-down HeaderMenu-icon ml-1">
+    <path d="M12.78 5.22a.749.749 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.06 0L3.22 6.28a.749.749 0 1 1 1.06-1.06L8 8.939l3.72-3.719a.749.749 0 0 1 1.06 0Z"></path>
+</svg>
+      </button>
+
+      <div class="HeaderMenu-dropdown dropdown-menu rounded m-0 p-0 pt-2 pt-lg-4 position-relative position-lg-absolute left-0 left-lg-n3 pb-2 pb-lg-4">
+          <div class="HeaderMenu-column px-lg-4">
+              <div class="border-bottom mb-3 mb-lg-3 pb-3">
+
+                <ul class="list-style-none f5" >
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary d-flex flex-items-center Link--has-description" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;enterprise_platform&quot;,&quot;context&quot;:&quot;enterprise&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;enterprise_platform_link_enterprise_navbar&quot;}" href="/enterprise">
+      <svg aria-hidden="true" height="24" viewBox="0 0 24 24" version="1.1" width="24" data-view-component="true" class="octicon octicon-stack color-fg-subtle mr-3">
+    <path d="M11.063 1.456a1.749 1.749 0 0 1 1.874 0l8.383 5.316a1.751 1.751 0 0 1 0 2.956l-8.383 5.316a1.749 1.749 0 0 1-1.874 0L2.68 9.728a1.751 1.751 0 0 1 0-2.956Zm1.071 1.267a.25.25 0 0 0-.268 0L3.483 8.039a.25.25 0 0 0 0 .422l8.383 5.316a.25.25 0 0 0 .268 0l8.383-5.316a.25.25 0 0 0 0-.422Z"></path><path d="M1.867 12.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.749 1.749 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035Z"></path><path d="M1.867 16.324a.75.75 0 0 1 1.035-.232l8.964 5.685a.25.25 0 0 0 .268 0l8.964-5.685a.75.75 0 0 1 .804 1.267l-8.965 5.685a1.749 1.749 0 0 1-1.874 0l-8.965-5.685a.75.75 0 0 1-.231-1.035Z"></path>
+</svg>
+      <div>
+          <div class="color-fg-default h4">
+            Enterprise platform
+          </div>
+        AI-powered developer platform
+      </div>
+
+    
+</a></li>
+
+                </ul>
+              </div>
+              <div class="border-bottom border-bottom-0">
+                    <span class="d-block h4 color-fg-default my-1" id="enterprise-available-add-ons-heading">Available add-ons</span>
+
+                <ul class="list-style-none f5" aria-labelledby="enterprise-available-add-ons-heading">
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary d-flex flex-items-center Link--has-description pb-lg-3" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;github_advanced_security&quot;,&quot;context&quot;:&quot;enterprise&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;github_advanced_security_link_enterprise_navbar&quot;}" href="https://github.com/security/advanced-security">
+      <svg aria-hidden="true" height="24" viewBox="0 0 24 24" version="1.1" width="24" data-view-component="true" class="octicon octicon-shield-check color-fg-subtle mr-3">
+    <path d="M16.53 9.78a.75.75 0 0 0-1.06-1.06L11 13.19l-1.97-1.97a.75.75 0 0 0-1.06 1.06l2.5 2.5a.75.75 0 0 0 1.06 0l5-5Z"></path><path d="m12.54.637 8.25 2.675A1.75 1.75 0 0 1 22 4.976V10c0 6.19-3.771 10.704-9.401 12.83a1.704 1.704 0 0 1-1.198 0C5.77 20.705 2 16.19 2 10V4.976c0-.758.489-1.43 1.21-1.664L11.46.637a1.748 1.748 0 0 1 1.08 0Zm-.617 1.426-8.25 2.676a.249.249 0 0 0-.173.237V10c0 5.46 3.28 9.483 8.43 11.426a.199.199 0 0 0 .14 0C17.22 19.483 20.5 15.461 20.5 10V4.976a.25.25 0 0 0-.173-.237l-8.25-2.676a.253.253 0 0 0-.154 0Z"></path>
+</svg>
+      <div>
+          <div class="color-fg-default h4">
+            GitHub Advanced Security
+          </div>
+        Enterprise-grade security features
+      </div>
+
+    
+</a></li>
+
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary d-flex flex-items-center Link--has-description pb-lg-3" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;copilot_for_business&quot;,&quot;context&quot;:&quot;enterprise&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;copilot_for_business_link_enterprise_navbar&quot;}" href="/features/copilot/copilot-business">
+      <svg aria-hidden="true" height="24" viewBox="0 0 24 24" version="1.1" width="24" data-view-component="true" class="octicon octicon-copilot color-fg-subtle mr-3">
+    <path d="M23.922 16.992c-.861 1.495-5.859 5.023-11.922 5.023-6.063 0-11.061-3.528-11.922-5.023A.641.641 0 0 1 0 16.736v-2.869a.841.841 0 0 1 .053-.22c.372-.935 1.347-2.292 2.605-2.656.167-.429.414-1.055.644-1.517a10.195 10.195 0 0 1-.052-1.086c0-1.331.282-2.499 1.132-3.368.397-.406.89-.717 1.474-.952 1.399-1.136 3.392-2.093 6.122-2.093 2.731 0 4.767.957 6.166 2.093.584.235 1.077.546 1.474.952.85.869 1.132 2.037 1.132 3.368 0 .368-.014.733-.052 1.086.23.462.477 1.088.644 1.517 1.258.364 2.233 1.721 2.605 2.656a.832.832 0 0 1 .053.22v2.869a.641.641 0 0 1-.078.256ZM12.172 11h-.344a4.323 4.323 0 0 1-.355.508C10.703 12.455 9.555 13 7.965 13c-1.725 0-2.989-.359-3.782-1.259a2.005 2.005 0 0 1-.085-.104L4 11.741v6.585c1.435.779 4.514 2.179 8 2.179 3.486 0 6.565-1.4 8-2.179v-6.585l-.098-.104s-.033.045-.085.104c-.793.9-2.057 1.259-3.782 1.259-1.59 0-2.738-.545-3.508-1.492a4.323 4.323 0 0 1-.355-.508h-.016.016Zm.641-2.935c.136 1.057.403 1.913.878 2.497.442.544 1.134.938 2.344.938 1.573 0 2.292-.337 2.657-.751.384-.435.558-1.15.558-2.361 0-1.14-.243-1.847-.705-2.319-.477-.488-1.319-.862-2.824-1.025-1.487-.161-2.192.138-2.533.529-.269.307-.437.808-.438 1.578v.021c0 .265.021.562.063.893Zm-1.626 0c.042-.331.063-.628.063-.894v-.02c-.001-.77-.169-1.271-.438-1.578-.341-.391-1.046-.69-2.533-.529-1.505.163-2.347.537-2.824 1.025-.462.472-.705 1.179-.705 2.319 0 1.211.175 1.926.558 2.361.365.414 1.084.751 2.657.751 1.21 0 1.902-.394 2.344-.938.475-.584.742-1.44.878-2.497Z"></path><path d="M14.5 14.25a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1Zm-5 0a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1Z"></path>
+</svg>
+      <div>
+          <div class="color-fg-default h4">
+            Copilot for business
+          </div>
+        Enterprise-grade AI features
+      </div>
+
+    
+</a></li>
+
+                    <li>
+  <a class="HeaderMenu-dropdown-link d-block no-underline position-relative py-2 Link--secondary d-flex flex-items-center Link--has-description" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;premium_support&quot;,&quot;context&quot;:&quot;enterprise&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;premium_support_link_enterprise_navbar&quot;}" href="/premium-support">
+      <svg aria-hidden="true" height="24" viewBox="0 0 24 24" version="1.1" width="24" data-view-component="true" class="octicon octicon-comment-discussion color-fg-subtle mr-3">
+    <path d="M1.75 1h12.5c.966 0 1.75.784 1.75 1.75v9.5A1.75 1.75 0 0 1 14.25 14H8.061l-2.574 2.573A1.458 1.458 0 0 1 3 15.543V14H1.75A1.75 1.75 0 0 1 0 12.25v-9.5C0 1.784.784 1 1.75 1ZM1.5 2.75v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25Z"></path><path d="M22.5 8.75a.25.25 0 0 0-.25-.25h-3.5a.75.75 0 0 1 0-1.5h3.5c.966 0 1.75.784 1.75 1.75v9.5A1.75 1.75 0 0 1 22.25 20H21v1.543a1.457 1.457 0 0 1-2.487 1.03L15.939 20H10.75A1.75 1.75 0 0 1 9 18.25v-1.465a.75.75 0 0 1 1.5 0v1.465c0 .138.112.25.25.25h5.5a.75.75 0 0 1 .53.22l2.72 2.72v-2.19a.75.75 0 0 1 .75-.75h2a.25.25 0 0 0 .25-.25v-9.5Z"></path>
+</svg>
+      <div>
+          <div class="color-fg-default h4">
+            Premium Support
+          </div>
+        Enterprise-grade 24/7 support
+      </div>
+
+    
+</a></li>
+
+                </ul>
+              </div>
+          </div>
+
+      </div>
+</li>
+
+
+                <li class="HeaderMenu-item position-relative flex-wrap flex-justify-between flex-items-center d-block d-lg-flex flex-lg-nowrap flex-lg-items-center js-details-container js-header-menu-item">
+    <a class="HeaderMenu-link no-underline px-0 px-lg-2 py-3 py-lg-2 d-block d-lg-inline-block" data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;pricing&quot;,&quot;context&quot;:&quot;global&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;pricing_link_global_navbar&quot;}" href="https://github.com/pricing">Pricing</a>
+</li>
+
+            </ul>
+          </nav>
+
+        <div class="d-flex flex-column flex-lg-row width-full flex-justify-end flex-lg-items-center text-center mt-3 mt-lg-0 text-lg-left ml-lg-3">
+                
+
+
+<qbsearch-input class="search-input" data-scope="repo:chemelli74/aioamazondevices" data-custom-scopes-path="/search/custom_scopes" data-delete-custom-scopes-csrf="PfMWd4HpmP3eEQ-zM1hTEWxP95w9d7rc6WVBn6nduyc2Q_kqpZanp-2KiKjuD2uWWhWG_sqiOMwj32UK5FmvQQ" data-max-custom-scopes="10" data-header-redesign-enabled="false" data-initial-value="" data-blackbird-suggestions-path="/search/suggestions" data-jump-to-suggestions-path="/_graphql/GetSuggestedNavigationDestinations" data-current-repository="chemelli74/aioamazondevices" data-current-org="" data-current-owner="chemelli74" data-logged-in="false" data-copilot-chat-enabled="false" data-nl-search-enabled="false" data-retain-scroll-position="true">
+  <div
+    class="search-input-container search-with-dialog position-relative d-flex flex-row flex-items-center mr-4 rounded"
+    data-action="click:qbsearch-input#searchInputContainerClicked"
+  >
+      <button
+        type="button"
+        class="header-search-button placeholder  input-button form-control d-flex flex-1 flex-self-stretch flex-items-center no-wrap width-full py-0 pl-2 pr-0 text-left border-0 box-shadow-none"
+        data-target="qbsearch-input.inputButton"
+        aria-label="Search or jump to…"
+        aria-haspopup="dialog"
+        placeholder="Search or jump to..."
+        data-hotkey=s,/
+        autocapitalize="off"
+        data-analytics-event="{&quot;location&quot;:&quot;navbar&quot;,&quot;action&quot;:&quot;searchbar&quot;,&quot;context&quot;:&quot;global&quot;,&quot;tag&quot;:&quot;input&quot;,&quot;label&quot;:&quot;searchbar_input_global_navbar&quot;}"
+        data-action="click:qbsearch-input#handleExpand"
+      >
+        <div class="mr-2 color-fg-muted">
+          <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-search">
+    <path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"></path>
+</svg>
+        </div>
+        <span class="flex-1" data-target="qbsearch-input.inputButtonText">Search or jump to...</span>
+          <div class="d-flex" data-target="qbsearch-input.hotkeyIndicator">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="20" aria-hidden="true" class="mr-1"><path fill="none" stroke="#979A9C" opacity=".4" d="M3.5.5h12c1.7 0 3 1.3 3 3v13c0 1.7-1.3 3-3 3h-12c-1.7 0-3-1.3-3-3v-13c0-1.7 1.3-3 3-3z"></path><path fill="#979A9C" d="M11.8 6L8 15.1h-.9L10.8 6h1z"></path></svg>
+          </div>
+      </button>
+
+    <input type="hidden" name="type" class="js-site-search-type-field">
+
+    
+<div class="Overlay--hidden " data-modal-dialog-overlay>
+  <modal-dialog data-action="close:qbsearch-input#handleClose cancel:qbsearch-input#handleClose" data-target="qbsearch-input.searchSuggestionsDialog" role="dialog" id="search-suggestions-dialog" aria-modal="true" aria-labelledby="search-suggestions-dialog-header" data-view-component="true" class="Overlay Overlay--width-large Overlay--height-auto">
+      <h1 id="search-suggestions-dialog-header" class="sr-only">Search code, repositories, users, issues, pull requests...</h1>
+    <div class="Overlay-body Overlay-body--paddingNone">
+      
+          <div data-view-component="true">        <div class="search-suggestions position-fixed width-full color-shadow-large border color-fg-default color-bg-default overflow-hidden d-flex flex-column query-builder-container"
+          style="border-radius: 12px;"
+          data-target="qbsearch-input.queryBuilderContainer"
+          hidden
+        >
+          <!-- '"` --><!-- </textarea></xmp> --></option></form><form id="query-builder-test-form" action="" accept-charset="UTF-8" method="get">
+  <query-builder data-target="qbsearch-input.queryBuilder" id="query-builder-query-builder-test" data-filter-key=":" data-view-component="true" class="QueryBuilder search-query-builder">
+    <div class="FormControl FormControl--fullWidth">
+      <label id="query-builder-test-label" for="query-builder-test" class="FormControl-label sr-only">
+        Search
+      </label>
+      <div
+        class="QueryBuilder-StyledInput width-fit "
+        data-target="query-builder.styledInput"
+      >
+          <span id="query-builder-test-leadingvisual-wrap" class="FormControl-input-leadingVisualWrap QueryBuilder-leadingVisualWrap">
+            <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-search FormControl-input-leadingVisual">
+    <path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"></path>
+</svg>
+          </span>
+        <div data-target="query-builder.styledInputContainer" class="QueryBuilder-StyledInputContainer">
+          <div
+            aria-hidden="true"
+            class="QueryBuilder-StyledInputContent"
+            data-target="query-builder.styledInputContent"
+          ></div>
+          <div class="QueryBuilder-InputWrapper">
+            <div aria-hidden="true" class="QueryBuilder-Sizer" data-target="query-builder.sizer"></div>
+            <input id="query-builder-test" name="query-builder-test" value="" autocomplete="off" type="text" role="combobox" spellcheck="false" aria-expanded="false" aria-describedby="validation-d5724e63-b3b6-410f-a279-681609fe2ab5" data-target="query-builder.input" data-action="
+          input:query-builder#inputChange
+          blur:query-builder#inputBlur
+          keydown:query-builder#inputKeydown
+          focus:query-builder#inputFocus
+        " data-view-component="true" class="FormControl-input QueryBuilder-Input FormControl-medium" />
+          </div>
+        </div>
+          <span class="sr-only" id="query-builder-test-clear">Clear</span>
+          <button role="button" id="query-builder-test-clear-button" aria-labelledby="query-builder-test-clear query-builder-test-label" data-target="query-builder.clearButton" data-action="
+                click:query-builder#clear
+                focus:query-builder#clearButtonFocus
+                blur:query-builder#clearButtonBlur
+              " variant="small" hidden="hidden" type="button" data-view-component="true" class="Button Button--iconOnly Button--invisible Button--medium mr-1 px-2 py-0 d-flex flex-items-center rounded-1 color-fg-muted">  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-x-circle-fill Button-visual">
+    <path d="M2.343 13.657A8 8 0 1 1 13.658 2.343 8 8 0 0 1 2.343 13.657ZM6.03 4.97a.751.751 0 0 0-1.042.018.751.751 0 0 0-.018 1.042L6.94 8 4.97 9.97a.749.749 0 0 0 .326 1.275.749.749 0 0 0 .734-.215L8 9.06l1.97 1.97a.749.749 0 0 0 1.275-.326.749.749 0 0 0-.215-.734L9.06 8l1.97-1.97a.749.749 0 0 0-.326-1.275.749.749 0 0 0-.734.215L8 6.94Z"></path>
+</svg>
+</button>
+
+      </div>
+      <template id="search-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-search">
+    <path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"></path>
+</svg>
+</template>
+
+<template id="code-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-code">
+    <path d="m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L13.94 8l-3.72-3.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215Zm-6.56 0a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L2.06 8l3.72 3.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L.47 8.53a.75.75 0 0 1 0-1.06Z"></path>
+</svg>
+</template>
+
+<template id="file-code-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-file-code">
+    <path d="M4 1.75C4 .784 4.784 0 5.75 0h5.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v8.586A1.75 1.75 0 0 1 14.25 15h-9a.75.75 0 0 1 0-1.5h9a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 10 4.25V1.5H5.75a.25.25 0 0 0-.25.25v2.5a.75.75 0 0 1-1.5 0Zm1.72 4.97a.75.75 0 0 1 1.06 0l2 2a.75.75 0 0 1 0 1.06l-2 2a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.47-1.47-1.47-1.47a.75.75 0 0 1 0-1.06ZM3.28 7.78 1.81 9.25l1.47 1.47a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-2-2a.75.75 0 0 1 0-1.06l2-2a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042Zm8.22-6.218V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"></path>
+</svg>
+</template>
+
+<template id="history-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-history">
+    <path d="m.427 1.927 1.215 1.215a8.002 8.002 0 1 1-1.6 5.685.75.75 0 1 1 1.493-.154 6.5 6.5 0 1 0 1.18-4.458l1.358 1.358A.25.25 0 0 1 3.896 6H.25A.25.25 0 0 1 0 5.75V2.104a.25.25 0 0 1 .427-.177ZM7.75 4a.75.75 0 0 1 .75.75v2.992l2.028.812a.75.75 0 0 1-.557 1.392l-2.5-1A.751.751 0 0 1 7 8.25v-3.5A.75.75 0 0 1 7.75 4Z"></path>
+</svg>
+</template>
+
+<template id="repo-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-repo">
+    <path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"></path>
+</svg>
+</template>
+
+<template id="bookmark-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-bookmark">
+    <path d="M3 2.75C3 1.784 3.784 1 4.75 1h6.5c.966 0 1.75.784 1.75 1.75v11.5a.75.75 0 0 1-1.227.579L8 11.722l-3.773 3.107A.751.751 0 0 1 3 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.91l3.023-2.489a.75.75 0 0 1 .954 0l3.023 2.49V2.75a.25.25 0 0 0-.25-.25Z"></path>
+</svg>
+</template>
+
+<template id="plus-circle-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-plus-circle">
+    <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm7.25-3.25v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5a.75.75 0 0 1 1.5 0Z"></path>
+</svg>
+</template>
+
+<template id="circle-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-dot-fill">
+    <path d="M8 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"></path>
+</svg>
+</template>
+
+<template id="trash-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-trash">
+    <path d="M11 1.75V3h2.25a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1 0-1.5H5V1.75C5 .784 5.784 0 6.75 0h2.5C10.216 0 11 .784 11 1.75ZM4.496 6.675l.66 6.6a.25.25 0 0 0 .249.225h5.19a.25.25 0 0 0 .249-.225l.66-6.6a.75.75 0 0 1 1.492.149l-.66 6.6A1.748 1.748 0 0 1 10.595 15h-5.19a1.75 1.75 0 0 1-1.741-1.575l-.66-6.6a.75.75 0 1 1 1.492-.15ZM6.5 1.75V3h3V1.75a.25.25 0 0 0-.25-.25h-2.5a.25.25 0 0 0-.25.25Z"></path>
+</svg>
+</template>
+
+<template id="team-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-people">
+    <path d="M2 5.5a3.5 3.5 0 1 1 5.898 2.549 5.508 5.508 0 0 1 3.034 4.084.75.75 0 1 1-1.482.235 4 4 0 0 0-7.9 0 .75.75 0 0 1-1.482-.236A5.507 5.507 0 0 1 3.102 8.05 3.493 3.493 0 0 1 2 5.5ZM11 4a3.001 3.001 0 0 1 2.22 5.018 5.01 5.01 0 0 1 2.56 3.012.749.749 0 0 1-.885.954.752.752 0 0 1-.549-.514 3.507 3.507 0 0 0-2.522-2.372.75.75 0 0 1-.574-.73v-.352a.75.75 0 0 1 .416-.672A1.5 1.5 0 0 0 11 5.5.75.75 0 0 1 11 4Zm-5.5-.5a2 2 0 1 0-.001 3.999A2 2 0 0 0 5.5 3.5Z"></path>
+</svg>
+</template>
+
+<template id="project-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-project">
+    <path d="M1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25V1.75C0 .784.784 0 1.75 0ZM1.5 1.75v12.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25ZM11.75 3a.75.75 0 0 1 .75.75v7.5a.75.75 0 0 1-1.5 0v-7.5a.75.75 0 0 1 .75-.75Zm-8.25.75a.75.75 0 0 1 1.5 0v5.5a.75.75 0 0 1-1.5 0ZM8 3a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 3Z"></path>
+</svg>
+</template>
+
+<template id="pencil-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-pencil">
+    <path d="M11.013 1.427a1.75 1.75 0 0 1 2.474 0l1.086 1.086a1.75 1.75 0 0 1 0 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 0 1-.927-.928l.929-3.25c.081-.286.235-.547.445-.758l8.61-8.61Zm.176 4.823L9.75 4.81l-6.286 6.287a.253.253 0 0 0-.064.108l-.558 1.953 1.953-.558a.253.253 0 0 0 .108-.064Zm1.238-3.763a.25.25 0 0 0-.354 0L10.811 3.75l1.439 1.44 1.263-1.263a.25.25 0 0 0 0-.354Z"></path>
+</svg>
+</template>
+
+<template id="copilot-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-copilot">
+    <path d="M7.998 15.035c-4.562 0-7.873-2.914-7.998-3.749V9.338c.085-.628.677-1.686 1.588-2.065.013-.07.024-.143.036-.218.029-.183.06-.384.126-.612-.201-.508-.254-1.084-.254-1.656 0-.87.128-1.769.693-2.484.579-.733 1.494-1.124 2.724-1.261 1.206-.134 2.262.034 2.944.765.05.053.096.108.139.165.044-.057.094-.112.143-.165.682-.731 1.738-.899 2.944-.765 1.23.137 2.145.528 2.724 1.261.566.715.693 1.614.693 2.484 0 .572-.053 1.148-.254 1.656.066.228.098.429.126.612.012.076.024.148.037.218.924.385 1.522 1.471 1.591 2.095v1.872c0 .766-3.351 3.795-8.002 3.795Zm0-1.485c2.28 0 4.584-1.11 5.002-1.433V7.862l-.023-.116c-.49.21-1.075.291-1.727.291-1.146 0-2.059-.327-2.71-.991A3.222 3.222 0 0 1 8 6.303a3.24 3.24 0 0 1-.544.743c-.65.664-1.563.991-2.71.991-.652 0-1.236-.081-1.727-.291l-.023.116v4.255c.419.323 2.722 1.433 5.002 1.433ZM6.762 2.83c-.193-.206-.637-.413-1.682-.297-1.019.113-1.479.404-1.713.7-.247.312-.369.789-.369 1.554 0 .793.129 1.171.308 1.371.162.181.519.379 1.442.379.853 0 1.339-.235 1.638-.54.315-.322.527-.827.617-1.553.117-.935-.037-1.395-.241-1.614Zm4.155-.297c-1.044-.116-1.488.091-1.681.297-.204.219-.359.679-.242 1.614.091.726.303 1.231.618 1.553.299.305.784.54 1.638.54.922 0 1.28-.198 1.442-.379.179-.2.308-.578.308-1.371 0-.765-.123-1.242-.37-1.554-.233-.296-.693-.587-1.713-.7Z"></path><path d="M6.25 9.037a.75.75 0 0 1 .75.75v1.501a.75.75 0 0 1-1.5 0V9.787a.75.75 0 0 1 .75-.75Zm4.25.75v1.501a.75.75 0 0 1-1.5 0V9.787a.75.75 0 0 1 1.5 0Z"></path>
+</svg>
+</template>
+
+<template id="copilot-error-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-copilot-error">
+    <path d="M16 11.24c0 .112-.072.274-.21.467L13 9.688V7.862l-.023-.116c-.49.21-1.075.291-1.727.291-.198 0-.388-.009-.571-.029L6.833 5.226a4.01 4.01 0 0 0 .17-.782c.117-.935-.037-1.395-.241-1.614-.193-.206-.637-.413-1.682-.297-.683.076-1.115.231-1.395.415l-1.257-.91c.579-.564 1.413-.877 2.485-.996 1.206-.134 2.262.034 2.944.765.05.053.096.108.139.165.044-.057.094-.112.143-.165.682-.731 1.738-.899 2.944-.765 1.23.137 2.145.528 2.724 1.261.566.715.693 1.614.693 2.484 0 .572-.053 1.148-.254 1.656.066.228.098.429.126.612.012.076.024.148.037.218.924.385 1.522 1.471 1.591 2.095Zm-5.083-8.707c-1.044-.116-1.488.091-1.681.297-.204.219-.359.679-.242 1.614.091.726.303 1.231.618 1.553.299.305.784.54 1.638.54.922 0 1.28-.198 1.442-.379.179-.2.308-.578.308-1.371 0-.765-.123-1.242-.37-1.554-.233-.296-.693-.587-1.713-.7Zm2.511 11.074c-1.393.776-3.272 1.428-5.43 1.428-4.562 0-7.873-2.914-7.998-3.749V9.338c.085-.628.677-1.686 1.588-2.065.013-.07.024-.143.036-.218.029-.183.06-.384.126-.612-.18-.455-.241-.963-.252-1.475L.31 4.107A.747.747 0 0 1 0 3.509V3.49a.748.748 0 0 1 .625-.73c.156-.026.306.047.435.139l14.667 10.578a.592.592 0 0 1 .227.264.752.752 0 0 1 .046.249v.022a.75.75 0 0 1-1.19.596Zm-1.367-.991L5.635 7.964a5.128 5.128 0 0 1-.889.073c-.652 0-1.236-.081-1.727-.291l-.023.116v4.255c.419.323 2.722 1.433 5.002 1.433 1.539 0 3.089-.505 4.063-.934Z"></path>
+</svg>
+</template>
+
+<template id="workflow-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-workflow">
+    <path d="M0 1.75C0 .784.784 0 1.75 0h3.5C6.216 0 7 .784 7 1.75v3.5A1.75 1.75 0 0 1 5.25 7H4v4a1 1 0 0 0 1 1h4v-1.25C9 9.784 9.784 9 10.75 9h3.5c.966 0 1.75.784 1.75 1.75v3.5A1.75 1.75 0 0 1 14.25 16h-3.5A1.75 1.75 0 0 1 9 14.25v-.75H5A2.5 2.5 0 0 1 2.5 11V7h-.75A1.75 1.75 0 0 1 0 5.25Zm1.75-.25a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25h3.5a.25.25 0 0 0 .25-.25v-3.5a.25.25 0 0 0-.25-.25Zm9 9a.25.25 0 0 0-.25.25v3.5c0 .138.112.25.25.25h3.5a.25.25 0 0 0 .25-.25v-3.5a.25.25 0 0 0-.25-.25Z"></path>
+</svg>
+</template>
+
+<template id="book-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-book">
+    <path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z"></path>
+</svg>
+</template>
+
+<template id="code-review-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-code-review">
+    <path d="M1.75 1h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 13H8.061l-2.574 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25v-8.5C0 1.784.784 1 1.75 1ZM1.5 2.75v8.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-8.5a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25Zm5.28 1.72a.75.75 0 0 1 0 1.06L5.31 7l1.47 1.47a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-2-2a.75.75 0 0 1 0-1.06l2-2a.75.75 0 0 1 1.06 0Zm2.44 0a.75.75 0 0 1 1.06 0l2 2a.75.75 0 0 1 0 1.06l-2 2a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L10.69 7 9.22 5.53a.75.75 0 0 1 0-1.06Z"></path>
+</svg>
+</template>
+
+<template id="codespaces-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-codespaces">
+    <path d="M0 11.25c0-.966.784-1.75 1.75-1.75h12.5c.966 0 1.75.784 1.75 1.75v3A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25Zm2-9.5C2 .784 2.784 0 3.75 0h8.5C13.216 0 14 .784 14 1.75v5a1.75 1.75 0 0 1-1.75 1.75h-8.5A1.75 1.75 0 0 1 2 6.75Zm1.75-.25a.25.25 0 0 0-.25.25v5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-5a.25.25 0 0 0-.25-.25Zm-2 9.5a.25.25 0 0 0-.25.25v3c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25v-3a.25.25 0 0 0-.25-.25Z"></path><path d="M7 12.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75Zm-4 0a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 0 1.5h-.5a.75.75 0 0 1-.75-.75Z"></path>
+</svg>
+</template>
+
+<template id="comment-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-comment">
+    <path d="M1 2.75C1 1.784 1.784 1 2.75 1h10.5c.966 0 1.75.784 1.75 1.75v7.5A1.75 1.75 0 0 1 13.25 12H9.06l-2.573 2.573A1.458 1.458 0 0 1 4 13.543V12H2.75A1.75 1.75 0 0 1 1 10.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h4.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+</svg>
+</template>
+
+<template id="comment-discussion-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-comment-discussion">
+    <path d="M1.75 1h8.5c.966 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0 1 10.25 10H7.061l-2.574 2.573A1.458 1.458 0 0 1 2 11.543V10h-.25A1.75 1.75 0 0 1 0 8.25v-5.5C0 1.784.784 1 1.75 1ZM1.5 2.75v5.5c0 .138.112.25.25.25h1a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h3.5a.25.25 0 0 0 .25-.25v-5.5a.25.25 0 0 0-.25-.25h-8.5a.25.25 0 0 0-.25.25Zm13 2a.25.25 0 0 0-.25-.25h-.5a.75.75 0 0 1 0-1.5h.5c.966 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0 1 14.25 12H14v1.543a1.458 1.458 0 0 1-2.487 1.03L9.22 12.28a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.22 2.22v-2.19a.75.75 0 0 1 .75-.75h1a.25.25 0 0 0 .25-.25Z"></path>
+</svg>
+</template>
+
+<template id="organization-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-organization">
+    <path d="M1.75 16A1.75 1.75 0 0 1 0 14.25V1.75C0 .784.784 0 1.75 0h8.5C11.216 0 12 .784 12 1.75v12.5c0 .085-.006.168-.018.25h2.268a.25.25 0 0 0 .25-.25V8.285a.25.25 0 0 0-.111-.208l-1.055-.703a.749.749 0 1 1 .832-1.248l1.055.703c.487.325.779.871.779 1.456v5.965A1.75 1.75 0 0 1 14.25 16h-3.5a.766.766 0 0 1-.197-.026c-.099.017-.2.026-.303.026h-3a.75.75 0 0 1-.75-.75V14h-1v1.25a.75.75 0 0 1-.75.75Zm-.25-1.75c0 .138.112.25.25.25H4v-1.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 .75.75v1.25h2.25a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25h-8.5a.25.25 0 0 0-.25.25ZM3.75 6h.5a.75.75 0 0 1 0 1.5h-.5a.75.75 0 0 1 0-1.5ZM3 3.75A.75.75 0 0 1 3.75 3h.5a.75.75 0 0 1 0 1.5h-.5A.75.75 0 0 1 3 3.75Zm4 3A.75.75 0 0 1 7.75 6h.5a.75.75 0 0 1 0 1.5h-.5A.75.75 0 0 1 7 6.75ZM7.75 3h.5a.75.75 0 0 1 0 1.5h-.5a.75.75 0 0 1 0-1.5ZM3 9.75A.75.75 0 0 1 3.75 9h.5a.75.75 0 0 1 0 1.5h-.5A.75.75 0 0 1 3 9.75ZM7.75 9h.5a.75.75 0 0 1 0 1.5h-.5a.75.75 0 0 1 0-1.5Z"></path>
+</svg>
+</template>
+
+<template id="rocket-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-rocket">
+    <path d="M14.064 0h.186C15.216 0 16 .784 16 1.75v.186a8.752 8.752 0 0 1-2.564 6.186l-.458.459c-.314.314-.641.616-.979.904v3.207c0 .608-.315 1.172-.833 1.49l-2.774 1.707a.749.749 0 0 1-1.11-.418l-.954-3.102a1.214 1.214 0 0 1-.145-.125L3.754 9.816a1.218 1.218 0 0 1-.124-.145L.528 8.717a.749.749 0 0 1-.418-1.11l1.71-2.774A1.748 1.748 0 0 1 3.31 4h3.204c.288-.338.59-.665.904-.979l.459-.458A8.749 8.749 0 0 1 14.064 0ZM8.938 3.623h-.002l-.458.458c-.76.76-1.437 1.598-2.02 2.5l-1.5 2.317 2.143 2.143 2.317-1.5c.902-.583 1.74-1.26 2.499-2.02l.459-.458a7.25 7.25 0 0 0 2.123-5.127V1.75a.25.25 0 0 0-.25-.25h-.186a7.249 7.249 0 0 0-5.125 2.123ZM3.56 14.56c-.732.732-2.334 1.045-3.005 1.148a.234.234 0 0 1-.201-.064.234.234 0 0 1-.064-.201c.103-.671.416-2.273 1.15-3.003a1.502 1.502 0 1 1 2.12 2.12Zm6.94-3.935c-.088.06-.177.118-.266.175l-2.35 1.521.548 1.783 1.949-1.2a.25.25 0 0 0 .119-.213ZM3.678 8.116 5.2 5.766c.058-.09.117-.178.176-.266H3.309a.25.25 0 0 0-.213.119l-1.2 1.95ZM12 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path>
+</svg>
+</template>
+
+<template id="shield-check-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-shield-check">
+    <path d="m8.533.133 5.25 1.68A1.75 1.75 0 0 1 15 3.48V7c0 1.566-.32 3.182-1.303 4.682-.983 1.498-2.585 2.813-5.032 3.855a1.697 1.697 0 0 1-1.33 0c-2.447-1.042-4.049-2.357-5.032-3.855C1.32 10.182 1 8.566 1 7V3.48a1.75 1.75 0 0 1 1.217-1.667l5.25-1.68a1.748 1.748 0 0 1 1.066 0Zm-.61 1.429.001.001-5.25 1.68a.251.251 0 0 0-.174.237V7c0 1.36.275 2.666 1.057 3.859.784 1.194 2.121 2.342 4.366 3.298a.196.196 0 0 0 .154 0c2.245-.957 3.582-2.103 4.366-3.297C13.225 9.666 13.5 8.358 13.5 7V3.48a.25.25 0 0 0-.174-.238l-5.25-1.68a.25.25 0 0 0-.153 0ZM11.28 6.28l-3.5 3.5a.75.75 0 0 1-1.06 0l-1.5-1.5a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l.97.97 2.97-2.97a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042Z"></path>
+</svg>
+</template>
+
+<template id="heart-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-heart">
+    <path d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"></path>
+</svg>
+</template>
+
+<template id="server-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-server">
+    <path d="M1.75 1h12.5c.966 0 1.75.784 1.75 1.75v4c0 .372-.116.717-.314 1 .198.283.314.628.314 1v4a1.75 1.75 0 0 1-1.75 1.75H1.75A1.75 1.75 0 0 1 0 12.75v-4c0-.358.109-.707.314-1a1.739 1.739 0 0 1-.314-1v-4C0 1.784.784 1 1.75 1ZM1.5 2.75v4c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25v-4a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25Zm.25 5.75a.25.25 0 0 0-.25.25v4c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25v-4a.25.25 0 0 0-.25-.25ZM7 4.75A.75.75 0 0 1 7.75 4h4.5a.75.75 0 0 1 0 1.5h-4.5A.75.75 0 0 1 7 4.75ZM7.75 10h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM3 4.75A.75.75 0 0 1 3.75 4h.5a.75.75 0 0 1 0 1.5h-.5A.75.75 0 0 1 3 4.75ZM3.75 10h.5a.75.75 0 0 1 0 1.5h-.5a.75.75 0 0 1 0-1.5Z"></path>
+</svg>
+</template>
+
+<template id="globe-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-globe">
+    <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM5.78 8.75a9.64 9.64 0 0 0 1.363 4.177c.255.426.542.832.857 1.215.245-.296.551-.705.857-1.215A9.64 9.64 0 0 0 10.22 8.75Zm4.44-1.5a9.64 9.64 0 0 0-1.363-4.177c-.307-.51-.612-.919-.857-1.215a9.927 9.927 0 0 0-.857 1.215A9.64 9.64 0 0 0 5.78 7.25Zm-5.944 1.5H1.543a6.507 6.507 0 0 0 4.666 5.5c-.123-.181-.24-.365-.352-.552-.715-1.192-1.437-2.874-1.581-4.948Zm-2.733-1.5h2.733c.144-2.074.866-3.756 1.58-4.948.12-.197.237-.381.353-.552a6.507 6.507 0 0 0-4.666 5.5Zm10.181 1.5c-.144 2.074-.866 3.756-1.58 4.948-.12.197-.237.381-.353.552a6.507 6.507 0 0 0 4.666-5.5Zm2.733-1.5a6.507 6.507 0 0 0-4.666-5.5c.123.181.24.365.353.552.714 1.192 1.436 2.874 1.58 4.948Z"></path>
+</svg>
+</template>
+
+<template id="issue-opened-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-issue-opened">
+    <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"></path>
+</svg>
+</template>
+
+<template id="device-mobile-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-device-mobile">
+    <path d="M3.75 0h8.5C13.216 0 14 .784 14 1.75v12.5A1.75 1.75 0 0 1 12.25 16h-8.5A1.75 1.75 0 0 1 2 14.25V1.75C2 .784 2.784 0 3.75 0ZM3.5 1.75v12.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25h-8.5a.25.25 0 0 0-.25.25ZM8 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path>
+</svg>
+</template>
+
+<template id="package-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-package">
+    <path d="m8.878.392 5.25 3.045c.54.314.872.89.872 1.514v6.098a1.75 1.75 0 0 1-.872 1.514l-5.25 3.045a1.75 1.75 0 0 1-1.756 0l-5.25-3.045A1.75 1.75 0 0 1 1 11.049V4.951c0-.624.332-1.201.872-1.514L7.122.392a1.75 1.75 0 0 1 1.756 0ZM7.875 1.69l-4.63 2.685L8 7.133l4.755-2.758-4.63-2.685a.248.248 0 0 0-.25 0ZM2.5 5.677v5.372c0 .09.047.171.125.216l4.625 2.683V8.432Zm6.25 8.271 4.625-2.683a.25.25 0 0 0 .125-.216V5.677L8.75 8.432Z"></path>
+</svg>
+</template>
+
+<template id="credit-card-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-credit-card">
+    <path d="M10.75 9a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5h-1.5Z"></path><path d="M0 3.75C0 2.784.784 2 1.75 2h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 14H1.75A1.75 1.75 0 0 1 0 12.25ZM14.5 6.5h-13v5.75c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25Zm0-2.75a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25V5h13Z"></path>
+</svg>
+</template>
+
+<template id="play-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-play">
+    <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm4.879-2.773 4.264 2.559a.25.25 0 0 1 0 .428l-4.264 2.559A.25.25 0 0 1 6 10.559V5.442a.25.25 0 0 1 .379-.215Z"></path>
+</svg>
+</template>
+
+<template id="gift-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-gift">
+    <path d="M2 2.75A2.75 2.75 0 0 1 4.75 0c.983 0 1.873.42 2.57 1.232.268.318.497.668.68 1.042.183-.375.411-.725.68-1.044C9.376.42 10.266 0 11.25 0a2.75 2.75 0 0 1 2.45 4h.55c.966 0 1.75.784 1.75 1.75v2c0 .698-.409 1.301-1 1.582v4.918A1.75 1.75 0 0 1 13.25 16H2.75A1.75 1.75 0 0 1 1 14.25V9.332C.409 9.05 0 8.448 0 7.75v-2C0 4.784.784 4 1.75 4h.55c-.192-.375-.3-.8-.3-1.25ZM7.25 9.5H2.5v4.75c0 .138.112.25.25.25h4.5Zm1.5 0v5h4.5a.25.25 0 0 0 .25-.25V9.5Zm0-4V8h5.5a.25.25 0 0 0 .25-.25v-2a.25.25 0 0 0-.25-.25Zm-7 0a.25.25 0 0 0-.25.25v2c0 .138.112.25.25.25h5.5V5.5h-5.5Zm3-4a1.25 1.25 0 0 0 0 2.5h2.309c-.233-.818-.542-1.401-.878-1.793-.43-.502-.915-.707-1.431-.707ZM8.941 4h2.309a1.25 1.25 0 0 0 0-2.5c-.516 0-1 .205-1.43.707-.337.392-.646.975-.879 1.793Z"></path>
+</svg>
+</template>
+
+<template id="code-square-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-code-square">
+    <path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25Zm7.47 3.97a.75.75 0 0 1 1.06 0l2 2a.75.75 0 0 1 0 1.06l-2 2a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L10.69 8 9.22 6.53a.75.75 0 0 1 0-1.06ZM6.78 6.53 5.31 8l1.47 1.47a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215l-2-2a.75.75 0 0 1 0-1.06l2-2a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042Z"></path>
+</svg>
+</template>
+
+<template id="device-desktop-icon">
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-device-desktop">
+    <path d="M14.25 1c.966 0 1.75.784 1.75 1.75v7.5A1.75 1.75 0 0 1 14.25 12h-3.727c.099 1.041.52 1.872 1.292 2.757A.752.752 0 0 1 11.25 16h-6.5a.75.75 0 0 1-.565-1.243c.772-.885 1.192-1.716 1.292-2.757H1.75A1.75 1.75 0 0 1 0 10.25v-7.5C0 1.784.784 1 1.75 1ZM1.75 2.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25ZM9.018 12H6.982a5.72 5.72 0 0 1-.765 2.5h3.566a5.72 5.72 0 0 1-.765-2.5Z"></path>
+</svg>
+</template>
+
+        <div class="position-relative">
+                <ul
+                  role="listbox"
+                  class="ActionListWrap QueryBuilder-ListWrap"
+                  aria-label="Suggestions"
+                  data-action="
+                    combobox-commit:query-builder#comboboxCommit
+                    mousedown:query-builder#resultsMousedown
+                  "
+                  data-target="query-builder.resultsList"
+                  data-persist-list=false
+                  id="query-builder-test-results"
+                ></ul>
+        </div>
+      <div class="FormControl-inlineValidation" id="validation-d5724e63-b3b6-410f-a279-681609fe2ab5" hidden="hidden">
+        <span class="FormControl-inlineValidation--visual">
+          <svg aria-hidden="true" height="12" viewBox="0 0 12 12" version="1.1" width="12" data-view-component="true" class="octicon octicon-alert-fill">
+    <path d="M4.855.708c.5-.896 1.79-.896 2.29 0l4.675 8.351a1.312 1.312 0 0 1-1.146 1.954H1.33A1.313 1.313 0 0 1 .183 9.058ZM7 7V3H5v4Zm-1 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"></path>
+</svg>
+        </span>
+        <span></span>
+</div>    </div>
+    <div data-target="query-builder.screenReaderFeedback" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+</query-builder></form>
+          <div class="d-flex flex-row color-fg-muted px-3 text-small color-bg-default search-feedback-prompt">
+            <a target="_blank" href="https://docs.github.com/search-github/github-code-search/understanding-github-code-search-syntax" data-view-component="true" class="Link color-fg-accent text-normal ml-2">Search syntax tips</a>            <div class="d-flex flex-1"></div>
+          </div>
+        </div>
+</div>
+
+    </div>
+</modal-dialog></div>
+  </div>
+  <div data-action="click:qbsearch-input#retract" class="dark-backdrop position-fixed" hidden data-target="qbsearch-input.darkBackdrop"></div>
+  <div class="color-fg-default">
+    
+<dialog-helper>
+  <dialog data-target="qbsearch-input.feedbackDialog" data-action="close:qbsearch-input#handleDialogClose cancel:qbsearch-input#handleDialogClose" id="feedback-dialog" aria-modal="true" aria-labelledby="feedback-dialog-title" aria-describedby="feedback-dialog-description" data-view-component="true" class="Overlay Overlay-whenNarrow Overlay--size-medium Overlay--motion-scaleFade Overlay--disableScroll">
+    <div data-view-component="true" class="Overlay-header">
+  <div class="Overlay-headerContentWrap">
+    <div class="Overlay-titleWrap">
+      <h1 class="Overlay-title " id="feedback-dialog-title">
+        Provide feedback
+      </h1>
+        
+    </div>
+    <div class="Overlay-actionWrap">
+      <button data-close-dialog-id="feedback-dialog" aria-label="Close" aria-label="Close" type="button" data-view-component="true" class="close-button Overlay-closeButton"><svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-x">
+    <path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l3.22 3.22a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-3.22 3.22a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"></path>
+</svg></button>
+    </div>
+  </div>
+  
+</div>
+      <scrollable-region data-labelled-by="feedback-dialog-title">
+        <div data-view-component="true" class="Overlay-body">        <!-- '"` --><!-- </textarea></xmp> --></option></form><form id="code-search-feedback-form" data-turbo="false" action="/search/feedback" accept-charset="UTF-8" method="post"><input type="hidden" data-csrf="true" name="authenticity_token" value="UAKcCh4yPyPhPN/aNqVgYFZwxpQvIQdcCGtmNvfboRlOk8BT4VRboBhvUtiO+kajEWZmhZ3GfGobr9EbaYbYPg==" />
+          <p>We read every piece of feedback, and take your input very seriously.</p>
+          <textarea name="feedback" class="form-control width-full mb-2" style="height: 120px" id="feedback"></textarea>
+          <input name="include_email" id="include_email" aria-label="Include my email address so I can be contacted" class="form-control mr-2" type="checkbox">
+          <label for="include_email" style="font-weight: normal">Include my email address so I can be contacted</label>
+</form></div>
+      </scrollable-region>
+      <div data-view-component="true" class="Overlay-footer Overlay-footer--alignEnd">          <button data-close-dialog-id="feedback-dialog" type="button" data-view-component="true" class="btn">    Cancel
+</button>
+          <button form="code-search-feedback-form" data-action="click:qbsearch-input#submitFeedback" type="submit" data-view-component="true" class="btn-primary btn">    Submit feedback
+</button>
+</div>
+</dialog></dialog-helper>
+
+    <custom-scopes data-target="qbsearch-input.customScopesManager">
+    
+<dialog-helper>
+  <dialog data-target="custom-scopes.customScopesModalDialog" data-action="close:qbsearch-input#handleDialogClose cancel:qbsearch-input#handleDialogClose" id="custom-scopes-dialog" aria-modal="true" aria-labelledby="custom-scopes-dialog-title" aria-describedby="custom-scopes-dialog-description" data-view-component="true" class="Overlay Overlay-whenNarrow Overlay--size-medium Overlay--motion-scaleFade Overlay--disableScroll">
+    <div data-view-component="true" class="Overlay-header Overlay-header--divided">
+  <div class="Overlay-headerContentWrap">
+    <div class="Overlay-titleWrap">
+      <h1 class="Overlay-title " id="custom-scopes-dialog-title">
+        Saved searches
+      </h1>
+        <h2 id="custom-scopes-dialog-description" class="Overlay-description">Use saved searches to filter your results more quickly</h2>
+    </div>
+    <div class="Overlay-actionWrap">
+      <button data-close-dialog-id="custom-scopes-dialog" aria-label="Close" aria-label="Close" type="button" data-view-component="true" class="close-button Overlay-closeButton"><svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-x">
+    <path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l3.22 3.22a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-3.22 3.22a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"></path>
+</svg></button>
+    </div>
+  </div>
+  
+</div>
+      <scrollable-region data-labelled-by="custom-scopes-dialog-title">
+        <div data-view-component="true" class="Overlay-body">        <div data-target="custom-scopes.customScopesModalDialogFlash"></div>
+
+        <div hidden class="create-custom-scope-form" data-target="custom-scopes.createCustomScopeForm">
+        <!-- '"` --><!-- </textarea></xmp> --></option></form><form id="custom-scopes-dialog-form" data-turbo="false" action="/search/custom_scopes" accept-charset="UTF-8" method="post"><input type="hidden" data-csrf="true" name="authenticity_token" value="eu+rL2Cj51Pk26I3NXNlQo8IbMaAjruqDtCaMnUlt4lUcbaeqdLLap9CnJd9lwevr5YDYSKAFZn0wIb1eAF2Pw==" />
+          <div data-target="custom-scopes.customScopesModalDialogFlash"></div>
+
+          <input type="hidden" id="custom_scope_id" name="custom_scope_id" data-target="custom-scopes.customScopesIdField">
+
+          <div class="form-group">
+            <label for="custom_scope_name">Name</label>
+            <auto-check src="/search/custom_scopes/check_name" required>
+              <input
+                type="text"
+                name="custom_scope_name"
+                id="custom_scope_name"
+                data-target="custom-scopes.customScopesNameField"
+                class="form-control"
+                autocomplete="off"
+                placeholder="github-ruby"
+                required
+                maxlength="50">
+              <input type="hidden" data-csrf="true" value="i/1NFWpWMHxDNU3Iohpm715DBo4iAztjZzn22gqmEYJRpns2KJH4mgeiei8QNnoPE+9xBq3EndC/2HvEC+XOvQ==" />
+            </auto-check>
+          </div>
+
+          <div class="form-group">
+            <label for="custom_scope_query">Query</label>
+            <input
+              type="text"
+              name="custom_scope_query"
+              id="custom_scope_query"
+              data-target="custom-scopes.customScopesQueryField"
+              class="form-control"
+              autocomplete="off"
+              placeholder="(repo:mona/a OR repo:mona/b) AND lang:python"
+              required
+              maxlength="500">
+          </div>
+
+          <p class="text-small color-fg-muted">
+            To see all available qualifiers, see our <a class="Link--inTextBlock" href="https://docs.github.com/search-github/github-code-search/understanding-github-code-search-syntax">documentation</a>.
+          </p>
+</form>        </div>
+
+        <div data-target="custom-scopes.manageCustomScopesForm">
+          <div data-target="custom-scopes.list"></div>
+        </div>
+
+</div>
+      </scrollable-region>
+      <div data-view-component="true" class="Overlay-footer Overlay-footer--alignEnd Overlay-footer--divided">          <button data-action="click:custom-scopes#customScopesCancel" type="button" data-view-component="true" class="btn">    Cancel
+</button>
+          <button form="custom-scopes-dialog-form" data-action="click:custom-scopes#customScopesSubmit" data-target="custom-scopes.customScopesSubmitButton" type="submit" data-view-component="true" class="btn-primary btn">    Create saved search
+</button>
+</div>
+</dialog></dialog-helper>
+    </custom-scopes>
+  </div>
+</qbsearch-input>
+
+
+            <div class="position-relative HeaderMenu-link-wrap d-lg-inline-block">
+              <a
+                href="/login?return_to=https%3A%2F%2Fgithub.com%2Fchemelli74%2Faioamazondevices%2Fblob%2Fmain%2FCHANGELOG.md"
+                class="HeaderMenu-link HeaderMenu-link--sign-in HeaderMenu-button flex-shrink-0 no-underline d-none d-lg-inline-flex border border-lg-0 rounded px-2 py-1"
+                style="margin-left: 12px;"
+                data-hydro-click="{&quot;event_type&quot;:&quot;authentication.click&quot;,&quot;payload&quot;:{&quot;location_in_page&quot;:&quot;site header menu&quot;,&quot;repository_id&quot;:null,&quot;auth_type&quot;:&quot;SIGN_UP&quot;,&quot;originating_url&quot;:&quot;https://github.com/chemelli74/aioamazondevices/blob/main/CHANGELOG.md&quot;,&quot;user_id&quot;:null}}" data-hydro-click-hmac="a5ecc7d679e074945e0be8b5fa27cf1d479c23f6fe5f1936087a1b085f50880f"
+                data-analytics-event="{&quot;category&quot;:&quot;Marketing nav&quot;,&quot;action&quot;:&quot;click to go to homepage&quot;,&quot;label&quot;:&quot;ref_page:Marketing;ref_cta:Sign in;ref_loc:Header&quot;}"
+              >
+                Sign in
+              </a>
+            </div>
+
+              <a href="/signup?ref_cta=Sign+up&amp;ref_loc=header+logged+out&amp;ref_page=%2F%3Cuser-name%3E%2F%3Crepo-name%3E%2Fblob%2Fshow&amp;source=header-repo&amp;source_repo=chemelli74%2Faioamazondevices"
+                class="HeaderMenu-link HeaderMenu-link--sign-up HeaderMenu-button flex-shrink-0 d-flex d-lg-inline-flex no-underline border color-border-default rounded px-2 py-1"
+                data-hydro-click="{&quot;event_type&quot;:&quot;authentication.click&quot;,&quot;payload&quot;:{&quot;location_in_page&quot;:&quot;site header menu&quot;,&quot;repository_id&quot;:null,&quot;auth_type&quot;:&quot;SIGN_UP&quot;,&quot;originating_url&quot;:&quot;https://github.com/chemelli74/aioamazondevices/blob/main/CHANGELOG.md&quot;,&quot;user_id&quot;:null}}" data-hydro-click-hmac="a5ecc7d679e074945e0be8b5fa27cf1d479c23f6fe5f1936087a1b085f50880f"
+                data-analytics-event="{&quot;category&quot;:&quot;Sign up&quot;,&quot;action&quot;:&quot;click to sign up for account&quot;,&quot;label&quot;:&quot;ref_page:/&lt;user-name&gt;/&lt;repo-name&gt;/blob/show;ref_cta:Sign up;ref_loc:header logged out&quot;}"
+              >
+                Sign up
+              </a>
+
+                <div class="AppHeader-appearanceSettings">
+    <react-partial-anchor>
+      <button data-target="react-partial-anchor.anchor" id="icon-button-9931db0a-80e5-4c5d-b73d-40a5ab45441d" aria-labelledby="tooltip-8f8995bc-7a29-424a-82e4-fa29f022631c" type="button" disabled="disabled" data-view-component="true" class="Button Button--iconOnly Button--invisible Button--medium AppHeader-button HeaderMenu-link border cursor-wait">  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-sliders Button-visual">
+    <path d="M15 2.75a.75.75 0 0 1-.75.75h-4a.75.75 0 0 1 0-1.5h4a.75.75 0 0 1 .75.75Zm-8.5.75v1.25a.75.75 0 0 0 1.5 0v-4a.75.75 0 0 0-1.5 0V2H1.75a.75.75 0 0 0 0 1.5H6.5Zm1.25 5.25a.75.75 0 0 0 0-1.5h-6a.75.75 0 0 0 0 1.5h6ZM15 8a.75.75 0 0 1-.75.75H11.5V10a.75.75 0 1 1-1.5 0V6a.75.75 0 0 1 1.5 0v1.25h2.75A.75.75 0 0 1 15 8Zm-9 5.25v-2a.75.75 0 0 0-1.5 0v1.25H1.75a.75.75 0 0 0 0 1.5H4.5v1.25a.75.75 0 0 0 1.5 0v-2Zm9 0a.75.75 0 0 1-.75.75h-6a.75.75 0 0 1 0-1.5h6a.75.75 0 0 1 .75.75Z"></path>
+</svg>
+</button><tool-tip id="tooltip-8f8995bc-7a29-424a-82e4-fa29f022631c" for="icon-button-9931db0a-80e5-4c5d-b73d-40a5ab45441d" popover="manual" data-direction="s" data-type="label" data-view-component="true" class="sr-only position-absolute">Appearance settings</tool-tip>
+
+      <template data-target="react-partial-anchor.template">
+        <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/primer-react.6278980231d1a55c5718.module.css" />
+<link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/appearance-settings.4e1ca273f504ba849f8c.module.css" />
+
+<react-partial
+  partial-name="appearance-settings"
+  data-ssr="false"
+  data-attempted-ssr="false"
+  data-react-profiling="false"
+>
+  
+  <script type="application/json" data-target="react-partial.embeddedData">{"props":{}}</script>
+  <div data-target="react-partial.reactRoot"></div>
+</react-partial>
+
+      </template>
+    </react-partial-anchor>
+  </div>
+
+          <button type="button" class="sr-only js-header-menu-focus-trap d-block d-lg-none">Resetting focus</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div hidden="hidden" data-view-component="true" class="js-stale-session-flash stale-session-flash flash flash-warn flash-full">
+  
+        <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-alert">
+    <path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path>
+</svg>
+        <span class="js-stale-session-flash-signed-in" hidden>You signed in with another tab or window. <a class="Link--inTextBlock" href="">Reload</a> to refresh your session.</span>
+        <span class="js-stale-session-flash-signed-out" hidden>You signed out in another tab or window. <a class="Link--inTextBlock" href="">Reload</a> to refresh your session.</span>
+        <span class="js-stale-session-flash-switched" hidden>You switched accounts on another tab or window. <a class="Link--inTextBlock" href="">Reload</a> to refresh your session.</span>
+
+    <button id="icon-button-26098308-0b50-41db-8b07-5e49de475f17" aria-labelledby="tooltip-1efb086d-7e66-481f-8006-720bf3b8522a" type="button" data-view-component="true" class="Button Button--iconOnly Button--invisible Button--medium flash-close js-flash-close">  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-x Button-visual">
+    <path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l3.22 3.22a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-3.22 3.22a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"></path>
+</svg>
+</button><tool-tip id="tooltip-1efb086d-7e66-481f-8006-720bf3b8522a" for="icon-button-26098308-0b50-41db-8b07-5e49de475f17" popover="manual" data-direction="s" data-type="label" data-view-component="true" class="sr-only position-absolute">Dismiss alert</tool-tip>
+
+
+  
+</div>
+    </div>
+
+  <div id="start-of-content" class="show-on-focus"></div>
+
+
+
+
+
+
+
+
+    <div id="js-flash-container" class="flash-container" data-turbo-replace>
+
+
+
+
+  <template class="js-flash-template">
+    
+<div class="flash flash-full   {{ className }}">
+  <div >
+    <button autofocus class="flash-close js-flash-close" type="button" aria-label="Dismiss this message">
+      <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-x">
+    <path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l3.22 3.22a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-3.22 3.22a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"></path>
+</svg>
+    </button>
+    <div aria-atomic="true" role="alert" class="js-flash-alert">
+      
+      <div>{{ message }}</div>
+
+    </div>
+  </div>
+</div>
+  </template>
+</div>
+
+
+    
+
+
+
+
+
+
+  <div
+    class="application-main "
+    data-commit-hovercards-enabled
+    data-discussion-hovercards-enabled
+    data-issue-and-pr-hovercards-enabled
+    data-project-hovercards-enabled
+  >
+        <div itemscope itemtype="http://schema.org/SoftwareSourceCode" class="">
+    <main id="js-repo-pjax-container" >
+      
+      
+
+
+
+
+
+
+  
+  <div id="repository-container-header"  class="pt-3 hide-full-screen" style="background-color: var(--page-header-bgColor, var(--color-page-header-bg));" data-turbo-replace>
+
+      <div class="d-flex flex-nowrap flex-justify-end mb-3  px-3 px-lg-5" style="gap: 1rem;">
+
+        <div class="flex-auto min-width-0 width-fit">
+            
+  <div class=" d-flex flex-wrap flex-items-center wb-break-word f3 text-normal">
+      <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-repo color-fg-muted mr-2">
+    <path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"></path>
+</svg>
+    
+    <span class="author flex-self-stretch" itemprop="author">
+      <a class="url fn" rel="author" data-hovercard-type="user" data-hovercard-url="/users/chemelli74/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/chemelli74">
+        chemelli74
+</a>    </span>
+    <span class="mx-1 flex-self-stretch color-fg-muted">/</span>
+    <strong itemprop="name" class="mr-2 flex-self-stretch">
+      <a data-pjax="#repo-content-pjax-container" data-turbo-frame="repo-content-turbo-frame" href="/chemelli74/aioamazondevices">aioamazondevices</a>
+    </strong>
+
+    <span></span><span class="Label Label--secondary v-align-middle mr-1">Public</span>
+  </div>
+
+
+        </div>
+
+        <div id="repository-details-container" class="flex-shrink-0" data-turbo-replace style="max-width: 70%;">
+            <ul class="pagehead-actions flex-shrink-0 d-none d-md-inline" style="padding: 2px 0;">
+    
+        <li>
+          <include-fragment src="/chemelli74/aioamazondevices/sponsor_button" data-nonce="v2:07db4109-f758-44ea-a778-48ada2daaf49" data-view-component="true">
+  
+  <div data-show-on-forbidden-error hidden>
+    <div class="Box">
+  <div class="blankslate-container">
+    <div data-view-component="true" class="blankslate blankslate-spacious color-bg-default rounded-2">
+      
+
+      <h3 data-view-component="true" class="blankslate-heading">        Uh oh!
+</h3>
+      <p data-view-component="true">        <p class="color-fg-muted my-2 mb-2 ws-normal">There was an error while loading. <a class="Link--inTextBlock" data-turbo="false" href="" aria-label="Please reload this page">Please reload this page</a>.</p>
+</p>
+
+</div>  </div>
+</div>  </div>
+</include-fragment>
+        </li>
+
+      
+
+  <li>
+            <a href="/login?return_to=%2Fchemelli74%2Faioamazondevices" rel="nofollow" id="repository-details-watch-button" data-hydro-click="{&quot;event_type&quot;:&quot;authentication.click&quot;,&quot;payload&quot;:{&quot;location_in_page&quot;:&quot;notification subscription menu watch&quot;,&quot;repository_id&quot;:null,&quot;auth_type&quot;:&quot;LOG_IN&quot;,&quot;originating_url&quot;:&quot;https://github.com/chemelli74/aioamazondevices/blob/main/CHANGELOG.md&quot;,&quot;user_id&quot;:null}}" data-hydro-click-hmac="5ccb6a103b35bdcede9549c4bb6bb056ea3c2ed9375bf8e36b212b24459b1e3e" aria-label="You must be signed in to change notification settings" data-view-component="true" class="btn-sm btn">    <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-bell mr-2">
+    <path d="M8 16a2 2 0 0 0 1.985-1.75c.017-.137-.097-.25-.235-.25h-3.5c-.138 0-.252.113-.235.25A2 2 0 0 0 8 16ZM3 5a5 5 0 0 1 10 0v2.947c0 .05.015.098.042.139l1.703 2.555A1.519 1.519 0 0 1 13.482 13H2.518a1.516 1.516 0 0 1-1.263-2.36l1.703-2.554A.255.255 0 0 0 3 7.947Zm5-3.5A3.5 3.5 0 0 0 4.5 5v2.947c0 .346-.102.683-.294.97l-1.703 2.556a.017.017 0 0 0-.003.01l.001.006c0 .002.002.004.004.006l.006.004.007.001h10.964l.007-.001.006-.004.004-.006.001-.007a.017.017 0 0 0-.003-.01l-1.703-2.554a1.745 1.745 0 0 1-.294-.97V5A3.5 3.5 0 0 0 8 1.5Z"></path>
+</svg>Notifications
+</a>    <tool-tip id="tooltip-f438810f-1fd9-4811-87e2-140f05c95e5b" for="repository-details-watch-button" popover="manual" data-direction="s" data-type="description" data-view-component="true" class="sr-only position-absolute">You must be signed in to change notification settings</tool-tip>
+
+  </li>
+
+  <li>
+          <a icon="repo-forked" id="fork-button" href="/login?return_to=%2Fchemelli74%2Faioamazondevices" rel="nofollow" data-hydro-click="{&quot;event_type&quot;:&quot;authentication.click&quot;,&quot;payload&quot;:{&quot;location_in_page&quot;:&quot;repo details fork button&quot;,&quot;repository_id&quot;:790853411,&quot;auth_type&quot;:&quot;LOG_IN&quot;,&quot;originating_url&quot;:&quot;https://github.com/chemelli74/aioamazondevices/blob/main/CHANGELOG.md&quot;,&quot;user_id&quot;:null}}" data-hydro-click-hmac="a6bc93d07a1f60593f684f7cf6aa9a3474ff9049dcd0883a083ede381370c5b3" data-view-component="true" class="btn-sm btn">    <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-repo-forked mr-2">
+    <path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path>
+</svg>Fork
+    <span id="repo-network-counter" data-pjax-replace="true" data-turbo-replace="true" title="13" data-view-component="true" class="Counter">13</span>
+</a>
+  </li>
+
+  <li>
+        <div data-view-component="true" class="BtnGroup d-flex">
+        <a href="/login?return_to=%2Fchemelli74%2Faioamazondevices" rel="nofollow" data-hydro-click="{&quot;event_type&quot;:&quot;authentication.click&quot;,&quot;payload&quot;:{&quot;location_in_page&quot;:&quot;star button&quot;,&quot;repository_id&quot;:790853411,&quot;auth_type&quot;:&quot;LOG_IN&quot;,&quot;originating_url&quot;:&quot;https://github.com/chemelli74/aioamazondevices/blob/main/CHANGELOG.md&quot;,&quot;user_id&quot;:null}}" data-hydro-click-hmac="5dbf9e8b3ce23db743f15847db81a9870d28c9902d9b38fa239248ed5b972225" aria-label="You must be signed in to star a repository" data-view-component="true" class="tooltipped tooltipped-sw btn-sm btn">    <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-star v-align-text-bottom d-inline-block mr-2">
+    <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path>
+</svg><span data-view-component="true" class="d-inline">
+          Star
+</span>          <span id="repo-stars-counter-star" aria-label="27 users starred this repository" data-singular-suffix="user starred this repository" data-plural-suffix="users starred this repository" data-turbo-replace="true" title="27" data-view-component="true" class="Counter js-social-count">27</span>
+</a></div>
+  </li>
+
+</ul>
+
+        </div>
+      </div>
+
+        <div id="responsive-meta-container" data-turbo-replace>
+</div>
+
+
+          <nav data-pjax="#js-repo-pjax-container" aria-label="Repository" data-view-component="true" class="js-repo-nav js-sidenav-container-pjax js-responsive-underlinenav overflow-hidden UnderlineNav px-3 px-md-4 px-lg-5">
+
+  <ul data-view-component="true" class="UnderlineNav-body list-style-none">
+      <li data-view-component="true" class="d-inline-flex">
+  <a id="code-tab" href="/chemelli74/aioamazondevices" data-tab-item="i0code-tab" data-selected-links="repo_source repo_downloads repo_commits repo_releases repo_tags repo_branches repo_packages repo_deployments repo_attestations /chemelli74/aioamazondevices" data-pjax="#repo-content-pjax-container" data-turbo-frame="repo-content-turbo-frame" data-hotkey="g c" data-analytics-event="{&quot;category&quot;:&quot;Underline navbar&quot;,&quot;action&quot;:&quot;Click tab&quot;,&quot;label&quot;:&quot;Code&quot;,&quot;target&quot;:&quot;UNDERLINE_NAV.TAB&quot;}" aria-current="page" data-view-component="true" class="UnderlineNav-item no-wrap js-responsive-underlinenav-item js-selected-navigation-item selected">
+    
+              <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-code UnderlineNav-octicon d-none d-sm-inline">
+    <path d="m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L13.94 8l-3.72-3.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215Zm-6.56 0a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L2.06 8l3.72 3.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L.47 8.53a.75.75 0 0 1 0-1.06Z"></path>
+</svg>
+        <span data-content="Code">Code</span>
+          <span id="code-repo-tab-count" data-pjax-replace="" data-turbo-replace="" title="Not available" data-view-component="true" class="Counter"></span>
+
+
+    
+</a></li>
+      <li data-view-component="true" class="d-inline-flex">
+  <a id="issues-tab" href="/chemelli74/aioamazondevices/issues" data-tab-item="i1issues-tab" data-selected-links="repo_issues repo_labels repo_milestones /chemelli74/aioamazondevices/issues" data-pjax="#repo-content-pjax-container" data-turbo-frame="repo-content-turbo-frame" data-hotkey="g i" data-analytics-event="{&quot;category&quot;:&quot;Underline navbar&quot;,&quot;action&quot;:&quot;Click tab&quot;,&quot;label&quot;:&quot;Issues&quot;,&quot;target&quot;:&quot;UNDERLINE_NAV.TAB&quot;}" data-view-component="true" class="UnderlineNav-item no-wrap js-responsive-underlinenav-item js-selected-navigation-item">
+    
+              <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-issue-opened UnderlineNav-octicon d-none d-sm-inline">
+    <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"></path>
+</svg>
+        <span data-content="Issues">Issues</span>
+          <span id="issues-repo-tab-count" data-pjax-replace="" data-turbo-replace="" title="17" data-view-component="true" class="Counter">17</span>
+
+
+    
+</a></li>
+      <li data-view-component="true" class="d-inline-flex">
+  <a id="pull-requests-tab" href="/chemelli74/aioamazondevices/pulls" data-tab-item="i2pull-requests-tab" data-selected-links="repo_pulls checks /chemelli74/aioamazondevices/pulls" data-pjax="#repo-content-pjax-container" data-turbo-frame="repo-content-turbo-frame" data-hotkey="g p" data-analytics-event="{&quot;category&quot;:&quot;Underline navbar&quot;,&quot;action&quot;:&quot;Click tab&quot;,&quot;label&quot;:&quot;Pull requests&quot;,&quot;target&quot;:&quot;UNDERLINE_NAV.TAB&quot;}" data-view-component="true" class="UnderlineNav-item no-wrap js-responsive-underlinenav-item js-selected-navigation-item">
+    
+              <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-git-pull-request UnderlineNav-octicon d-none d-sm-inline">
+    <path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"></path>
+</svg>
+        <span data-content="Pull requests">Pull requests</span>
+          <span id="pull-requests-repo-tab-count" data-pjax-replace="" data-turbo-replace="" title="5" data-view-component="true" class="Counter">5</span>
+
+
+    
+</a></li>
+      <li data-view-component="true" class="d-inline-flex">
+  <a id="discussions-tab" href="/chemelli74/aioamazondevices/discussions" data-tab-item="i3discussions-tab" data-selected-links="repo_discussions /chemelli74/aioamazondevices/discussions" data-pjax="#repo-content-pjax-container" data-turbo-frame="repo-content-turbo-frame" data-hotkey="g g" data-analytics-event="{&quot;category&quot;:&quot;Underline navbar&quot;,&quot;action&quot;:&quot;Click tab&quot;,&quot;label&quot;:&quot;Discussions&quot;,&quot;target&quot;:&quot;UNDERLINE_NAV.TAB&quot;}" data-view-component="true" class="UnderlineNav-item no-wrap js-responsive-underlinenav-item js-selected-navigation-item">
+    
+              <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-comment-discussion UnderlineNav-octicon d-none d-sm-inline">
+    <path d="M1.75 1h8.5c.966 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0 1 10.25 10H7.061l-2.574 2.573A1.458 1.458 0 0 1 2 11.543V10h-.25A1.75 1.75 0 0 1 0 8.25v-5.5C0 1.784.784 1 1.75 1ZM1.5 2.75v5.5c0 .138.112.25.25.25h1a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h3.5a.25.25 0 0 0 .25-.25v-5.5a.25.25 0 0 0-.25-.25h-8.5a.25.25 0 0 0-.25.25Zm13 2a.25.25 0 0 0-.25-.25h-.5a.75.75 0 0 1 0-1.5h.5c.966 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0 1 14.25 12H14v1.543a1.458 1.458 0 0 1-2.487 1.03L9.22 12.28a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.22 2.22v-2.19a.75.75 0 0 1 .75-.75h1a.25.25 0 0 0 .25-.25Z"></path>
+</svg>
+        <span data-content="Discussions">Discussions</span>
+          <span id="discussions-repo-tab-count" data-pjax-replace="" data-turbo-replace="" title="Not available" data-view-component="true" class="Counter"></span>
+
+
+    
+</a></li>
+      <li data-view-component="true" class="d-inline-flex">
+  <a id="actions-tab" href="/chemelli74/aioamazondevices/actions" data-tab-item="i4actions-tab" data-selected-links="repo_actions /chemelli74/aioamazondevices/actions" data-pjax="#repo-content-pjax-container" data-turbo-frame="repo-content-turbo-frame" data-hotkey="g a" data-analytics-event="{&quot;category&quot;:&quot;Underline navbar&quot;,&quot;action&quot;:&quot;Click tab&quot;,&quot;label&quot;:&quot;Actions&quot;,&quot;target&quot;:&quot;UNDERLINE_NAV.TAB&quot;}" data-view-component="true" class="UnderlineNav-item no-wrap js-responsive-underlinenav-item js-selected-navigation-item">
+    
+              <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-play UnderlineNav-octicon d-none d-sm-inline">
+    <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm4.879-2.773 4.264 2.559a.25.25 0 0 1 0 .428l-4.264 2.559A.25.25 0 0 1 6 10.559V5.442a.25.25 0 0 1 .379-.215Z"></path>
+</svg>
+        <span data-content="Actions">Actions</span>
+          <span id="actions-repo-tab-count" data-pjax-replace="" data-turbo-replace="" title="Not available" data-view-component="true" class="Counter"></span>
+
+
+    
+</a></li>
+      <li data-view-component="true" class="d-inline-flex">
+  <a id="projects-tab" href="/chemelli74/aioamazondevices/projects" data-tab-item="i5projects-tab" data-selected-links="repo_projects new_repo_project repo_project /chemelli74/aioamazondevices/projects" data-pjax="#repo-content-pjax-container" data-turbo-frame="repo-content-turbo-frame" data-hotkey="g b" data-analytics-event="{&quot;category&quot;:&quot;Underline navbar&quot;,&quot;action&quot;:&quot;Click tab&quot;,&quot;label&quot;:&quot;Projects&quot;,&quot;target&quot;:&quot;UNDERLINE_NAV.TAB&quot;}" data-view-component="true" class="UnderlineNav-item no-wrap js-responsive-underlinenav-item js-selected-navigation-item">
+    
+              <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-table UnderlineNav-octicon d-none d-sm-inline">
+    <path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25ZM6.5 6.5v8h7.75a.25.25 0 0 0 .25-.25V6.5Zm8-1.5V1.75a.25.25 0 0 0-.25-.25H6.5V5Zm-13 1.5v7.75c0 .138.112.25.25.25H5v-8ZM5 5V1.5H1.75a.25.25 0 0 0-.25.25V5Z"></path>
+</svg>
+        <span data-content="Projects">Projects</span>
+          <span id="projects-repo-tab-count" data-pjax-replace="" data-turbo-replace="" title="0" hidden="hidden" data-view-component="true" class="Counter">0</span>
+
+
+    
+</a></li>
+      <li data-view-component="true" class="d-inline-flex">
+  <a id="security-tab" href="/chemelli74/aioamazondevices/security" data-tab-item="i6security-tab" data-selected-links="security overview alerts policy token_scanning code_scanning /chemelli74/aioamazondevices/security" data-pjax="#repo-content-pjax-container" data-turbo-frame="repo-content-turbo-frame" data-hotkey="g s" data-analytics-event="{&quot;category&quot;:&quot;Underline navbar&quot;,&quot;action&quot;:&quot;Click tab&quot;,&quot;label&quot;:&quot;Security&quot;,&quot;target&quot;:&quot;UNDERLINE_NAV.TAB&quot;}" data-view-component="true" class="UnderlineNav-item no-wrap js-responsive-underlinenav-item js-selected-navigation-item">
+    
+              <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-shield UnderlineNav-octicon d-none d-sm-inline">
+    <path d="M7.467.133a1.748 1.748 0 0 1 1.066 0l5.25 1.68A1.75 1.75 0 0 1 15 3.48V7c0 1.566-.32 3.182-1.303 4.682-.983 1.498-2.585 2.813-5.032 3.855a1.697 1.697 0 0 1-1.33 0c-2.447-1.042-4.049-2.357-5.032-3.855C1.32 10.182 1 8.566 1 7V3.48a1.75 1.75 0 0 1 1.217-1.667Zm.61 1.429a.25.25 0 0 0-.153 0l-5.25 1.68a.25.25 0 0 0-.174.238V7c0 1.358.275 2.666 1.057 3.86.784 1.194 2.121 2.34 4.366 3.297a.196.196 0 0 0 .154 0c2.245-.956 3.582-2.104 4.366-3.298C13.225 9.666 13.5 8.36 13.5 7V3.48a.251.251 0 0 0-.174-.237l-5.25-1.68ZM8.75 4.75v3a.75.75 0 0 1-1.5 0v-3a.75.75 0 0 1 1.5 0ZM9 10.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path>
+</svg>
+        <span data-content="Security">Security</span>
+          <include-fragment src="/chemelli74/aioamazondevices/security/overall-count" accept="text/fragment+html" data-nonce="v2:07db4109-f758-44ea-a778-48ada2daaf49" data-view-component="true">
+  
+  <div data-show-on-forbidden-error hidden>
+    <div class="Box">
+  <div class="blankslate-container">
+    <div data-view-component="true" class="blankslate blankslate-spacious color-bg-default rounded-2">
+      
+
+      <h3 data-view-component="true" class="blankslate-heading">        Uh oh!
+</h3>
+      <p data-view-component="true">        <p class="color-fg-muted my-2 mb-2 ws-normal">There was an error while loading. <a class="Link--inTextBlock" data-turbo="false" href="" aria-label="Please reload this page">Please reload this page</a>.</p>
+</p>
+
+</div>  </div>
+</div>  </div>
+</include-fragment>
+
+    
+</a></li>
+      <li data-view-component="true" class="d-inline-flex">
+  <a id="insights-tab" href="/chemelli74/aioamazondevices/pulse" data-tab-item="i7insights-tab" data-selected-links="repo_graphs repo_contributors dependency_graph dependabot_updates pulse people community /chemelli74/aioamazondevices/pulse" data-pjax="#repo-content-pjax-container" data-turbo-frame="repo-content-turbo-frame" data-analytics-event="{&quot;category&quot;:&quot;Underline navbar&quot;,&quot;action&quot;:&quot;Click tab&quot;,&quot;label&quot;:&quot;Insights&quot;,&quot;target&quot;:&quot;UNDERLINE_NAV.TAB&quot;}" data-view-component="true" class="UnderlineNav-item no-wrap js-responsive-underlinenav-item js-selected-navigation-item">
+    
+              <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-graph UnderlineNav-octicon d-none d-sm-inline">
+    <path d="M1.5 1.75V13.5h13.75a.75.75 0 0 1 0 1.5H.75a.75.75 0 0 1-.75-.75V1.75a.75.75 0 0 1 1.5 0Zm14.28 2.53-5.25 5.25a.75.75 0 0 1-1.06 0L7 7.06 4.28 9.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.25-3.25a.75.75 0 0 1 1.06 0L10 7.94l4.72-4.72a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042Z"></path>
+</svg>
+        <span data-content="Insights">Insights</span>
+          <span id="insights-repo-tab-count" data-pjax-replace="" data-turbo-replace="" title="Not available" data-view-component="true" class="Counter"></span>
+
+
+    
+</a></li>
+</ul>
+    <div style="visibility:hidden;" data-view-component="true" class="UnderlineNav-actions js-responsive-underlinenav-overflow position-absolute pr-3 pr-md-4 pr-lg-5 right-0">      <action-menu data-select-variant="none" data-view-component="true">
+  <focus-group direction="vertical" mnemonics retain>
+    <button id="action-menu-fe08c67f-bec0-45b9-83b3-b52c153c3c52-button" popovertarget="action-menu-fe08c67f-bec0-45b9-83b3-b52c153c3c52-overlay" aria-controls="action-menu-fe08c67f-bec0-45b9-83b3-b52c153c3c52-list" aria-haspopup="true" aria-labelledby="tooltip-92ee7abb-2476-472a-aade-540972d8594a" type="button" data-view-component="true" class="Button Button--iconOnly Button--secondary Button--medium UnderlineNav-item">  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-kebab-horizontal Button-visual">
+    <path d="M8 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM1.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm13 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path>
+</svg>
+</button><tool-tip id="tooltip-92ee7abb-2476-472a-aade-540972d8594a" for="action-menu-fe08c67f-bec0-45b9-83b3-b52c153c3c52-button" popover="manual" data-direction="s" data-type="label" data-view-component="true" class="sr-only position-absolute">Additional navigation options</tool-tip>
+
+
+<anchored-position data-target="action-menu.overlay" id="action-menu-fe08c67f-bec0-45b9-83b3-b52c153c3c52-overlay" anchor="action-menu-fe08c67f-bec0-45b9-83b3-b52c153c3c52-button" align="start" side="outside-bottom" anchor-offset="normal" popover="auto" data-view-component="true">
+  <div data-view-component="true" class="Overlay Overlay--size-auto">
+    
+      <div data-view-component="true" class="Overlay-body Overlay-body--paddingNone">          <action-list>
+  <div data-view-component="true">
+    <ul aria-labelledby="action-menu-fe08c67f-bec0-45b9-83b3-b52c153c3c52-button" id="action-menu-fe08c67f-bec0-45b9-83b3-b52c153c3c52-list" role="menu" data-view-component="true" class="ActionListWrap--inset ActionListWrap">
+        <li hidden="hidden" data-menu-item="i0code-tab" data-targets="action-list.items" role="none" data-view-component="true" class="ActionListItem">
+    
+    
+    <a tabindex="-1" id="item-bb13272b-3003-40b1-a695-a3281d88b451" href="/chemelli74/aioamazondevices" role="menuitem" data-view-component="true" class="ActionListContent ActionListContent--visual16">
+        <span class="ActionListItem-visual ActionListItem-visual--leading">
+          <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-code">
+    <path d="m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L13.94 8l-3.72-3.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215Zm-6.56 0a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L2.06 8l3.72 3.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L.47 8.53a.75.75 0 0 1 0-1.06Z"></path>
+</svg>
+        </span>
+      
+        <span data-view-component="true" class="ActionListItem-label">
+          Code
+</span>      
+</a>
+  
+</li>
+        <li hidden="hidden" data-menu-item="i1issues-tab" data-targets="action-list.items" role="none" data-view-component="true" class="ActionListItem">
+    
+    
+    <a tabindex="-1" id="item-73e2ce5c-4ce1-42ac-84d9-3e1e337e1c45" href="/chemelli74/aioamazondevices/issues" role="menuitem" data-view-component="true" class="ActionListContent ActionListContent--visual16">
+        <span class="ActionListItem-visual ActionListItem-visual--leading">
+          <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-issue-opened">
+    <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"></path>
+</svg>
+        </span>
+      
+        <span data-view-component="true" class="ActionListItem-label">
+          Issues
+</span>      
+</a>
+  
+</li>
+        <li hidden="hidden" data-menu-item="i2pull-requests-tab" data-targets="action-list.items" role="none" data-view-component="true" class="ActionListItem">
+    
+    
+    <a tabindex="-1" id="item-1db611e0-7408-457f-a587-9dd88e13018f" href="/chemelli74/aioamazondevices/pulls" role="menuitem" data-view-component="true" class="ActionListContent ActionListContent--visual16">
+        <span class="ActionListItem-visual ActionListItem-visual--leading">
+          <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-git-pull-request">
+    <path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"></path>
+</svg>
+        </span>
+      
+        <span data-view-component="true" class="ActionListItem-label">
+          Pull requests
+</span>      
+</a>
+  
+</li>
+        <li hidden="hidden" data-menu-item="i3discussions-tab" data-targets="action-list.items" role="none" data-view-component="true" class="ActionListItem">
+    
+    
+    <a tabindex="-1" id="item-180fa38d-9e43-4375-957e-a86ab3193f3b" href="/chemelli74/aioamazondevices/discussions" role="menuitem" data-view-component="true" class="ActionListContent ActionListContent--visual16">
+        <span class="ActionListItem-visual ActionListItem-visual--leading">
+          <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-comment-discussion">
+    <path d="M1.75 1h8.5c.966 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0 1 10.25 10H7.061l-2.574 2.573A1.458 1.458 0 0 1 2 11.543V10h-.25A1.75 1.75 0 0 1 0 8.25v-5.5C0 1.784.784 1 1.75 1ZM1.5 2.75v5.5c0 .138.112.25.25.25h1a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h3.5a.25.25 0 0 0 .25-.25v-5.5a.25.25 0 0 0-.25-.25h-8.5a.25.25 0 0 0-.25.25Zm13 2a.25.25 0 0 0-.25-.25h-.5a.75.75 0 0 1 0-1.5h.5c.966 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0 1 14.25 12H14v1.543a1.458 1.458 0 0 1-2.487 1.03L9.22 12.28a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.22 2.22v-2.19a.75.75 0 0 1 .75-.75h1a.25.25 0 0 0 .25-.25Z"></path>
+</svg>
+        </span>
+      
+        <span data-view-component="true" class="ActionListItem-label">
+          Discussions
+</span>      
+</a>
+  
+</li>
+        <li hidden="hidden" data-menu-item="i4actions-tab" data-targets="action-list.items" role="none" data-view-component="true" class="ActionListItem">
+    
+    
+    <a tabindex="-1" id="item-45388be5-43ea-4ecb-b777-83f76acd6a33" href="/chemelli74/aioamazondevices/actions" role="menuitem" data-view-component="true" class="ActionListContent ActionListContent--visual16">
+        <span class="ActionListItem-visual ActionListItem-visual--leading">
+          <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-play">
+    <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm4.879-2.773 4.264 2.559a.25.25 0 0 1 0 .428l-4.264 2.559A.25.25 0 0 1 6 10.559V5.442a.25.25 0 0 1 .379-.215Z"></path>
+</svg>
+        </span>
+      
+        <span data-view-component="true" class="ActionListItem-label">
+          Actions
+</span>      
+</a>
+  
+</li>
+        <li hidden="hidden" data-menu-item="i5projects-tab" data-targets="action-list.items" role="none" data-view-component="true" class="ActionListItem">
+    
+    
+    <a tabindex="-1" id="item-8a870465-cabe-4490-8aa1-ac3732e1601c" href="/chemelli74/aioamazondevices/projects" role="menuitem" data-view-component="true" class="ActionListContent ActionListContent--visual16">
+        <span class="ActionListItem-visual ActionListItem-visual--leading">
+          <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-table">
+    <path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25ZM6.5 6.5v8h7.75a.25.25 0 0 0 .25-.25V6.5Zm8-1.5V1.75a.25.25 0 0 0-.25-.25H6.5V5Zm-13 1.5v7.75c0 .138.112.25.25.25H5v-8ZM5 5V1.5H1.75a.25.25 0 0 0-.25.25V5Z"></path>
+</svg>
+        </span>
+      
+        <span data-view-component="true" class="ActionListItem-label">
+          Projects
+</span>      
+</a>
+  
+</li>
+        <li hidden="hidden" data-menu-item="i6security-tab" data-targets="action-list.items" role="none" data-view-component="true" class="ActionListItem">
+    
+    
+    <a tabindex="-1" id="item-61596221-d68c-4a0f-bd54-b80af52ab81e" href="/chemelli74/aioamazondevices/security" role="menuitem" data-view-component="true" class="ActionListContent ActionListContent--visual16">
+        <span class="ActionListItem-visual ActionListItem-visual--leading">
+          <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-shield">
+    <path d="M7.467.133a1.748 1.748 0 0 1 1.066 0l5.25 1.68A1.75 1.75 0 0 1 15 3.48V7c0 1.566-.32 3.182-1.303 4.682-.983 1.498-2.585 2.813-5.032 3.855a1.697 1.697 0 0 1-1.33 0c-2.447-1.042-4.049-2.357-5.032-3.855C1.32 10.182 1 8.566 1 7V3.48a1.75 1.75 0 0 1 1.217-1.667Zm.61 1.429a.25.25 0 0 0-.153 0l-5.25 1.68a.25.25 0 0 0-.174.238V7c0 1.358.275 2.666 1.057 3.86.784 1.194 2.121 2.34 4.366 3.297a.196.196 0 0 0 .154 0c2.245-.956 3.582-2.104 4.366-3.298C13.225 9.666 13.5 8.36 13.5 7V3.48a.251.251 0 0 0-.174-.237l-5.25-1.68ZM8.75 4.75v3a.75.75 0 0 1-1.5 0v-3a.75.75 0 0 1 1.5 0ZM9 10.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path>
+</svg>
+        </span>
+      
+        <span data-view-component="true" class="ActionListItem-label">
+          Security
+</span>      
+</a>
+  
+</li>
+        <li hidden="hidden" data-menu-item="i7insights-tab" data-targets="action-list.items" role="none" data-view-component="true" class="ActionListItem">
+    
+    
+    <a tabindex="-1" id="item-1e0b63cf-9182-4ba0-8cc5-2ff5f8968d16" href="/chemelli74/aioamazondevices/pulse" role="menuitem" data-view-component="true" class="ActionListContent ActionListContent--visual16">
+        <span class="ActionListItem-visual ActionListItem-visual--leading">
+          <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-graph">
+    <path d="M1.5 1.75V13.5h13.75a.75.75 0 0 1 0 1.5H.75a.75.75 0 0 1-.75-.75V1.75a.75.75 0 0 1 1.5 0Zm14.28 2.53-5.25 5.25a.75.75 0 0 1-1.06 0L7 7.06 4.28 9.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.25-3.25a.75.75 0 0 1 1.06 0L10 7.94l4.72-4.72a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042Z"></path>
+</svg>
+        </span>
+      
+        <span data-view-component="true" class="ActionListItem-label">
+          Insights
+</span>      
+</a>
+  
+</li>
+</ul>    
+</div></action-list>
+
+
+</div>
+      
+</div></anchored-position>  </focus-group>
+</action-menu></div>
+</nav>
+
+  </div>
+
+  
+
+
+
+<turbo-frame id="repo-content-turbo-frame" target="_top" data-turbo-action="advance" class="">
+    <div id="repo-content-pjax-container" class="repository-content " >
+    
+
+
+
+    
+      
+    
+
+
+
+
+
+
+
+
+<react-app
+  app-name="react-code-view"
+  initial-path="/chemelli74/aioamazondevices/blob/main/CHANGELOG.md"
+    style="display: block; min-height: calc(100vh - 64px);"
+  data-attempted-ssr="false"
+  data-ssr="false"
+  data-lazy="false"
+  data-alternate="false"
+  data-data-router-enabled="false"
+  data-react-profiling="false"
+>
+  
+  <script type="application/json" data-target="react-app.embeddedData">{"payload":{"allShortcutsEnabled":false,"fileTree":{"":{"items":[{"name":".devcontainer","path":".devcontainer","contentType":"directory"},{"name":".github","path":".github","contentType":"directory"},{"name":".vscode","path":".vscode","contentType":"directory"},{"name":"scripts","path":"scripts","contentType":"directory"},{"name":"src","path":"src","contentType":"directory"},{"name":"templates","path":"templates","contentType":"directory"},{"name":"tests","path":"tests","contentType":"directory"},{"name":".all-contributorsrc","path":".all-contributorsrc","contentType":"file"},{"name":".copier-answers.yml","path":".copier-answers.yml","contentType":"file"},{"name":".coveragerc","path":".coveragerc","contentType":"file"},{"name":".editorconfig","path":".editorconfig","contentType":"file"},{"name":".gitignore","path":".gitignore","contentType":"file"},{"name":".gitpod.yml","path":".gitpod.yml","contentType":"file"},{"name":".pre-commit-config.yaml","path":".pre-commit-config.yaml","contentType":"file"},{"name":"CHANGELOG.md","path":"CHANGELOG.md","contentType":"file"},{"name":"CONTRIBUTING.md","path":"CONTRIBUTING.md","contentType":"file"},{"name":"LICENSE","path":"LICENSE","contentType":"file"},{"name":"README.md","path":"README.md","contentType":"file"},{"name":"commitlint.config.mjs","path":"commitlint.config.mjs","contentType":"file"},{"name":"library_test.py","path":"library_test.py","contentType":"file"},{"name":"mypy.ini","path":"mypy.ini","contentType":"file"},{"name":"poetry.lock","path":"poetry.lock","contentType":"file"},{"name":"poetry.toml","path":"poetry.toml","contentType":"file"},{"name":"pyproject.toml","path":"pyproject.toml","contentType":"file"},{"name":"renovate.json","path":"renovate.json","contentType":"file"},{"name":"ruff.toml","path":"ruff.toml","contentType":"file"},{"name":"setup.py","path":"setup.py","contentType":"file"},{"name":"shell.nix","path":"shell.nix","contentType":"file"}],"totalCount":28}},"fileTreeProcessingTime":17.235065000000002,"foldersToFetch":[],"incompleteFileTree":false,"repo":{"id":790853411,"defaultBranch":"main","name":"aioamazondevices","ownerLogin":"chemelli74","currentUserCanPush":false,"isFork":false,"isEmpty":false,"createdAt":"2024-04-23T16:43:12.000Z","ownerAvatar":"https://avatars.githubusercontent.com/u/57354320?v=4","public":true,"private":false,"isOrgOwned":false},"codeLineWrapEnabled":false,"symbolsExpanded":false,"treeExpanded":true,"refInfo":{"name":"main","listCacheKey":"v0:1750805389.0","canEdit":false,"refType":"branch","currentOid":"dfa9d7e1423e39f8ea617253dc381efe1e886dd6"},"path":"CHANGELOG.md","currentUser":null,"blob":{"rawLines":null,"stylingDirectives":null,"colorizedLines":null,"csv":null,"csvError":null,"dependabotInfo":{"showConfigurationBanner":false,"configFilePath":null,"networkDependabotPath":"/chemelli74/aioamazondevices/network/updates","dismissConfigurationNoticePath":"/settings/dismiss-notice/dependabot_configuration_notice","configurationNoticeDismissed":null},"displayName":"CHANGELOG.md","displayUrl":"https://github.com/chemelli74/aioamazondevices/blob/main/CHANGELOG.md?raw=true","headerInfo":{"blobSize":"28.9 KB","deleteTooltip":"You must be signed in to make or propose changes","editTooltip":"You must be signed in to make or propose changes","ghDesktopPath":"https://desktop.github.com","isGitLfs":false,"onBranch":true,"shortPath":"414d56c","siteNavLoginPath":"/login?return_to=https%3A%2F%2Fgithub.com%2Fchemelli74%2Faioamazondevices%2Fblob%2Fmain%2FCHANGELOG.md","isCSV":false,"isRichtext":true,"toc":[{"level":1,"text":"Changelog","anchor":"changelog","htmlText":"Changelog"},{"level":2,"text":"v3.1.19 (2025-06-24)","anchor":"v3119-2025-06-24","htmlText":"v3.1.19 (2025-06-24)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes","htmlText":"Bug fixes"},{"level":2,"text":"v3.1.18 (2025-06-24)","anchor":"v3118-2025-06-24","htmlText":"v3.1.18 (2025-06-24)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-1","htmlText":"Bug fixes"},{"level":2,"text":"v3.1.17 (2025-06-24)","anchor":"v3117-2025-06-24","htmlText":"v3.1.17 (2025-06-24)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-2","htmlText":"Bug fixes"},{"level":2,"text":"v3.1.16 (2025-06-24)","anchor":"v3116-2025-06-24","htmlText":"v3.1.16 (2025-06-24)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-3","htmlText":"Bug fixes"},{"level":2,"text":"v3.1.15 (2025-06-24)","anchor":"v3115-2025-06-24","htmlText":"v3.1.15 (2025-06-24)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-4","htmlText":"Bug fixes"},{"level":3,"text":"Build system","anchor":"build-system","htmlText":"Build system"},{"level":3,"text":"Refactoring","anchor":"refactoring","htmlText":"Refactoring"},{"level":2,"text":"v3.1.14 (2025-06-21)","anchor":"v3114-2025-06-21","htmlText":"v3.1.14 (2025-06-21)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-5","htmlText":"Bug fixes"},{"level":2,"text":"v3.1.13 (2025-06-21)","anchor":"v3113-2025-06-21","htmlText":"v3.1.13 (2025-06-21)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-6","htmlText":"Bug fixes"},{"level":3,"text":"Refactoring","anchor":"refactoring-1","htmlText":"Refactoring"},{"level":2,"text":"v3.1.12 (2025-06-17)","anchor":"v3112-2025-06-17","htmlText":"v3.1.12 (2025-06-17)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-7","htmlText":"Bug fixes"},{"level":2,"text":"v3.1.11 (2025-06-17)","anchor":"v3111-2025-06-17","htmlText":"v3.1.11 (2025-06-17)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-8","htmlText":"Bug fixes"},{"level":3,"text":"Testing","anchor":"testing","htmlText":"Testing"},{"level":2,"text":"v3.1.10 (2025-06-17)","anchor":"v3110-2025-06-17","htmlText":"v3.1.10 (2025-06-17)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-9","htmlText":"Bug fixes"},{"level":2,"text":"v3.1.9 (2025-06-17)","anchor":"v319-2025-06-17","htmlText":"v3.1.9 (2025-06-17)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-10","htmlText":"Bug fixes"},{"level":2,"text":"v3.1.8 (2025-06-17)","anchor":"v318-2025-06-17","htmlText":"v3.1.8 (2025-06-17)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-11","htmlText":"Bug fixes"},{"level":2,"text":"v3.1.7 (2025-06-16)","anchor":"v317-2025-06-16","htmlText":"v3.1.7 (2025-06-16)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-12","htmlText":"Bug fixes"},{"level":3,"text":"Build system","anchor":"build-system-1","htmlText":"Build system"},{"level":2,"text":"v3.1.6 (2025-06-16)","anchor":"v316-2025-06-16","htmlText":"v3.1.6 (2025-06-16)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-13","htmlText":"Bug fixes"},{"level":2,"text":"v3.1.5 (2025-06-16)","anchor":"v315-2025-06-16","htmlText":"v3.1.5 (2025-06-16)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-14","htmlText":"Bug fixes"},{"level":3,"text":"Build system","anchor":"build-system-2","htmlText":"Build system"},{"level":2,"text":"v3.1.4 (2025-06-15)","anchor":"v314-2025-06-15","htmlText":"v3.1.4 (2025-06-15)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-15","htmlText":"Bug fixes"},{"level":2,"text":"v3.1.3 (2025-06-14)","anchor":"v313-2025-06-14","htmlText":"v3.1.3 (2025-06-14)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-16","htmlText":"Bug fixes"},{"level":2,"text":"v3.1.2 (2025-06-13)","anchor":"v312-2025-06-13","htmlText":"v3.1.2 (2025-06-13)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-17","htmlText":"Bug fixes"},{"level":2,"text":"v3.1.1 (2025-06-12)","anchor":"v311-2025-06-12","htmlText":"v3.1.1 (2025-06-12)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-18","htmlText":"Bug fixes"},{"level":2,"text":"v3.1.0 (2025-06-12)","anchor":"v310-2025-06-12","htmlText":"v3.1.0 (2025-06-12)"},{"level":3,"text":"Features","anchor":"features","htmlText":"Features"},{"level":3,"text":"Build system","anchor":"build-system-3","htmlText":"Build system"},{"level":2,"text":"v3.0.10 (2025-06-12)","anchor":"v3010-2025-06-12","htmlText":"v3.0.10 (2025-06-12)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-19","htmlText":"Bug fixes"},{"level":2,"text":"v3.0.9 (2025-06-12)","anchor":"v309-2025-06-12","htmlText":"v3.0.9 (2025-06-12)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-20","htmlText":"Bug fixes"},{"level":2,"text":"v3.0.8 (2025-06-10)","anchor":"v308-2025-06-10","htmlText":"v3.0.8 (2025-06-10)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-21","htmlText":"Bug fixes"},{"level":2,"text":"v3.0.7 (2025-06-10)","anchor":"v307-2025-06-10","htmlText":"v3.0.7 (2025-06-10)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-22","htmlText":"Bug fixes"},{"level":3,"text":"Build system","anchor":"build-system-4","htmlText":"Build system"},{"level":2,"text":"v3.0.6 (2025-06-08)","anchor":"v306-2025-06-08","htmlText":"v3.0.6 (2025-06-08)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-23","htmlText":"Bug fixes"},{"level":3,"text":"Documentation","anchor":"documentation","htmlText":"Documentation"},{"level":3,"text":"Refactoring","anchor":"refactoring-2","htmlText":"Refactoring"},{"level":3,"text":"Testing","anchor":"testing-1","htmlText":"Testing"},{"level":2,"text":"v3.0.5 (2025-06-02)","anchor":"v305-2025-06-02","htmlText":"v3.0.5 (2025-06-02)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-24","htmlText":"Bug fixes"},{"level":3,"text":"Build system","anchor":"build-system-5","htmlText":"Build system"},{"level":2,"text":"v3.0.4 (2025-06-01)","anchor":"v304-2025-06-01","htmlText":"v3.0.4 (2025-06-01)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-25","htmlText":"Bug fixes"},{"level":2,"text":"v3.0.3 (2025-06-01)","anchor":"v303-2025-06-01","htmlText":"v3.0.3 (2025-06-01)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-26","htmlText":"Bug fixes"},{"level":3,"text":"Testing","anchor":"testing-2","htmlText":"Testing"},{"level":3,"text":"Refactoring","anchor":"refactoring-3","htmlText":"Refactoring"},{"level":2,"text":"v3.0.2 (2025-05-29)","anchor":"v302-2025-05-29","htmlText":"v3.0.2 (2025-05-29)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-27","htmlText":"Bug fixes"},{"level":2,"text":"v3.0.1 (2025-05-29)","anchor":"v301-2025-05-29","htmlText":"v3.0.1 (2025-05-29)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-28","htmlText":"Bug fixes"},{"level":2,"text":"v3.0.0 (2025-05-28)","anchor":"v300-2025-05-28","htmlText":"v3.0.0 (2025-05-28)"},{"level":3,"text":"Features","anchor":"features-1","htmlText":"Features"},{"level":2,"text":"v2.2.1 (2025-05-28)","anchor":"v221-2025-05-28","htmlText":"v2.2.1 (2025-05-28)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-29","htmlText":"Bug fixes"},{"level":2,"text":"v2.2.0 (2025-05-26)","anchor":"v220-2025-05-26","htmlText":"v2.2.0 (2025-05-26)"},{"level":3,"text":"Features","anchor":"features-2","htmlText":"Features"},{"level":2,"text":"v2.1.1 (2025-05-26)","anchor":"v211-2025-05-26","htmlText":"v2.1.1 (2025-05-26)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-30","htmlText":"Bug fixes"},{"level":2,"text":"v2.1.0 (2025-05-26)","anchor":"v210-2025-05-26","htmlText":"v2.1.0 (2025-05-26)"},{"level":3,"text":"Features","anchor":"features-3","htmlText":"Features"},{"level":3,"text":"Build system","anchor":"build-system-6","htmlText":"Build system"},{"level":2,"text":"v2.0.1 (2025-05-25)","anchor":"v201-2025-05-25","htmlText":"v2.0.1 (2025-05-25)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-31","htmlText":"Bug fixes"},{"level":2,"text":"v2.0.0 (2025-05-25)","anchor":"v200-2025-05-25","htmlText":"v2.0.0 (2025-05-25)"},{"level":3,"text":"Features","anchor":"features-4","htmlText":"Features"},{"level":2,"text":"v1.10.0 (2025-05-21)","anchor":"v1100-2025-05-21","htmlText":"v1.10.0 (2025-05-21)"},{"level":3,"text":"Features","anchor":"features-5","htmlText":"Features"},{"level":2,"text":"v1.9.0 (2025-05-19)","anchor":"v190-2025-05-19","htmlText":"v1.9.0 (2025-05-19)"},{"level":3,"text":"Features","anchor":"features-6","htmlText":"Features"},{"level":3,"text":"Build system","anchor":"build-system-7","htmlText":"Build system"},{"level":2,"text":"v1.8.0 (2025-05-06)","anchor":"v180-2025-05-06","htmlText":"v1.8.0 (2025-05-06)"},{"level":3,"text":"Features","anchor":"features-7","htmlText":"Features"},{"level":2,"text":"v1.7.0 (2025-05-05)","anchor":"v170-2025-05-05","htmlText":"v1.7.0 (2025-05-05)"},{"level":3,"text":"Features","anchor":"features-8","htmlText":"Features"},{"level":3,"text":"Testing","anchor":"testing-3","htmlText":"Testing"},{"level":2,"text":"v1.6.0 (2025-05-05)","anchor":"v160-2025-05-05","htmlText":"v1.6.0 (2025-05-05)"},{"level":3,"text":"Features","anchor":"features-9","htmlText":"Features"},{"level":3,"text":"Refactoring","anchor":"refactoring-4","htmlText":"Refactoring"},{"level":3,"text":"Build system","anchor":"build-system-8","htmlText":"Build system"},{"level":2,"text":"v1.5.0 (2025-05-04)","anchor":"v150-2025-05-04","htmlText":"v1.5.0 (2025-05-04)"},{"level":3,"text":"Features","anchor":"features-10","htmlText":"Features"},{"level":2,"text":"v1.4.2 (2025-05-03)","anchor":"v142-2025-05-03","htmlText":"v1.4.2 (2025-05-03)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-32","htmlText":"Bug fixes"},{"level":2,"text":"v1.4.1 (2025-05-02)","anchor":"v141-2025-05-02","htmlText":"v1.4.1 (2025-05-02)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-33","htmlText":"Bug fixes"},{"level":3,"text":"Build system","anchor":"build-system-9","htmlText":"Build system"},{"level":2,"text":"v1.4.0 (2025-04-29)","anchor":"v140-2025-04-29","htmlText":"v1.4.0 (2025-04-29)"},{"level":3,"text":"Features","anchor":"features-11","htmlText":"Features"},{"level":3,"text":"Build system","anchor":"build-system-10","htmlText":"Build system"},{"level":2,"text":"v1.3.0 (2025-04-27)","anchor":"v130-2025-04-27","htmlText":"v1.3.0 (2025-04-27)"},{"level":3,"text":"Features","anchor":"features-12","htmlText":"Features"},{"level":2,"text":"v1.2.0 (2025-04-26)","anchor":"v120-2025-04-26","htmlText":"v1.2.0 (2025-04-26)"},{"level":3,"text":"Features","anchor":"features-13","htmlText":"Features"},{"level":3,"text":"Unknown","anchor":"unknown","htmlText":"Unknown"},{"level":2,"text":"v1.1.0 (2025-04-25)","anchor":"v110-2025-04-25","htmlText":"v1.1.0 (2025-04-25)"},{"level":3,"text":"Features","anchor":"features-14","htmlText":"Features"},{"level":3,"text":"Build system","anchor":"build-system-11","htmlText":"Build system"},{"level":3,"text":"Refactoring","anchor":"refactoring-5","htmlText":"Refactoring"},{"level":3,"text":"Testing","anchor":"testing-4","htmlText":"Testing"},{"level":2,"text":"v1.0.0 (2024-12-09)","anchor":"v100-2024-12-09","htmlText":"v1.0.0 (2024-12-09)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-34","htmlText":"Bug fixes"},{"level":3,"text":"Build system","anchor":"build-system-12","htmlText":"Build system"},{"level":2,"text":"v0.13.0 (2024-12-03)","anchor":"v0130-2024-12-03","htmlText":"v0.13.0 (2024-12-03)"},{"level":3,"text":"Features","anchor":"features-15","htmlText":"Features"},{"level":3,"text":"Build system","anchor":"build-system-13","htmlText":"Build system"},{"level":2,"text":"v0.12.0 (2024-12-02)","anchor":"v0120-2024-12-02","htmlText":"v0.12.0 (2024-12-02)"},{"level":3,"text":"Features","anchor":"features-16","htmlText":"Features"},{"level":2,"text":"v0.11.1 (2024-12-02)","anchor":"v0111-2024-12-02","htmlText":"v0.11.1 (2024-12-02)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-35","htmlText":"Bug fixes"},{"level":2,"text":"v0.11.0 (2024-12-02)","anchor":"v0110-2024-12-02","htmlText":"v0.11.0 (2024-12-02)"},{"level":3,"text":"Features","anchor":"features-17","htmlText":"Features"},{"level":3,"text":"Build system","anchor":"build-system-14","htmlText":"Build system"},{"level":2,"text":"v0.10.0 (2024-11-13)","anchor":"v0100-2024-11-13","htmlText":"v0.10.0 (2024-11-13)"},{"level":3,"text":"Features","anchor":"features-18","htmlText":"Features"},{"level":3,"text":"Build system","anchor":"build-system-15","htmlText":"Build system"},{"level":3,"text":"Refactoring","anchor":"refactoring-6","htmlText":"Refactoring"},{"level":2,"text":"v0.9.0 (2024-11-10)","anchor":"v090-2024-11-10","htmlText":"v0.9.0 (2024-11-10)"},{"level":3,"text":"Features","anchor":"features-19","htmlText":"Features"},{"level":3,"text":"Refactoring","anchor":"refactoring-7","htmlText":"Refactoring"},{"level":3,"text":"Testing","anchor":"testing-5","htmlText":"Testing"},{"level":3,"text":"Build system","anchor":"build-system-16","htmlText":"Build system"},{"level":2,"text":"v0.8.0 (2024-11-01)","anchor":"v080-2024-11-01","htmlText":"v0.8.0 (2024-11-01)"},{"level":3,"text":"Build system","anchor":"build-system-17","htmlText":"Build system"},{"level":3,"text":"Features","anchor":"features-20","htmlText":"Features"},{"level":2,"text":"v0.7.3 (2024-10-31)","anchor":"v073-2024-10-31","htmlText":"v0.7.3 (2024-10-31)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-36","htmlText":"Bug fixes"},{"level":3,"text":"Build system","anchor":"build-system-18","htmlText":"Build system"},{"level":2,"text":"v0.7.2 (2024-10-22)","anchor":"v072-2024-10-22","htmlText":"v0.7.2 (2024-10-22)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-37","htmlText":"Bug fixes"},{"level":2,"text":"v0.7.1 (2024-10-22)","anchor":"v071-2024-10-22","htmlText":"v0.7.1 (2024-10-22)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-38","htmlText":"Bug fixes"},{"level":3,"text":"Build system","anchor":"build-system-19","htmlText":"Build system"},{"level":2,"text":"v0.7.0 (2024-10-08)","anchor":"v070-2024-10-08","htmlText":"v0.7.0 (2024-10-08)"},{"level":2,"text":"v0.6.0 (2024-10-08)","anchor":"v060-2024-10-08","htmlText":"v0.6.0 (2024-10-08)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-39","htmlText":"Bug fixes"},{"level":3,"text":"Features","anchor":"features-21","htmlText":"Features"},{"level":2,"text":"v0.5.1 (2024-10-08)","anchor":"v051-2024-10-08","htmlText":"v0.5.1 (2024-10-08)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-40","htmlText":"Bug fixes"},{"level":2,"text":"v0.5.0 (2024-10-08)","anchor":"v050-2024-10-08","htmlText":"v0.5.0 (2024-10-08)"},{"level":3,"text":"Features","anchor":"features-22","htmlText":"Features"},{"level":2,"text":"v0.4.0 (2024-10-08)","anchor":"v040-2024-10-08","htmlText":"v0.4.0 (2024-10-08)"},{"level":3,"text":"Features","anchor":"features-23","htmlText":"Features"},{"level":2,"text":"v0.3.0 (2024-10-08)","anchor":"v030-2024-10-08","htmlText":"v0.3.0 (2024-10-08)"},{"level":3,"text":"Features","anchor":"features-24","htmlText":"Features"},{"level":2,"text":"v0.2.0 (2024-10-03)","anchor":"v020-2024-10-03","htmlText":"v0.2.0 (2024-10-03)"},{"level":3,"text":"Features","anchor":"features-25","htmlText":"Features"},{"level":3,"text":"Build system","anchor":"build-system-20","htmlText":"Build system"},{"level":2,"text":"v0.1.1 (2024-05-22)","anchor":"v011-2024-05-22","htmlText":"v0.1.1 (2024-05-22)"},{"level":3,"text":"Bug fixes","anchor":"bug-fixes-41","htmlText":"Bug fixes"},{"level":3,"text":"Build system","anchor":"build-system-21","htmlText":"Build system"},{"level":2,"text":"v0.1.0 (2024-05-07)","anchor":"v010-2024-05-07","htmlText":"v0.1.0 (2024-05-07)"},{"level":3,"text":"Features","anchor":"features-26","htmlText":"Features"},{"level":3,"text":"Build system","anchor":"build-system-22","htmlText":"Build system"},{"level":2,"text":"v0.0.0 (2024-04-24)","anchor":"v000-2024-04-24","htmlText":"v0.0.0 (2024-04-24)"},{"level":3,"text":"Build system","anchor":"build-system-23","htmlText":"Build system"}],"lineInfo":{"truncatedLoc":"752","truncatedSloc":"358"},"mode":"file"},"image":false,"isCodeownersFile":null,"isPlain":false,"isValidLegacyIssueTemplate":false,"issueTemplate":null,"discussionTemplate":null,"language":"Markdown","languageID":222,"large":false,"planSupportInfo":{"repoIsFork":null,"repoOwnedByCurrentUser":null,"requestFullPath":"/chemelli74/aioamazondevices/blob/main/CHANGELOG.md","showFreeOrgGatedFeatureMessage":null,"showPlanSupportBanner":null,"upgradeDataAttributes":null,"upgradePath":null},"publishBannersInfo":{"dismissActionNoticePath":"/settings/dismiss-notice/publish_action_from_dockerfile","releasePath":"/chemelli74/aioamazondevices/releases/new?marketplace=true","showPublishActionBanner":false},"rawBlobUrl":"https://github.com/chemelli74/aioamazondevices/raw/refs/heads/main/CHANGELOG.md","renderImageOrRaw":false,"richText":"\u003carticle class=\"markdown-body entry-content container-lg\" itemprop=\"text\"\u003e\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch1 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eChangelog\u003c/h1\u003e\u003ca id=\"user-content-changelog\" class=\"anchor\" aria-label=\"Permalink: Changelog\" href=\"#changelog\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.19 (2025-06-24)\u003c/h2\u003e\u003ca id=\"user-content-v3119-2025-06-24\" class=\"anchor\" aria-label=\"Permalink: v3.1.19 (2025-06-24)\" href=\"#v3119-2025-06-24\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eRe-release (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/d634be6c120c2b558c3d8e8a2aebfcbf960133ce\"\u003e\u003ccode\u003ed634be6\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.18 (2025-06-24)\u003c/h2\u003e\u003ca id=\"user-content-v3118-2025-06-24\" class=\"anchor\" aria-label=\"Permalink: v3.1.18 (2025-06-24)\" href=\"#v3118-2025-06-24\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-1\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-1\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eIgnore devices earlier (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/a38e839d170e7d4dcb962432d263b69602552c25\"\u003e\u003ccode\u003ea38e839\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.17 (2025-06-24)\u003c/h2\u003e\u003ca id=\"user-content-v3117-2025-06-24\" class=\"anchor\" aria-label=\"Permalink: v3.1.17 (2025-06-24)\" href=\"#v3117-2025-06-24\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-2\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-2\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eProject classifier (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/6eb3a27b89d70dc55a01f3c33221d8cc34eb360b\"\u003e\u003ccode\u003e6eb3a27\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.16 (2025-06-24)\u003c/h2\u003e\u003ca id=\"user-content-v3116-2025-06-24\" class=\"anchor\" aria-label=\"Permalink: v3.1.16 (2025-06-24)\" href=\"#v3116-2025-06-24\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-3\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-3\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eRedact sensitive data from debug logs (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/0d1b912e212e5dabc7b3b5f17944d9faae499c7c\"\u003e\u003ccode\u003e0d1b912\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.15 (2025-06-24)\u003c/h2\u003e\u003ca id=\"user-content-v3115-2025-06-24\" class=\"anchor\" aria-label=\"Permalink: v3.1.15 (2025-06-24)\" href=\"#v3115-2025-06-24\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-4\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-4\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003ePyproject syntax (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/931638764fadf7248e9d06b1126d290ae4cca0b0\"\u003e\u003ccode\u003e9316387\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eAdd more models (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/72609219f938f56d24e9b56e5c52e3f5c74b3450\"\u003e\u003ccode\u003e7260921\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eIgnore android mobile app (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/82c61698437c8437575d0d7370937c6213d5fd4f\"\u003e\u003ccode\u003e82c6169\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eChange library for language detection (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/553b2463b48aa42cb5ce5426e2d492ac2e4fedbe\"\u003e\u003ccode\u003e553b246\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump pytest from 8.4.0 to 8.4.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/0fbb4335b720b325a6598aa923c70cbafd9fcaeb\"\u003e\u003ccode\u003e0fbb433\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eRefactoring\u003c/h3\u003e\u003ca id=\"user-content-refactoring\" class=\"anchor\" aria-label=\"Permalink: Refactoring\" href=\"#refactoring\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eUpdate pyproject.toml (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/254529798e35ffd98947cc0e8e214c9a1c11b323\"\u003e\u003ccode\u003e2545297\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.14 (2025-06-21)\u003c/h2\u003e\u003ca id=\"user-content-v3114-2025-06-21\" class=\"anchor\" aria-label=\"Permalink: v3.1.14 (2025-06-21)\" href=\"#v3114-2025-06-21\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-5\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-5\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd more countries settings (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/1972a7653a0db7bd546ca543338ecc9b359c7c7c\"\u003e\u003ccode\u003e1972a76\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.13 (2025-06-21)\u003c/h2\u003e\u003ca id=\"user-content-v3113-2025-06-21\" class=\"anchor\" aria-label=\"Permalink: v3.1.13 (2025-06-21)\" href=\"#v3113-2025-06-21\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-6\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-6\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd mexico settings (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/9a71a14aaec320231cd4b541d4be88ad2f3f4593\"\u003e\u003ccode\u003e9a71a14\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eRefactoring\u003c/h3\u003e\u003ca id=\"user-content-refactoring-1\" class=\"anchor\" aria-label=\"Permalink: Refactoring\" href=\"#refactoring-1\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eImprove typing (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/e61dc16690fd9c35331f5f529e668fbf55ad8fa0\"\u003e\u003ccode\u003ee61dc16\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.12 (2025-06-17)\u003c/h2\u003e\u003ca id=\"user-content-v3112-2025-06-17\" class=\"anchor\" aria-label=\"Permalink: v3.1.12 (2025-06-17)\" href=\"#v3112-2025-06-17\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-7\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-7\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd argentina and austria settings (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/00e0ed67aa76ca6af005ccee109c15607a303600\"\u003e\u003ccode\u003e00e0ed6\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.11 (2025-06-17)\u003c/h2\u003e\u003ca id=\"user-content-v3111-2025-06-17\" class=\"anchor\" aria-label=\"Permalink: v3.1.11 (2025-06-17)\" href=\"#v3111-2025-06-17\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-8\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-8\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd more models (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/1679531f13f648ea51ce4e8f3f0ba7134e8b2656\"\u003e\u003ccode\u003e1679531\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eTesting\u003c/h3\u003e\u003ca id=\"user-content-testing\" class=\"anchor\" aria-label=\"Permalink: Testing\" href=\"#testing\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eImprove library test script (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/ed50a2fbf7c6af0da1adc65c91bcfc1f5630ff44\"\u003e\u003ccode\u003eed50a2f\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.10 (2025-06-17)\u003c/h2\u003e\u003ca id=\"user-content-v3110-2025-06-17\" class=\"anchor\" aria-label=\"Permalink: v3.1.10 (2025-06-17)\" href=\"#v3110-2025-06-17\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-9\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-9\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eLogin uri typo (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/8eba423aa0bf4a42f8c3802be624eb2970090f48\"\u003e\u003ccode\u003e8eba423\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.9 (2025-06-17)\u003c/h2\u003e\u003ca id=\"user-content-v319-2025-06-17\" class=\"anchor\" aria-label=\"Permalink: v3.1.9 (2025-06-17)\" href=\"#v319-2025-06-17\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-10\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-10\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eMissing sensor key for very old devices (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/6dbde8abbf522addf52cf20b5723e73d79303b60\"\u003e\u003ccode\u003e6dbde8a\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.8 (2025-06-17)\u003c/h2\u003e\u003ca id=\"user-content-v318-2025-06-17\" class=\"anchor\" aria-label=\"Permalink: v3.1.8 (2025-06-17)\" href=\"#v318-2025-06-17\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-11\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-11\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eUpdate user-agent (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/6178187f70b55bdb66d716b1581b8ff29a114106\"\u003e\u003ccode\u003e6178187\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.7 (2025-06-16)\u003c/h2\u003e\u003ca id=\"user-content-v317-2025-06-16\" class=\"anchor\" aria-label=\"Permalink: v3.1.7 (2025-06-16)\" href=\"#v317-2025-06-16\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-12\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-12\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eIgnore signin logic (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/7636e3a1811f59f1879456f32b72b4af7d375c7d\"\u003e\u003ccode\u003e7636e3a\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-1\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-1\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump aiohttp from 3.12.11 to 3.12.13 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/90d69470fdbfd164596f5643e880733bb08fbe23\"\u003e\u003ccode\u003e90d6947\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump pytest-cov from 6.1.1 to 6.2.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/30bbcf31039501624fc39d77b7ca4a5834188d76\"\u003e\u003ccode\u003e30bbcf3\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.6 (2025-06-16)\u003c/h2\u003e\u003ca id=\"user-content-v316-2025-06-16\" class=\"anchor\" aria-label=\"Permalink: v3.1.6 (2025-06-16)\" href=\"#v316-2025-06-16\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-13\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-13\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd new zealand and fix australia (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/f6e06d61c591e3e2eb0c4e193a5dbe6c5f22a8c6\"\u003e\u003ccode\u003ef6e06d6\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.5 (2025-06-16)\u003c/h2\u003e\u003ca id=\"user-content-v315-2025-06-16\" class=\"anchor\" aria-label=\"Permalink: v3.1.5 (2025-06-16)\" href=\"#v315-2025-06-16\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-14\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-14\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eOptimize exception handling (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/8a9d091516fd2dc77c17529b490a81bd1714d120\"\u003e\u003ccode\u003e8a9d091\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-2\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-2\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eCleanup httpx leftover (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/2bdd73a6bfc434c23d609f97857a42492ee3d154\"\u003e\u003ccode\u003e2bdd73a\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.4 (2025-06-15)\u003c/h2\u003e\u003ca id=\"user-content-v314-2025-06-15\" class=\"anchor\" aria-label=\"Permalink: v3.1.4 (2025-06-15)\" href=\"#v314-2025-06-15\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-15\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-15\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eMissing await in response error (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/516451fbd381baa61251bee4090677bd94bc6021\"\u003e\u003ccode\u003e516451f\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.3 (2025-06-14)\u003c/h2\u003e\u003ca id=\"user-content-v313-2025-06-14\" class=\"anchor\" aria-label=\"Permalink: v3.1.3 (2025-06-14)\" href=\"#v313-2025-06-14\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-16\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-16\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd sensors only for linked devices (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/d40b96e56fa3837257ceef899608663d4f05b477\"\u003e\u003ccode\u003ed40b96e\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.2 (2025-06-13)\u003c/h2\u003e\u003ca id=\"user-content-v312-2025-06-13\" class=\"anchor\" aria-label=\"Permalink: v3.1.2 (2025-06-13)\" href=\"#v312-2025-06-13\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-17\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-17\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eHandle account with old devices only (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/91ba80211df033b04a7269917893b6b812e5b01a\"\u003e\u003ccode\u003e91ba802\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.1 (2025-06-12)\u003c/h2\u003e\u003ca id=\"user-content-v311-2025-06-12\" class=\"anchor\" aria-label=\"Permalink: v3.1.1 (2025-06-12)\" href=\"#v311-2025-06-12\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-18\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-18\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eUpdate models list (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/5408d4a2b3c9bf56847513be1cd72bd9401a6239\"\u003e\u003ccode\u003e5408d4a\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.1.0 (2025-06-12)\u003c/h2\u003e\u003ca id=\"user-content-v310-2025-06-12\" class=\"anchor\" aria-label=\"Permalink: v3.1.0 (2025-06-12)\" href=\"#v310-2025-06-12\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eRetrieve available sensors data (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/5fe258ae01d2f5e3f058ea649d2b909367f3d1ee\"\u003e\u003ccode\u003e5fe258a\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-3\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-3\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release from 10.0.2 to 10.1.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/fbe9dab283bab178117b9cbe33bdcd3a0432c2b6\"\u003e\u003ccode\u003efbe9dab\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.0.10 (2025-06-12)\u003c/h2\u003e\u003ca id=\"user-content-v3010-2025-06-12\" class=\"anchor\" aria-label=\"Permalink: v3.0.10 (2025-06-12)\" href=\"#v3010-2025-06-12\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-19\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-19\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eIgnore alexa app for pc (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/fcfb6748d07c184c6233d08537026dec416c9488\"\u003e\u003ccode\u003efcfb674\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.0.9 (2025-06-12)\u003c/h2\u003e\u003ca id=\"user-content-v309-2025-06-12\" class=\"anchor\" aria-label=\"Permalink: v3.0.9 (2025-06-12)\" href=\"#v309-2025-06-12\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-20\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-20\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eMultibyte characters encoding (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/6016a0f8e74cd6ab13a8f060e4f2b64eaa81264f\"\u003e\u003ccode\u003e6016a0f\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.0.8 (2025-06-10)\u003c/h2\u003e\u003ca id=\"user-content-v308-2025-06-10\" class=\"anchor\" aria-label=\"Permalink: v3.0.8 (2025-06-10)\" href=\"#v308-2025-06-10\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-21\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-21\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eHandle requests response errors (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/24ebb1d4542943fdb9727a261fcc1186b686bb1f\"\u003e\u003ccode\u003e24ebb1d\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.0.7 (2025-06-10)\u003c/h2\u003e\u003ca id=\"user-content-v307-2025-06-10\" class=\"anchor\" aria-label=\"Permalink: v3.0.7 (2025-06-10)\" href=\"#v307-2025-06-10\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-22\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-22\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd ecobee switch+ (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/f2ff7d23df9cb47806214b31b9e6aa42bb42e152\"\u003e\u003ccode\u003ef2ff7d2\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-4\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-4\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump pytest from 8.3.5 to 8.4.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/ae3ad6aef9e931fe0061338716e176df08833e61\"\u003e\u003ccode\u003eae3ad6a\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump aiohttp from 3.12.6 to 3.12.11 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/99b0698cda4124fce137e31842a1799bb90fc5de\"\u003e\u003ccode\u003e99b0698\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.0.6 (2025-06-08)\u003c/h2\u003e\u003ca id=\"user-content-v306-2025-06-08\" class=\"anchor\" aria-label=\"Permalink: v3.0.6 (2025-06-08)\" href=\"#v306-2025-06-08\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-23\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-23\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd more device models (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/9c5df130fab42c6676b28f44f98dd571019138bb\"\u003e\u003ccode\u003e9c5df13\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eDocumentation\u003c/h3\u003e\u003ca id=\"user-content-documentation\" class=\"anchor\" aria-label=\"Permalink: Documentation\" href=\"#documentation\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd more details for unknown device issues (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/d34d371eb9228dee8718f2f5cf53c54055e61c11\"\u003e\u003ccode\u003ed34d371\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eRefactoring\u003c/h3\u003e\u003ca id=\"user-content-refactoring-2\" class=\"anchor\" aria-label=\"Permalink: Refactoring\" href=\"#refactoring-2\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eUse httpmethod (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/03d546315bc4b7ae7bb8cd7fc1d02a1639e4e4a9\"\u003e\u003ccode\u003e03d5463\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eDrop httpx support (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/23a082f54233edea9a44e9e40a2677ea958bf4be\"\u003e\u003ccode\u003e23a082f\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eTesting\u003c/h3\u003e\u003ca id=\"user-content-testing-1\" class=\"anchor\" aria-label=\"Permalink: Testing\" href=\"#testing-1\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd no test feature to library_test (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/640afd6e7bfa828fd74ca630138dd5b0bddadf39\"\u003e\u003ccode\u003e640afd6\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.0.5 (2025-06-02)\u003c/h2\u003e\u003ca id=\"user-content-v305-2025-06-02\" class=\"anchor\" aria-label=\"Permalink: v3.0.5 (2025-06-02)\" href=\"#v305-2025-06-02\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-24\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-24\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eCookies for aiohttp (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/58f5bfcb65a0be0f249d0d7b38e350046f4b543d\"\u003e\u003ccode\u003e58f5bfc\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-5\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-5\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump aiohttp from 3.11.18 to 3.12.6 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/482e467be974ecdb4107b3d1df6aaf8cd6e21c90\"\u003e\u003ccode\u003e482e467\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.0.4 (2025-06-01)\u003c/h2\u003e\u003ca id=\"user-content-v304-2025-06-01\" class=\"anchor\" aria-label=\"Permalink: v3.0.4 (2025-06-01)\" href=\"#v304-2025-06-01\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-25\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-25\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eOpenid.assoc_handle for uk accounts (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/e9f31237f79d4215989d77cd764d54b17dc99d55\"\u003e\u003ccode\u003ee9f3123\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.0.3 (2025-06-01)\u003c/h2\u003e\u003ca id=\"user-content-v303-2025-06-01\" class=\"anchor\" aria-label=\"Permalink: v3.0.3 (2025-06-01)\" href=\"#v303-2025-06-01\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-26\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-26\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd more models (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/39314018a92894130a865d60731406abf4e38376\"\u003e\u003ccode\u003e3931401\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eTesting\u003c/h3\u003e\u003ca id=\"user-content-testing-2\" class=\"anchor\" aria-label=\"Permalink: Testing\" href=\"#testing-2\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eUpdate cleanup script (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/9a6f01f12c195bfa38a7d8e180fc0e58e6e3be49\"\u003e\u003ccode\u003e9a6f01f\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eImprove library_test script (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/614de28414126423a9a82f1982c0ffaa4cdc8f3d\"\u003e\u003ccode\u003e614de28\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eRefactoring\u003c/h3\u003e\u003ca id=\"user-content-refactoring-3\" class=\"anchor\" aria-label=\"Permalink: Refactoring\" href=\"#refactoring-3\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAuthcode (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/f9b5346dddbefa982d3b5f168ef3923a9fcb7103\"\u003e\u003ccode\u003ef9b5346\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eAlign requests between httpx and aiohttp (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/f2cd61557466bbe6cccfac14d2316acbff471bcc\"\u003e\u003ccode\u003ef2cd615\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003ePylance warnings (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/459e0d6a6a597be2dd76f75e9f95447c0cfbc097\"\u003e\u003ccode\u003e459e0d6\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.0.2 (2025-05-29)\u003c/h2\u003e\u003ca id=\"user-content-v302-2025-05-29\" class=\"anchor\" aria-label=\"Permalink: v3.0.2 (2025-05-29)\" href=\"#v302-2025-05-29\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-27\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-27\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd more models and sort them (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/26c3519a716a955535ec245425ac6bb905a1e295\"\u003e\u003ccode\u003e26c3519\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.0.1 (2025-05-29)\u003c/h2\u003e\u003ca id=\"user-content-v301-2025-05-29\" class=\"anchor\" aria-label=\"Permalink: v3.0.1 (2025-05-29)\" href=\"#v301-2025-05-29\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-28\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-28\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eLink typo (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/1c961d5412b6c433bd4d43b1a3f95eab2634e996\"\u003e\u003ccode\u003e1c961d5\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev3.0.0 (2025-05-28)\u003c/h2\u003e\u003ca id=\"user-content-v300-2025-05-28\" class=\"anchor\" aria-label=\"Permalink: v3.0.0 (2025-05-28)\" href=\"#v300-2025-05-28\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-1\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-1\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eImprove amazon sounds management (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/ed0e2d38fe18c95ff1436f2193ccc1faf3ebb82e\"\u003e\u003ccode\u003eed0e2d3\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev2.2.1 (2025-05-28)\u003c/h2\u003e\u003ca id=\"user-content-v221-2025-05-28\" class=\"anchor\" aria-label=\"Permalink: v2.2.1 (2025-05-28)\" href=\"#v221-2025-05-28\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-29\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-29\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd missing models (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/c8c2de540f533080d95ba3964d17387196161b9a\"\u003e\u003ccode\u003ec8c2de5\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev2.2.0 (2025-05-26)\u003c/h2\u003e\u003ca id=\"user-content-v220-2025-05-26\" class=\"anchor\" aria-label=\"Permalink: v2.2.0 (2025-05-26)\" href=\"#v220-2025-05-26\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-2\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-2\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd sounds_list (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/15aadd92381b6bd376d6f0d694ba18658c3f8819\"\u003e\u003ccode\u003e15aadd9\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev2.1.1 (2025-05-26)\u003c/h2\u003e\u003ca id=\"user-content-v211-2025-05-26\" class=\"anchor\" aria-label=\"Permalink: v2.1.1 (2025-05-26)\" href=\"#v211-2025-05-26\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-30\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-30\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eMake get_model_details() sync (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/cb537123bc1219953ade01e4268eeecfa4462625\"\u003e\u003ccode\u003ecb53712\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev2.1.0 (2025-05-26)\u003c/h2\u003e\u003ca id=\"user-content-v210-2025-05-26\" class=\"anchor\" aria-label=\"Permalink: v2.1.0 (2025-05-26)\" href=\"#v210-2025-05-26\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-3\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-3\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd get_model_details() method (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/294a2575122b8585acb60d912ea30d413012e10f\"\u003e\u003ccode\u003e294a257\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-6\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-6\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release from 9.21.1 to 10.0.2 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/f976153c21d701b30964dfebce3b0a60b3e089b5\"\u003e\u003ccode\u003ef976153\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev2.0.1 (2025-05-25)\u003c/h2\u003e\u003ca id=\"user-content-v201-2025-05-25\" class=\"anchor\" aria-label=\"Permalink: v2.0.1 (2025-05-25)\" href=\"#v201-2025-05-25\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-31\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-31\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eSpeaker group typo (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/edb3d2cced441ec97a0b37b07b0361b96072dbf1\"\u003e\u003ccode\u003eedb3d2c\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev2.0.0 (2025-05-25)\u003c/h2\u003e\u003ca id=\"user-content-v200-2025-05-25\" class=\"anchor\" aria-label=\"Permalink: v2.0.0 (2025-05-25)\" href=\"#v200-2025-05-25\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-4\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-4\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eModel and hw_version details (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/24708bb84ddc18c7085cafb9cf280306190d5b95\"\u003e\u003ccode\u003e24708bb\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev1.10.0 (2025-05-21)\u003c/h2\u003e\u003ca id=\"user-content-v1100-2025-05-21\" class=\"anchor\" aria-label=\"Permalink: v1.10.0 (2025-05-21)\" href=\"#v1100-2025-05-21\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-5\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-5\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd set_do_not_disturb() method (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/19d42f15613ea195d36cf4b57eb9117b31f562cd\"\u003e\u003ccode\u003e19d42f1\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev1.9.0 (2025-05-19)\u003c/h2\u003e\u003ca id=\"user-content-v190-2025-05-19\" class=\"anchor\" aria-label=\"Permalink: v1.9.0 (2025-05-19)\" href=\"#v190-2025-05-19\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-6\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-6\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAllow easy swap of libraries (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/e67b3e63c414831615e87327a4736125afbe0573\"\u003e\u003ccode\u003ee67b3e6\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-7\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-7\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eSwitch to python 3.13 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/66f55f24e695edb7141094f4fc43b730d197d6b5\"\u003e\u003ccode\u003e66f55f2\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev1.8.0 (2025-05-06)\u003c/h2\u003e\u003ca id=\"user-content-v180-2025-05-06\" class=\"anchor\" aria-label=\"Permalink: v1.8.0 (2025-05-06)\" href=\"#v180-2025-05-06\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-7\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-7\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd call_alexa_text_command() method (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/5aa730eb990800d4c0f4c2319589d5c4c12f64b2\"\u003e\u003ccode\u003e5aa730e\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev1.7.0 (2025-05-05)\u003c/h2\u003e\u003ca id=\"user-content-v170-2025-05-05\" class=\"anchor\" aria-label=\"Permalink: v1.7.0 (2025-05-05)\" href=\"#v170-2025-05-05\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-8\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-8\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd call_alexa_music() method (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/9131e5c4323444bc75ce9eef033e1eb3f5048515\"\u003e\u003ccode\u003e9131e5c\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eTesting\u003c/h3\u003e\u003ca id=\"user-content-testing-3\" class=\"anchor\" aria-label=\"Permalink: Testing\" href=\"#testing-3\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eFix find device in library_test (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/8afc7a73f45b71a83a923e8697858b23d368b2b1\"\u003e\u003ccode\u003e8afc7a7\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev1.6.0 (2025-05-05)\u003c/h2\u003e\u003ca id=\"user-content-v160-2025-05-05\" class=\"anchor\" aria-label=\"Permalink: v1.6.0 (2025-05-05)\" href=\"#v160-2025-05-05\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-9\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-9\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd call_alexa_sound() method (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/d304d14fefc195fc510727e86496b8eee8483083\"\u003e\u003ccode\u003ed304d14\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eRefactoring\u003c/h3\u003e\u003ca id=\"user-content-refactoring-4\" class=\"anchor\" aria-label=\"Permalink: Refactoring\" href=\"#refactoring-4\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eIntroduce amazonsequencetype and optimize library_test code (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/dffbcdcd2bd7dc933cfaf453adedccbbb8059267\"\u003e\u003ccode\u003edffbcdc\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eIntroduce base_payload (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/51177ae0bea90090712e7d7c7d3e1b4724a2a04b\"\u003e\u003ccode\u003e51177ae\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-8\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-8\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release from 9.21.0 to 9.21.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/a8cee327f7fbf3da73720936be85d9a4891255c0\"\u003e\u003ccode\u003ea8cee32\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump orjson from 3.10.16 to 3.10.18 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/6bcfc64d7ec716a1f5fe33b8983e696adfeb71bc\"\u003e\u003ccode\u003e6bcfc64\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev1.5.0 (2025-05-04)\u003c/h2\u003e\u003ca id=\"user-content-v150-2025-05-04\" class=\"anchor\" aria-label=\"Permalink: v1.5.0 (2025-05-04)\" href=\"#v150-2025-05-04\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-10\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-10\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd call_alexa_announcement() method (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/047b3357d56387cfd2102ee9d41fd67cc40fc8f4\"\u003e\u003ccode\u003e047b335\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev1.4.2 (2025-05-03)\u003c/h2\u003e\u003ca id=\"user-content-v142-2025-05-03\" class=\"anchor\" aria-label=\"Permalink: v1.4.2 (2025-05-03)\" href=\"#v142-2025-05-03\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-32\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-32\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eImprove aiohttp support (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/8ffdc7f746848db15fd3affcdca68a04bc196db3\"\u003e\u003ccode\u003e8ffdc7f\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev1.4.1 (2025-05-02)\u003c/h2\u003e\u003ca id=\"user-content-v141-2025-05-02\" class=\"anchor\" aria-label=\"Permalink: v1.4.1 (2025-05-02)\" href=\"#v141-2025-05-02\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-33\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-33\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eForce file encoding for windows compatibility (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/e0b952c62c0c8e8383999c29ec4a285771460c2b\"\u003e\u003ccode\u003ee0b952c\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-9\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-9\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd more files to cleanup script (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/9895f4a5aa5c86906c00dfeef862ec410fb69ecd\"\u003e\u003ccode\u003e9895f4a\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eCleanup script (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/1b5c22f8669a218cc64074f1f747de1476433b7b\"\u003e\u003ccode\u003e1b5c22f\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev1.4.0 (2025-04-29)\u003c/h2\u003e\u003ca id=\"user-content-v140-2025-04-29\" class=\"anchor\" aria-label=\"Permalink: v1.4.0 (2025-04-29)\" href=\"#v140-2025-04-29\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-11\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-11\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eMove from httpx to aiohttp (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/7471c2b1a25726be2b3b23f1a109115f27a36ec8\"\u003e\u003ccode\u003e7471c2b\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-10\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-10\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eCleanup after #134 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/c7bc2dd846052559dfab1272d2941608885040f8\"\u003e\u003ccode\u003ec7bc2dd\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev1.3.0 (2025-04-27)\u003c/h2\u003e\u003ca id=\"user-content-v130-2025-04-27\" class=\"anchor\" aria-label=\"Permalink: v1.3.0 (2025-04-27)\" href=\"#v130-2025-04-27\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-12\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-12\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd call_alexa_speak() method (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/1e8376985d6ee9e5ad6624c06be1ea412ca57ef2\"\u003e\u003ccode\u003e1e83769\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev1.2.0 (2025-04-26)\u003c/h2\u003e\u003ca id=\"user-content-v120-2025-04-26\" class=\"anchor\" aria-label=\"Permalink: v1.2.0 (2025-04-26)\" href=\"#v120-2025-04-26\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-13\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-13\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd session auth status (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/d91cc5034d4be05931420bacbe433e85c4f67491\"\u003e\u003ccode\u003ed91cc50\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eUnknown\u003c/h3\u003e\u003ca id=\"user-content-unknown\" class=\"anchor\" aria-label=\"Permalink: Unknown\" href=\"#unknown\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev1.1.0 (2025-04-25)\u003c/h2\u003e\u003ca id=\"user-content-v110-2025-04-25\" class=\"anchor\" aria-label=\"Permalink: v1.1.0 (2025-04-25)\" href=\"#v110-2025-04-25\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-14\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-14\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eReplace session.post with _session_request (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/55aa4eb29123dd98bc5facc8d7d097bf6bc9bdfc\"\u003e\u003ccode\u003e55aa4eb\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-11\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-11\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump h11 from 0.14.0 to 0.16.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/e3b90e10bcd654f47dee7cc81596fdce9ac095d6\"\u003e\u003ccode\u003ee3b90e1\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eImprove environment (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/718dd03c258864335ead34cec080228773e87f25\"\u003e\u003ccode\u003e718dd03\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump rsa from 4.9 to 4.9.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/4d7ed78e46f149897ee179b582df02b277ca35d8\"\u003e\u003ccode\u003e4d7ed78\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump beautifulsoup4 from 4.13.3 to 4.13.4 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/23a15c9891e35867b18ce10acd8e4dc963387980\"\u003e\u003ccode\u003e23a15c9\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump pytest-cov from 6.0.0 to 6.1.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/0c5e05c9e741742bda06694c46ad68590118de6c\"\u003e\u003ccode\u003e0c5e05c\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump orjson from 3.10.15 to 3.10.16 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/5d5aeecacd6133b2fcbb0bfddce9f0e6426ba89c\"\u003e\u003ccode\u003e5d5aeec\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eRuff rules update (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/62f92fb86bd9599dda0652d5fcda67ab11a3e3ef\"\u003e\u003ccode\u003e62f92fb\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump pytest from 8.3.4 to 8.3.5 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/99264b6ef309e7b314cafe0b6c4cd96ef7ee02bd\"\u003e\u003ccode\u003e99264b6\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release from 9.20.0 to 9.21.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/fcae1ba30692c5b5dd0236464eeaca240123e81f\"\u003e\u003ccode\u003efcae1ba\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release from 9.19.1 to 9.20.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/6c8fe749c83e0642f46de9538df49768c9b23ca1\"\u003e\u003ccode\u003e6c8fe74\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release from 9.19.0 to 9.19.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/b7034ee8baba22aaf0ed23f16ba4f17de6fcda2c\"\u003e\u003ccode\u003eb7034ee\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release from 9.18.0 to 9.19.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/d36c2771227d9e07d5286dfe064271bc0732fc79\"\u003e\u003ccode\u003ed36c277\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump beautifulsoup4 from 4.13.0 to 4.13.3 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/483ae446f913ce7d1e07f934cda20190697fad44\"\u003e\u003ccode\u003e483ae44\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release from 9.17.0 to 9.18.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/2f18c9acf3798835645ade2dbd949c05bbff650d\"\u003e\u003ccode\u003e2f18c9a\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump beautifulsoup4 from 4.12.3 to 4.13.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/04e3c8c33853702e14540717559191bf1aba8974\"\u003e\u003ccode\u003e04e3c8c\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release from 9.16.1 to 9.17.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/e5f147cd50d4e0c072b034124a974249d7723dcd\"\u003e\u003ccode\u003ee5f147c\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump orjson from 3.10.14 to 3.10.15 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/fd3c424999e0b634dec72d927befe2881d6b95b2\"\u003e\u003ccode\u003efd3c424\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump wagoid/commitlint-github-action from 6.2.0 to 6.2.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/43cc69ad50e163d99bbe3cdb61ecff08ec870c0b\"\u003e\u003ccode\u003e43cc69a\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release from 9.15.2 to 9.16.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/799a6a4ec773fd4ac045029fb45e1af6d83f25da\"\u003e\u003ccode\u003e799a6a4\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump orjson from 3.10.13 to 3.10.14 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/e721a8996c0a967791376a54f9b309302e4b4b7c\"\u003e\u003ccode\u003ee721a89\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump orjson from 3.10.12 to 3.10.13 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/42c4703f524a4b86829a478cc96dc2c3bc1c1cc1\"\u003e\u003ccode\u003e42c4703\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump wagoid/commitlint-github-action from 6.1.2 to 6.2.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/9d976f00a1df3bf5484d7f3a35244732cbcc4571\"\u003e\u003ccode\u003e9d976f0\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release from 9.15.1 to 9.15.2 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/312f6a08415274eabf1649d123d53ef4441eb064\"\u003e\u003ccode\u003e312f6a0\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eRefactoring\u003c/h3\u003e\u003ca id=\"user-content-refactoring-5\" class=\"anchor\" aria-label=\"Permalink: Refactoring\" href=\"#refactoring-5\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eRemoved unneeded auth (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/e90e87d8e8c37ccf0b6017dad838a71529a65b4b\"\u003e\u003ccode\u003ee90e87d\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eTesting\u003c/h3\u003e\u003ca id=\"user-content-testing-4\" class=\"anchor\" aria-label=\"Permalink: Testing\" href=\"#testing-4\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eFix library_test args (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/a317ee0b44a8c13493c845172a1346b2b870be65\"\u003e\u003ccode\u003ea317ee0\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev1.0.0 (2024-12-09)\u003c/h2\u003e\u003ca id=\"user-content-v100-2024-12-09\" class=\"anchor\" aria-label=\"Permalink: v1.0.0 (2024-12-09)\" href=\"#v100-2024-12-09\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-34\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-34\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eUse iso 3166 standard for country codes (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/0fa4e968678e13c34d1352e7b53cd5224b533779\"\u003e\u003ccode\u003e0fa4e96\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-12\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-12\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump httpx from 0.28.0 to 0.28.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/c853dc3fe5c0e75491152f7cd9592ff03c79a717\"\u003e\u003ccode\u003ec853dc3\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.13.0 (2024-12-03)\u003c/h2\u003e\u003ca id=\"user-content-v0130-2024-12-03\" class=\"anchor\" aria-label=\"Permalink: v0.13.0 (2024-12-03)\" href=\"#v0130-2024-12-03\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-15\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-15\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eLoad login data from dict (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/d881d16d5d4331217b323f80ee69a6c357a16028\"\u003e\u003ccode\u003ed881d16\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-13\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-13\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release from 9.15.0 to 9.15.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/ef13a012a0e46468547be4b01952c49fcc90a4f6\"\u003e\u003ccode\u003eef13a01\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.12.0 (2024-12-02)\u003c/h2\u003e\u003ca id=\"user-content-v0120-2024-12-02\" class=\"anchor\" aria-label=\"Permalink: v0.12.0 (2024-12-02)\" href=\"#v0120-2024-12-02\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-16\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-16\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eReturn parsed devices data (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/114da17ce89a5c521eeff91f8590cfe61a55fce9\"\u003e\u003ccode\u003e114da17\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.11.1 (2024-12-02)\u003c/h2\u003e\u003ca id=\"user-content-v0111-2024-12-02\" class=\"anchor\" aria-label=\"Permalink: v0.11.1 (2024-12-02)\" href=\"#v0111-2024-12-02\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-35\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-35\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eProperties for amazondevice class (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/a0a2af69d53433a351ed468f5b607dd562f3319e\"\u003e\u003ccode\u003ea0a2af6\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.11.0 (2024-12-02)\u003c/h2\u003e\u003ca id=\"user-content-v0110-2024-12-02\" class=\"anchor\" aria-label=\"Permalink: v0.11.0 (2024-12-02)\" href=\"#v0110-2024-12-02\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-17\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-17\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd device models (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/8baaa6ba47059b00c38afb4d2ae2716219ac8fa9\"\u003e\u003ccode\u003e8baaa6b\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-14\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-14\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release from 9.14.0 to 9.15.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/d20c5802c9438dda1172e616978eda356f4d6ad3\"\u003e\u003ccode\u003ed20c580\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump pytest from 8.3.3 to 8.3.4 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/711373df071b22463742ce6b4af744b385ff59e1\"\u003e\u003ccode\u003e711373d\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump httpx from 0.27.2 to 0.28.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/923ed8c9c9e9e052cfc87818d365e5b82e6ca33d\"\u003e\u003ccode\u003e923ed8c\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump orjson from 3.10.11 to 3.10.12 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/71482db191ce4a46b5d6ac3ce7bfe78ae4a2aa6b\"\u003e\u003ccode\u003e71482db\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump codecov/codecov-action from 4 to 5 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/c92c4f2ce38d0d4783d103a6cbd275047b9f70d0\"\u003e\u003ccode\u003ec92c4f2\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.10.0 (2024-11-13)\u003c/h2\u003e\u003ca id=\"user-content-v0100-2024-11-13\" class=\"anchor\" aria-label=\"Permalink: v0.10.0 (2024-11-13)\" href=\"#v0100-2024-11-13\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-18\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-18\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd login from stored data (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/36af8723723ef7a4257230cb548d416614a82b8c\"\u003e\u003ccode\u003e36af872\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eAdd login from stored data (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/36af8723723ef7a4257230cb548d416614a82b8c\"\u003e\u003ccode\u003e36af872\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-15\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-15\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/b39e995e5d74adb3098f6a1049244021d087fccc\"\u003e\u003ccode\u003eb39e995\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eRefactoring\u003c/h3\u003e\u003ca id=\"user-content-refactoring-6\" class=\"anchor\" aria-label=\"Permalink: Refactoring\" href=\"#refactoring-6\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eSmall headers cleanup (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/e4fafe1b18889413249fe51d1d680eb0eb7856a5\"\u003e\u003ccode\u003ee4fafe1\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.9.0 (2024-11-10)\u003c/h2\u003e\u003ca id=\"user-content-v090-2024-11-10\" class=\"anchor\" aria-label=\"Permalink: v0.9.0 (2024-11-10)\" href=\"#v090-2024-11-10\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-19\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-19\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eDevices cleanup and data consolidation (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/d6a911cc1a28fa269fa158bf1ee60860a421be4a\"\u003e\u003ccode\u003ed6a911c\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eAdd library_test data saving (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/12f0cc88bef2a8b88e4f4fc44b5243ade5b1c303\"\u003e\u003ccode\u003e12f0cc8\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eRefactoring\u003c/h3\u003e\u003ca id=\"user-content-refactoring-7\" class=\"anchor\" aria-label=\"Permalink: Refactoring\" href=\"#refactoring-7\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eRenamed param and var to a better naming (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/d5f4da677c26b419c959c9b1b925f09afaf21f8e\"\u003e\u003ccode\u003ed5f4da6\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eTesting\u003c/h3\u003e\u003ca id=\"user-content-testing-5\" class=\"anchor\" aria-label=\"Permalink: Testing\" href=\"#testing-5\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd more vscode launch options (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/fdac075e54ad78600db4e3069e71c5f0051ec803\"\u003e\u003ccode\u003efdac075\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eAdd .coveragerc (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/d3cbc5e5e279c08491bb3d93851f5703b0e2b053\"\u003e\u003ccode\u003ed3cbc5e\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-16\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-16\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/520b94a29e3aeff2668ce47d152daf97e7911340\"\u003e\u003ccode\u003e520b94a\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump python-semantic-release/python-semantic-release (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/61b9c655af1f5252e521c2b3c9656b432aace1c4\"\u003e\u003ccode\u003e61b9c65\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump orjson from 3.10.10 to 3.10.11 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/850e41ff986c28d1ad00c78235f78ff4240388ae\"\u003e\u003ccode\u003e850e41f\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump pytest-cov from 5.0.0 to 6.0.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/5871ed5dc8d68b08aa78b021ad77bcb904beaf9a\"\u003e\u003ccode\u003e5871ed5\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump colorlog from 6.8.2 to 6.9.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/29a9c7b5273454651d4b0eeb7312ba81fbfdc1ad\"\u003e\u003ccode\u003e29a9c7b\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.8.0 (2024-11-01)\u003c/h2\u003e\u003ca id=\"user-content-v080-2024-11-01\" class=\"anchor\" aria-label=\"Permalink: v0.8.0 (2024-11-01)\" href=\"#v080-2024-11-01\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-17\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-17\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eRevert to standard semantic release (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/874b330d0faf4c8248fb007f9c67ad61bceadfd8\"\u003e\u003ccode\u003e874b330\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-20\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-20\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eDrop python 3.11 support (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/317ba8d90ca55bac1c344170762e799a22cca449\"\u003e\u003ccode\u003e317ba8d\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eDrop python 3.11 support (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/317ba8d90ca55bac1c344170762e799a22cca449\"\u003e\u003ccode\u003e317ba8d\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.7.3 (2024-10-31)\u003c/h2\u003e\u003ca id=\"user-content-v073-2024-10-31\" class=\"anchor\" aria-label=\"Permalink: v0.7.3 (2024-10-31)\" href=\"#v073-2024-10-31\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-36\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-36\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eFix license classifier (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/f5af1f859ea60ddcdf0d5e599b38e147f172bfe7\"\u003e\u003ccode\u003ef5af1f8\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-18\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-18\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdd python 3.13 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/21b0e3b2b6c9bed3185287588f2ff08f496b698c\"\u003e\u003ccode\u003e21b0e3b\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump orjson from 3.10.9 to 3.10.10 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/25404040807718998efd6ed5a0765879e0a04948\"\u003e\u003ccode\u003e2540404\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.7.2 (2024-10-22)\u003c/h2\u003e\u003ca id=\"user-content-v072-2024-10-22\" class=\"anchor\" aria-label=\"Permalink: v0.7.2 (2024-10-22)\" href=\"#v072-2024-10-22\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-37\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-37\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAvoid registering a new device at each login cicle (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/0681a8566b8856f940ef1bc910bdc9f6adb8a905\"\u003e\u003ccode\u003e0681a85\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.7.1 (2024-10-22)\u003c/h2\u003e\u003ca id=\"user-content-v071-2024-10-22\" class=\"anchor\" aria-label=\"Permalink: v0.7.1 (2024-10-22)\" href=\"#v071-2024-10-22\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-38\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-38\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAllow different openid.assoc_handle by country (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/c0b724908298f06b30352fb9b83c52eea5129517\"\u003e\u003ccode\u003ec0b7249\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-19\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-19\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump orjson from 3.10.7 to 3.10.9 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/5062556efa2b6cecab4fecdbf339ffd69cb82ded\"\u003e\u003ccode\u003e5062556\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003ePre-commit migrate-config (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/07ae187e21e91546b7ac9bd33b256ede8f3b3550\"\u003e\u003ccode\u003e07ae187\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eExclude out folder (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/5065cd45461d250ebb7693c7577b3dd8282b3874\"\u003e\u003ccode\u003e5065cd4\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eAdd commitlint to devcontainer (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/8eeeed6fe83c4a82fe05dcb9a5241fea60bf1f05\"\u003e\u003ccode\u003e8eeeed6\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eAdding a shell.nix so you can do nix-shell to work on this repo (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/57dfa5a40ada28cf9ce2eb78b63d212a042017b5\"\u003e\u003ccode\u003e57dfa5a\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.7.0 (2024-10-08)\u003c/h2\u003e\u003ca id=\"user-content-v070-2024-10-08\" class=\"anchor\" aria-label=\"Permalink: v0.7.0 (2024-10-08)\" href=\"#v070-2024-10-08\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.6.0 (2024-10-08)\u003c/h2\u003e\u003ca id=\"user-content-v060-2024-10-08\" class=\"anchor\" aria-label=\"Permalink: v0.6.0 (2024-10-08)\" href=\"#v060-2024-10-08\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-39\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-39\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eRestore .gitignore from main branch (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/1c620c5363cc610fed2ca76f6265175890b225b4\"\u003e\u003ccode\u003e1c620c5\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-21\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-21\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eRebase onto main (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/dc09f1451d0a9525abe0abc9541c294f2288724c\"\u003e\u003ccode\u003edc09f14\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eUpdated logic to find form (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/8322efcf15cfa307bf8ebf8152f93b4e775bff2d\"\u003e\u003ccode\u003e8322efc\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.5.1 (2024-10-08)\u003c/h2\u003e\u003ca id=\"user-content-v051-2024-10-08\" class=\"anchor\" aria-label=\"Permalink: v0.5.1 (2024-10-08)\" href=\"#v051-2024-10-08\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-40\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-40\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eRemoved .idea directory - was accidently committetd (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/716b221d2082880a88767f367db3a1676a99371d\"\u003e\u003ccode\u003e716b221\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.5.0 (2024-10-08)\u003c/h2\u003e\u003ca id=\"user-content-v050-2024-10-08\" class=\"anchor\" aria-label=\"Permalink: v0.5.0 (2024-10-08)\" href=\"#v050-2024-10-08\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-22\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-22\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eAdding commitlint hook (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/96d9fc41341c0b13851a17622e99368c7a90f954\"\u003e\u003ccode\u003e96d9fc4\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.4.0 (2024-10-08)\u003c/h2\u003e\u003ca id=\"user-content-v040-2024-10-08\" class=\"anchor\" aria-label=\"Permalink: v0.4.0 (2024-10-08)\" href=\"#v040-2024-10-08\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-23\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-23\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eModified output functionality (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/141e57a9d9145bb4ec5f6ff484336c3f82cec083\"\u003e\u003ccode\u003e141e57a\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.3.0 (2024-10-08)\u003c/h2\u003e\u003ca id=\"user-content-v030-2024-10-08\" class=\"anchor\" aria-label=\"Permalink: v0.3.0 (2024-10-08)\" href=\"#v030-2024-10-08\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-24\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-24\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eUpdate gitignore information for pycharm (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/8701548d2a06c8c9ded7cc6d277a0bcb4905c832\"\u003e\u003ccode\u003e8701548\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eDevice registration (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/d66a05462f16caa35e94532301a42f519922354c\"\u003e\u003ccode\u003ed66a054\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.2.0 (2024-10-03)\u003c/h2\u003e\u003ca id=\"user-content-v020-2024-10-03\" class=\"anchor\" aria-label=\"Permalink: v0.2.0 (2024-10-03)\" href=\"#v020-2024-10-03\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-25\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-25\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eSave html response code to disk (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/2c54b4b5db16e9cb706cef47a98112c2ba0101fc\"\u003e\u003ccode\u003e2c54b4b\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-20\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-20\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump pytest from 8.3.2 to 8.3.3 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/75abdc5d7095ee656d4f3acf562e2b3c43bb4239\"\u003e\u003ccode\u003e75abdc5\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump tiangolo/issue-manager from 0.5.0 to 0.5.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/f8a4c86709e151b355be20cc1d786649a4a28ddf\"\u003e\u003ccode\u003ef8a4c86\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump wagoid/commitlint-github-action from 6.1.1 to 6.1.2 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/fb8156c99bc31f2ace979b3532f05a4af9dae84d\"\u003e\u003ccode\u003efb8156c\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump httpx from 0.27.0 to 0.27.2 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/18fe00f07108829463256851ba18bb6d4bef269a\"\u003e\u003ccode\u003e18fe00f\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump wagoid/commitlint-github-action from 6.0.2 to 6.1.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/dbb2d2ef32005930d12beb2168b8f7280128b5a8\"\u003e\u003ccode\u003edbb2d2e\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump orjson from 3.10.6 to 3.10.7 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/8652e0dd50ce8fee3406da575691ae9247152133\"\u003e\u003ccode\u003e8652e0d\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump wagoid/commitlint-github-action from 6.0.1 to 6.0.2 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/4ea8e37fab352aed837fe90dd73d7609d6914eee\"\u003e\u003ccode\u003e4ea8e37\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump snok/install-poetry from 1.3.4 to 1.4.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/6d448c4367141025986f651986e3e84babac3562\"\u003e\u003ccode\u003e6d448c4\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump pytest from 8.3.1 to 8.3.2 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/4e95b0ceb3192ffb30ee2b42bb45786a657f1e17\"\u003e\u003ccode\u003e4e95b0c\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump pytest from 8.2.2 to 8.3.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/3d9958a6bf5e3943f1daee0746f95434388d7ad7\"\u003e\u003ccode\u003e3d9958a\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump orjson from 3.10.5 to 3.10.6 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/afd2a6afe617eb150866941b0c98fbdb43f03a18\"\u003e\u003ccode\u003eafd2a6a\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump certifi from 2024.6.2 to 2024.7.4 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/585a3c126fd6bc8047ffd16c2a582ed64a3424fd\"\u003e\u003ccode\u003e585a3c1\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump orjson from 3.10.3 to 3.10.5 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/1ce4a95a57f71327194803dfa8d014384bf18f71\"\u003e\u003ccode\u003e1ce4a95\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.1.1 (2024-05-22)\u003c/h2\u003e\u003ca id=\"user-content-v011-2024-05-22\" class=\"anchor\" aria-label=\"Permalink: v0.1.1 (2024-05-22)\" href=\"#v011-2024-05-22\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBug fixes\u003c/h3\u003e\u003ca id=\"user-content-bug-fixes-41\" class=\"anchor\" aria-label=\"Permalink: Bug fixes\" href=\"#bug-fixes-41\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eForce country code lower case (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/8951bf93c9f80e3fa5a6da23fcaeceb71ca457e2\"\u003e\u003ccode\u003e8951bf9\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-21\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-21\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump pytest from 8.2.0 to 8.2.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/404fe7fbc195d653437f60ec4db651cac69af82b\"\u003e\u003ccode\u003e404fe7f\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.1.0 (2024-05-07)\u003c/h2\u003e\u003ca id=\"user-content-v010-2024-05-07\" class=\"anchor\" aria-label=\"Permalink: v0.1.0 (2024-05-07)\" href=\"#v010-2024-05-07\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eFeatures\u003c/h3\u003e\u003ca id=\"user-content-features-26\" class=\"anchor\" aria-label=\"Permalink: Features\" href=\"#features-26\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eFirst coding (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/a407a5e66d48ba4ea6307a5fd161ab8397f7b54b\"\u003e\u003ccode\u003ea407a5e\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-22\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-22\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eBump pytest from 8.1.1 to 8.2.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/025f8603fe123514f5b967138133871160db60c2\"\u003e\u003ccode\u003e025f860\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch2 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003ev0.0.0 (2024-04-24)\u003c/h2\u003e\u003ca id=\"user-content-v000-2024-04-24\" class=\"anchor\" aria-label=\"Permalink: v0.0.0 (2024-04-24)\" href=\"#v000-2024-04-24\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cdiv class=\"markdown-heading\" dir=\"auto\"\u003e\u003ch3 tabindex=\"-1\" class=\"heading-element\" dir=\"auto\"\u003eBuild system\u003c/h3\u003e\u003ca id=\"user-content-build-system-23\" class=\"anchor\" aria-label=\"Permalink: Build system\" href=\"#build-system-23\"\u003e\u003csvg class=\"octicon octicon-link\" viewBox=\"0 0 16 16\" version=\"1.1\" width=\"16\" height=\"16\" aria-hidden=\"true\"\u003e\u003cpath d=\"m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z\"\u003e\u003c/path\u003e\u003c/svg\u003e\u003c/a\u003e\u003c/div\u003e\n\u003cul dir=\"auto\"\u003e\n\u003cli\u003eCleanup (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/1828b57f314940c2679d700dad5950c359d0aeaf\"\u003e\u003ccode\u003e1828b57\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump codecov/codecov-action from 3 to 4 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/552b4d9f1d80b59f05c65681da13ab84d9a9145e\"\u003e\u003ccode\u003e552b4d9\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump pytest-cov from 3.0.0 to 5.0.0 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/48349214aadf5309bb671a8abd6ad3b6c2ff676b\"\u003e\u003ccode\u003e4834921\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eBump pytest from 7.4.4 to 8.1.1 (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/9e12952a785f269437d33f65eba0481481a3d075\"\u003e\u003ccode\u003e9e12952\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eMypy and prettier fixes (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/e9a1903d9cace7984b264dad44586f4b4bb53e46\"\u003e\u003ccode\u003ee9a1903\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003cli\u003eConfigure base tools (\u003ca href=\"https://github.com/chemelli74/aioamazondevices/commit/ff0481be810f5c7a10265ad86e7299d6d023b727\"\u003e\u003ccode\u003eff0481b\u003c/code\u003e\u003c/a\u003e)\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/article\u003e","renderedFileInfo":null,"shortPath":null,"symbolsEnabled":true,"tabSize":4,"topBannersInfo":{"overridingGlobalFundingFile":false,"globalPreferredFundingPath":null,"showInvalidCitationWarning":false,"citationHelpUrl":"https://docs.github.com/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/about-citation-files","actionsOnboardingTip":null},"truncated":false,"viewable":true,"workflowRedirectUrl":null,"symbols":{"timed_out":false,"not_analyzed":false,"symbols":[{"name":"Changelog","kind":"section_1","ident_start":2,"ident_end":11,"extent_start":0,"extent_end":29612,"fully_qualified_name":"Changelog","ident_utf16":{"start":{"line_number":0,"utf16_col":2},"end":{"line_number":0,"utf16_col":11}},"extent_utf16":{"start":{"line_number":0,"utf16_col":0},"end":{"line_number":752,"utf16_col":0}}},{"name":"v3.1.19 (2025-06-24)","kind":"section_2","ident_start":16,"ident_end":36,"extent_start":13,"extent_end":178,"fully_qualified_name":"v3.1.19 (2025-06-24)","ident_utf16":{"start":{"line_number":2,"utf16_col":3},"end":{"line_number":2,"utf16_col":23}},"extent_utf16":{"start":{"line_number":2,"utf16_col":0},"end":{"line_number":9,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":42,"ident_end":51,"extent_start":38,"extent_end":178,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":4,"utf16_col":4},"end":{"line_number":4,"utf16_col":13}},"extent_utf16":{"start":{"line_number":4,"utf16_col":0},"end":{"line_number":9,"utf16_col":0}}},{"name":"v3.1.18 (2025-06-24)","kind":"section_2","ident_start":181,"ident_end":201,"extent_start":178,"extent_end":355,"fully_qualified_name":"v3.1.18 (2025-06-24)","ident_utf16":{"start":{"line_number":9,"utf16_col":3},"end":{"line_number":9,"utf16_col":23}},"extent_utf16":{"start":{"line_number":9,"utf16_col":0},"end":{"line_number":16,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":207,"ident_end":216,"extent_start":203,"extent_end":355,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":11,"utf16_col":4},"end":{"line_number":11,"utf16_col":13}},"extent_utf16":{"start":{"line_number":11,"utf16_col":0},"end":{"line_number":16,"utf16_col":0}}},{"name":"v3.1.17 (2025-06-24)","kind":"section_2","ident_start":358,"ident_end":378,"extent_start":355,"extent_end":528,"fully_qualified_name":"v3.1.17 (2025-06-24)","ident_utf16":{"start":{"line_number":16,"utf16_col":3},"end":{"line_number":16,"utf16_col":23}},"extent_utf16":{"start":{"line_number":16,"utf16_col":0},"end":{"line_number":23,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":384,"ident_end":393,"extent_start":380,"extent_end":528,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":18,"utf16_col":4},"end":{"line_number":18,"utf16_col":13}},"extent_utf16":{"start":{"line_number":18,"utf16_col":0},"end":{"line_number":23,"utf16_col":0}}},{"name":"v3.1.16 (2025-06-24)","kind":"section_2","ident_start":531,"ident_end":551,"extent_start":528,"extent_end":720,"fully_qualified_name":"v3.1.16 (2025-06-24)","ident_utf16":{"start":{"line_number":23,"utf16_col":3},"end":{"line_number":23,"utf16_col":23}},"extent_utf16":{"start":{"line_number":23,"utf16_col":0},"end":{"line_number":30,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":557,"ident_end":566,"extent_start":553,"extent_end":720,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":25,"utf16_col":4},"end":{"line_number":25,"utf16_col":13}},"extent_utf16":{"start":{"line_number":25,"utf16_col":0},"end":{"line_number":30,"utf16_col":0}}},{"name":"v3.1.15 (2025-06-24)","kind":"section_2","ident_start":723,"ident_end":743,"extent_start":720,"extent_end":1624,"fully_qualified_name":"v3.1.15 (2025-06-24)","ident_utf16":{"start":{"line_number":30,"utf16_col":3},"end":{"line_number":30,"utf16_col":23}},"extent_utf16":{"start":{"line_number":30,"utf16_col":0},"end":{"line_number":50,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":749,"ident_end":758,"extent_start":745,"extent_end":1307,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":32,"utf16_col":4},"end":{"line_number":32,"utf16_col":13}},"extent_utf16":{"start":{"line_number":32,"utf16_col":0},"end":{"line_number":40,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":1311,"ident_end":1323,"extent_start":1307,"extent_end":1471,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":40,"utf16_col":4},"end":{"line_number":40,"utf16_col":16}},"extent_utf16":{"start":{"line_number":40,"utf16_col":0},"end":{"line_number":45,"utf16_col":0}}},{"name":"Refactoring","kind":"section_3","ident_start":1475,"ident_end":1486,"extent_start":1471,"extent_end":1624,"fully_qualified_name":"Refactoring","ident_utf16":{"start":{"line_number":45,"utf16_col":4},"end":{"line_number":45,"utf16_col":15}},"extent_utf16":{"start":{"line_number":45,"utf16_col":0},"end":{"line_number":50,"utf16_col":0}}},{"name":"v3.1.14 (2025-06-21)","kind":"section_2","ident_start":1627,"ident_end":1647,"extent_start":1624,"extent_end":1806,"fully_qualified_name":"v3.1.14 (2025-06-21)","ident_utf16":{"start":{"line_number":50,"utf16_col":3},"end":{"line_number":50,"utf16_col":23}},"extent_utf16":{"start":{"line_number":50,"utf16_col":0},"end":{"line_number":57,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":1653,"ident_end":1662,"extent_start":1649,"extent_end":1806,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":52,"utf16_col":4},"end":{"line_number":52,"utf16_col":13}},"extent_utf16":{"start":{"line_number":52,"utf16_col":0},"end":{"line_number":57,"utf16_col":0}}},{"name":"v3.1.13 (2025-06-21)","kind":"section_2","ident_start":1809,"ident_end":1829,"extent_start":1806,"extent_end":2126,"fully_qualified_name":"v3.1.13 (2025-06-21)","ident_utf16":{"start":{"line_number":57,"utf16_col":3},"end":{"line_number":57,"utf16_col":23}},"extent_utf16":{"start":{"line_number":57,"utf16_col":0},"end":{"line_number":69,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":1835,"ident_end":1844,"extent_start":1831,"extent_end":1980,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":59,"utf16_col":4},"end":{"line_number":59,"utf16_col":13}},"extent_utf16":{"start":{"line_number":59,"utf16_col":0},"end":{"line_number":64,"utf16_col":0}}},{"name":"Refactoring","kind":"section_3","ident_start":1984,"ident_end":1995,"extent_start":1980,"extent_end":2126,"fully_qualified_name":"Refactoring","ident_utf16":{"start":{"line_number":64,"utf16_col":4},"end":{"line_number":64,"utf16_col":15}},"extent_utf16":{"start":{"line_number":64,"utf16_col":0},"end":{"line_number":69,"utf16_col":0}}},{"name":"v3.1.12 (2025-06-17)","kind":"section_2","ident_start":2129,"ident_end":2149,"extent_start":2126,"extent_end":2315,"fully_qualified_name":"v3.1.12 (2025-06-17)","ident_utf16":{"start":{"line_number":69,"utf16_col":3},"end":{"line_number":69,"utf16_col":23}},"extent_utf16":{"start":{"line_number":69,"utf16_col":0},"end":{"line_number":76,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":2155,"ident_end":2164,"extent_start":2151,"extent_end":2315,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":71,"utf16_col":4},"end":{"line_number":71,"utf16_col":13}},"extent_utf16":{"start":{"line_number":71,"utf16_col":0},"end":{"line_number":76,"utf16_col":0}}},{"name":"v3.1.11 (2025-06-17)","kind":"section_2","ident_start":2318,"ident_end":2338,"extent_start":2315,"extent_end":2640,"fully_qualified_name":"v3.1.11 (2025-06-17)","ident_utf16":{"start":{"line_number":76,"utf16_col":3},"end":{"line_number":76,"utf16_col":23}},"extent_utf16":{"start":{"line_number":76,"utf16_col":0},"end":{"line_number":88,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":2344,"ident_end":2353,"extent_start":2340,"extent_end":2485,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":78,"utf16_col":4},"end":{"line_number":78,"utf16_col":13}},"extent_utf16":{"start":{"line_number":78,"utf16_col":0},"end":{"line_number":83,"utf16_col":0}}},{"name":"Testing","kind":"section_3","ident_start":2489,"ident_end":2496,"extent_start":2485,"extent_end":2640,"fully_qualified_name":"Testing","ident_utf16":{"start":{"line_number":83,"utf16_col":4},"end":{"line_number":83,"utf16_col":11}},"extent_utf16":{"start":{"line_number":83,"utf16_col":0},"end":{"line_number":88,"utf16_col":0}}},{"name":"v3.1.10 (2025-06-17)","kind":"section_2","ident_start":2643,"ident_end":2663,"extent_start":2640,"extent_end":2809,"fully_qualified_name":"v3.1.10 (2025-06-17)","ident_utf16":{"start":{"line_number":88,"utf16_col":3},"end":{"line_number":88,"utf16_col":23}},"extent_utf16":{"start":{"line_number":88,"utf16_col":0},"end":{"line_number":95,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":2669,"ident_end":2678,"extent_start":2665,"extent_end":2809,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":90,"utf16_col":4},"end":{"line_number":90,"utf16_col":13}},"extent_utf16":{"start":{"line_number":90,"utf16_col":0},"end":{"line_number":95,"utf16_col":0}}},{"name":"v3.1.9 (2025-06-17)","kind":"section_2","ident_start":2812,"ident_end":2831,"extent_start":2809,"extent_end":3002,"fully_qualified_name":"v3.1.9 (2025-06-17)","ident_utf16":{"start":{"line_number":95,"utf16_col":3},"end":{"line_number":95,"utf16_col":22}},"extent_utf16":{"start":{"line_number":95,"utf16_col":0},"end":{"line_number":102,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":2837,"ident_end":2846,"extent_start":2833,"extent_end":3002,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":97,"utf16_col":4},"end":{"line_number":97,"utf16_col":13}},"extent_utf16":{"start":{"line_number":97,"utf16_col":0},"end":{"line_number":102,"utf16_col":0}}},{"name":"v3.1.8 (2025-06-17)","kind":"section_2","ident_start":3005,"ident_end":3024,"extent_start":3002,"extent_end":3173,"fully_qualified_name":"v3.1.8 (2025-06-17)","ident_utf16":{"start":{"line_number":102,"utf16_col":3},"end":{"line_number":102,"utf16_col":22}},"extent_utf16":{"start":{"line_number":102,"utf16_col":0},"end":{"line_number":109,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":3030,"ident_end":3039,"extent_start":3026,"extent_end":3173,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":104,"utf16_col":4},"end":{"line_number":104,"utf16_col":13}},"extent_utf16":{"start":{"line_number":104,"utf16_col":0},"end":{"line_number":109,"utf16_col":0}}},{"name":"v3.1.7 (2025-06-16)","kind":"section_2","ident_start":3176,"ident_end":3195,"extent_start":3173,"extent_end":3663,"fully_qualified_name":"v3.1.7 (2025-06-16)","ident_utf16":{"start":{"line_number":109,"utf16_col":3},"end":{"line_number":109,"utf16_col":22}},"extent_utf16":{"start":{"line_number":109,"utf16_col":0},"end":{"line_number":122,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":3201,"ident_end":3210,"extent_start":3197,"extent_end":3346,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":111,"utf16_col":4},"end":{"line_number":111,"utf16_col":13}},"extent_utf16":{"start":{"line_number":111,"utf16_col":0},"end":{"line_number":116,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":3350,"ident_end":3362,"extent_start":3346,"extent_end":3663,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":116,"utf16_col":4},"end":{"line_number":116,"utf16_col":16}},"extent_utf16":{"start":{"line_number":116,"utf16_col":0},"end":{"line_number":122,"utf16_col":0}}},{"name":"v3.1.6 (2025-06-16)","kind":"section_2","ident_start":3666,"ident_end":3685,"extent_start":3663,"extent_end":3850,"fully_qualified_name":"v3.1.6 (2025-06-16)","ident_utf16":{"start":{"line_number":122,"utf16_col":3},"end":{"line_number":122,"utf16_col":22}},"extent_utf16":{"start":{"line_number":122,"utf16_col":0},"end":{"line_number":129,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":3691,"ident_end":3700,"extent_start":3687,"extent_end":3850,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":124,"utf16_col":4},"end":{"line_number":124,"utf16_col":13}},"extent_utf16":{"start":{"line_number":124,"utf16_col":0},"end":{"line_number":129,"utf16_col":0}}},{"name":"v3.1.5 (2025-06-16)","kind":"section_2","ident_start":3853,"ident_end":3872,"extent_start":3850,"extent_end":4186,"fully_qualified_name":"v3.1.5 (2025-06-16)","ident_utf16":{"start":{"line_number":129,"utf16_col":3},"end":{"line_number":129,"utf16_col":22}},"extent_utf16":{"start":{"line_number":129,"utf16_col":0},"end":{"line_number":141,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":3878,"ident_end":3887,"extent_start":3874,"extent_end":4031,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":131,"utf16_col":4},"end":{"line_number":131,"utf16_col":13}},"extent_utf16":{"start":{"line_number":131,"utf16_col":0},"end":{"line_number":136,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":4035,"ident_end":4047,"extent_start":4031,"extent_end":4186,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":136,"utf16_col":4},"end":{"line_number":136,"utf16_col":16}},"extent_utf16":{"start":{"line_number":136,"utf16_col":0},"end":{"line_number":141,"utf16_col":0}}},{"name":"v3.1.4 (2025-06-15)","kind":"section_2","ident_start":4189,"ident_end":4208,"extent_start":4186,"extent_end":4371,"fully_qualified_name":"v3.1.4 (2025-06-15)","ident_utf16":{"start":{"line_number":141,"utf16_col":3},"end":{"line_number":141,"utf16_col":22}},"extent_utf16":{"start":{"line_number":141,"utf16_col":0},"end":{"line_number":148,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":4214,"ident_end":4223,"extent_start":4210,"extent_end":4371,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":143,"utf16_col":4},"end":{"line_number":143,"utf16_col":13}},"extent_utf16":{"start":{"line_number":143,"utf16_col":0},"end":{"line_number":148,"utf16_col":0}}},{"name":"v3.1.3 (2025-06-14)","kind":"section_2","ident_start":4374,"ident_end":4393,"extent_start":4371,"extent_end":4560,"fully_qualified_name":"v3.1.3 (2025-06-14)","ident_utf16":{"start":{"line_number":148,"utf16_col":3},"end":{"line_number":148,"utf16_col":22}},"extent_utf16":{"start":{"line_number":148,"utf16_col":0},"end":{"line_number":155,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":4399,"ident_end":4408,"extent_start":4395,"extent_end":4560,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":150,"utf16_col":4},"end":{"line_number":150,"utf16_col":13}},"extent_utf16":{"start":{"line_number":150,"utf16_col":0},"end":{"line_number":155,"utf16_col":0}}},{"name":"v3.1.2 (2025-06-13)","kind":"section_2","ident_start":4563,"ident_end":4582,"extent_start":4560,"extent_end":4750,"fully_qualified_name":"v3.1.2 (2025-06-13)","ident_utf16":{"start":{"line_number":155,"utf16_col":3},"end":{"line_number":155,"utf16_col":22}},"extent_utf16":{"start":{"line_number":155,"utf16_col":0},"end":{"line_number":162,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":4588,"ident_end":4597,"extent_start":4584,"extent_end":4750,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":157,"utf16_col":4},"end":{"line_number":157,"utf16_col":13}},"extent_utf16":{"start":{"line_number":157,"utf16_col":0},"end":{"line_number":162,"utf16_col":0}}},{"name":"v3.1.1 (2025-06-12)","kind":"section_2","ident_start":4753,"ident_end":4772,"extent_start":4750,"extent_end":4922,"fully_qualified_name":"v3.1.1 (2025-06-12)","ident_utf16":{"start":{"line_number":162,"utf16_col":3},"end":{"line_number":162,"utf16_col":22}},"extent_utf16":{"start":{"line_number":162,"utf16_col":0},"end":{"line_number":169,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":4778,"ident_end":4787,"extent_start":4774,"extent_end":4922,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":164,"utf16_col":4},"end":{"line_number":164,"utf16_col":13}},"extent_utf16":{"start":{"line_number":164,"utf16_col":0},"end":{"line_number":169,"utf16_col":0}}},{"name":"v3.1.0 (2025-06-12)","kind":"section_2","ident_start":4925,"ident_end":4944,"extent_start":4922,"extent_end":5313,"fully_qualified_name":"v3.1.0 (2025-06-12)","ident_utf16":{"start":{"line_number":169,"utf16_col":3},"end":{"line_number":169,"utf16_col":22}},"extent_utf16":{"start":{"line_number":169,"utf16_col":0},"end":{"line_number":181,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":4950,"ident_end":4958,"extent_start":4946,"extent_end":5106,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":171,"utf16_col":4},"end":{"line_number":171,"utf16_col":12}},"extent_utf16":{"start":{"line_number":171,"utf16_col":0},"end":{"line_number":176,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":5110,"ident_end":5122,"extent_start":5106,"extent_end":5313,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":176,"utf16_col":4},"end":{"line_number":176,"utf16_col":16}},"extent_utf16":{"start":{"line_number":176,"utf16_col":0},"end":{"line_number":181,"utf16_col":0}}},{"name":"v3.0.10 (2025-06-12)","kind":"section_2","ident_start":5316,"ident_end":5336,"extent_start":5313,"extent_end":5491,"fully_qualified_name":"v3.0.10 (2025-06-12)","ident_utf16":{"start":{"line_number":181,"utf16_col":3},"end":{"line_number":181,"utf16_col":23}},"extent_utf16":{"start":{"line_number":181,"utf16_col":0},"end":{"line_number":188,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":5342,"ident_end":5351,"extent_start":5338,"extent_end":5491,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":183,"utf16_col":4},"end":{"line_number":183,"utf16_col":13}},"extent_utf16":{"start":{"line_number":183,"utf16_col":0},"end":{"line_number":188,"utf16_col":0}}},{"name":"v3.0.9 (2025-06-12)","kind":"section_2","ident_start":5494,"ident_end":5513,"extent_start":5491,"extent_end":5674,"fully_qualified_name":"v3.0.9 (2025-06-12)","ident_utf16":{"start":{"line_number":188,"utf16_col":3},"end":{"line_number":188,"utf16_col":22}},"extent_utf16":{"start":{"line_number":188,"utf16_col":0},"end":{"line_number":195,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":5519,"ident_end":5528,"extent_start":5515,"extent_end":5674,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":190,"utf16_col":4},"end":{"line_number":190,"utf16_col":13}},"extent_utf16":{"start":{"line_number":190,"utf16_col":0},"end":{"line_number":195,"utf16_col":0}}},{"name":"v3.0.8 (2025-06-10)","kind":"section_2","ident_start":5677,"ident_end":5696,"extent_start":5674,"extent_end":5859,"fully_qualified_name":"v3.0.8 (2025-06-10)","ident_utf16":{"start":{"line_number":195,"utf16_col":3},"end":{"line_number":195,"utf16_col":22}},"extent_utf16":{"start":{"line_number":195,"utf16_col":0},"end":{"line_number":202,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":5702,"ident_end":5711,"extent_start":5698,"extent_end":5859,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":197,"utf16_col":4},"end":{"line_number":197,"utf16_col":13}},"extent_utf16":{"start":{"line_number":197,"utf16_col":0},"end":{"line_number":202,"utf16_col":0}}},{"name":"v3.0.7 (2025-06-10)","kind":"section_2","ident_start":5862,"ident_end":5881,"extent_start":5859,"extent_end":6343,"fully_qualified_name":"v3.0.7 (2025-06-10)","ident_utf16":{"start":{"line_number":202,"utf16_col":3},"end":{"line_number":202,"utf16_col":22}},"extent_utf16":{"start":{"line_number":202,"utf16_col":0},"end":{"line_number":215,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":5887,"ident_end":5896,"extent_start":5883,"extent_end":6031,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":204,"utf16_col":4},"end":{"line_number":204,"utf16_col":13}},"extent_utf16":{"start":{"line_number":204,"utf16_col":0},"end":{"line_number":209,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":6035,"ident_end":6047,"extent_start":6031,"extent_end":6343,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":209,"utf16_col":4},"end":{"line_number":209,"utf16_col":16}},"extent_utf16":{"start":{"line_number":209,"utf16_col":0},"end":{"line_number":215,"utf16_col":0}}},{"name":"v3.0.6 (2025-06-08)","kind":"section_2","ident_start":6346,"ident_end":6365,"extent_start":6343,"extent_end":7135,"fully_qualified_name":"v3.0.6 (2025-06-08)","ident_utf16":{"start":{"line_number":215,"utf16_col":3},"end":{"line_number":215,"utf16_col":22}},"extent_utf16":{"start":{"line_number":215,"utf16_col":0},"end":{"line_number":238,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":6371,"ident_end":6380,"extent_start":6367,"extent_end":6519,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":217,"utf16_col":4},"end":{"line_number":217,"utf16_col":13}},"extent_utf16":{"start":{"line_number":217,"utf16_col":0},"end":{"line_number":222,"utf16_col":0}}},{"name":"Documentation","kind":"section_3","ident_start":6523,"ident_end":6536,"extent_start":6519,"extent_end":6695,"fully_qualified_name":"Documentation","ident_utf16":{"start":{"line_number":222,"utf16_col":4},"end":{"line_number":222,"utf16_col":17}},"extent_utf16":{"start":{"line_number":222,"utf16_col":0},"end":{"line_number":227,"utf16_col":0}}},{"name":"Refactoring","kind":"section_3","ident_start":6699,"ident_end":6710,"extent_start":6695,"extent_end":6972,"fully_qualified_name":"Refactoring","ident_utf16":{"start":{"line_number":227,"utf16_col":4},"end":{"line_number":227,"utf16_col":15}},"extent_utf16":{"start":{"line_number":227,"utf16_col":0},"end":{"line_number":233,"utf16_col":0}}},{"name":"Testing","kind":"section_3","ident_start":6976,"ident_end":6983,"extent_start":6972,"extent_end":7135,"fully_qualified_name":"Testing","ident_utf16":{"start":{"line_number":233,"utf16_col":4},"end":{"line_number":233,"utf16_col":11}},"extent_utf16":{"start":{"line_number":233,"utf16_col":0},"end":{"line_number":238,"utf16_col":0}}},{"name":"v3.0.5 (2025-06-02)","kind":"section_2","ident_start":7138,"ident_end":7157,"extent_start":7135,"extent_end":7476,"fully_qualified_name":"v3.0.5 (2025-06-02)","ident_utf16":{"start":{"line_number":238,"utf16_col":3},"end":{"line_number":238,"utf16_col":22}},"extent_utf16":{"start":{"line_number":238,"utf16_col":0},"end":{"line_number":250,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":7163,"ident_end":7172,"extent_start":7159,"extent_end":7308,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":240,"utf16_col":4},"end":{"line_number":240,"utf16_col":13}},"extent_utf16":{"start":{"line_number":240,"utf16_col":0},"end":{"line_number":245,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":7312,"ident_end":7324,"extent_start":7308,"extent_end":7476,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":245,"utf16_col":4},"end":{"line_number":245,"utf16_col":16}},"extent_utf16":{"start":{"line_number":245,"utf16_col":0},"end":{"line_number":250,"utf16_col":0}}},{"name":"v3.0.4 (2025-06-01)","kind":"section_2","ident_start":7479,"ident_end":7498,"extent_start":7476,"extent_end":7665,"fully_qualified_name":"v3.0.4 (2025-06-01)","ident_utf16":{"start":{"line_number":250,"utf16_col":3},"end":{"line_number":250,"utf16_col":22}},"extent_utf16":{"start":{"line_number":250,"utf16_col":0},"end":{"line_number":257,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":7504,"ident_end":7513,"extent_start":7500,"extent_end":7665,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":252,"utf16_col":4},"end":{"line_number":252,"utf16_col":13}},"extent_utf16":{"start":{"line_number":252,"utf16_col":0},"end":{"line_number":257,"utf16_col":0}}},{"name":"v3.0.3 (2025-06-01)","kind":"section_2","ident_start":7668,"ident_end":7687,"extent_start":7665,"extent_end":8545,"fully_qualified_name":"v3.0.3 (2025-06-01)","ident_utf16":{"start":{"line_number":257,"utf16_col":3},"end":{"line_number":257,"utf16_col":22}},"extent_utf16":{"start":{"line_number":257,"utf16_col":0},"end":{"line_number":277,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":7693,"ident_end":7702,"extent_start":7689,"extent_end":7834,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":259,"utf16_col":4},"end":{"line_number":259,"utf16_col":13}},"extent_utf16":{"start":{"line_number":259,"utf16_col":0},"end":{"line_number":264,"utf16_col":0}}},{"name":"Testing","kind":"section_3","ident_start":7838,"ident_end":7845,"extent_start":7834,"extent_end":8123,"fully_qualified_name":"Testing","ident_utf16":{"start":{"line_number":264,"utf16_col":4},"end":{"line_number":264,"utf16_col":11}},"extent_utf16":{"start":{"line_number":264,"utf16_col":0},"end":{"line_number":270,"utf16_col":0}}},{"name":"Refactoring","kind":"section_3","ident_start":8127,"ident_end":8138,"extent_start":8123,"extent_end":8545,"fully_qualified_name":"Refactoring","ident_utf16":{"start":{"line_number":270,"utf16_col":4},"end":{"line_number":270,"utf16_col":15}},"extent_utf16":{"start":{"line_number":270,"utf16_col":0},"end":{"line_number":277,"utf16_col":0}}},{"name":"v3.0.2 (2025-05-29)","kind":"section_2","ident_start":8548,"ident_end":8567,"extent_start":8545,"extent_end":8728,"fully_qualified_name":"v3.0.2 (2025-05-29)","ident_utf16":{"start":{"line_number":277,"utf16_col":3},"end":{"line_number":277,"utf16_col":22}},"extent_utf16":{"start":{"line_number":277,"utf16_col":0},"end":{"line_number":284,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":8573,"ident_end":8582,"extent_start":8569,"extent_end":8728,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":279,"utf16_col":4},"end":{"line_number":279,"utf16_col":13}},"extent_utf16":{"start":{"line_number":279,"utf16_col":0},"end":{"line_number":284,"utf16_col":0}}},{"name":"v3.0.1 (2025-05-29)","kind":"section_2","ident_start":8731,"ident_end":8750,"extent_start":8728,"extent_end":8891,"fully_qualified_name":"v3.0.1 (2025-05-29)","ident_utf16":{"start":{"line_number":284,"utf16_col":3},"end":{"line_number":284,"utf16_col":22}},"extent_utf16":{"start":{"line_number":284,"utf16_col":0},"end":{"line_number":291,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":8756,"ident_end":8765,"extent_start":8752,"extent_end":8891,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":286,"utf16_col":4},"end":{"line_number":286,"utf16_col":13}},"extent_utf16":{"start":{"line_number":286,"utf16_col":0},"end":{"line_number":291,"utf16_col":0}}},{"name":"v3.0.0 (2025-05-28)","kind":"section_2","ident_start":8894,"ident_end":8913,"extent_start":8891,"extent_end":9076,"fully_qualified_name":"v3.0.0 (2025-05-28)","ident_utf16":{"start":{"line_number":291,"utf16_col":3},"end":{"line_number":291,"utf16_col":22}},"extent_utf16":{"start":{"line_number":291,"utf16_col":0},"end":{"line_number":298,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":8919,"ident_end":8927,"extent_start":8915,"extent_end":9076,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":293,"utf16_col":4},"end":{"line_number":293,"utf16_col":12}},"extent_utf16":{"start":{"line_number":293,"utf16_col":0},"end":{"line_number":298,"utf16_col":0}}},{"name":"v2.2.1 (2025-05-28)","kind":"section_2","ident_start":9079,"ident_end":9098,"extent_start":9076,"extent_end":9248,"fully_qualified_name":"v2.2.1 (2025-05-28)","ident_utf16":{"start":{"line_number":298,"utf16_col":3},"end":{"line_number":298,"utf16_col":22}},"extent_utf16":{"start":{"line_number":298,"utf16_col":0},"end":{"line_number":305,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":9104,"ident_end":9113,"extent_start":9100,"extent_end":9248,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":300,"utf16_col":4},"end":{"line_number":300,"utf16_col":13}},"extent_utf16":{"start":{"line_number":300,"utf16_col":0},"end":{"line_number":305,"utf16_col":0}}},{"name":"v2.2.0 (2025-05-26)","kind":"section_2","ident_start":9251,"ident_end":9270,"extent_start":9248,"extent_end":9416,"fully_qualified_name":"v2.2.0 (2025-05-26)","ident_utf16":{"start":{"line_number":305,"utf16_col":3},"end":{"line_number":305,"utf16_col":22}},"extent_utf16":{"start":{"line_number":305,"utf16_col":0},"end":{"line_number":312,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":9276,"ident_end":9284,"extent_start":9272,"extent_end":9416,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":307,"utf16_col":4},"end":{"line_number":307,"utf16_col":12}},"extent_utf16":{"start":{"line_number":307,"utf16_col":0},"end":{"line_number":312,"utf16_col":0}}},{"name":"v2.1.1 (2025-05-26)","kind":"section_2","ident_start":9419,"ident_end":9438,"extent_start":9416,"extent_end":9599,"fully_qualified_name":"v2.1.1 (2025-05-26)","ident_utf16":{"start":{"line_number":312,"utf16_col":3},"end":{"line_number":312,"utf16_col":22}},"extent_utf16":{"start":{"line_number":312,"utf16_col":0},"end":{"line_number":319,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":9444,"ident_end":9453,"extent_start":9440,"extent_end":9599,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":314,"utf16_col":4},"end":{"line_number":314,"utf16_col":13}},"extent_utf16":{"start":{"line_number":314,"utf16_col":0},"end":{"line_number":319,"utf16_col":0}}},{"name":"v2.1.0 (2025-05-26)","kind":"section_2","ident_start":9602,"ident_end":9621,"extent_start":9599,"extent_end":9989,"fully_qualified_name":"v2.1.0 (2025-05-26)","ident_utf16":{"start":{"line_number":319,"utf16_col":3},"end":{"line_number":319,"utf16_col":22}},"extent_utf16":{"start":{"line_number":319,"utf16_col":0},"end":{"line_number":331,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":9627,"ident_end":9635,"extent_start":9623,"extent_end":9782,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":321,"utf16_col":4},"end":{"line_number":321,"utf16_col":12}},"extent_utf16":{"start":{"line_number":321,"utf16_col":0},"end":{"line_number":326,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":9786,"ident_end":9798,"extent_start":9782,"extent_end":9989,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":326,"utf16_col":4},"end":{"line_number":326,"utf16_col":16}},"extent_utf16":{"start":{"line_number":326,"utf16_col":0},"end":{"line_number":331,"utf16_col":0}}},{"name":"v2.0.1 (2025-05-25)","kind":"section_2","ident_start":9992,"ident_end":10011,"extent_start":9989,"extent_end":10161,"fully_qualified_name":"v2.0.1 (2025-05-25)","ident_utf16":{"start":{"line_number":331,"utf16_col":3},"end":{"line_number":331,"utf16_col":22}},"extent_utf16":{"start":{"line_number":331,"utf16_col":0},"end":{"line_number":338,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":10017,"ident_end":10026,"extent_start":10013,"extent_end":10161,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":333,"utf16_col":4},"end":{"line_number":333,"utf16_col":13}},"extent_utf16":{"start":{"line_number":333,"utf16_col":0},"end":{"line_number":338,"utf16_col":0}}},{"name":"v2.0.0 (2025-05-25)","kind":"section_2","ident_start":10164,"ident_end":10183,"extent_start":10161,"extent_end":10342,"fully_qualified_name":"v2.0.0 (2025-05-25)","ident_utf16":{"start":{"line_number":338,"utf16_col":3},"end":{"line_number":338,"utf16_col":22}},"extent_utf16":{"start":{"line_number":338,"utf16_col":0},"end":{"line_number":345,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":10189,"ident_end":10197,"extent_start":10185,"extent_end":10342,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":340,"utf16_col":4},"end":{"line_number":340,"utf16_col":12}},"extent_utf16":{"start":{"line_number":340,"utf16_col":0},"end":{"line_number":345,"utf16_col":0}}},{"name":"v1.10.0 (2025-05-21)","kind":"section_2","ident_start":10345,"ident_end":10365,"extent_start":10342,"extent_end":10527,"fully_qualified_name":"v1.10.0 (2025-05-21)","ident_utf16":{"start":{"line_number":345,"utf16_col":3},"end":{"line_number":345,"utf16_col":23}},"extent_utf16":{"start":{"line_number":345,"utf16_col":0},"end":{"line_number":352,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":10371,"ident_end":10379,"extent_start":10367,"extent_end":10527,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":347,"utf16_col":4},"end":{"line_number":347,"utf16_col":12}},"extent_utf16":{"start":{"line_number":347,"utf16_col":0},"end":{"line_number":352,"utf16_col":0}}},{"name":"v1.9.0 (2025-05-19)","kind":"section_2","ident_start":10530,"ident_end":10549,"extent_start":10527,"extent_end":10862,"fully_qualified_name":"v1.9.0 (2025-05-19)","ident_utf16":{"start":{"line_number":352,"utf16_col":3},"end":{"line_number":352,"utf16_col":22}},"extent_utf16":{"start":{"line_number":352,"utf16_col":0},"end":{"line_number":364,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":10555,"ident_end":10563,"extent_start":10551,"extent_end":10708,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":354,"utf16_col":4},"end":{"line_number":354,"utf16_col":12}},"extent_utf16":{"start":{"line_number":354,"utf16_col":0},"end":{"line_number":359,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":10712,"ident_end":10724,"extent_start":10708,"extent_end":10862,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":359,"utf16_col":4},"end":{"line_number":359,"utf16_col":16}},"extent_utf16":{"start":{"line_number":359,"utf16_col":0},"end":{"line_number":364,"utf16_col":0}}},{"name":"v1.8.0 (2025-05-06)","kind":"section_2","ident_start":10865,"ident_end":10884,"extent_start":10862,"extent_end":11051,"fully_qualified_name":"v1.8.0 (2025-05-06)","ident_utf16":{"start":{"line_number":364,"utf16_col":3},"end":{"line_number":364,"utf16_col":22}},"extent_utf16":{"start":{"line_number":364,"utf16_col":0},"end":{"line_number":371,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":10890,"ident_end":10898,"extent_start":10886,"extent_end":11051,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":366,"utf16_col":4},"end":{"line_number":366,"utf16_col":12}},"extent_utf16":{"start":{"line_number":366,"utf16_col":0},"end":{"line_number":371,"utf16_col":0}}},{"name":"v1.7.0 (2025-05-05)","kind":"section_2","ident_start":11054,"ident_end":11073,"extent_start":11051,"extent_end":11392,"fully_qualified_name":"v1.7.0 (2025-05-05)","ident_utf16":{"start":{"line_number":371,"utf16_col":3},"end":{"line_number":371,"utf16_col":22}},"extent_utf16":{"start":{"line_number":371,"utf16_col":0},"end":{"line_number":383,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":11079,"ident_end":11087,"extent_start":11075,"extent_end":11233,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":373,"utf16_col":4},"end":{"line_number":373,"utf16_col":12}},"extent_utf16":{"start":{"line_number":373,"utf16_col":0},"end":{"line_number":378,"utf16_col":0}}},{"name":"Testing","kind":"section_3","ident_start":11237,"ident_end":11244,"extent_start":11233,"extent_end":11392,"fully_qualified_name":"Testing","ident_utf16":{"start":{"line_number":378,"utf16_col":4},"end":{"line_number":378,"utf16_col":11}},"extent_utf16":{"start":{"line_number":378,"utf16_col":0},"end":{"line_number":383,"utf16_col":0}}},{"name":"v1.6.0 (2025-05-05)","kind":"section_2","ident_start":11395,"ident_end":11414,"extent_start":11392,"extent_end":12255,"fully_qualified_name":"v1.6.0 (2025-05-05)","ident_utf16":{"start":{"line_number":383,"utf16_col":3},"end":{"line_number":383,"utf16_col":22}},"extent_utf16":{"start":{"line_number":383,"utf16_col":0},"end":{"line_number":402,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":11420,"ident_end":11428,"extent_start":11416,"extent_end":11574,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":385,"utf16_col":4},"end":{"line_number":385,"utf16_col":12}},"extent_utf16":{"start":{"line_number":385,"utf16_col":0},"end":{"line_number":390,"utf16_col":0}}},{"name":"Refactoring","kind":"section_3","ident_start":11578,"ident_end":11589,"extent_start":11574,"extent_end":11900,"fully_qualified_name":"Refactoring","ident_utf16":{"start":{"line_number":390,"utf16_col":4},"end":{"line_number":390,"utf16_col":15}},"extent_utf16":{"start":{"line_number":390,"utf16_col":0},"end":{"line_number":396,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":11904,"ident_end":11916,"extent_start":11900,"extent_end":12255,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":396,"utf16_col":4},"end":{"line_number":396,"utf16_col":16}},"extent_utf16":{"start":{"line_number":396,"utf16_col":0},"end":{"line_number":402,"utf16_col":0}}},{"name":"v1.5.0 (2025-05-04)","kind":"section_2","ident_start":12258,"ident_end":12277,"extent_start":12255,"extent_end":12444,"fully_qualified_name":"v1.5.0 (2025-05-04)","ident_utf16":{"start":{"line_number":402,"utf16_col":3},"end":{"line_number":402,"utf16_col":22}},"extent_utf16":{"start":{"line_number":402,"utf16_col":0},"end":{"line_number":409,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":12283,"ident_end":12291,"extent_start":12279,"extent_end":12444,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":404,"utf16_col":4},"end":{"line_number":404,"utf16_col":12}},"extent_utf16":{"start":{"line_number":404,"utf16_col":0},"end":{"line_number":409,"utf16_col":0}}},{"name":"v1.4.2 (2025-05-03)","kind":"section_2","ident_start":12447,"ident_end":12466,"extent_start":12444,"extent_end":12621,"fully_qualified_name":"v1.4.2 (2025-05-03)","ident_utf16":{"start":{"line_number":409,"utf16_col":3},"end":{"line_number":409,"utf16_col":22}},"extent_utf16":{"start":{"line_number":409,"utf16_col":0},"end":{"line_number":416,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":12472,"ident_end":12481,"extent_start":12468,"extent_end":12621,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":411,"utf16_col":4},"end":{"line_number":411,"utf16_col":13}},"extent_utf16":{"start":{"line_number":411,"utf16_col":0},"end":{"line_number":416,"utf16_col":0}}},{"name":"v1.4.1 (2025-05-02)","kind":"section_2","ident_start":12624,"ident_end":12643,"extent_start":12621,"extent_end":13112,"fully_qualified_name":"v1.4.1 (2025-05-02)","ident_utf16":{"start":{"line_number":416,"utf16_col":3},"end":{"line_number":416,"utf16_col":22}},"extent_utf16":{"start":{"line_number":416,"utf16_col":0},"end":{"line_number":429,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":12649,"ident_end":12658,"extent_start":12645,"extent_end":12820,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":418,"utf16_col":4},"end":{"line_number":418,"utf16_col":13}},"extent_utf16":{"start":{"line_number":418,"utf16_col":0},"end":{"line_number":423,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":12824,"ident_end":12836,"extent_start":12820,"extent_end":13112,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":423,"utf16_col":4},"end":{"line_number":423,"utf16_col":16}},"extent_utf16":{"start":{"line_number":423,"utf16_col":0},"end":{"line_number":429,"utf16_col":0}}},{"name":"v1.4.0 (2025-04-29)","kind":"section_2","ident_start":13115,"ident_end":13134,"extent_start":13112,"extent_end":13442,"fully_qualified_name":"v1.4.0 (2025-04-29)","ident_utf16":{"start":{"line_number":429,"utf16_col":3},"end":{"line_number":429,"utf16_col":22}},"extent_utf16":{"start":{"line_number":429,"utf16_col":0},"end":{"line_number":441,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":13140,"ident_end":13148,"extent_start":13136,"extent_end":13291,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":431,"utf16_col":4},"end":{"line_number":431,"utf16_col":12}},"extent_utf16":{"start":{"line_number":431,"utf16_col":0},"end":{"line_number":436,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":13295,"ident_end":13307,"extent_start":13291,"extent_end":13442,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":436,"utf16_col":4},"end":{"line_number":436,"utf16_col":16}},"extent_utf16":{"start":{"line_number":436,"utf16_col":0},"end":{"line_number":441,"utf16_col":0}}},{"name":"v1.3.0 (2025-04-27)","kind":"section_2","ident_start":13445,"ident_end":13464,"extent_start":13442,"extent_end":13624,"fully_qualified_name":"v1.3.0 (2025-04-27)","ident_utf16":{"start":{"line_number":441,"utf16_col":3},"end":{"line_number":441,"utf16_col":22}},"extent_utf16":{"start":{"line_number":441,"utf16_col":0},"end":{"line_number":448,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":13470,"ident_end":13478,"extent_start":13466,"extent_end":13624,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":443,"utf16_col":4},"end":{"line_number":443,"utf16_col":12}},"extent_utf16":{"start":{"line_number":443,"utf16_col":0},"end":{"line_number":448,"utf16_col":0}}},{"name":"v1.2.0 (2025-04-26)","kind":"section_2","ident_start":13627,"ident_end":13646,"extent_start":13624,"extent_end":13813,"fully_qualified_name":"v1.2.0 (2025-04-26)","ident_utf16":{"start":{"line_number":448,"utf16_col":3},"end":{"line_number":448,"utf16_col":22}},"extent_utf16":{"start":{"line_number":448,"utf16_col":0},"end":{"line_number":457,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":13652,"ident_end":13660,"extent_start":13648,"extent_end":13800,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":450,"utf16_col":4},"end":{"line_number":450,"utf16_col":12}},"extent_utf16":{"start":{"line_number":450,"utf16_col":0},"end":{"line_number":455,"utf16_col":0}}},{"name":"Unknown","kind":"section_3","ident_start":13804,"ident_end":13811,"extent_start":13800,"extent_end":13813,"fully_qualified_name":"Unknown","ident_utf16":{"start":{"line_number":455,"utf16_col":4},"end":{"line_number":455,"utf16_col":11}},"extent_utf16":{"start":{"line_number":455,"utf16_col":0},"end":{"line_number":457,"utf16_col":0}}},{"name":"v1.1.0 (2025-04-25)","kind":"section_2","ident_start":13816,"ident_end":13835,"extent_start":13813,"extent_end":18054,"fully_qualified_name":"v1.1.0 (2025-04-25)","ident_utf16":{"start":{"line_number":457,"utf16_col":3},"end":{"line_number":457,"utf16_col":22}},"extent_utf16":{"start":{"line_number":457,"utf16_col":0},"end":{"line_number":501,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":13841,"ident_end":13849,"extent_start":13837,"extent_end":14008,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":459,"utf16_col":4},"end":{"line_number":459,"utf16_col":12}},"extent_utf16":{"start":{"line_number":459,"utf16_col":0},"end":{"line_number":464,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":14012,"ident_end":14024,"extent_start":14008,"extent_end":17752,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":464,"utf16_col":4},"end":{"line_number":464,"utf16_col":16}},"extent_utf16":{"start":{"line_number":464,"utf16_col":0},"end":{"line_number":491,"utf16_col":0}}},{"name":"Refactoring","kind":"section_3","ident_start":17756,"ident_end":17767,"extent_start":17752,"extent_end":17905,"fully_qualified_name":"Refactoring","ident_utf16":{"start":{"line_number":491,"utf16_col":4},"end":{"line_number":491,"utf16_col":15}},"extent_utf16":{"start":{"line_number":491,"utf16_col":0},"end":{"line_number":496,"utf16_col":0}}},{"name":"Testing","kind":"section_3","ident_start":17909,"ident_end":17916,"extent_start":17905,"extent_end":18054,"fully_qualified_name":"Testing","ident_utf16":{"start":{"line_number":496,"utf16_col":4},"end":{"line_number":496,"utf16_col":11}},"extent_utf16":{"start":{"line_number":496,"utf16_col":0},"end":{"line_number":501,"utf16_col":0}}},{"name":"v1.0.0 (2024-12-09)","kind":"section_2","ident_start":18057,"ident_end":18076,"extent_start":18054,"extent_end":18412,"fully_qualified_name":"v1.0.0 (2024-12-09)","ident_utf16":{"start":{"line_number":501,"utf16_col":3},"end":{"line_number":501,"utf16_col":22}},"extent_utf16":{"start":{"line_number":501,"utf16_col":0},"end":{"line_number":513,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":18082,"ident_end":18091,"extent_start":18078,"extent_end":18247,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":503,"utf16_col":4},"end":{"line_number":503,"utf16_col":13}},"extent_utf16":{"start":{"line_number":503,"utf16_col":0},"end":{"line_number":508,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":18251,"ident_end":18263,"extent_start":18247,"extent_end":18412,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":508,"utf16_col":4},"end":{"line_number":508,"utf16_col":16}},"extent_utf16":{"start":{"line_number":508,"utf16_col":0},"end":{"line_number":513,"utf16_col":0}}},{"name":"v0.13.0 (2024-12-03)","kind":"section_2","ident_start":18415,"ident_end":18435,"extent_start":18412,"extent_end":18798,"fully_qualified_name":"v0.13.0 (2024-12-03)","ident_utf16":{"start":{"line_number":513,"utf16_col":3},"end":{"line_number":513,"utf16_col":23}},"extent_utf16":{"start":{"line_number":513,"utf16_col":0},"end":{"line_number":525,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":18441,"ident_end":18449,"extent_start":18437,"extent_end":18591,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":515,"utf16_col":4},"end":{"line_number":515,"utf16_col":12}},"extent_utf16":{"start":{"line_number":515,"utf16_col":0},"end":{"line_number":520,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":18595,"ident_end":18607,"extent_start":18591,"extent_end":18798,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":520,"utf16_col":4},"end":{"line_number":520,"utf16_col":16}},"extent_utf16":{"start":{"line_number":520,"utf16_col":0},"end":{"line_number":525,"utf16_col":0}}},{"name":"v0.12.0 (2024-12-02)","kind":"section_2","ident_start":18801,"ident_end":18821,"extent_start":18798,"extent_end":18978,"fully_qualified_name":"v0.12.0 (2024-12-02)","ident_utf16":{"start":{"line_number":525,"utf16_col":3},"end":{"line_number":525,"utf16_col":23}},"extent_utf16":{"start":{"line_number":525,"utf16_col":0},"end":{"line_number":532,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":18827,"ident_end":18835,"extent_start":18823,"extent_end":18978,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":527,"utf16_col":4},"end":{"line_number":527,"utf16_col":12}},"extent_utf16":{"start":{"line_number":527,"utf16_col":0},"end":{"line_number":532,"utf16_col":0}}},{"name":"v0.11.1 (2024-12-02)","kind":"section_2","ident_start":18981,"ident_end":19001,"extent_start":18978,"extent_end":19166,"fully_qualified_name":"v0.11.1 (2024-12-02)","ident_utf16":{"start":{"line_number":532,"utf16_col":3},"end":{"line_number":532,"utf16_col":23}},"extent_utf16":{"start":{"line_number":532,"utf16_col":0},"end":{"line_number":539,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":19007,"ident_end":19016,"extent_start":19003,"extent_end":19166,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":534,"utf16_col":4},"end":{"line_number":534,"utf16_col":13}},"extent_utf16":{"start":{"line_number":534,"utf16_col":0},"end":{"line_number":539,"utf16_col":0}}},{"name":"v0.11.0 (2024-12-02)","kind":"section_2","ident_start":19169,"ident_end":19189,"extent_start":19166,"extent_end":20133,"fully_qualified_name":"v0.11.0 (2024-12-02)","ident_utf16":{"start":{"line_number":539,"utf16_col":3},"end":{"line_number":539,"utf16_col":23}},"extent_utf16":{"start":{"line_number":539,"utf16_col":0},"end":{"line_number":555,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":19195,"ident_end":19203,"extent_start":19191,"extent_end":19337,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":541,"utf16_col":4},"end":{"line_number":541,"utf16_col":12}},"extent_utf16":{"start":{"line_number":541,"utf16_col":0},"end":{"line_number":546,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":19341,"ident_end":19353,"extent_start":19337,"extent_end":20133,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":546,"utf16_col":4},"end":{"line_number":546,"utf16_col":16}},"extent_utf16":{"start":{"line_number":546,"utf16_col":0},"end":{"line_number":555,"utf16_col":0}}},{"name":"v0.10.0 (2024-11-13)","kind":"section_2","ident_start":20136,"ident_end":20156,"extent_start":20133,"extent_end":20790,"fully_qualified_name":"v0.10.0 (2024-11-13)","ident_utf16":{"start":{"line_number":555,"utf16_col":3},"end":{"line_number":555,"utf16_col":23}},"extent_utf16":{"start":{"line_number":555,"utf16_col":0},"end":{"line_number":573,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":20162,"ident_end":20170,"extent_start":20158,"extent_end":20452,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":557,"utf16_col":4},"end":{"line_number":557,"utf16_col":12}},"extent_utf16":{"start":{"line_number":557,"utf16_col":0},"end":{"line_number":563,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":20456,"ident_end":20468,"extent_start":20452,"extent_end":20637,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":563,"utf16_col":4},"end":{"line_number":563,"utf16_col":16}},"extent_utf16":{"start":{"line_number":563,"utf16_col":0},"end":{"line_number":568,"utf16_col":0}}},{"name":"Refactoring","kind":"section_3","ident_start":20641,"ident_end":20652,"extent_start":20637,"extent_end":20790,"fully_qualified_name":"Refactoring","ident_utf16":{"start":{"line_number":568,"utf16_col":4},"end":{"line_number":568,"utf16_col":15}},"extent_utf16":{"start":{"line_number":568,"utf16_col":0},"end":{"line_number":573,"utf16_col":0}}},{"name":"v0.9.0 (2024-11-10)","kind":"section_2","ident_start":20793,"ident_end":20812,"extent_start":20790,"extent_end":22372,"fully_qualified_name":"v0.9.0 (2024-11-10)","ident_utf16":{"start":{"line_number":573,"utf16_col":3},"end":{"line_number":573,"utf16_col":22}},"extent_utf16":{"start":{"line_number":573,"utf16_col":0},"end":{"line_number":601,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":20818,"ident_end":20826,"extent_start":20814,"extent_end":21122,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":575,"utf16_col":4},"end":{"line_number":575,"utf16_col":12}},"extent_utf16":{"start":{"line_number":575,"utf16_col":0},"end":{"line_number":581,"utf16_col":0}}},{"name":"Refactoring","kind":"section_3","ident_start":21126,"ident_end":21137,"extent_start":21122,"extent_end":21294,"fully_qualified_name":"Refactoring","ident_utf16":{"start":{"line_number":581,"utf16_col":4},"end":{"line_number":581,"utf16_col":15}},"extent_utf16":{"start":{"line_number":581,"utf16_col":0},"end":{"line_number":586,"utf16_col":0}}},{"name":"Testing","kind":"section_3","ident_start":21298,"ident_end":21305,"extent_start":21294,"extent_end":21580,"fully_qualified_name":"Testing","ident_utf16":{"start":{"line_number":586,"utf16_col":4},"end":{"line_number":586,"utf16_col":11}},"extent_utf16":{"start":{"line_number":586,"utf16_col":0},"end":{"line_number":592,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":21584,"ident_end":21596,"extent_start":21580,"extent_end":22372,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":592,"utf16_col":4},"end":{"line_number":592,"utf16_col":16}},"extent_utf16":{"start":{"line_number":592,"utf16_col":0},"end":{"line_number":601,"utf16_col":0}}},{"name":"v0.8.0 (2024-11-01)","kind":"section_2","ident_start":22375,"ident_end":22394,"extent_start":22372,"extent_end":22854,"fully_qualified_name":"v0.8.0 (2024-11-01)","ident_utf16":{"start":{"line_number":601,"utf16_col":3},"end":{"line_number":601,"utf16_col":22}},"extent_utf16":{"start":{"line_number":601,"utf16_col":0},"end":{"line_number":614,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":22400,"ident_end":22412,"extent_start":22396,"extent_end":22564,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":603,"utf16_col":4},"end":{"line_number":603,"utf16_col":16}},"extent_utf16":{"start":{"line_number":603,"utf16_col":0},"end":{"line_number":608,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":22568,"ident_end":22576,"extent_start":22564,"extent_end":22854,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":608,"utf16_col":4},"end":{"line_number":608,"utf16_col":12}},"extent_utf16":{"start":{"line_number":608,"utf16_col":0},"end":{"line_number":614,"utf16_col":0}}},{"name":"v0.7.3 (2024-10-31)","kind":"section_2","ident_start":22857,"ident_end":22876,"extent_start":22854,"extent_end":23325,"fully_qualified_name":"v0.7.3 (2024-10-31)","ident_utf16":{"start":{"line_number":614,"utf16_col":3},"end":{"line_number":614,"utf16_col":22}},"extent_utf16":{"start":{"line_number":614,"utf16_col":0},"end":{"line_number":627,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":22882,"ident_end":22891,"extent_start":22878,"extent_end":23030,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":616,"utf16_col":4},"end":{"line_number":616,"utf16_col":13}},"extent_utf16":{"start":{"line_number":616,"utf16_col":0},"end":{"line_number":621,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":23034,"ident_end":23046,"extent_start":23030,"extent_end":23325,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":621,"utf16_col":4},"end":{"line_number":621,"utf16_col":16}},"extent_utf16":{"start":{"line_number":621,"utf16_col":0},"end":{"line_number":627,"utf16_col":0}}},{"name":"v0.7.2 (2024-10-22)","kind":"section_2","ident_start":23328,"ident_end":23347,"extent_start":23325,"extent_end":23529,"fully_qualified_name":"v0.7.2 (2024-10-22)","ident_utf16":{"start":{"line_number":627,"utf16_col":3},"end":{"line_number":627,"utf16_col":22}},"extent_utf16":{"start":{"line_number":627,"utf16_col":0},"end":{"line_number":634,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":23353,"ident_end":23362,"extent_start":23349,"extent_end":23529,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":629,"utf16_col":4},"end":{"line_number":629,"utf16_col":13}},"extent_utf16":{"start":{"line_number":629,"utf16_col":0},"end":{"line_number":634,"utf16_col":0}}},{"name":"v0.7.1 (2024-10-22)","kind":"section_2","ident_start":23532,"ident_end":23551,"extent_start":23529,"extent_end":24483,"fully_qualified_name":"v0.7.1 (2024-10-22)","ident_utf16":{"start":{"line_number":634,"utf16_col":3},"end":{"line_number":634,"utf16_col":22}},"extent_utf16":{"start":{"line_number":634,"utf16_col":0},"end":{"line_number":650,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":23557,"ident_end":23566,"extent_start":23553,"extent_end":23729,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":636,"utf16_col":4},"end":{"line_number":636,"utf16_col":13}},"extent_utf16":{"start":{"line_number":636,"utf16_col":0},"end":{"line_number":641,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":23733,"ident_end":23745,"extent_start":23729,"extent_end":24483,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":641,"utf16_col":4},"end":{"line_number":641,"utf16_col":16}},"extent_utf16":{"start":{"line_number":641,"utf16_col":0},"end":{"line_number":650,"utf16_col":0}}},{"name":"v0.7.0 (2024-10-08)","kind":"section_2","ident_start":24486,"ident_end":24505,"extent_start":24483,"extent_end":24507,"fully_qualified_name":"v0.7.0 (2024-10-08)","ident_utf16":{"start":{"line_number":650,"utf16_col":3},"end":{"line_number":650,"utf16_col":22}},"extent_utf16":{"start":{"line_number":650,"utf16_col":0},"end":{"line_number":652,"utf16_col":0}}},{"name":"v0.6.0 (2024-10-08)","kind":"section_2","ident_start":24510,"ident_end":24529,"extent_start":24507,"extent_end":24980,"fully_qualified_name":"v0.6.0 (2024-10-08)","ident_utf16":{"start":{"line_number":652,"utf16_col":3},"end":{"line_number":652,"utf16_col":22}},"extent_utf16":{"start":{"line_number":652,"utf16_col":0},"end":{"line_number":665,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":24535,"ident_end":24544,"extent_start":24531,"extent_end":24696,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":654,"utf16_col":4},"end":{"line_number":654,"utf16_col":13}},"extent_utf16":{"start":{"line_number":654,"utf16_col":0},"end":{"line_number":659,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":24700,"ident_end":24708,"extent_start":24696,"extent_end":24980,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":659,"utf16_col":4},"end":{"line_number":659,"utf16_col":12}},"extent_utf16":{"start":{"line_number":659,"utf16_col":0},"end":{"line_number":665,"utf16_col":0}}},{"name":"v0.5.1 (2024-10-08)","kind":"section_2","ident_start":24983,"ident_end":25002,"extent_start":24980,"extent_end":25185,"fully_qualified_name":"v0.5.1 (2024-10-08)","ident_utf16":{"start":{"line_number":665,"utf16_col":3},"end":{"line_number":665,"utf16_col":22}},"extent_utf16":{"start":{"line_number":665,"utf16_col":0},"end":{"line_number":672,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":25008,"ident_end":25017,"extent_start":25004,"extent_end":25185,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":667,"utf16_col":4},"end":{"line_number":667,"utf16_col":13}},"extent_utf16":{"start":{"line_number":667,"utf16_col":0},"end":{"line_number":672,"utf16_col":0}}},{"name":"v0.5.0 (2024-10-08)","kind":"section_2","ident_start":25188,"ident_end":25207,"extent_start":25185,"extent_end":25360,"fully_qualified_name":"v0.5.0 (2024-10-08)","ident_utf16":{"start":{"line_number":672,"utf16_col":3},"end":{"line_number":672,"utf16_col":22}},"extent_utf16":{"start":{"line_number":672,"utf16_col":0},"end":{"line_number":679,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":25213,"ident_end":25221,"extent_start":25209,"extent_end":25360,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":674,"utf16_col":4},"end":{"line_number":674,"utf16_col":12}},"extent_utf16":{"start":{"line_number":674,"utf16_col":0},"end":{"line_number":679,"utf16_col":0}}},{"name":"v0.4.0 (2024-10-08)","kind":"section_2","ident_start":25363,"ident_end":25382,"extent_start":25360,"extent_end":25542,"fully_qualified_name":"v0.4.0 (2024-10-08)","ident_utf16":{"start":{"line_number":679,"utf16_col":3},"end":{"line_number":679,"utf16_col":22}},"extent_utf16":{"start":{"line_number":679,"utf16_col":0},"end":{"line_number":686,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":25388,"ident_end":25396,"extent_start":25384,"extent_end":25542,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":681,"utf16_col":4},"end":{"line_number":681,"utf16_col":12}},"extent_utf16":{"start":{"line_number":681,"utf16_col":0},"end":{"line_number":686,"utf16_col":0}}},{"name":"v0.3.0 (2024-10-08)","kind":"section_2","ident_start":25545,"ident_end":25564,"extent_start":25542,"extent_end":25867,"fully_qualified_name":"v0.3.0 (2024-10-08)","ident_utf16":{"start":{"line_number":686,"utf16_col":3},"end":{"line_number":686,"utf16_col":22}},"extent_utf16":{"start":{"line_number":686,"utf16_col":0},"end":{"line_number":694,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":25570,"ident_end":25578,"extent_start":25566,"extent_end":25867,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":688,"utf16_col":4},"end":{"line_number":688,"utf16_col":12}},"extent_utf16":{"start":{"line_number":688,"utf16_col":0},"end":{"line_number":694,"utf16_col":0}}},{"name":"v0.2.0 (2024-10-03)","kind":"section_2","ident_start":25870,"ident_end":25889,"extent_start":25867,"extent_end":28061,"fully_qualified_name":"v0.2.0 (2024-10-03)","ident_utf16":{"start":{"line_number":694,"utf16_col":3},"end":{"line_number":694,"utf16_col":22}},"extent_utf16":{"start":{"line_number":694,"utf16_col":0},"end":{"line_number":718,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":25895,"ident_end":25903,"extent_start":25891,"extent_end":26051,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":696,"utf16_col":4},"end":{"line_number":696,"utf16_col":12}},"extent_utf16":{"start":{"line_number":696,"utf16_col":0},"end":{"line_number":701,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":26055,"ident_end":26067,"extent_start":26051,"extent_end":28061,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":701,"utf16_col":4},"end":{"line_number":701,"utf16_col":16}},"extent_utf16":{"start":{"line_number":701,"utf16_col":0},"end":{"line_number":718,"utf16_col":0}}},{"name":"v0.1.1 (2024-05-22)","kind":"section_2","ident_start":28064,"ident_end":28083,"extent_start":28061,"extent_end":28408,"fully_qualified_name":"v0.1.1 (2024-05-22)","ident_utf16":{"start":{"line_number":718,"utf16_col":3},"end":{"line_number":718,"utf16_col":22}},"extent_utf16":{"start":{"line_number":718,"utf16_col":0},"end":{"line_number":730,"utf16_col":0}}},{"name":"Bug fixes","kind":"section_3","ident_start":28089,"ident_end":28098,"extent_start":28085,"extent_end":28244,"fully_qualified_name":"Bug fixes","ident_utf16":{"start":{"line_number":720,"utf16_col":4},"end":{"line_number":720,"utf16_col":13}},"extent_utf16":{"start":{"line_number":720,"utf16_col":0},"end":{"line_number":725,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":28248,"ident_end":28260,"extent_start":28244,"extent_end":28408,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":725,"utf16_col":4},"end":{"line_number":725,"utf16_col":16}},"extent_utf16":{"start":{"line_number":725,"utf16_col":0},"end":{"line_number":730,"utf16_col":0}}},{"name":"v0.1.0 (2024-05-07)","kind":"section_2","ident_start":28411,"ident_end":28430,"extent_start":28408,"extent_end":28737,"fully_qualified_name":"v0.1.0 (2024-05-07)","ident_utf16":{"start":{"line_number":730,"utf16_col":3},"end":{"line_number":730,"utf16_col":22}},"extent_utf16":{"start":{"line_number":730,"utf16_col":0},"end":{"line_number":742,"utf16_col":0}}},{"name":"Features","kind":"section_3","ident_start":28436,"ident_end":28444,"extent_start":28432,"extent_end":28573,"fully_qualified_name":"Features","ident_utf16":{"start":{"line_number":732,"utf16_col":4},"end":{"line_number":732,"utf16_col":12}},"extent_utf16":{"start":{"line_number":732,"utf16_col":0},"end":{"line_number":737,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":28577,"ident_end":28589,"extent_start":28573,"extent_end":28737,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":737,"utf16_col":4},"end":{"line_number":737,"utf16_col":16}},"extent_utf16":{"start":{"line_number":737,"utf16_col":0},"end":{"line_number":742,"utf16_col":0}}},{"name":"v0.0.0 (2024-04-24)","kind":"section_2","ident_start":28740,"ident_end":28759,"extent_start":28737,"extent_end":29612,"fully_qualified_name":"v0.0.0 (2024-04-24)","ident_utf16":{"start":{"line_number":742,"utf16_col":3},"end":{"line_number":742,"utf16_col":22}},"extent_utf16":{"start":{"line_number":742,"utf16_col":0},"end":{"line_number":752,"utf16_col":0}}},{"name":"Build system","kind":"section_3","ident_start":28765,"ident_end":28777,"extent_start":28761,"extent_end":29612,"fully_qualified_name":"Build system","ident_utf16":{"start":{"line_number":744,"utf16_col":4},"end":{"line_number":744,"utf16_col":16}},"extent_utf16":{"start":{"line_number":744,"utf16_col":0},"end":{"line_number":752,"utf16_col":0}}}]}},"copilotInfo":null,"copilotAccessAllowed":false,"modelsAccessAllowed":false,"modelsRepoIntegrationEnabled":false,"csrf_tokens":{"/chemelli74/aioamazondevices/branches":{"post":"6NKN437UfXRVUxG-GRA-2J_HmeRIbekWwfR1IhYr1tZ_ryTe5ZV4vhPZSY8MdmSK7ASVPotJloQU0Zc5g8T1Ng"},"/repos/preferences":{"post":"neI1WaOAwHp-H5UbgDPFlphhgj2yfAiyHXTtajvKsumFGN6Gx0XSCPMzJOCo_NeByFtU634nZ_dihoaujWFYBQ"}}},"title":"aioamazondevices/CHANGELOG.md at main · chemelli74/aioamazondevices","appPayload":{"helpUrl":"https://docs.github.com","findFileWorkerPath":"/assets-cdn/worker/find-file-worker-263cab1760dd.js","findInFileWorkerPath":"/assets-cdn/worker/find-in-file-worker-1b17b3e7786a.js","githubDevUrl":null,"enabled_features":{"code_nav_ui_events":false,"react_blob_overlay":false,"accessible_code_button":true}}}</script>
+  <div data-target="react-app.reactRoot"></div>
+</react-app>
+</turbo-frame>
+
+
+
+  </div>
+
+</turbo-frame>
+
+    </main>
+  </div>
+
+  </div>
+
+          <footer class="footer pt-8 pb-6 f6 color-fg-muted p-responsive" role="contentinfo" >
+  <h2 class='sr-only'>Footer</h2>
+
+  
+
+
+  <div class="d-flex flex-justify-center flex-items-center flex-column-reverse flex-lg-row flex-wrap flex-lg-nowrap">
+    <div class="d-flex flex-items-center flex-shrink-0 mx-2">
+      <a aria-label="GitHub Homepage" class="footer-octicon mr-2" href="https://github.com">
+        <svg aria-hidden="true" height="24" viewBox="0 0 24 24" version="1.1" width="24" data-view-component="true" class="octicon octicon-mark-github">
+    <path d="M12 1C5.923 1 1 5.923 1 12c0 4.867 3.149 8.979 7.521 10.436.55.096.756-.233.756-.522 0-.262-.013-1.128-.013-2.049-2.764.509-3.479-.674-3.699-1.292-.124-.317-.66-1.293-1.127-1.554-.385-.207-.936-.715-.014-.729.866-.014 1.485.797 1.691 1.128.99 1.663 2.571 1.196 3.204.907.096-.715.385-1.196.701-1.471-2.448-.275-5.005-1.224-5.005-5.432 0-1.196.426-2.186 1.128-2.956-.111-.275-.496-1.402.11-2.915 0 0 .921-.288 3.024 1.128a10.193 10.193 0 0 1 2.75-.371c.936 0 1.871.123 2.75.371 2.104-1.43 3.025-1.128 3.025-1.128.605 1.513.221 2.64.111 2.915.701.77 1.127 1.747 1.127 2.956 0 4.222-2.571 5.157-5.019 5.432.399.344.743 1.004.743 2.035 0 1.471-.014 2.654-.014 3.025 0 .289.206.632.756.522C19.851 20.979 23 16.854 23 12c0-6.077-4.922-11-11-11Z"></path>
+</svg>
+</a>
+      <span>
+        &copy; 2025 GitHub,&nbsp;Inc.
+      </span>
+    </div>
+
+    <nav aria-label="Footer">
+      <h3 class="sr-only" id="sr-footer-heading">Footer navigation</h3>
+
+      <ul class="list-style-none d-flex flex-justify-center flex-wrap mb-2 mb-lg-0" aria-labelledby="sr-footer-heading">
+
+          <li class="mx-2">
+            <a data-analytics-event="{&quot;category&quot;:&quot;Footer&quot;,&quot;action&quot;:&quot;go to Terms&quot;,&quot;label&quot;:&quot;text:terms&quot;}" href="https://docs.github.com/site-policy/github-terms/github-terms-of-service" data-view-component="true" class="Link--secondary Link">Terms</a>
+          </li>
+
+          <li class="mx-2">
+            <a data-analytics-event="{&quot;category&quot;:&quot;Footer&quot;,&quot;action&quot;:&quot;go to privacy&quot;,&quot;label&quot;:&quot;text:privacy&quot;}" href="https://docs.github.com/site-policy/privacy-policies/github-privacy-statement" data-view-component="true" class="Link--secondary Link">Privacy</a>
+          </li>
+
+          <li class="mx-2">
+            <a data-analytics-event="{&quot;category&quot;:&quot;Footer&quot;,&quot;action&quot;:&quot;go to security&quot;,&quot;label&quot;:&quot;text:security&quot;}" href="https://github.com/security" data-view-component="true" class="Link--secondary Link">Security</a>
+          </li>
+
+          <li class="mx-2">
+            <a data-analytics-event="{&quot;category&quot;:&quot;Footer&quot;,&quot;action&quot;:&quot;go to status&quot;,&quot;label&quot;:&quot;text:status&quot;}" href="https://www.githubstatus.com/" data-view-component="true" class="Link--secondary Link">Status</a>
+          </li>
+
+          <li class="mx-2">
+            <a data-analytics-event="{&quot;category&quot;:&quot;Footer&quot;,&quot;action&quot;:&quot;go to docs&quot;,&quot;label&quot;:&quot;text:docs&quot;}" href="https://docs.github.com/" data-view-component="true" class="Link--secondary Link">Docs</a>
+          </li>
+
+          <li class="mx-2">
+            <a data-analytics-event="{&quot;category&quot;:&quot;Footer&quot;,&quot;action&quot;:&quot;go to contact&quot;,&quot;label&quot;:&quot;text:contact&quot;}" href="https://support.github.com?tags=dotcom-footer" data-view-component="true" class="Link--secondary Link">Contact</a>
+          </li>
+
+          <li class="mx-2" >
+  <cookie-consent-link>
+    <button
+      type="button"
+      class="Link--secondary underline-on-hover border-0 p-0 color-bg-transparent"
+      data-action="click:cookie-consent-link#showConsentManagement"
+      data-analytics-event="{&quot;location&quot;:&quot;footer&quot;,&quot;action&quot;:&quot;cookies&quot;,&quot;context&quot;:&quot;subfooter&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;cookies_link_subfooter_footer&quot;}"
+    >
+       Manage cookies
+    </button>
+  </cookie-consent-link>
+</li>
+
+<li class="mx-2">
+  <cookie-consent-link>
+    <button
+      type="button"
+      class="Link--secondary underline-on-hover border-0 p-0 color-bg-transparent"
+      data-action="click:cookie-consent-link#showConsentManagement"
+      data-analytics-event="{&quot;location&quot;:&quot;footer&quot;,&quot;action&quot;:&quot;dont_share_info&quot;,&quot;context&quot;:&quot;subfooter&quot;,&quot;tag&quot;:&quot;link&quot;,&quot;label&quot;:&quot;dont_share_info_link_subfooter_footer&quot;}"
+    >
+      Do not share my personal information
+    </button>
+  </cookie-consent-link>
+</li>
+
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+
+
+    <ghcc-consent id="ghcc" class="position-fixed bottom-0 left-0" style="z-index: 999999"
+      data-locale="en"
+      data-initial-cookie-consent-allowed=""
+      data-cookie-consent-required="true"
+    ></ghcc-consent>
+
+
+
+  <div id="ajax-error-message" class="ajax-error-message flash flash-error" hidden>
+    <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-alert">
+    <path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path>
+</svg>
+    <button type="button" class="flash-close js-ajax-error-dismiss" aria-label="Dismiss error">
+      <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-x">
+    <path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l3.22 3.22a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-3.22 3.22a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"></path>
+</svg>
+    </button>
+    You can’t perform that action at this time.
+  </div>
+
+    <template id="site-details-dialog">
+  <details class="details-reset details-overlay details-overlay-dark lh-default color-fg-default hx_rsm" open>
+    <summary role="button" aria-label="Close dialog"></summary>
+    <details-dialog class="Box Box--overlay d-flex flex-column anim-fade-in fast hx_rsm-dialog hx_rsm-modal">
+      <button class="Box-btn-octicon m-0 btn-octicon position-absolute right-0 top-0" type="button" aria-label="Close dialog" data-close-dialog>
+        <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-x">
+    <path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l3.22 3.22a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-3.22 3.22a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"></path>
+</svg>
+      </button>
+      <div class="octocat-spinner my-6 js-details-dialog-spinner"></div>
+    </details-dialog>
+  </details>
+</template>
+
+    <div class="Popover js-hovercard-content position-absolute" style="display: none; outline: none;">
+  <div class="Popover-message Popover-message--bottom-left Popover-message--large Box color-shadow-large" style="width:360px;">
+  </div>
+</div>
+
+    <template id="snippet-clipboard-copy-button">
+  <div class="zeroclipboard-container position-absolute right-0 top-0">
+    <clipboard-copy aria-label="Copy" class="ClipboardButton btn js-clipboard-copy m-2 p-0" data-copy-feedback="Copied!" data-tooltip-direction="w">
+      <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon m-2">
+    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+</svg>
+      <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-check js-clipboard-check-icon color-fg-success d-none m-2">
+    <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+</svg>
+    </clipboard-copy>
+  </div>
+</template>
+<template id="snippet-clipboard-copy-button-unpositioned">
+  <div class="zeroclipboard-container">
+    <clipboard-copy aria-label="Copy" class="ClipboardButton btn btn-invisible js-clipboard-copy m-2 p-0 d-flex flex-justify-center flex-items-center" data-copy-feedback="Copied!" data-tooltip-direction="w">
+      <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon">
+    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+</svg>
+      <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-check js-clipboard-check-icon color-fg-success d-none">
+    <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+</svg>
+    </clipboard-copy>
+  </div>
+</template>
+
+
+
+
+    </div>
+    <div id="js-global-screen-reader-notice" class="sr-only mt-n1" aria-live="polite" aria-atomic="true" ></div>
+    <div id="js-global-screen-reader-notice-assertive" class="sr-only mt-n1" aria-live="assertive" aria-atomic="true"></div>
+  </body>
+</html>
 
-## v2.0.1 (2025-05-25)
-
-### Bug fixes
-
-- Speaker group typo ([`edb3d2c`](https://github.com/chemelli74/aioamazondevices/commit/edb3d2cced441ec97a0b37b07b0361b96072dbf1))
-
-
-## v2.0.0 (2025-05-25)
-
-### Features
-
-- Model and hw_version details ([`24708bb`](https://github.com/chemelli74/aioamazondevices/commit/24708bb84ddc18c7085cafb9cf280306190d5b95))
-
-
-## v1.10.0 (2025-05-21)
-
-### Features
-
-- Add set_do_not_disturb() method ([`19d42f1`](https://github.com/chemelli74/aioamazondevices/commit/19d42f15613ea195d36cf4b57eb9117b31f562cd))
-
-
-## v1.9.0 (2025-05-19)
-
-### Features
-
-- Allow easy swap of libraries ([`e67b3e6`](https://github.com/chemelli74/aioamazondevices/commit/e67b3e63c414831615e87327a4736125afbe0573))
-
-
-### Build system
-
-- Switch to python 3.13 ([`66f55f2`](https://github.com/chemelli74/aioamazondevices/commit/66f55f24e695edb7141094f4fc43b730d197d6b5))
-
-
-## v1.8.0 (2025-05-06)
-
-### Features
-
-- Add call_alexa_text_command() method ([`5aa730e`](https://github.com/chemelli74/aioamazondevices/commit/5aa730eb990800d4c0f4c2319589d5c4c12f64b2))
-
-
-## v1.7.0 (2025-05-05)
-
-### Features
-
-- Add call_alexa_music() method ([`9131e5c`](https://github.com/chemelli74/aioamazondevices/commit/9131e5c4323444bc75ce9eef033e1eb3f5048515))
-
-
-### Testing
-
-- Fix find device in library_test ([`8afc7a7`](https://github.com/chemelli74/aioamazondevices/commit/8afc7a73f45b71a83a923e8697858b23d368b2b1))
-
-
-## v1.6.0 (2025-05-05)
-
-### Features
-
-- Add call_alexa_sound() method ([`d304d14`](https://github.com/chemelli74/aioamazondevices/commit/d304d14fefc195fc510727e86496b8eee8483083))
-
-
-### Refactoring
-
-- Introduce amazonsequencetype and optimize library_test code ([`dffbcdc`](https://github.com/chemelli74/aioamazondevices/commit/dffbcdcd2bd7dc933cfaf453adedccbbb8059267))
-- Introduce base_payload ([`51177ae`](https://github.com/chemelli74/aioamazondevices/commit/51177ae0bea90090712e7d7c7d3e1b4724a2a04b))
-
-
-### Build system
-
-- Bump python-semantic-release/python-semantic-release from 9.21.0 to 9.21.1 ([`a8cee32`](https://github.com/chemelli74/aioamazondevices/commit/a8cee327f7fbf3da73720936be85d9a4891255c0))
-- Bump orjson from 3.10.16 to 3.10.18 ([`6bcfc64`](https://github.com/chemelli74/aioamazondevices/commit/6bcfc64d7ec716a1f5fe33b8983e696adfeb71bc))
-
-
-## v1.5.0 (2025-05-04)
-
-### Features
-
-- Add call_alexa_announcement() method ([`047b335`](https://github.com/chemelli74/aioamazondevices/commit/047b3357d56387cfd2102ee9d41fd67cc40fc8f4))
-
-
-## v1.4.2 (2025-05-03)
-
-### Bug fixes
-
-- Improve aiohttp support ([`8ffdc7f`](https://github.com/chemelli74/aioamazondevices/commit/8ffdc7f746848db15fd3affcdca68a04bc196db3))
-
-
-## v1.4.1 (2025-05-02)
-
-### Bug fixes
-
-- Force file encoding for windows compatibility ([`e0b952c`](https://github.com/chemelli74/aioamazondevices/commit/e0b952c62c0c8e8383999c29ec4a285771460c2b))
-
-
-### Build system
-
-- Add more files to cleanup script ([`9895f4a`](https://github.com/chemelli74/aioamazondevices/commit/9895f4a5aa5c86906c00dfeef862ec410fb69ecd))
-- Cleanup script ([`1b5c22f`](https://github.com/chemelli74/aioamazondevices/commit/1b5c22f8669a218cc64074f1f747de1476433b7b))
-
-
-## v1.4.0 (2025-04-29)
-
-### Features
-
-- Move from httpx to aiohttp ([`7471c2b`](https://github.com/chemelli74/aioamazondevices/commit/7471c2b1a25726be2b3b23f1a109115f27a36ec8))
-
-
-### Build system
-
-- Cleanup after #134 ([`c7bc2dd`](https://github.com/chemelli74/aioamazondevices/commit/c7bc2dd846052559dfab1272d2941608885040f8))
-
-
-## v1.3.0 (2025-04-27)
-
-### Features
-
-- Add call_alexa_speak() method ([`1e83769`](https://github.com/chemelli74/aioamazondevices/commit/1e8376985d6ee9e5ad6624c06be1ea412ca57ef2))
-
-
-## v1.2.0 (2025-04-26)
-
-### Features
-
-- Add session auth status ([`d91cc50`](https://github.com/chemelli74/aioamazondevices/commit/d91cc5034d4be05931420bacbe433e85c4f67491))
-
-
-### Unknown
-
-## v1.1.0 (2025-04-25)
-
-### Features
-
-- Replace session.post with _session_request ([`55aa4eb`](https://github.com/chemelli74/aioamazondevices/commit/55aa4eb29123dd98bc5facc8d7d097bf6bc9bdfc))
-
-
-### Build system
-
-- Bump h11 from 0.14.0 to 0.16.0 ([`e3b90e1`](https://github.com/chemelli74/aioamazondevices/commit/e3b90e10bcd654f47dee7cc81596fdce9ac095d6))
-- Improve environment ([`718dd03`](https://github.com/chemelli74/aioamazondevices/commit/718dd03c258864335ead34cec080228773e87f25))
-- Bump rsa from 4.9 to 4.9.1 ([`4d7ed78`](https://github.com/chemelli74/aioamazondevices/commit/4d7ed78e46f149897ee179b582df02b277ca35d8))
-- Bump beautifulsoup4 from 4.13.3 to 4.13.4 ([`23a15c9`](https://github.com/chemelli74/aioamazondevices/commit/23a15c9891e35867b18ce10acd8e4dc963387980))
-- Bump pytest-cov from 6.0.0 to 6.1.1 ([`0c5e05c`](https://github.com/chemelli74/aioamazondevices/commit/0c5e05c9e741742bda06694c46ad68590118de6c))
-- Bump orjson from 3.10.15 to 3.10.16 ([`5d5aeec`](https://github.com/chemelli74/aioamazondevices/commit/5d5aeecacd6133b2fcbb0bfddce9f0e6426ba89c))
-- Ruff rules update ([`62f92fb`](https://github.com/chemelli74/aioamazondevices/commit/62f92fb86bd9599dda0652d5fcda67ab11a3e3ef))
-- Bump pytest from 8.3.4 to 8.3.5 ([`99264b6`](https://github.com/chemelli74/aioamazondevices/commit/99264b6ef309e7b314cafe0b6c4cd96ef7ee02bd))
-- Bump python-semantic-release/python-semantic-release from 9.20.0 to 9.21.0 ([`fcae1ba`](https://github.com/chemelli74/aioamazondevices/commit/fcae1ba30692c5b5dd0236464eeaca240123e81f))
-- Bump python-semantic-release/python-semantic-release from 9.19.1 to 9.20.0 ([`6c8fe74`](https://github.com/chemelli74/aioamazondevices/commit/6c8fe749c83e0642f46de9538df49768c9b23ca1))
-- Bump python-semantic-release/python-semantic-release from 9.19.0 to 9.19.1 ([`b7034ee`](https://github.com/chemelli74/aioamazondevices/commit/b7034ee8baba22aaf0ed23f16ba4f17de6fcda2c))
-- Bump python-semantic-release/python-semantic-release from 9.18.0 to 9.19.0 ([`d36c277`](https://github.com/chemelli74/aioamazondevices/commit/d36c2771227d9e07d5286dfe064271bc0732fc79))
-- Bump beautifulsoup4 from 4.13.0 to 4.13.3 ([`483ae44`](https://github.com/chemelli74/aioamazondevices/commit/483ae446f913ce7d1e07f934cda20190697fad44))
-- Bump python-semantic-release/python-semantic-release from 9.17.0 to 9.18.0 ([`2f18c9a`](https://github.com/chemelli74/aioamazondevices/commit/2f18c9acf3798835645ade2dbd949c05bbff650d))
-- Bump beautifulsoup4 from 4.12.3 to 4.13.0 ([`04e3c8c`](https://github.com/chemelli74/aioamazondevices/commit/04e3c8c33853702e14540717559191bf1aba8974))
-- Bump python-semantic-release/python-semantic-release from 9.16.1 to 9.17.0 ([`e5f147c`](https://github.com/chemelli74/aioamazondevices/commit/e5f147cd50d4e0c072b034124a974249d7723dcd))
-- Bump orjson from 3.10.14 to 3.10.15 ([`fd3c424`](https://github.com/chemelli74/aioamazondevices/commit/fd3c424999e0b634dec72d927befe2881d6b95b2))
-- Bump wagoid/commitlint-github-action from 6.2.0 to 6.2.1 ([`43cc69a`](https://github.com/chemelli74/aioamazondevices/commit/43cc69ad50e163d99bbe3cdb61ecff08ec870c0b))
-- Bump python-semantic-release/python-semantic-release from 9.15.2 to 9.16.1 ([`799a6a4`](https://github.com/chemelli74/aioamazondevices/commit/799a6a4ec773fd4ac045029fb45e1af6d83f25da))
-- Bump orjson from 3.10.13 to 3.10.14 ([`e721a89`](https://github.com/chemelli74/aioamazondevices/commit/e721a8996c0a967791376a54f9b309302e4b4b7c))
-- Bump orjson from 3.10.12 to 3.10.13 ([`42c4703`](https://github.com/chemelli74/aioamazondevices/commit/42c4703f524a4b86829a478cc96dc2c3bc1c1cc1))
-- Bump wagoid/commitlint-github-action from 6.1.2 to 6.2.0 ([`9d976f0`](https://github.com/chemelli74/aioamazondevices/commit/9d976f00a1df3bf5484d7f3a35244732cbcc4571))
-- Bump python-semantic-release/python-semantic-release from 9.15.1 to 9.15.2 ([`312f6a0`](https://github.com/chemelli74/aioamazondevices/commit/312f6a08415274eabf1649d123d53ef4441eb064))
-
-
-### Refactoring
-
-- Removed unneeded auth ([`e90e87d`](https://github.com/chemelli74/aioamazondevices/commit/e90e87d8e8c37ccf0b6017dad838a71529a65b4b))
-
-
-### Testing
-
-- Fix library_test args ([`a317ee0`](https://github.com/chemelli74/aioamazondevices/commit/a317ee0b44a8c13493c845172a1346b2b870be65))
-
-
-## v1.0.0 (2024-12-09)
-
-### Bug fixes
-
-- Use iso 3166 standard for country codes ([`0fa4e96`](https://github.com/chemelli74/aioamazondevices/commit/0fa4e968678e13c34d1352e7b53cd5224b533779))
-
-
-### Build system
-
-- Bump httpx from 0.28.0 to 0.28.1 ([`c853dc3`](https://github.com/chemelli74/aioamazondevices/commit/c853dc3fe5c0e75491152f7cd9592ff03c79a717))
-
-
-## v0.13.0 (2024-12-03)
-
-### Features
-
-- Load login data from dict ([`d881d16`](https://github.com/chemelli74/aioamazondevices/commit/d881d16d5d4331217b323f80ee69a6c357a16028))
-
-
-### Build system
-
-- Bump python-semantic-release/python-semantic-release from 9.15.0 to 9.15.1 ([`ef13a01`](https://github.com/chemelli74/aioamazondevices/commit/ef13a012a0e46468547be4b01952c49fcc90a4f6))
-
-
-## v0.12.0 (2024-12-02)
-
-### Features
-
-- Return parsed devices data ([`114da17`](https://github.com/chemelli74/aioamazondevices/commit/114da17ce89a5c521eeff91f8590cfe61a55fce9))
-
-
-## v0.11.1 (2024-12-02)
-
-### Bug fixes
-
-- Properties for amazondevice class ([`a0a2af6`](https://github.com/chemelli74/aioamazondevices/commit/a0a2af69d53433a351ed468f5b607dd562f3319e))
-
-
-## v0.11.0 (2024-12-02)
-
-### Features
-
-- Add device models ([`8baaa6b`](https://github.com/chemelli74/aioamazondevices/commit/8baaa6ba47059b00c38afb4d2ae2716219ac8fa9))
-
-
-### Build system
-
-- Bump python-semantic-release/python-semantic-release from 9.14.0 to 9.15.0 ([`d20c580`](https://github.com/chemelli74/aioamazondevices/commit/d20c5802c9438dda1172e616978eda356f4d6ad3))
-- Bump pytest from 8.3.3 to 8.3.4 ([`711373d`](https://github.com/chemelli74/aioamazondevices/commit/711373df071b22463742ce6b4af744b385ff59e1))
-- Bump httpx from 0.27.2 to 0.28.0 ([`923ed8c`](https://github.com/chemelli74/aioamazondevices/commit/923ed8c9c9e9e052cfc87818d365e5b82e6ca33d))
-- Bump orjson from 3.10.11 to 3.10.12 ([`71482db`](https://github.com/chemelli74/aioamazondevices/commit/71482db191ce4a46b5d6ac3ce7bfe78ae4a2aa6b))
-- Bump codecov/codecov-action from 4 to 5 ([`c92c4f2`](https://github.com/chemelli74/aioamazondevices/commit/c92c4f2ce38d0d4783d103a6cbd275047b9f70d0))
-
-
-## v0.10.0 (2024-11-13)
-
-### Features
-
-- Add login from stored data ([`36af872`](https://github.com/chemelli74/aioamazondevices/commit/36af8723723ef7a4257230cb548d416614a82b8c))
-- Add login from stored data ([`36af872`](https://github.com/chemelli74/aioamazondevices/commit/36af8723723ef7a4257230cb548d416614a82b8c))
-
-
-### Build system
-
-- Bump python-semantic-release/python-semantic-release ([`b39e995`](https://github.com/chemelli74/aioamazondevices/commit/b39e995e5d74adb3098f6a1049244021d087fccc))
-
-
-### Refactoring
-
-- Small headers cleanup ([`e4fafe1`](https://github.com/chemelli74/aioamazondevices/commit/e4fafe1b18889413249fe51d1d680eb0eb7856a5))
-
-
-## v0.9.0 (2024-11-10)
-
-### Features
-
-- Devices cleanup and data consolidation ([`d6a911c`](https://github.com/chemelli74/aioamazondevices/commit/d6a911cc1a28fa269fa158bf1ee60860a421be4a))
-- Add library_test data saving ([`12f0cc8`](https://github.com/chemelli74/aioamazondevices/commit/12f0cc88bef2a8b88e4f4fc44b5243ade5b1c303))
-
-
-### Refactoring
-
-- Renamed param and var to a better naming ([`d5f4da6`](https://github.com/chemelli74/aioamazondevices/commit/d5f4da677c26b419c959c9b1b925f09afaf21f8e))
-
-
-### Testing
-
-- Add more vscode launch options ([`fdac075`](https://github.com/chemelli74/aioamazondevices/commit/fdac075e54ad78600db4e3069e71c5f0051ec803))
-- Add .coveragerc ([`d3cbc5e`](https://github.com/chemelli74/aioamazondevices/commit/d3cbc5e5e279c08491bb3d93851f5703b0e2b053))
-
-
-### Build system
-
-- Bump python-semantic-release/python-semantic-release ([`520b94a`](https://github.com/chemelli74/aioamazondevices/commit/520b94a29e3aeff2668ce47d152daf97e7911340))
-- Bump python-semantic-release/python-semantic-release ([`61b9c65`](https://github.com/chemelli74/aioamazondevices/commit/61b9c655af1f5252e521c2b3c9656b432aace1c4))
-- Bump orjson from 3.10.10 to 3.10.11 ([`850e41f`](https://github.com/chemelli74/aioamazondevices/commit/850e41ff986c28d1ad00c78235f78ff4240388ae))
-- Bump pytest-cov from 5.0.0 to 6.0.0 ([`5871ed5`](https://github.com/chemelli74/aioamazondevices/commit/5871ed5dc8d68b08aa78b021ad77bcb904beaf9a))
-- Bump colorlog from 6.8.2 to 6.9.0 ([`29a9c7b`](https://github.com/chemelli74/aioamazondevices/commit/29a9c7b5273454651d4b0eeb7312ba81fbfdc1ad))
-
-
-## v0.8.0 (2024-11-01)
-
-### Build system
-
-- Revert to standard semantic release ([`874b330`](https://github.com/chemelli74/aioamazondevices/commit/874b330d0faf4c8248fb007f9c67ad61bceadfd8))
-
-
-### Features
-
-- Drop python 3.11 support ([`317ba8d`](https://github.com/chemelli74/aioamazondevices/commit/317ba8d90ca55bac1c344170762e799a22cca449))
-- Drop python 3.11 support ([`317ba8d`](https://github.com/chemelli74/aioamazondevices/commit/317ba8d90ca55bac1c344170762e799a22cca449))
-
-
-## v0.7.3 (2024-10-31)
-
-### Bug fixes
-
-- Fix license classifier ([`f5af1f8`](https://github.com/chemelli74/aioamazondevices/commit/f5af1f859ea60ddcdf0d5e599b38e147f172bfe7))
-
-
-### Build system
-
-- Add python 3.13 ([`21b0e3b`](https://github.com/chemelli74/aioamazondevices/commit/21b0e3b2b6c9bed3185287588f2ff08f496b698c))
-- Bump orjson from 3.10.9 to 3.10.10 ([`2540404`](https://github.com/chemelli74/aioamazondevices/commit/25404040807718998efd6ed5a0765879e0a04948))
-
-
-## v0.7.2 (2024-10-22)
-
-### Bug fixes
-
-- Avoid registering a new device at each login cicle ([`0681a85`](https://github.com/chemelli74/aioamazondevices/commit/0681a8566b8856f940ef1bc910bdc9f6adb8a905))
-
-
-## v0.7.1 (2024-10-22)
-
-### Bug fixes
-
-- Allow different openid.assoc_handle by country ([`c0b7249`](https://github.com/chemelli74/aioamazondevices/commit/c0b724908298f06b30352fb9b83c52eea5129517))
-
-
-### Build system
-
-- Bump orjson from 3.10.7 to 3.10.9 ([`5062556`](https://github.com/chemelli74/aioamazondevices/commit/5062556efa2b6cecab4fecdbf339ffd69cb82ded))
-- Pre-commit migrate-config ([`07ae187`](https://github.com/chemelli74/aioamazondevices/commit/07ae187e21e91546b7ac9bd33b256ede8f3b3550))
-- Exclude out folder ([`5065cd4`](https://github.com/chemelli74/aioamazondevices/commit/5065cd45461d250ebb7693c7577b3dd8282b3874))
-- Add commitlint to devcontainer ([`8eeeed6`](https://github.com/chemelli74/aioamazondevices/commit/8eeeed6fe83c4a82fe05dcb9a5241fea60bf1f05))
-- Adding a shell.nix so you can do nix-shell to work on this repo ([`57dfa5a`](https://github.com/chemelli74/aioamazondevices/commit/57dfa5a40ada28cf9ce2eb78b63d212a042017b5))
-
-
-## v0.7.0 (2024-10-08)
-
-## v0.6.0 (2024-10-08)
-
-### Bug fixes
-
-- Restore .gitignore from main branch ([`1c620c5`](https://github.com/chemelli74/aioamazondevices/commit/1c620c5363cc610fed2ca76f6265175890b225b4))
-
-
-### Features
-
-- Rebase onto main ([`dc09f14`](https://github.com/chemelli74/aioamazondevices/commit/dc09f1451d0a9525abe0abc9541c294f2288724c))
-- Updated logic to find form ([`8322efc`](https://github.com/chemelli74/aioamazondevices/commit/8322efcf15cfa307bf8ebf8152f93b4e775bff2d))
-
-
-## v0.5.1 (2024-10-08)
-
-### Bug fixes
-
-- Removed .idea directory - was accidently committetd ([`716b221`](https://github.com/chemelli74/aioamazondevices/commit/716b221d2082880a88767f367db3a1676a99371d))
-
-
-## v0.5.0 (2024-10-08)
-
-### Features
-
-- Adding commitlint hook ([`96d9fc4`](https://github.com/chemelli74/aioamazondevices/commit/96d9fc41341c0b13851a17622e99368c7a90f954))
-
-
-## v0.4.0 (2024-10-08)
-
-### Features
-
-- Modified output functionality ([`141e57a`](https://github.com/chemelli74/aioamazondevices/commit/141e57a9d9145bb4ec5f6ff484336c3f82cec083))
-
-
-## v0.3.0 (2024-10-08)
-
-### Features
-
-- Update gitignore information for pycharm ([`8701548`](https://github.com/chemelli74/aioamazondevices/commit/8701548d2a06c8c9ded7cc6d277a0bcb4905c832))
-- Device registration ([`d66a054`](https://github.com/chemelli74/aioamazondevices/commit/d66a05462f16caa35e94532301a42f519922354c))
-
-
-## v0.2.0 (2024-10-03)
-
-### Features
-
-- Save html response code to disk ([`2c54b4b`](https://github.com/chemelli74/aioamazondevices/commit/2c54b4b5db16e9cb706cef47a98112c2ba0101fc))
-
-
-### Build system
-
-- Bump pytest from 8.3.2 to 8.3.3 ([`75abdc5`](https://github.com/chemelli74/aioamazondevices/commit/75abdc5d7095ee656d4f3acf562e2b3c43bb4239))
-- Bump tiangolo/issue-manager from 0.5.0 to 0.5.1 ([`f8a4c86`](https://github.com/chemelli74/aioamazondevices/commit/f8a4c86709e151b355be20cc1d786649a4a28ddf))
-- Bump wagoid/commitlint-github-action from 6.1.1 to 6.1.2 ([`fb8156c`](https://github.com/chemelli74/aioamazondevices/commit/fb8156c99bc31f2ace979b3532f05a4af9dae84d))
-- Bump httpx from 0.27.0 to 0.27.2 ([`18fe00f`](https://github.com/chemelli74/aioamazondevices/commit/18fe00f07108829463256851ba18bb6d4bef269a))
-- Bump wagoid/commitlint-github-action from 6.0.2 to 6.1.1 ([`dbb2d2e`](https://github.com/chemelli74/aioamazondevices/commit/dbb2d2ef32005930d12beb2168b8f7280128b5a8))
-- Bump orjson from 3.10.6 to 3.10.7 ([`8652e0d`](https://github.com/chemelli74/aioamazondevices/commit/8652e0dd50ce8fee3406da575691ae9247152133))
-- Bump wagoid/commitlint-github-action from 6.0.1 to 6.0.2 ([`4ea8e37`](https://github.com/chemelli74/aioamazondevices/commit/4ea8e37fab352aed837fe90dd73d7609d6914eee))
-- Bump snok/install-poetry from 1.3.4 to 1.4.1 ([`6d448c4`](https://github.com/chemelli74/aioamazondevices/commit/6d448c4367141025986f651986e3e84babac3562))
-- Bump pytest from 8.3.1 to 8.3.2 ([`4e95b0c`](https://github.com/chemelli74/aioamazondevices/commit/4e95b0ceb3192ffb30ee2b42bb45786a657f1e17))
-- Bump pytest from 8.2.2 to 8.3.1 ([`3d9958a`](https://github.com/chemelli74/aioamazondevices/commit/3d9958a6bf5e3943f1daee0746f95434388d7ad7))
-- Bump orjson from 3.10.5 to 3.10.6 ([`afd2a6a`](https://github.com/chemelli74/aioamazondevices/commit/afd2a6afe617eb150866941b0c98fbdb43f03a18))
-- Bump certifi from 2024.6.2 to 2024.7.4 ([`585a3c1`](https://github.com/chemelli74/aioamazondevices/commit/585a3c126fd6bc8047ffd16c2a582ed64a3424fd))
-- Bump orjson from 3.10.3 to 3.10.5 ([`1ce4a95`](https://github.com/chemelli74/aioamazondevices/commit/1ce4a95a57f71327194803dfa8d014384bf18f71))
-
-
-## v0.1.1 (2024-05-22)
-
-### Bug fixes
-
-- Force country code lower case ([`8951bf9`](https://github.com/chemelli74/aioamazondevices/commit/8951bf93c9f80e3fa5a6da23fcaeceb71ca457e2))
-
-
-### Build system
-
-- Bump pytest from 8.2.0 to 8.2.1 ([`404fe7f`](https://github.com/chemelli74/aioamazondevices/commit/404fe7fbc195d653437f60ec4db651cac69af82b))
-
-
-## v0.1.0 (2024-05-07)
-
-### Features
-
-- First coding ([`a407a5e`](https://github.com/chemelli74/aioamazondevices/commit/a407a5e66d48ba4ea6307a5fd161ab8397f7b54b))
-
-
-### Build system
-
-- Bump pytest from 8.1.1 to 8.2.0 ([`025f860`](https://github.com/chemelli74/aioamazondevices/commit/025f8603fe123514f5b967138133871160db60c2))
-
-
-## v0.0.0 (2024-04-24)
-
-### Build system
-
-- Cleanup ([`1828b57`](https://github.com/chemelli74/aioamazondevices/commit/1828b57f314940c2679d700dad5950c359d0aeaf))
-- Bump codecov/codecov-action from 3 to 4 ([`552b4d9`](https://github.com/chemelli74/aioamazondevices/commit/552b4d9f1d80b59f05c65681da13ab84d9a9145e))
-- Bump pytest-cov from 3.0.0 to 5.0.0 ([`4834921`](https://github.com/chemelli74/aioamazondevices/commit/48349214aadf5309bb671a8abd6ad3b6c2ff676b))
-- Bump pytest from 7.4.4 to 8.1.1 ([`9e12952`](https://github.com/chemelli74/aioamazondevices/commit/9e12952a785f269437d33f65eba0481481a3d075))
-- Mypy and prettier fixes ([`e9a1903`](https://github.com/chemelli74/aioamazondevices/commit/e9a1903d9cace7984b264dad44586f4b4bb53e46))
-- Configure base tools ([`ff0481b`](https://github.com/chemelli74/aioamazondevices/commit/ff0481be810f5c7a10265ad86e7299d6d023b727))
