@@ -1,10 +1,10 @@
 # Changelog
 
-## v3.1.22-rc.1 (2025-06-27)
+## v3.1.22 (2025-06-27)
 
 ### Bug fixes
 
-- Pyproject versioning ([`363825e`](https://github.com/chemelli74/aioamazondevices/commit/363825e2c82f6e05c16e0f5b0dbff67907733c7f))
+- Pyproject versioning ([`4761955`](https://github.com/chemelli74/aioamazondevices/commit/47619554d90d56823950bfb22d1e2c2298887bab))
 
 
 ## v3.1.21 (2025-06-27)
