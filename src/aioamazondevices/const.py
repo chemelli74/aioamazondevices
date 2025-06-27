@@ -7,11 +7,13 @@ _LOGGER = logging.getLogger(__package__)
 DEFAULT_ASSOC_HANDLE = "amzn_dp_project_dee_ios"
 
 TO_REDACT = {
+    "address",
     "address1",
     "address2",
     "address3",
     "city",
     "county",
+    "customerId",
     "deviceAccountId",
     "deviceAddress",
     "deviceOwnerCustomerId",
