@@ -1,11 +1,6 @@
 # Changelog
 
-## v3.1.23-rc.1 (2025-06-29)
-
-### Bug fixes
-
-- Handle api throttling ([`a3c0a71`](https://github.com/chemelli74/aioamazondevices/commit/a3c0a71dda891df9536e0905a53010e0f43e57ab))
-
+## v3.2.0-rc.3 (2025-06-29)
 
 ## v3.1.22 (2025-06-27)
 
@@ -21,11 +16,21 @@
 - Redact sensitive data from debug logs - part ii ([`031f166`](https://github.com/chemelli74/aioamazondevices/commit/031f166f21778b3d796ad246b1ffb31def44a614))
 
 
+## v3.2.0-rc.2 (2025-06-26)
+
 ## v3.1.20 (2025-06-26)
 
 ### Bug fixes
 
 - Inspect sensors for old devices ([`eb4fab1`](https://github.com/chemelli74/aioamazondevices/commit/eb4fab1af6e9bef3929d0fc3944c60750b43c676))
+
+
+## v3.2.0-rc.1 (2025-06-26)
+
+### Bug fixes
+
+- Handle api throttling ([`a3c0a71`](https://github.com/chemelli74/aioamazondevices/commit/a3c0a71dda891df9536e0905a53010e0f43e57ab))
+
 
 ### Features
 
