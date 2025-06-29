@@ -150,7 +150,7 @@ class AmazonEchoApi:
         lang_maximized = lang_object.maximize()
         self._language = f"{lang_maximized.language}-{lang_maximized.region}"
         _LOGGER.debug(
-            "Initialize library with domain <%s> nad language <%s>",
+            "Initialize library with domain <%s> and language <%s>",
             self._domain,
             self._language,
         )
