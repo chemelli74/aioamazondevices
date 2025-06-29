@@ -1,5 +1,6 @@
 """Support for Amazon devices."""
 
+import asyncio
 import base64
 import hashlib
 import mimetypes
@@ -336,38 +337,52 @@ class AmazonEchoApi:
         _cookies = (
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
-        try:
-            resp = await self.session.request(
-                method,
-                URL(url, encoded=True),
-                data=input_data if not json_data else orjson.dumps(input_data),
-                cookies=_cookies,
-                headers=headers,
+
+        for delay in [1, 2, 5, 8, 12, 21]:
+            try:
+                resp = await self.session.request(
+                    method,
+                    URL(url, encoded=True),
+                    data=input_data if not json_data else orjson.dumps(input_data),
+                    cookies=_cookies,
+                    headers=headers,
+                )
+            except (TimeoutError, ClientConnectorError) as exc:
+                raise CannotConnect(f"Connection error during {method}") from exc
+
+            content_type: str = resp.headers.get("Content-Type", "")
+            _LOGGER.debug(
+                "Response %s for url %s with content type: %s",
+                resp.status,
+                url,
+                content_type,
             )
-        except (TimeoutError, ClientConnectorError) as exc:
-            raise CannotConnect(f"Connection error during {method}") from exc
 
-        self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
+            if resp.status == HTTPStatus.OK:
+                break
 
-        content_type: str = resp.headers.get("Content-Type", "")
-        _LOGGER.debug(
-            "Response %s for url %s with content type: %s",
-            resp.status,
-            url,
-            content_type,
-        )
-
-        if resp.status != HTTPStatus.OK:
             if resp.status in [
                 HTTPStatus.FORBIDDEN,
                 HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
                 HTTPStatus.UNAUTHORIZED,
             ]:
                 raise CannotAuthenticate(HTTPStatus(resp.status).phrase)
+
+            if resp.status in [
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                HTTPStatus.TOO_MANY_REQUESTS,
+            ]:
+                _LOGGER.debug("Sleeping for %s seconds before retrying API call", delay)
+                await asyncio.sleep(delay)
+                continue
+
             if not await self._ignore_ap_signin_error(resp):
                 raise CannotRetrieveData(
                     f"Request failed: {HTTPStatus(resp.status).phrase}"
                 )
+
+        self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
 
         await self._save_to_file(
             await resp.text(),
