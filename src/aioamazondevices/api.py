@@ -146,6 +146,15 @@ class AmazonEchoApi:
         self.session: ClientSession
         self._devices: dict[str, Any] = {}
 
+        lang_object = Language.make(territory=self._login_country_code.upper())
+        lang_maximized = lang_object.maximize()
+        self._language = f"{lang_maximized.language}-{lang_maximized.region}"
+        _LOGGER.debug(
+            "Initialize library with domain <%s> and language <%s>",
+            self._domain,
+            self._language,
+        )
+
     def _load_website_cookies(self) -> dict[str, str]:
         """Get website cookies, if avaliables."""
         if not self._login_stored_data:
@@ -210,22 +219,23 @@ class AmazonEchoApi:
         code_challenge = self._create_s256_code_challenge(code_verifier)
 
         oauth_params = {
-            "openid.oa2.response_type": "code",
-            "openid.oa2.code_challenge_method": "S256",
-            "openid.oa2.code_challenge": code_challenge,
             "openid.return_to": f"https://www.amazon.{self._domain}/ap/maplanding",
+            "openid.oa2.code_challenge_method": "S256",
             "openid.assoc_handle": self._assoc_handle,
             "openid.identity": "http://specs.openid.net/auth/2.0/identifier_select",
+            "pageId": self._assoc_handle,
             "accountStatusPolicy": "P1",
             "openid.claimed_id": "http://specs.openid.net/auth/2.0/identifier_select",
             "openid.mode": "checkid_setup",
             "openid.ns.oa2": "http://www.amazon.com/ap/ext/oauth/2",
             "openid.oa2.client_id": f"device:{client_id}",
+            "language": self._language.replace("-", "_"),
             "openid.ns.pape": "http://specs.openid.net/extensions/pape/1.0",
+            "openid.oa2.code_challenge": code_challenge,
             "openid.oa2.scope": "device_auth_access",
-            "forceMobileLayout": "true",
             "openid.ns": "http://specs.openid.net/auth/2.0",
             "openid.pape.max_auth_age": "0",
+            "openid.oa2.response_type": "code",
         }
 
         return (
@@ -273,8 +283,10 @@ class AmazonEchoApi:
         """Create HTTP client session."""
         if not hasattr(self, "session") or self.session.closed:
             _LOGGER.debug("Creating HTTP session (aiohttp)")
+            headers = DEFAULT_HEADERS
+            headers.update({"Accept-Language": self._language})
             self.session = ClientSession(
-                headers=DEFAULT_HEADERS,
+                headers=headers,
                 cookies=self._cookies,
             )
 
@@ -323,6 +335,7 @@ class AmazonEchoApi:
         )
 
         headers = DEFAULT_HEADERS
+        headers.update({"Accept-Language": self._language})
         if self._csrf_cookie and CSRF_COOKIE not in headers:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
             _LOGGER.debug("Adding <%s> to headers", csrf)
@@ -842,10 +855,6 @@ class AmazonEchoApi:
         message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
-        lang_object = Language.make(territory=self._login_country_code.upper())
-        lang_maximized = lang_object.maximize()
-        locale = f"{lang_maximized.language}-{lang_maximized.region}"
-
         if not self._login_stored_data:
             _LOGGER.warning("Trying to send message before login")
             return
@@ -853,7 +862,7 @@ class AmazonEchoApi:
         base_payload = {
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
-            "locale": locale,
+            "locale": self._language,
             "customerId": device.device_owner_customer_id,
         }
 
@@ -888,7 +897,7 @@ class AmazonEchoApi:
                 "expireAfter": "PT5S",
                 "content": [
                     {
-                        "locale": locale,
+                        "locale": self._language,
                         "display": {
                             "title": "Home Assistant",
                             "body": message_body,
