@@ -37,7 +37,9 @@ def scrub_fields(
         result = {}
         for k, v in obj.items():
             # If the key itself is sensitive → overwrite its value
-            if k in field_names:
+            if k == "email":
+                result[k] = obfuscate_email(v)
+            elif k in field_names:
                 result[k] = replacement
             else:
                 # Otherwise keep walking
