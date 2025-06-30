@@ -84,7 +84,6 @@ DEFAULT_HEADERS = {
     ),
     "Accept-Charset": "utf-8",
     "Accept-Encoding": "gzip",
-    "Accept-Language": "en-US",
     "Connection": "keep-alive",
 }
 CSRF_COOKIE = "csrf"
