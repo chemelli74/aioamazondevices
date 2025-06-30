@@ -1,10 +1,10 @@
 # Changelog
 
-## v3.1.23-rc.1 (2025-06-29)
+## v3.1.23 (2025-06-30)
 
 ### Bug fixes
 
-- Align signin payload to mobile app ([`7dd3036`](https://github.com/chemelli74/aioamazondevices/commit/7dd3036bb48908a7a62736ed9e78f155ba56c810))
+- Align signin payload to mobile app ([`64b608c`](https://github.com/chemelli74/aioamazondevices/commit/64b608c4fab116779a351284cff844a420027659))
 
 
 ## v3.1.22 (2025-06-27)
