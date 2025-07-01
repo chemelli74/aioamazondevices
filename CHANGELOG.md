@@ -2,16 +2,19 @@
 
 ## v3.2.1-rc.1 (2025-07-01)
 
-### Bug fixes
-
-- Update call for phoenix endpoint ([`dae2d22`](https://github.com/chemelli74/aioamazondevices/commit/dae2d22f28d2f3e26cf61a5a0c93ebe95cef55f4))
-
-
 ## v3.2.0 (2025-07-01)
 
 ### Features
 
 - Check country setting ([`a7ebe66`](https://github.com/chemelli74/aioamazondevices/commit/a7ebe6691736f8b02741c871d6983dfe32e44a04))
+
+
+## v3.1.24-rc.1 (2025-07-01)
+
+### Bug fixes
+
+- Update call for phoenix endpoint ([`dae2d22`](https://github.com/chemelli74/aioamazondevices/commit/dae2d22f28d2f3e26cf61a5a0c93ebe95cef55f4))
+
 
 ### Build system
 
