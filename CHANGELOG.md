@@ -1,6 +1,35 @@
 # Changelog
 
-## v3.2.0-rc.3 (2025-06-29)
+## v3.3.0-rc.1 (2025-06-29)
+
+### Features
+
+
+## v3.2.1 (2025-07-01)
+
+### Bug fixes
+
+- Update call for phoenix endpoint ([`7737421`](https://github.com/chemelli74/aioamazondevices/commit/7737421331ac84dbd019140174bf74742cf7b6e8))
+
+
+## v3.2.0 (2025-07-01)
+
+### Features
+
+- Check country setting ([`a7ebe66`](https://github.com/chemelli74/aioamazondevices/commit/a7ebe6691736f8b02741c871d6983dfe32e44a04))
+
+
+### Build system
+
+- Bump python-semantic-release/python-semantic-release from 10.1.0 to 10.2.0 ([`5064fb9`](https://github.com/chemelli74/aioamazondevices/commit/5064fb9db08cd35d0cc52768f27fd2b5c5a79dff))
+
+
+## v3.1.23 (2025-06-30)
+
+### Bug fixes
+
+- Align signin payload to mobile app ([`64b608c`](https://github.com/chemelli74/aioamazondevices/commit/64b608c4fab116779a351284cff844a420027659))
+
 
 ## v3.1.22 (2025-06-27)
 
