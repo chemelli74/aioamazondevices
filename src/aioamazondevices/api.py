@@ -46,6 +46,7 @@ from .const import (
     NODE_DO_NOT_DISTURB,
     NODE_IDENTIFIER,
     NODE_PREFERENCES,
+    REQUEST_MAX_DELAY,
     SAVE_PATH,
     SENSORS,
     URI_IDS,
@@ -367,7 +368,7 @@ class AmazonEchoApi:
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
 
-        for delay in [1, 2, 5, 8, 12, 21]:
+        for delay in [1, 2, 5, 8, 12, 21, REQUEST_MAX_DELAY]:
             try:
                 resp = await self.session.request(
                     method,
@@ -387,7 +388,7 @@ class AmazonEchoApi:
                 content_type,
             )
 
-            if resp.status == HTTPStatus.OK:
+            if resp.status == HTTPStatus.OK or self._ignore_ap_signin_error(resp):
                 break
 
             if resp.status in [
@@ -395,21 +396,27 @@ class AmazonEchoApi:
                 HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
                 HTTPStatus.UNAUTHORIZED,
             ]:
-                raise CannotAuthenticate(HTTPStatus(resp.status).phrase)
+                raise CannotAuthenticate(
+                    f"{HTTPStatus(resp.status).phrase} [{resp.status}]"
+                )
 
-            if resp.status in [
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                HTTPStatus.SERVICE_UNAVAILABLE,
-                HTTPStatus.TOO_MANY_REQUESTS,
-            ]:
+            if (
+                resp.status
+                in [
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    HTTPStatus.SERVICE_UNAVAILABLE,
+                    HTTPStatus.TOO_MANY_REQUESTS,
+                ]
+                and delay < REQUEST_MAX_DELAY
+            ):
                 _LOGGER.debug("Sleeping for %s seconds before retrying API call", delay)
                 await asyncio.sleep(delay)
                 continue
 
-            if not await self._ignore_ap_signin_error(resp):
-                raise CannotRetrieveData(
-                    f"Request failed: {HTTPStatus(resp.status).phrase}"
-                )
+        if resp.status != HTTPStatus.OK:
+            raise CannotRetrieveData(
+                f"Request failed: {HTTPStatus(resp.status).phrase} [{resp.status}]"
+            )
 
         self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
 
