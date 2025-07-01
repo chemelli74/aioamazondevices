@@ -56,6 +56,7 @@ from .exceptions import (
     CannotConnect,
     CannotRegisterDevice,
     CannotRetrieveData,
+    WrongCountry,
     WrongMethod,
 )
 from .utils import obfuscate_email, scrub_fields
@@ -525,6 +526,31 @@ class AmazonEchoApi:
         await self._save_to_file(login_data, "login_data", JSON_EXTENSION)
         return login_data
 
+    async def _check_country(self) -> None:
+        """Check if user selected country matches Amazon account country."""
+        url = f"https://alexa.amazon.{self._domain}/api/users/me"
+        _, resp_me = await self._session_request(HTTPMethod.GET, url)
+
+        if resp_me.status != HTTPStatus.OK:
+            raise CannotAuthenticate
+
+        resp_me_json = await resp_me.json()
+        market = resp_me_json["marketPlaceDomainName"]
+        language = resp_me_json["marketPlaceLocale"]
+
+        _domain = f"https://www.amazon.{self._domain}"
+
+        if market != _domain or language != self._language:
+            _LOGGER.debug(
+                "Selected country <%s> doesn't matches Amazon account:\n%s\n vs \n%s",
+                self._login_country_code.upper(),
+                {"site  ": _domain, "locale": self._language},
+                {"market": market, "locale": language},
+            )
+            raise WrongCountry
+
+        _LOGGER.debug("User selected country matches Amazon account one")
+
     async def _get_devices_ids(self) -> list[dict[str, str]]:
         """Retrieve devices entityId and applianceId."""
         _, raw_resp = await self._session_request(
@@ -698,6 +724,9 @@ class AmazonEchoApi:
         self._login_stored_data = register_device
 
         _LOGGER.info("Register device: %s", scrub_fields(register_device))
+
+        await self._check_country()
+
         return register_device
 
     async def login_mode_stored_data(self) -> dict[str, Any]:
@@ -715,6 +744,8 @@ class AmazonEchoApi:
         )
 
         self._client_session()
+
+        await self._check_country()
 
         return self._login_stored_data
 
