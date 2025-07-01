@@ -5,7 +5,6 @@ import logging
 _LOGGER = logging.getLogger(__package__)
 
 DEFAULT_ASSOC_HANDLE = "amzn_dp_project_dee_ios"
-REQUEST_MAX_DELAY = 99
 
 TO_REDACT = {
     "address",

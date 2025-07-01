@@ -46,7 +46,6 @@ from .const import (
     NODE_DO_NOT_DISTURB,
     NODE_IDENTIFIER,
     NODE_PREFERENCES,
-    REQUEST_MAX_DELAY,
     SAVE_PATH,
     SENSORS,
     URI_IDS,
@@ -368,7 +367,11 @@ class AmazonEchoApi:
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
 
-        for delay in [1, 2, 5, 8, 12, 21, REQUEST_MAX_DELAY]:
+        for delay in [0, 1, 2, 5, 8, 12, 21]:
+            if delay:
+                _LOGGER.debug("Sleeping for %s seconds before retrying API call", delay)
+                await asyncio.sleep(delay)
+
             try:
                 resp = await self.session.request(
                     method,
@@ -400,17 +403,11 @@ class AmazonEchoApi:
                     f"{HTTPStatus(resp.status).phrase} [{resp.status}]"
                 )
 
-            if (
-                resp.status
-                in [
-                    HTTPStatus.INTERNAL_SERVER_ERROR,
-                    HTTPStatus.SERVICE_UNAVAILABLE,
-                    HTTPStatus.TOO_MANY_REQUESTS,
-                ]
-                and delay < REQUEST_MAX_DELAY
-            ):
-                _LOGGER.debug("Sleeping for %s seconds before retrying API call", delay)
-                await asyncio.sleep(delay)
+            if resp.status in [
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                HTTPStatus.TOO_MANY_REQUESTS,
+            ]:
                 continue
 
         if resp.status != HTTPStatus.OK:
