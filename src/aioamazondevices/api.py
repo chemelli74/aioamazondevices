@@ -32,6 +32,7 @@ from .const import (
     AMAZON_DEVICE_TYPE,
     BIN_EXTENSION,
     CSRF_COOKIE,
+    DEFAULT_AGENT,
     DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
     DEVICE_TO_IGNORE,
@@ -160,7 +161,17 @@ class AmazonEchoApi:
         if not self._login_stored_data:
             return {}
 
-        return cast("dict", self._login_stored_data["website_cookies"])
+        website_cookies: dict[str, Any] = self._login_stored_data["website_cookies"]
+        website_cookies.update(
+            {
+                "session-token": self._login_stored_data["store_authentication_cookie"][
+                    "cookie"
+                ]
+            }
+        )
+        website_cookies.update({"lc-acbit": self._language})
+
+        return website_cookies
 
     def _serial_number(self) -> str:
         """Get or calculate device serial number."""
@@ -324,6 +335,7 @@ class AmazonEchoApi:
         url: str,
         input_data: dict[str, Any] | None = None,
         json_data: bool = False,
+        amazon_user_agent: bool = True,
     ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
@@ -336,6 +348,9 @@ class AmazonEchoApi:
 
         headers = DEFAULT_HEADERS
         headers.update({"Accept-Language": self._language})
+        if not amazon_user_agent:
+            _LOGGER.debug("Changing User-Agent to %s", DEFAULT_AGENT)
+            headers.update({"User-Agent": DEFAULT_AGENT})
         if self._csrf_cookie and CSRF_COOKIE not in headers:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
             _LOGGER.debug("Adding <%s> to headers", csrf)
@@ -530,6 +545,7 @@ class AmazonEchoApi:
         _, raw_resp = await self._session_request(
             "GET",
             url=f"https://alexa.amazon.{self._domain}{URI_IDS}",
+            amazon_user_agent=False,
         )
         json_data = await raw_resp.json()
 
