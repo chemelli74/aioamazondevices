@@ -1,10 +1,10 @@
 # Changelog
 
-## v3.2.1-rc.1 (2025-07-01)
+## v3.2.1 (2025-07-01)
 
 ### Bug fixes
 
-- Update call for phoenix endpoint ([`dae2d22`](https://github.com/chemelli74/aioamazondevices/commit/dae2d22f28d2f3e26cf61a5a0c93ebe95cef55f4))
+- Update call for phoenix endpoint ([`7737421`](https://github.com/chemelli74/aioamazondevices/commit/7737421331ac84dbd019140174bf74742cf7b6e8))
 
 
 ## v3.2.0 (2025-07-01)
