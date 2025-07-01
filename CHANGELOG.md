@@ -13,6 +13,7 @@
 
 - Check country setting ([`a7ebe66`](https://github.com/chemelli74/aioamazondevices/commit/a7ebe6691736f8b02741c871d6983dfe32e44a04))
 
+
 ### Build system
 
 - Bump python-semantic-release/python-semantic-release from 10.1.0 to 10.2.0 ([`5064fb9`](https://github.com/chemelli74/aioamazondevices/commit/5064fb9db08cd35d0cc52768f27fd2b5c5a79dff))
