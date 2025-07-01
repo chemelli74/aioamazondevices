@@ -1,5 +1,17 @@
 # Changelog
 
+## v3.1.24-rc.1 (2025-07-01)
+
+### Bug fixes
+
+- Update call for phoenix endpoint ([`dae2d22`](https://github.com/chemelli74/aioamazondevices/commit/dae2d22f28d2f3e26cf61a5a0c93ebe95cef55f4))
+
+
+### Build system
+
+- Bump python-semantic-release/python-semantic-release from 10.1.0 to 10.2.0 ([`5064fb9`](https://github.com/chemelli74/aioamazondevices/commit/5064fb9db08cd35d0cc52768f27fd2b5c5a79dff))
+
+
 ## v3.1.23 (2025-06-30)
 
 ### Bug fixes
