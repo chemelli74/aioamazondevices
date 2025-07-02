@@ -12,6 +12,13 @@
 - Queues api calls to avoid hitting the limit ([`05cd79c`](https://github.com/chemelli74/aioamazondevices/commit/05cd79c7463ab529d1da46111934a2e5d5e3435b))
 
 
+## v3.2.2 (2025-07-02)
+
+### Bug fixes
+
+- Store csrf cookie at the right time ([`b882c90`](https://github.com/chemelli74/aioamazondevices/commit/b882c90d904c35bf230a48e56a71d56f7a5924f5))
+
+
 ## v3.2.1 (2025-07-01)
 
 ### Bug fixes
