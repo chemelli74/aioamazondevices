@@ -352,7 +352,7 @@ class AmazonEchoApi:
         if not amazon_user_agent:
             _LOGGER.debug("Changing User-Agent to %s", DEFAULT_AGENT)
             headers.update({"User-Agent": DEFAULT_AGENT})
-        if self._csrf_cookie and CSRF_COOKIE not in headers:
+        if self._csrf_cookie:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
             _LOGGER.debug("Adding <%s> to headers", csrf)
             headers.update(csrf)
@@ -377,6 +377,9 @@ class AmazonEchoApi:
             raise CannotConnect(f"Connection error during {method}") from exc
 
         self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
+        if not self._csrf_cookie:
+            self._csrf_cookie = resp.cookies.get(CSRF_COOKIE, Morsel()).value
+            _LOGGER.debug("CSRF cookie value: <%s>", self._csrf_cookie)
 
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
@@ -786,11 +789,6 @@ class AmazonEchoApi:
             _LOGGER.debug("Response code: |%s|", response_code)
 
             response_data = await raw_resp.text()
-
-            if not self._csrf_cookie:
-                self._csrf_cookie = raw_resp.cookies.get(CSRF_COOKIE, Morsel()).value
-                _LOGGER.debug("CSRF cookie value: <%s>", self._csrf_cookie)
-
             json_data = {} if len(response_data) == 0 else await raw_resp.json()
 
             _LOGGER.debug("JSON data: |%s|", scrub_fields(json_data))
