@@ -10,6 +10,7 @@ from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from http import HTTPMethod, HTTPStatus
 from http.cookies import Morsel, SimpleCookie
+from logging import WARNING
 from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
@@ -19,6 +20,14 @@ from aiohttp import ClientConnectorError, ClientResponse, ClientSession
 from bs4 import BeautifulSoup, Tag
 from langcodes import Language
 from multidict import CIMultiDictProxy, MultiDictProxy
+from tenacity import (
+    before_sleep_log,
+    retry,
+    retry_if_result,
+    stop_after_attempt,
+    wait_chain,
+    wait_fixed,  # <- here
+)
 from yarl import URL
 
 from .const import (
@@ -61,6 +70,24 @@ from .exceptions import (
     WrongMethod,
 )
 from .utils import obfuscate_email, scrub_fields
+
+retry_if_not_ap_signin_error = retry_if_result(
+    lambda r: r is not None
+    and (history := r.history) is not None
+    and not (
+        r.status == HTTPStatus.NOT_FOUND
+        and URI_SIGNIN in history[0].request_info.url.path
+    )
+)
+
+wait_strategy = wait_chain(
+    wait_fixed(1),
+    wait_fixed(2),
+    wait_fixed(5),
+    wait_fixed(8),
+    wait_fixed(12),
+    wait_fixed(21),
+)
 
 
 @dataclass
@@ -319,17 +346,12 @@ class AmazonEchoApi:
         _LOGGER.debug("Cookies from headers: %s", cookies_with_value)
         return cookies_with_value
 
-    async def _ignore_ap_signin_error(self, response: ClientResponse) -> bool:
-        """Return true if error is due to signin endpoint."""
-        # Endpoint URI_SIGNIN replies with error 404
-        # but reports the needed parameters anyway
-        if history := response.history:
-            return (
-                response.status == HTTPStatus.NOT_FOUND
-                and URI_SIGNIN in history[0].request_info.url.path
-            )
-        return False
-
+    @retry(
+        retry=retry_if_not_ap_signin_error,
+        wait=wait_strategy,
+        stop=stop_after_attempt(7),
+        before_sleep=before_sleep_log(_LOGGER, WARNING),
+    )
     async def _session_request(
         self,
         method: str,
@@ -386,17 +408,17 @@ class AmazonEchoApi:
             content_type,
         )
 
+        if resp.status in [
+            HTTPStatus.FORBIDDEN,
+            HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
+            HTTPStatus.UNAUTHORIZED,
+        ]:
+            raise CannotAuthenticate(HTTPStatus(resp.status).phrase)
+
         if resp.status != HTTPStatus.OK:
-            if resp.status in [
-                HTTPStatus.FORBIDDEN,
-                HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
-                HTTPStatus.UNAUTHORIZED,
-            ]:
-                raise CannotAuthenticate(HTTPStatus(resp.status).phrase)
-            if not await self._ignore_ap_signin_error(resp):
-                raise CannotRetrieveData(
-                    f"Request failed: {HTTPStatus(resp.status).phrase}"
-                )
+            raise CannotRetrieveData(
+                f"Request failed: {HTTPStatus(resp.status).phrase}"
+            )
 
         await self._save_to_file(
             await resp.text(),

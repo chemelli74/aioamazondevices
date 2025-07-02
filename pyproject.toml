@@ -25,6 +25,7 @@ dependencies = [
 "colorlog",
 "langcodes",
 "orjson",
+"tenacity",
 "yarl",
 ]
 
