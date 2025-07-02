@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.2.2-rc.1 (2025-07-02)
+
+### Bug fixes
+
+- Store csrf cookie at the right time ([`3582234`](https://github.com/chemelli74/aioamazondevices/commit/3582234cf3ca0efed507f7eceef96634642f6031))
+
+
 ## v3.2.1 (2025-07-01)
 
 ### Bug fixes
