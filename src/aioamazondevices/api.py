@@ -148,9 +148,15 @@ class AmazonEchoApi:
         self.session: ClientSession
         self._devices: dict[str, Any] = {}
 
-        lang_object = Language.make(territory=self._login_country_code.upper())
-        lang_maximized = lang_object.maximize()
-        self._language = f"{lang_maximized.language}-{lang_maximized.region}"
+        if locale and (lang := locale.get("language")):
+            language = lang
+        else:
+            lang_object = Language.make(territory=self._login_country_code.upper())
+            lang_maximized = lang_object.maximize()
+            language = f"{lang_maximized.language}-{lang_maximized.region}"
+
+        self._language = language
+
         _LOGGER.debug(
             "Initialize library with domain <%s> and language <%s>",
             self._domain,
