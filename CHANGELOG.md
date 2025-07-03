@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.2.3-rc.1 (2025-07-03)
+
+### Bug fixes
+
+- Exception for austria ([`abbe15a`](https://github.com/chemelli74/aioamazondevices/commit/abbe15a6c32176fb00cd5e5df0d5e43784b21aab))
+
+
 ## v3.2.2 (2025-07-02)
 
 ### Bug fixes
