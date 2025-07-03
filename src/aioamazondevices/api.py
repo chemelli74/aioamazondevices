@@ -33,6 +33,7 @@ from .const import (
     AMAZON_DEVICE_TYPE,
     BIN_EXTENSION,
     CSRF_COOKIE,
+    DEFAULT_AGENT,
     DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
     DEVICE_TO_IGNORE,
@@ -57,6 +58,7 @@ from .exceptions import (
     CannotConnect,
     CannotRegisterDevice,
     CannotRetrieveData,
+    WrongCountry,
     WrongMethod,
 )
 from .utils import obfuscate_email, scrub_fields
@@ -147,12 +149,31 @@ class AmazonEchoApi:
         self.session: ClientSession
         self._devices: dict[str, Any] = {}
 
+        lang_object = Language.make(territory=self._login_country_code.upper())
+        lang_maximized = lang_object.maximize()
+        self._language = f"{lang_maximized.language}-{lang_maximized.region}"
+        _LOGGER.debug(
+            "Initialize library with domain <%s> and language <%s>",
+            self._domain,
+            self._language,
+        )
+
     def _load_website_cookies(self) -> dict[str, str]:
         """Get website cookies, if avaliables."""
         if not self._login_stored_data:
             return {}
 
-        return cast("dict", self._login_stored_data["website_cookies"])
+        website_cookies: dict[str, Any] = self._login_stored_data["website_cookies"]
+        website_cookies.update(
+            {
+                "session-token": self._login_stored_data["store_authentication_cookie"][
+                    "cookie"
+                ]
+            }
+        )
+        website_cookies.update({"lc-acbit": self._language})
+
+        return website_cookies
 
     def _serial_number(self) -> str:
         """Get or calculate device serial number."""
@@ -211,22 +232,23 @@ class AmazonEchoApi:
         code_challenge = self._create_s256_code_challenge(code_verifier)
 
         oauth_params = {
-            "openid.oa2.response_type": "code",
-            "openid.oa2.code_challenge_method": "S256",
-            "openid.oa2.code_challenge": code_challenge,
             "openid.return_to": f"https://www.amazon.{self._domain}/ap/maplanding",
+            "openid.oa2.code_challenge_method": "S256",
             "openid.assoc_handle": self._assoc_handle,
             "openid.identity": "http://specs.openid.net/auth/2.0/identifier_select",
+            "pageId": self._assoc_handle,
             "accountStatusPolicy": "P1",
             "openid.claimed_id": "http://specs.openid.net/auth/2.0/identifier_select",
             "openid.mode": "checkid_setup",
             "openid.ns.oa2": "http://www.amazon.com/ap/ext/oauth/2",
             "openid.oa2.client_id": f"device:{client_id}",
+            "language": self._language.replace("-", "_"),
             "openid.ns.pape": "http://specs.openid.net/extensions/pape/1.0",
+            "openid.oa2.code_challenge": code_challenge,
             "openid.oa2.scope": "device_auth_access",
-            "forceMobileLayout": "true",
             "openid.ns": "http://specs.openid.net/auth/2.0",
             "openid.pape.max_auth_age": "0",
+            "openid.oa2.response_type": "code",
         }
 
         return (
@@ -274,8 +296,10 @@ class AmazonEchoApi:
         """Create HTTP client session."""
         if not hasattr(self, "session") or self.session.closed:
             _LOGGER.debug("Creating HTTP session (aiohttp)")
+            headers = DEFAULT_HEADERS
+            headers.update({"Accept-Language": self._language})
             self.session = ClientSession(
-                headers=DEFAULT_HEADERS,
+                headers=headers,
                 cookies=self._cookies,
             )
 
@@ -313,6 +337,7 @@ class AmazonEchoApi:
         url: str,
         input_data: dict[str, Any] | None = None,
         json_data: bool = False,
+        amazon_user_agent: bool = True,
     ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
@@ -324,7 +349,11 @@ class AmazonEchoApi:
         )
 
         headers = DEFAULT_HEADERS
-        if self._csrf_cookie and CSRF_COOKIE not in headers:
+        headers.update({"Accept-Language": self._language})
+        if not amazon_user_agent:
+            _LOGGER.debug("Changing User-Agent to %s", DEFAULT_AGENT)
+            headers.update({"User-Agent": DEFAULT_AGENT})
+        if self._csrf_cookie:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
             _LOGGER.debug("Adding <%s> to headers", csrf)
             headers.update(csrf)
@@ -377,6 +406,9 @@ class AmazonEchoApi:
             )
 
         self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
+        if not self._csrf_cookie:
+            self._csrf_cookie = resp.cookies.get(CSRF_COOKIE, Morsel()).value
+            _LOGGER.debug("CSRF cookie value: <%s>", self._csrf_cookie)
 
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
@@ -519,11 +551,6 @@ class AmazonEchoApi:
             )
             raise CannotRegisterDevice(f"{HTTPStatus(resp.status).phrase}: {msg}")
 
-        await self._save_to_file(
-            await resp.text(),
-            url=register_url,
-            extension=JSON_EXTENSION,
-        )
         success_response = resp_json["response"]["success"]
 
         tokens = success_response["tokens"]
@@ -557,11 +584,37 @@ class AmazonEchoApi:
         await self._save_to_file(login_data, "login_data", JSON_EXTENSION)
         return login_data
 
+    async def _check_country(self) -> None:
+        """Check if user selected country matches Amazon account country."""
+        url = f"https://alexa.amazon.{self._domain}/api/users/me"
+        _, resp_me = await self._session_request(HTTPMethod.GET, url)
+
+        if resp_me.status != HTTPStatus.OK:
+            raise CannotAuthenticate
+
+        resp_me_json = await resp_me.json()
+        market = resp_me_json["marketPlaceDomainName"]
+        language = resp_me_json["marketPlaceLocale"]
+
+        _domain = f"https://www.amazon.{self._domain}"
+
+        if market != _domain or language != self._language:
+            _LOGGER.debug(
+                "Selected country <%s> doesn't matches Amazon account:\n%s\n vs \n%s",
+                self._login_country_code.upper(),
+                {"site  ": _domain, "locale": self._language},
+                {"market": market, "locale": language},
+            )
+            raise WrongCountry
+
+        _LOGGER.debug("User selected country matches Amazon account one")
+
     async def _get_devices_ids(self) -> list[dict[str, str]]:
         """Retrieve devices entityId and applianceId."""
         _, raw_resp = await self._session_request(
             "GET",
             url=f"https://alexa.amazon.{self._domain}{URI_IDS}",
+            amazon_user_agent=False,
         )
         json_data = await raw_resp.json()
 
@@ -570,16 +623,43 @@ class AmazonEchoApi:
         location_details = network_detail["locationDetails"]["locationDetails"]
         default_location = location_details["Default_Location"]
         amazon_bridge = default_location["amazonBridgeDetails"]["amazonBridgeDetails"]
-        lambda_bridge = amazon_bridge.get("LambdaBridge_AAA/SonarCloudService")
-        if not lambda_bridge:
-            # Some very old devices lack the key for sensors data
-            return []
-        appliance_details = lambda_bridge["applianceDetails"]["applianceDetails"]
 
+        # New devices are based on LambdaBridge_AAA structure
+        lambda_bridge_aaa = amazon_bridge.get("LambdaBridge_AAA/SonarCloudService")
+        appliance_details_aaa = (
+            lambda_bridge_aaa["applianceDetails"]["applianceDetails"]
+            if lambda_bridge_aaa
+            else {}
+        )
+
+        entity_ids_list: list[dict[str, str]] = await self._get_entities_ids(
+            appliance_details_aaa, "AAA_SonarCloudService"
+        )
+
+        # Old devices are based on LambdaBridge_AlexaBridge structure
+        for bridge_key, bridge_value in amazon_bridge.items():
+            if "LambdaBridge_AlexaBridge/" in bridge_key:
+                # Value key:    "LambdaBridge_AlexaBridge/XXXXXXXXXXXXXX@XXXXXXXXXXXXXX"
+                # Value subkey: "AlexaBridge_XXXXXXXXXXXXXX@XXXXXXXXXXXXXX_XXXXXXXXXXXX"
+                subkey = bridge_key.split("_")[1].replace("/", "_")
+
+                appliance_details_alexa = bridge_value["applianceDetails"][
+                    "applianceDetails"
+                ]
+                entity_ids_list.extend(
+                    await self._get_entities_ids(appliance_details_alexa, subkey)
+                )
+
+        return entity_ids_list
+
+    async def _get_entities_ids(
+        self, appliance_details: dict[str, Any], searchkey: str
+    ) -> list[dict[str, str]]:
+        """Extract entityId and applianceId."""
         entity_ids_list: list[dict[str, str]] = []
-        # Process each appliance that starts with AAA_SonarCloudService
+        # Process each appliance that starts with "searchkey"
         for appliance_key, appliance_data in appliance_details.items():
-            if not appliance_key.startswith("AAA_SonarCloudService"):
+            if not appliance_key.startswith(searchkey):
                 continue
 
             entity_id = appliance_data["entityId"]
@@ -702,7 +782,10 @@ class AmazonEchoApi:
         register_device = await self._register_device(device_login_data)
         self._login_stored_data = register_device
 
-        _LOGGER.info("Register device: %s", register_device)
+        _LOGGER.info("Register device: %s", scrub_fields(register_device))
+
+        await self._check_country()
+
         return register_device
 
     async def login_mode_stored_data(self) -> dict[str, Any]:
@@ -720,6 +803,8 @@ class AmazonEchoApi:
         )
 
         self._client_session()
+
+        await self._check_country()
 
         return self._login_stored_data
 
@@ -744,15 +829,9 @@ class AmazonEchoApi:
             _LOGGER.debug("Response code: |%s|", response_code)
 
             response_data = await raw_resp.text()
-            _LOGGER.debug("Response data: |%s|", response_data)
-
-            if not self._csrf_cookie:
-                self._csrf_cookie = raw_resp.cookies.get(CSRF_COOKIE, Morsel()).value
-                _LOGGER.debug("CSRF cookie value: <%s>", self._csrf_cookie)
-
             json_data = {} if len(response_data) == 0 else await raw_resp.json()
 
-            _LOGGER.debug("JSON data: |%s|", json_data)
+            _LOGGER.debug("JSON data: |%s|", scrub_fields(json_data))
 
             for data in json_data[key]:
                 dev_serial = data.get("serialNumber") or data.get("deviceSerialNumber")
@@ -768,7 +847,11 @@ class AmazonEchoApi:
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():
-            devices_node = device[NODE_DEVICES]
+            # Remove stale, orphaned and virtual devices
+            devices_node = device.get(NODE_DEVICES)
+            if not devices_node or (devices_node.get("deviceType") in DEVICE_TO_IGNORE):
+                continue
+
             preferences_node = device.get(NODE_PREFERENCES)
             do_not_disturb_node = device[NODE_DO_NOT_DISTURB]
             bluetooth_node = device[NODE_BLUETOOTH]
@@ -780,13 +863,6 @@ class AmazonEchoApi:
                 for _device_id, _device_sensors in devices_sensors.items():
                     if _device_id == identifier_node["entityId"]:
                         sensors = _device_sensors
-
-            # Remove stale, orphaned and virtual devices
-            if (
-                NODE_DEVICES not in device
-                or devices_node.get("deviceType") in DEVICE_TO_IGNORE
-            ):
-                continue
 
             serial_number: str = devices_node["serialNumber"]
             final_devices_list[serial_number] = AmazonDevice(
@@ -864,10 +940,6 @@ class AmazonEchoApi:
         message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
-        lang_object = Language.make(territory=self._login_country_code.upper())
-        lang_maximized = lang_object.maximize()
-        locale = f"{lang_maximized.language}-{lang_maximized.region}"
-
         if not self._login_stored_data:
             _LOGGER.warning("Trying to send message before login")
             return
@@ -875,7 +947,7 @@ class AmazonEchoApi:
         base_payload = {
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
-            "locale": locale,
+            "locale": self._language,
             "customerId": device.device_owner_customer_id,
         }
 
@@ -910,7 +982,7 @@ class AmazonEchoApi:
                 "expireAfter": "PT5S",
                 "content": [
                     {
-                        "locale": locale,
+                        "locale": self._language,
                         "display": {
                             "title": "Home Assistant",
                             "body": message_body,

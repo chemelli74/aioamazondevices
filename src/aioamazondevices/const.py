@@ -7,11 +7,13 @@ _LOGGER = logging.getLogger(__package__)
 DEFAULT_ASSOC_HANDLE = "amzn_dp_project_dee_ios"
 
 TO_REDACT = {
+    "address",
     "address1",
     "address2",
     "address3",
     "city",
     "county",
+    "customerId",
     "deviceAccountId",
     "deviceAddress",
     "deviceOwnerCustomerId",
@@ -82,9 +84,9 @@ DEFAULT_HEADERS = {
     ),
     "Accept-Charset": "utf-8",
     "Accept-Encoding": "gzip",
-    "Accept-Language": "en-US",
     "Connection": "keep-alive",
 }
+DEFAULT_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"  # noqa: E501
 CSRF_COOKIE = "csrf"
 
 NODE_DEVICES = "devices"

@@ -1,5 +1,80 @@
 # Changelog
 
+## v3.2.2 (2025-07-02)
+
+### Bug fixes
+
+- Store csrf cookie at the right time ([`b882c90`](https://github.com/chemelli74/aioamazondevices/commit/b882c90d904c35bf230a48e56a71d56f7a5924f5))
+
+
+## v3.2.1 (2025-07-01)
+
+### Bug fixes
+
+- Update call for phoenix endpoint ([`7737421`](https://github.com/chemelli74/aioamazondevices/commit/7737421331ac84dbd019140174bf74742cf7b6e8))
+
+
+## v3.2.0 (2025-07-01)
+
+### Features
+
+- Check country setting ([`a7ebe66`](https://github.com/chemelli74/aioamazondevices/commit/a7ebe6691736f8b02741c871d6983dfe32e44a04))
+
+
+### Build system
+
+- Bump python-semantic-release/python-semantic-release from 10.1.0 to 10.2.0 ([`5064fb9`](https://github.com/chemelli74/aioamazondevices/commit/5064fb9db08cd35d0cc52768f27fd2b5c5a79dff))
+
+
+## v3.1.23 (2025-06-30)
+
+### Bug fixes
+
+- Align signin payload to mobile app ([`64b608c`](https://github.com/chemelli74/aioamazondevices/commit/64b608c4fab116779a351284cff844a420027659))
+
+
+## v3.1.22 (2025-06-27)
+
+### Bug fixes
+
+- Pyproject versioning ([`4761955`](https://github.com/chemelli74/aioamazondevices/commit/47619554d90d56823950bfb22d1e2c2298887bab))
+
+
+## v3.1.21 (2025-06-27)
+
+### Bug fixes
+
+- Redact sensitive data from debug logs - part ii ([`031f166`](https://github.com/chemelli74/aioamazondevices/commit/031f166f21778b3d796ad246b1ffb31def44a614))
+
+
+## v3.1.20 (2025-06-26)
+
+### Bug fixes
+
+- Inspect sensors for old devices ([`eb4fab1`](https://github.com/chemelli74/aioamazondevices/commit/eb4fab1af6e9bef3929d0fc3944c60750b43c676))
+
+
+## v3.1.19 (2025-06-24)
+
+### Bug fixes
+
+- Re-release ([`d634be6`](https://github.com/chemelli74/aioamazondevices/commit/d634be6c120c2b558c3d8e8a2aebfcbf960133ce))
+
+
+## v3.1.18 (2025-06-24)
+
+### Bug fixes
+
+- Ignore devices earlier ([`a38e839`](https://github.com/chemelli74/aioamazondevices/commit/a38e839d170e7d4dcb962432d263b69602552c25))
+
+
+## v3.1.17 (2025-06-24)
+
+### Bug fixes
+
+- Project classifier ([`6eb3a27`](https://github.com/chemelli74/aioamazondevices/commit/6eb3a27b89d70dc55a01f3c33221d8cc34eb360b))
+
+
 ## v3.1.16 (2025-06-24)
 
 ### Bug fixes
