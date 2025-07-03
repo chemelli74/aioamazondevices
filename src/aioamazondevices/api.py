@@ -554,7 +554,8 @@ class AmazonEchoApi:
 
         resp_me_json = await resp_me.json()
         market = resp_me_json["marketPlaceDomainName"]
-        language = resp_me_json["marketPlaceLocale"]
+        country = resp_me_json["countryOfResidence"]
+        language = "en-US" if country == "AT" else resp_me_json["marketPlaceLocale"]
 
         _domain = f"https://www.amazon.{self._domain}"
 
