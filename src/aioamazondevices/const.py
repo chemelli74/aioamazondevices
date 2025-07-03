@@ -34,6 +34,7 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     },
     "at": {
         "domain": "de",
+        "language": "en-US",
         "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_de",
     },
     "au": {
