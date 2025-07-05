@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.2.4-rc.1 (2025-07-05)
+
+### Bug fixes
+
+- Handle deprecated https statuses ([`03582ee`](https://github.com/chemelli74/aioamazondevices/commit/03582eeb0d25ce2622d636ff99f8621c6ecbb6e4))
+
+
 ## v3.2.3 (2025-07-03)
 
 ### Bug fixes
