@@ -413,10 +413,10 @@ class AmazonEchoApi:
                 HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
                 HTTPStatus.UNAUTHORIZED,
             ]:
-                raise CannotAuthenticate(self._http_phrase_error(resp.status))
+                raise CannotAuthenticate(await self._http_phrase_error(resp.status))
             if not await self._ignore_ap_signin_error(resp):
                 raise CannotRetrieveData(
-                    f"Request failed: {self._http_phrase_error(resp.status)}"
+                    f"Request failed: {await self._http_phrase_error(resp.status)}"
                 )
 
         await self._save_to_file(
@@ -527,7 +527,9 @@ class AmazonEchoApi:
                 obfuscate_email(self._login_email),
                 msg,
             )
-            raise CannotRegisterDevice(f"{self._http_phrase_error(resp.status)}: {msg}")
+            raise CannotRegisterDevice(
+                f"{await self._http_phrase_error(resp.status)}: {msg}"
+            )
 
         success_response = resp_json["response"]["success"]
 
