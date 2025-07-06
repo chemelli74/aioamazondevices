@@ -341,7 +341,7 @@ class AmazonEchoApi:
     async def _http_phrase_error(self, error: int) -> str:
         """Convert numeric error in human phrase."""
         if error == HTTP_ERROR_199:
-            return "Temporary Persistent Warning"
+            return "Miscellaneous Warning"
 
         if error == HTTP_ERROR_299:
             return "Miscellaneous Persistent Warning"
