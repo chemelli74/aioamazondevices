@@ -596,6 +596,10 @@ class AmazonEchoApi:
         )
         json_data = await raw_resp.json()
 
+        if not json_data:
+            _LOGGER.debug("No JSON returned from  %s, skipping", URI_IDS)
+            return [{}]
+
         network_detail = orjson.loads(json_data["networkDetail"])
         # Navigate through the nested structure step by step
         location_details = network_detail["locationDetails"]["locationDetails"]
