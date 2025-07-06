@@ -339,6 +339,17 @@ class AmazonEchoApi:
             )
         return False
 
+    async def _ignore_phoenix_error(self, response: ClientResponse) -> bool:
+        """Return true if error is due to phoenix endpoint."""
+        if response.status in [HTTP_ERROR_199, HTTP_ERROR_299] and (
+            URI_IDS in response.url.path
+        ):
+            _LOGGER.warning(
+                "Cannot get sensor data from %s endpoint, ignoring", URI_IDS
+            )
+            return True
+        return False
+
     async def _http_phrase_error(self, error: int) -> str:
         """Convert numeric error in human phrase."""
         if error == HTTP_ERROR_199:
@@ -414,8 +425,10 @@ class AmazonEchoApi:
                 HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
                 HTTPStatus.UNAUTHORIZED,
             ]:
-                raise CannotAuthenticate(await self._http_phrase_error(resp.status))
-            if not await self._ignore_ap_signin_error(resp):
+                raise CannotAuthenticate(self._http_phrase_error(resp.status))
+            if not await self._ignore_ap_signin_error(
+                resp
+            ) and not await self._ignore_phoenix_error(resp):
                 raise CannotRetrieveData(
                     f"Request failed: {await self._http_phrase_error(resp.status)}"
                 )
