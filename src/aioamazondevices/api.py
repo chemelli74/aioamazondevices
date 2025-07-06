@@ -577,7 +577,7 @@ class AmazonEchoApi:
         _domain = f"https://www.amazon.{self._domain}"
 
         if market != _domain:
-            _LOGGER.debug(
+            _LOGGER.warning(
                 "Selected country <%s> doesn't matches Amazon API reply:\n%s\n vs \n%s",
                 self._login_country_code.upper(),
                 {"site  ": _domain},
