@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.2.5 (2025-07-06)
+
+### Bug fixes
+
+- Add israel settings ([`1311fef`](https://github.com/chemelli74/aioamazondevices/commit/1311fefb9dc05e6f3a15f3ee19dc4a5879f3c3b4))
+
+
 ## v3.2.4 (2025-07-06)
 
 ### Bug fixes
