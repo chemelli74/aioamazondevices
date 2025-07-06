@@ -166,6 +166,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Show 8",
         "hw_version": "Gen2",
     },
+    "A18O6U1UQFJ0XK": {
+        "model": "Echo Plus",
+        "hw_version": "Gen2",
+    },
     "A1EIANJ7PNB0Q7": {
         "model": "Echo Show 15",
         "hw_version": "Gen1",
@@ -332,6 +336,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "AB72C64C86AW2": {
         "model": "Echo",
         "hw_version": "Gen2",
+    },
+    "ADOUDFQX2QVX0": {
+        "model": "Fire TV Omni QLED",
+        "hw_version": None,
     },
     "ADVBD696BHNV5": {
         "model": "Fire TV Stick",
