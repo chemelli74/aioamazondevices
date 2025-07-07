@@ -5,7 +5,6 @@
 ### Bug fixes
 
 - Ignore sensors if not available ([`c249ab2`](https://github.com/chemelli74/aioamazondevices/commit/c249ab22e2bd4536a19828220b8972ccc80b6687))
-- Ignore sensors if not available ([`5e7028c`](https://github.com/chemelli74/aioamazondevices/commit/5e7028cf61801fa67ad5c1e30958d71fdcd27115))
 
 
 ## v3.2.7 (2025-07-07)
