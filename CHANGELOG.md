@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.2.8-rc.1 (2025-07-07)
+
+### Bug fixes
+
+- Ignore sensors if not available ([`c249ab2`](https://github.com/chemelli74/aioamazondevices/commit/c249ab22e2bd4536a19828220b8972ccc80b6687))
+
+
 ## v3.2.7 (2025-07-07)
 
 ### Bug fixes
