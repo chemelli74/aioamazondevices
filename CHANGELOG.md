@@ -1,10 +1,10 @@
 # Changelog
 
-## v3.2.7-rc.1 (2025-07-06)
+## v3.2.7 (2025-07-07)
 
 ### Bug fixes
 
-- Improve language settings ([`6591745`](https://github.com/chemelli74/aioamazondevices/commit/65917452b561fc5dc9e3396b4bd6a36d6747c7a8))
+- Improve language settings ([`2dcafc8`](https://github.com/chemelli74/aioamazondevices/commit/2dcafc86fd7cf11bbcd3d4bbe1782c7a5d54ac4f))
 
 
 ## v3.2.6 (2025-07-06)
