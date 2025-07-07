@@ -610,7 +610,9 @@ class AmazonEchoApi:
         # Sensors data not available
         if raw_resp.status != HTTPStatus.OK:
             _LOGGER.warning(
-                "Sensors data not available [%s empty reply], skipping", URI_IDS
+                "Sensors data not available [%s error '%s'], skipping",
+                URI_IDS,
+                await self._http_phrase_error(raw_resp.status),
             )
             return []
 
