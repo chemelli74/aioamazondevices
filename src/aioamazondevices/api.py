@@ -341,14 +341,11 @@ class AmazonEchoApi:
 
     async def _ignore_phoenix_error(self, response: ClientResponse) -> bool:
         """Return true if error is due to phoenix endpoint."""
-        if response.status in [HTTP_ERROR_199, HTTP_ERROR_299] and (
+        # Endpoint URI_IDS replies with error 199 or 299
+        # during maintenance
+        return response.status in [HTTP_ERROR_199, HTTP_ERROR_299] and (
             URI_IDS in response.url.path
-        ):
-            _LOGGER.warning(
-                "Cannot get sensor data from %s endpoint, ignoring", URI_IDS
-            )
-            return True
-        return False
+        )
 
     async def _http_phrase_error(self, error: int) -> str:
         """Convert numeric error in human phrase."""
