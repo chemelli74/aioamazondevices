@@ -609,6 +609,14 @@ class AmazonEchoApi:
             url=f"https://alexa.amazon.{self._domain}{URI_IDS}",
             amazon_user_agent=False,
         )
+
+        # Sensors data not available
+        if raw_resp.status != HTTPStatus.OK:
+            _LOGGER.warning(
+                "Sensors data not available [%s empty reply], skipping", URI_IDS
+            )
+            return []
+
         json_data = await raw_resp.json()
 
         network_detail = orjson.loads(json_data["networkDetail"])
