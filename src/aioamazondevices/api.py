@@ -422,7 +422,7 @@ class AmazonEchoApi:
                 HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
                 HTTPStatus.UNAUTHORIZED,
             ]:
-                raise CannotAuthenticate(self._http_phrase_error(resp.status))
+                raise CannotAuthenticate(await self._http_phrase_error(resp.status))
             if not await self._ignore_ap_signin_error(
                 resp
             ) and not await self._ignore_phoenix_error(resp):
