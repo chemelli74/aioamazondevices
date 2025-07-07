@@ -339,6 +339,14 @@ class AmazonEchoApi:
             )
         return False
 
+    async def _ignore_phoenix_error(self, response: ClientResponse) -> bool:
+        """Return true if error is due to phoenix endpoint."""
+        # Endpoint URI_IDS replies with error 199 or 299
+        # during maintenance
+        return response.status in [HTTP_ERROR_199, HTTP_ERROR_299] and (
+            URI_IDS in response.url.path
+        )
+
     async def _http_phrase_error(self, error: int) -> str:
         """Convert numeric error in human phrase."""
         if error == HTTP_ERROR_199:
@@ -415,7 +423,9 @@ class AmazonEchoApi:
                 HTTPStatus.UNAUTHORIZED,
             ]:
                 raise CannotAuthenticate(await self._http_phrase_error(resp.status))
-            if not await self._ignore_ap_signin_error(resp):
+            if not await self._ignore_ap_signin_error(
+                resp
+            ) and not await self._ignore_phoenix_error(resp):
                 raise CannotRetrieveData(
                     f"Request failed: {await self._http_phrase_error(resp.status)}"
                 )
@@ -596,6 +606,16 @@ class AmazonEchoApi:
             url=f"https://alexa.amazon.{self._domain}{URI_IDS}",
             amazon_user_agent=False,
         )
+
+        # Sensors data not available
+        if raw_resp.status != HTTPStatus.OK:
+            _LOGGER.warning(
+                "Sensors data not available [%s error '%s'], skipping",
+                URI_IDS,
+                await self._http_phrase_error(raw_resp.status),
+            )
+            return []
+
         json_data = await raw_resp.json()
 
         network_detail = orjson.loads(json_data["networkDetail"])
