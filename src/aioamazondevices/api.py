@@ -1017,6 +1017,8 @@ class AmazonEchoApi:
                 "skillId": "amzn1.ask.1p.tellalexa",
                 "text": message_body,
             }
+        else:
+            raise ValueError(f"Message type <{message_type}> is not recognised")
 
         sequence = {
             "@type": "com.amazon.alexa.behaviors.model.Sequence",
