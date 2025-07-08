@@ -32,7 +32,6 @@ from .const import (
     AMAZON_DEVICE_TYPE,
     BIN_EXTENSION,
     CSRF_COOKIE,
-    DEFAULT_AGENT,
     DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
     DEVICE_TO_IGNORE,
@@ -42,7 +41,6 @@ from .const import (
     HTTP_ERROR_199,
     HTTP_ERROR_299,
     JSON_EXTENSION,
-    NEXUS_GRAPHQL,
     NODE_BLUETOOTH,
     NODE_DEVICES,
     NODE_DO_NOT_DISTURB,
@@ -51,6 +49,7 @@ from .const import (
     SAVE_PATH,
     SENSORS,
     URI_IDS,
+    URI_NEXUS_GRAPHQL,
     URI_QUERIES,
     URI_SENSORS,
     URI_SIGNIN,
@@ -364,7 +363,6 @@ class AmazonEchoApi:
         url: str,
         input_data: dict[str, Any] | None = None,
         json_data: bool = False,
-        amazon_user_agent: bool = True,
     ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
@@ -377,9 +375,6 @@ class AmazonEchoApi:
 
         headers = DEFAULT_HEADERS
         headers.update({"Accept-Language": self._language})
-        if not amazon_user_agent:
-            _LOGGER.debug("Changing User-Agent to %s", DEFAULT_AGENT)
-            headers.update({"User-Agent": DEFAULT_AGENT})
         if self._csrf_cookie:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
             _LOGGER.debug("Adding <%s> to headers", csrf)
@@ -633,7 +628,7 @@ class AmazonEchoApi:
 
         _, raw_resp = await self._session_request(
             method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._domain}{NEXUS_GRAPHQL}",
+            url=f"https://alexa.amazon.{self._domain}{URI_NEXUS_GRAPHQL}",
             input_data=payload,
             json_data=True,
         )
@@ -651,8 +646,7 @@ class AmazonEchoApi:
 
         entity_ids_list: list[dict[str, str]] = []
 
-        d = json_data["data"]
-        endpoints = d["endpoints"]
+        endpoints = json_data["data"]["endpoints"]
         for endpoint in endpoints["items"]:
             serial_number = (
                 endpoint["serialNumber"]["value"]["text"]
@@ -670,10 +664,10 @@ class AmazonEchoApi:
 
             # Add identifier information to the device
             # but only if the device was previously found
-            if serial_number in self._devices:
-                self._devices[serial_number] |= {NODE_IDENTIFIER: identifier}
-            else:
+            if serial_number not in self._devices:
                 continue
+
+            self._devices[serial_number] |= {NODE_IDENTIFIER: identifier}
 
             # Add to entity IDs list for sensor retrieval
             entity_ids_list.append({"entityId": entity_id, "entityType": "ENTITY"})

@@ -81,7 +81,7 @@ DOMAIN_BY_ISO3166_COUNTRY = {
 AMAZON_APP_BUNDLE_ID = "com.amazon.echo"
 AMAZON_APP_ID = "MAPiOSLib/6.0/ToHideRetailLink"
 AMAZON_APP_NAME = "AioAmazonDevices"
-AMAZON_APP_VERSION = "2.2.663733.0"
+AMAZON_APP_VERSION = "2.2.663733"
 AMAZON_DEVICE_SOFTWARE_VERSION = "35602678"
 AMAZON_DEVICE_TYPE = "A2IVLV5VM2W81"
 AMAZON_CLIENT_OS = "18.5"
@@ -94,7 +94,6 @@ DEFAULT_HEADERS = {
     "Accept-Encoding": "gzip",
     "Connection": "keep-alive",
 }
-DEFAULT_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"  # noqa: E501
 CSRF_COOKIE = "csrf"
 
 NODE_DEVICES = "devices"
@@ -121,7 +120,7 @@ URI_QUERIES = {
 URI_SIGNIN = "/ap/signin"
 URI_IDS = "/api/phoenix"
 URI_SENSORS = "/api/phoenix/state"
-NEXUS_GRAPHQL = "/nexus/v1/graphql"
+URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 
 SENSORS = [
     "babyCryDetectionState",
