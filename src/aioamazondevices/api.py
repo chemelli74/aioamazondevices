@@ -42,6 +42,7 @@ from .const import (
     HTTP_ERROR_199,
     HTTP_ERROR_299,
     JSON_EXTENSION,
+    NEXUS_GRAPHQL,
     NODE_BLUETOOTH,
     NODE_DEVICES,
     NODE_DO_NOT_DISTURB,
@@ -601,10 +602,40 @@ class AmazonEchoApi:
 
     async def _get_devices_ids(self) -> list[dict[str, str]]:
         """Retrieve devices entityId and applianceId."""
+        ql_query = """
+        query CustomerSmartHome {
+          endpoints(
+            endpointsQueryParams: { paginationParams: { disablePagination: true } }
+          ) {
+            items {
+              endpointId
+              friendlyName
+              legacyIdentifiers {
+                chrsIdentifier {
+                  entityId
+                }
+              }
+              serialNumber {
+                type
+                value {
+                  text
+                }
+              }
+              legacyAppliance {
+                applianceId
+              }
+            }
+          }
+        }
+        """
+
+        payload = {"query": ql_query}
+
         _, raw_resp = await self._session_request(
-            "GET",
-            url=f"https://alexa.amazon.{self._domain}{URI_IDS}",
-            amazon_user_agent=False,
+            method=HTTPMethod.POST,
+            url=f"https://alexa.amazon.{self._domain}{NEXUS_GRAPHQL}",
+            input_data=payload,
+            json_data=True,
         )
 
         # Sensors data not available
@@ -618,52 +649,18 @@ class AmazonEchoApi:
 
         json_data = await raw_resp.json()
 
-        network_detail = orjson.loads(json_data["networkDetail"])
-        # Navigate through the nested structure step by step
-        location_details = network_detail["locationDetails"]["locationDetails"]
-        default_location = location_details["Default_Location"]
-        amazon_bridge = default_location["amazonBridgeDetails"]["amazonBridgeDetails"]
-
-        # New devices are based on LambdaBridge_AAA structure
-        lambda_bridge_aaa = amazon_bridge.get("LambdaBridge_AAA/SonarCloudService")
-        appliance_details_aaa = (
-            lambda_bridge_aaa["applianceDetails"]["applianceDetails"]
-            if lambda_bridge_aaa
-            else {}
-        )
-
-        entity_ids_list: list[dict[str, str]] = await self._get_entities_ids(
-            appliance_details_aaa, "AAA_SonarCloudService"
-        )
-
-        # Old devices are based on LambdaBridge_AlexaBridge structure
-        for bridge_key, bridge_value in amazon_bridge.items():
-            if "LambdaBridge_AlexaBridge/" in bridge_key:
-                # Value key:    "LambdaBridge_AlexaBridge/XXXXXXXXXXXXXX@XXXXXXXXXXXXXX"
-                # Value subkey: "AlexaBridge_XXXXXXXXXXXXXX@XXXXXXXXXXXXXX_XXXXXXXXXXXX"
-                subkey = bridge_key.split("_")[1].replace("/", "_")
-
-                appliance_details_alexa = bridge_value["applianceDetails"][
-                    "applianceDetails"
-                ]
-                entity_ids_list.extend(
-                    await self._get_entities_ids(appliance_details_alexa, subkey)
-                )
-
-        return entity_ids_list
-
-    async def _get_entities_ids(
-        self, appliance_details: dict[str, Any], searchkey: str
-    ) -> list[dict[str, str]]:
-        """Extract entityId and applianceId."""
         entity_ids_list: list[dict[str, str]] = []
-        # Process each appliance that starts with "searchkey"
-        for appliance_key, appliance_data in appliance_details.items():
-            if not appliance_key.startswith(searchkey):
-                continue
 
-            entity_id = appliance_data["entityId"]
-            appliance_id = appliance_data["applianceId"]
+        d = json_data["data"]
+        endpoints = d["endpoints"]
+        for endpoint in endpoints["items"]:
+            serial_number = (
+                endpoint["serialNumber"]["value"]["text"]
+                if endpoint["serialNumber"]
+                else None
+            )
+            entity_id = endpoint["legacyIdentifiers"]["chrsIdentifier"]["entityId"]
+            appliance_id = endpoint["legacyAppliance"]["applianceId"]
 
             # Create identifier object for this appliance
             identifier = {
@@ -671,14 +668,12 @@ class AmazonEchoApi:
                 "applianceId": appliance_id,
             }
 
-            # Update device information for each device in the identifier list
-            for device_identifier in appliance_data["alexaDeviceIdentifierList"]:
-                serial_number = device_identifier["dmsDeviceSerialNumber"]
-
-                # Add identifier information to the device
-                # but only if the device was previously found
-                if serial_number in self._devices:
-                    self._devices[serial_number] |= {NODE_IDENTIFIER: identifier}
+            # Add identifier information to the device
+            # but only if the device was previously found
+            if serial_number in self._devices:
+                self._devices[serial_number] |= {NODE_IDENTIFIER: identifier}
+            else:
+                continue
 
             # Add to entity IDs list for sensor retrieval
             entity_ids_list.append({"entityId": entity_id, "entityType": "ENTITY"})
