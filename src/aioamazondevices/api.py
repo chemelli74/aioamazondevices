@@ -104,6 +104,8 @@ class AmazonSequenceType(StrEnum):
     Sound = "Alexa.Sound"
     Music = "Alexa.Music.PlaySearchPhrase"
     TextCommand = "Alexa.TextCommand"
+    Volume = "Alexa.DeviceControls.Volume"
+    Stop = "Alexa.DeviceControls.Stop"
 
 
 class AmazonMusicSource(StrEnum):
@@ -1017,6 +1019,19 @@ class AmazonEchoApi:
                 "skillId": "amzn1.ask.1p.tellalexa",
                 "text": message_body,
             }
+        elif message_type == AmazonSequenceType.Volume:
+            payload = {**base_payload, "value": message_body}
+        elif message_type == AmazonSequenceType.Stop:
+            payload = {
+                **base_payload,
+                "devices": [
+                    {
+                        "deviceSerialNumber": device.serial_number,
+                        "deviceType": device.device_type,
+                    },
+                ],
+                "skillId": "amzn1.ask.1p.alexadevicecontrols",
+            }
 
         sequence = {
             "@type": "com.amazon.alexa.behaviors.model.Sequence",
@@ -1106,3 +1121,20 @@ class AmazonEchoApi:
         await self._session_request(
             method="PUT", url=url, input_data=payload, json_data=True
         )
+
+    async def set_volume(
+        self,
+        device: AmazonDevice,
+        message_body: int,
+    ) -> None:
+        """Call Alexa.DeviceControls.Volume to set volume."""
+        return await self._send_message(
+            device, AmazonSequenceType.Volume, str(message_body)
+        )
+
+    async def stop_playback(
+        self,
+        device: AmazonDevice,
+    ) -> None:
+        """Call Alexa.DeviceControls.Stop to stop playback."""
+        return await self._send_message(device, AmazonSequenceType.Stop, "")
