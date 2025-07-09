@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.2.9-rc.1 (2025-07-09)
+
+### Bug fixes
+
+- Correct echo show 5 name ([`868ee7b`](https://github.com/chemelli74/aioamazondevices/commit/868ee7b30a016211a789a3076825832764c9e275))
+
+
 ## v3.2.8 (2025-07-07)
 
 ### Bug fixes
