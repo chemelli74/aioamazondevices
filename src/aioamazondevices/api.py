@@ -113,6 +113,7 @@ class AmazonMusicSource(StrEnum):
 
     Radio = "TUNEIN"
     AmazonMusic = "AMAZON_MUSIC"
+    Spotify = "SPOTIFY"
 
 
 class AmazonEchoApi:
@@ -1138,3 +1139,61 @@ class AmazonEchoApi:
     ) -> None:
         """Call Alexa.DeviceControls.Stop to stop playback."""
         return await self._send_message(device, AmazonSequenceType.Stop, "")
+
+    async def _media_command(
+        self, device: AmazonDevice, command: dict[str, Any]
+    ) -> None:
+        await self._session_request(
+            method=HTTPMethod.POST,
+            url=f"https://alexa.amazon.{self._domain}/api/np/command?deviceSerialNumber={device.serial_number}&deviceType={device.device_type}",
+            input_data=command,
+            json_data=True,
+        )
+
+    async def media_play(
+        self,
+        device: AmazonDevice,
+    ) -> None:
+        """Media Player play."""
+        command = {"type": "PlayCommand"}
+        await self._media_command(device, command)
+
+    async def media_pause(
+        self,
+        device: AmazonDevice,
+    ) -> None:
+        """Media Player pause."""
+        command = {"type": "PauseCommand"}
+        await self._media_command(device, command)
+
+    async def media_prev(
+        self,
+        device: AmazonDevice,
+    ) -> None:
+        """Media Player previous."""
+        command = {"type": "PreviousCommand"}
+        await self._media_command(device, command)
+
+    async def media_next(
+        self,
+        device: AmazonDevice,
+    ) -> None:
+        """Media Player next."""
+        command = {"type": "NextCommand"}
+        await self._media_command(device, command)
+
+    async def media_rewind(
+        self,
+        device: AmazonDevice,
+    ) -> None:
+        """Media Player rewind."""
+        command = {"type": "RewindCommand"}
+        await self._media_command(device, command)
+
+    async def media_fast_forward(
+        self,
+        device: AmazonDevice,
+    ) -> None:
+        """Media Player fast forward."""
+        command = {"type": "ForwardCommand"}
+        await self._media_command(device, command)

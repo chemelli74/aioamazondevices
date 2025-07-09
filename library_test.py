@@ -81,6 +81,12 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         help="Load options from JSON config file. \
         Command line options override those in the file.",
     )
+    parser.add_argument(
+        "--music_provider",
+        "-mp",
+        type=str,
+        help="Music provider, either 'Amazon' or 'Spotify'",
+    )
 
     arguments_cli = parser.parse_args()
     args = vars(arguments_cli)
@@ -154,6 +160,10 @@ async def main() -> None:
         print("You have to specify a password")
         parser.print_help()
         sys.exit(1)
+
+    _music_provider = AmazonMusicSource.AmazonMusic
+    if args.music_provider and args.music_provider == "Spotify":
+        _music_provider = AmazonMusicSource.Spotify
 
     login_data_stored = read_from_file(args.login_data_file)
 
@@ -293,11 +303,31 @@ async def main() -> None:
     await wait_action_complete(15)
 
     music = "taylor swift"
-    source = AmazonMusicSource.AmazonMusic
+    source = _music_provider
     print(f"Playing {music} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, music, source)
 
     await wait_action_complete(15)
+
+    print(f"Pausing track on {device_single.account_name}")
+    await api.media_pause(device_single)
+    await wait_action_complete(8)
+
+    print(f"Play track on {device_single.account_name}")
+    await api.media_play(device_single)
+    await wait_action_complete()
+
+    print(f"Skipping to next track on {device_single.account_name}")
+    await api.media_next(device_single)
+    await wait_action_complete(15)
+
+    print(f"Fast forward track on {device_single.account_name}")
+    await api.media_fast_forward(device_single)
+    await wait_action_complete()
+
+    print(f"Rewind track on {device_single.account_name}")
+    await api.media_rewind(device_single)
+    await wait_action_complete()
 
     print(f"Stopping playback on {device_single.account_name}")
     await api.stop_playback(device_single)
@@ -305,7 +335,7 @@ async def main() -> None:
     await wait_action_complete()
 
     music = "taylor swift"
-    source = AmazonMusicSource.AmazonMusic
+    source = _music_provider
     print(f"Playing {music} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, music, source)
 
