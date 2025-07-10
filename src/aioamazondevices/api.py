@@ -48,7 +48,6 @@ from .const import (
     NODE_PREFERENCES,
     SAVE_PATH,
     SENSORS,
-    URI_IDS,
     URI_NEXUS_GRAPHQL,
     URI_QUERIES,
     URI_SENSORS,
@@ -339,14 +338,6 @@ class AmazonEchoApi:
             )
         return False
 
-    async def _ignore_phoenix_error(self, response: ClientResponse) -> bool:
-        """Return true if error is due to phoenix endpoint."""
-        # Endpoint URI_IDS replies with error 199 or 299
-        # during maintenance
-        return response.status in [HTTP_ERROR_199, HTTP_ERROR_299] and (
-            URI_IDS in response.url.path
-        )
-
     async def _http_phrase_error(self, error: int) -> str:
         """Convert numeric error in human phrase."""
         if error == HTTP_ERROR_199:
@@ -419,9 +410,7 @@ class AmazonEchoApi:
                 HTTPStatus.UNAUTHORIZED,
             ]:
                 raise CannotAuthenticate(await self._http_phrase_error(resp.status))
-            if not await self._ignore_ap_signin_error(
-                resp
-            ) and not await self._ignore_phoenix_error(resp):
+            if not await self._ignore_ap_signin_error(resp):
                 raise CannotRetrieveData(
                     f"Request failed: {await self._http_phrase_error(resp.status)}"
                 )
@@ -606,19 +595,13 @@ class AmazonEchoApi:
               endpointId
               friendlyName
               legacyIdentifiers {
-                chrsIdentifier {
-                  entityId
-                }
+                chrsIdentifier { entityId }
               }
               serialNumber {
                 type
-                value {
-                  text
-                }
+                value { text }
               }
-              legacyAppliance {
-                applianceId
-              }
+              legacyAppliance { applianceId }
             }
           }
         }
@@ -632,15 +615,6 @@ class AmazonEchoApi:
             input_data=payload,
             json_data=True,
         )
-
-        # Sensors data not available
-        if raw_resp.status != HTTPStatus.OK:
-            _LOGGER.warning(
-                "Sensors data not available [%s error '%s'], skipping",
-                URI_IDS,
-                await self._http_phrase_error(raw_resp.status),
-            )
-            return []
 
         json_data = await raw_resp.json()
 
