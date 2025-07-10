@@ -1,5 +1,6 @@
 """Support for Amazon devices."""
 
+import asyncio
 import base64
 import hashlib
 import mimetypes
@@ -403,6 +404,34 @@ class AmazonEchoApi:
         except (TimeoutError, ClientConnectorError) as exc:
             raise CannotConnect(f"Connection error during {method}") from exc
 
+        retry_count = 0
+        max_retries = 5
+
+        while resp.status == HTTPStatus.TOO_MANY_REQUESTS and retry_count < max_retries:
+            await self.handle_http_429(resp)
+            retry_count += 1
+            try:
+                resp = await self.session.request(
+                    method,
+                    URL(url, encoded=True),
+                    data=input_data if not json_data else orjson.dumps(input_data),
+                    cookies=_cookies,
+                    headers=headers,
+                )
+            except (TimeoutError, ClientConnectorError) as exc:
+                raise CannotConnect(
+                    f"Connection error during {method} when handling the HTTP code 429"
+                ) from exc
+
+        if retry_count == max_retries and resp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            _LOGGER.error(
+                "Max retries reached for %s, giving up",
+                URL(url, encoded=True),
+            )
+            raise CannotRetrieveData(
+                f"Max retries reached for {method} request to {url}"
+            )
+
         self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
         if not self._csrf_cookie:
             self._csrf_cookie = resp.cookies.get(CSRF_COOKIE, Morsel()).value
@@ -437,6 +466,17 @@ class AmazonEchoApi:
         )
 
         return BeautifulSoup(await resp.read(), "html.parser"), resp
+
+    async def handle_http_429(self, response: ClientResponse) -> None:
+        """Handle Amazon HTTP 429 Too Many Requests."""
+        if response.status == HTTPStatus.TOO_MANY_REQUESTS:
+            wait_time = 10
+            _LOGGER.warning(
+                "Too many requests to %s, retrying in %d seconds",
+                response.url,
+                wait_time,
+            )
+            await asyncio.sleep(wait_time)
 
     async def _save_to_file(
         self,
