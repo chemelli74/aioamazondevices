@@ -160,6 +160,8 @@ class AmazonEchoApi:
 
         self._language = language
 
+        self._dont_poll_sensors = False
+
         _LOGGER.debug(
             "Initialize library with domain <%s> and language <%s>",
             self._domain,
@@ -343,9 +345,12 @@ class AmazonEchoApi:
         """Return true if error is due to phoenix endpoint."""
         # Endpoint URI_IDS replies with error 199 or 299
         # during maintenance
-        return response.status in [HTTP_ERROR_199, HTTP_ERROR_299] and (
+        if response.status in [HTTP_ERROR_199, HTTP_ERROR_299] and (
             URI_IDS in response.url.path
-        )
+        ):
+            self._dont_poll_sensors = True
+            return True
+        return False
 
     async def _http_phrase_error(self, error: int) -> str:
         """Convert numeric error in human phrase."""
@@ -601,6 +606,9 @@ class AmazonEchoApi:
 
     async def _get_devices_ids(self) -> list[dict[str, str]]:
         """Retrieve devices entityId and applianceId."""
+        if self._dont_poll_sensors:
+            return []
+
         _, raw_resp = await self._session_request(
             "GET",
             url=f"https://alexa.amazon.{self._domain}{URI_IDS}",
