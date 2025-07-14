@@ -15,7 +15,7 @@ from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
-from aiohttp import ClientConnectorError, ClientResponse, ClientSession, CookieJar
+from aiohttp import ClientConnectorError, ClientResponse, ClientSession
 from bs4 import BeautifulSoup, Tag
 from langcodes import Language
 from multidict import MultiDictProxy
@@ -148,7 +148,7 @@ class AmazonEchoApi:
         self._serial = self._serial_number()
         self._list_for_clusters: dict[str, str] = {}
 
-        self.session: ClientSession
+        self._session: ClientSession
         self._devices: dict[str, Any] = {}
         self._sensors_available: bool = True
 
@@ -301,14 +301,6 @@ class AmazonEchoApi:
             raise TypeError(f"Unable to extract authorization code from url: {url}")
         return parsed_url["openid.oa2.authorization_code"][0]
 
-    def _client_session(self) -> None:
-        """Create HTTP client session."""
-        if not hasattr(self, "session") or self.session.closed:
-            _LOGGER.debug("Creating HTTP session (aiohttp)")
-            cookie_jar = CookieJar()
-            cookie_jar.update_cookies(self._cookies)
-            self.session = ClientSession(cookie_jar=cookie_jar)
-
     async def _ignore_ap_signin_error(self, response: ClientResponse) -> bool:
         """Return true if error is due to signin endpoint."""
         # Endpoint URI_SIGNIN replies with error 404
@@ -373,9 +365,9 @@ class AmazonEchoApi:
         _cookies = (
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
-        self.session.cookie_jar.update_cookies(_cookies)
+        self._session.cookie_jar.update_cookies(_cookies)
         try:
-            resp = await self.session.request(
+            resp = await self._session.request(
                 method,
                 URL(url, encoded=True),
                 data=input_data if not json_data else orjson.dumps(input_data),
@@ -701,14 +693,16 @@ class AmazonEchoApi:
             final_sensors.update({_id: dict_sensors})
         return final_sensors
 
-    async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
+    async def login_mode_interactive(
+        self, otp_code: str, client_session: ClientSession
+    ) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
         _LOGGER.debug(
             "Logging-in for %s [otp code: %s]",
             obfuscate_email(self._login_email),
             bool(otp_code),
         )
-        self._client_session()
+        self._session = client_session
 
         code_verifier = self._create_code_verifier()
         client_id = self._build_client_id()
@@ -769,7 +763,9 @@ class AmazonEchoApi:
 
         return register_device
 
-    async def login_mode_stored_data(self) -> dict[str, Any]:
+    async def login_mode_stored_data(
+        self, client_session: ClientSession
+    ) -> dict[str, Any]:
         """Login to Amazon using previously stored data."""
         if not self._login_stored_data:
             _LOGGER.debug(
@@ -783,17 +779,11 @@ class AmazonEchoApi:
             obfuscate_email(self._login_email),
         )
 
-        self._client_session()
+        self._session = client_session
 
         await self._check_country()
 
         return self._login_stored_data
-
-    async def close(self) -> None:
-        """Close http client session."""
-        if hasattr(self, "session"):
-            _LOGGER.debug("Closing HTTP session (aiohttp)")
-            await self.session.close()
 
     async def get_devices_data(
         self,

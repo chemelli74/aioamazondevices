@@ -1,5 +1,12 @@
 # Changelog
 
+## v4.0.0-rc.1 (2025-07-14)
+
+### Features
+
+- Use external aiohttp clientsession ([`01e2f6b`](https://github.com/chemelli74/aioamazondevices/commit/01e2f6b6c802103282145a3aaf22ff60b37bb0a7))
+
+
 ## v3.3.0 (2025-07-14)
 
 ### Features
