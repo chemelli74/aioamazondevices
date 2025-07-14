@@ -81,6 +81,7 @@ class AmazonDevice:
     capabilities: list[str]
     device_family: str
     device_type: str
+    endpoint_id: str
     device_owner_customer_id: str
     device_cluster_members: list[str]
     device_locale: str
@@ -628,11 +629,13 @@ class AmazonEchoApi:
                 if endpoint["serialNumber"]
                 else None
             )
+            endpoint_id = endpoint["endpointId"]
             entity_id = endpoint["legacyIdentifiers"]["chrsIdentifier"]["entityId"]
             appliance_id = endpoint["legacyAppliance"]["applianceId"]
 
             # Create identifier object for this appliance
             identifier = {
+                "endpointId": endpoint_id,
                 "entityId": entity_id,
                 "applianceId": appliance_id,
             }
@@ -836,6 +839,7 @@ class AmazonEchoApi:
                 capabilities=devices_node["capabilities"],
                 device_family=devices_node["deviceFamily"],
                 device_type=devices_node["deviceType"],
+                endpoint_id=identifier_node.get("endpointId"),
                 device_owner_customer_id=devices_node["deviceOwnerCustomerId"],
                 device_cluster_members=(
                     devices_node["clusterMembers"] or [serial_number]
