@@ -316,7 +316,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": None,
     },
     "A4ZP7ZC4PI6TO": {
-        "model": "Echo Show 3",
+        "model": "Echo Show 5",
         "hw_version": "Gen1",
     },
     "A4ZXE0RM7LQ7A": {
