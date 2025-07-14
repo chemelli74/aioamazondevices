@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, cast
 
 import orjson
+from aiohttp import ClientSession
 from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonDevice, AmazonEchoApi, AmazonMusicSource
@@ -163,13 +164,15 @@ async def main() -> None:
         args.save_raw_data,
     )
 
+    client_session = ClientSession()
+
     try:
         try:
             if login_data_stored:
-                login_data = await api.login_mode_stored_data()
+                login_data = await api.login_mode_stored_data(client_session)
             else:
                 login_data = await api.login_mode_interactive(
-                    args.otp_code or input("OTP Code: "),
+                    args.otp_code or input("OTP Code: "), client_session
                 )
         except CannotAuthenticate:
             print(f"Cannot authenticate with {args.email} credentials")
@@ -184,7 +187,7 @@ async def main() -> None:
             print(f"Wrong country {args.country} selected")
             raise
     except AmazonError:
-        await api.close()
+        await client_session.close()
         sys.exit(2)
 
     print("Logged-in.")
@@ -200,7 +203,7 @@ async def main() -> None:
         devices = await api.get_devices_data()
     except (CannotAuthenticate, CannotConnect, CannotRegisterDevice) as exc:
         print(exc)
-        await api.close()
+        await client_session.close()
         sys.exit(3)
 
     print("Devices count  :", len(devices))
@@ -209,14 +212,14 @@ async def main() -> None:
 
     if not devices:
         print("!!! Warning: No devices found !!!")
-        await api.close()
+        await client_session.close()
         sys.exit(0)
 
     save_to_file(f"{SAVE_PATH}/output-devices.json", devices)
 
     if not args.test:
         print("!!! No testing requested, exiting !!!")
-        await api.close()
+        await client_session.close()
         sys.exit(0)
 
     device_single = find_device(
@@ -237,7 +240,7 @@ async def main() -> None:
 
     if not await api.auth_check_status():
         print("!!! Error: Session not authenticated !!!")
-        await api.close()
+        await client_session.close()
         sys.exit(4)
     print("Session authenticated!")
 
@@ -275,7 +278,8 @@ async def main() -> None:
     print(f"Text command on {device_single.account_name}")
     await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
 
-    await api.close()
+    print("Closing session")
+    await client_session.close()
 
 
 def set_logging() -> None:
