@@ -14,6 +14,10 @@ on:
       - labeled
   workflow_dispatch:
 
+permissions:
+  issues: write
+  pull-requests: write
+
 jobs:
   issue-manager:
     runs-on: ubuntu-latest
