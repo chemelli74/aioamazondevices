@@ -1,5 +1,19 @@
 # Changelog
 
+## v3.2.10 (2025-07-13)
+
+### Bug fixes
+
+- Limit sensor data missing warning ([`8beb9f6`](https://github.com/chemelli74/aioamazondevices/commit/8beb9f6a4659fd159eda4856075f44d2301c363d))
+
+
+## v3.2.9 (2025-07-13)
+
+### Bug fixes
+
+- Correct show 5 gen 1 model ([`81096ae`](https://github.com/chemelli74/aioamazondevices/commit/81096ae39037ea5c565f9e4fe4ca71cbe03399fd))
+
+
 ## v3.2.8 (2025-07-07)
 
 ### Bug fixes

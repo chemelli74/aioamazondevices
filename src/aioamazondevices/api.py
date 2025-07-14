@@ -150,6 +150,7 @@ class AmazonEchoApi:
 
         self.session: ClientSession
         self._devices: dict[str, Any] = {}
+        self._sensors_available: bool = True
 
         if locale and (lang := locale.get("language")):
             language = lang
@@ -361,12 +362,12 @@ class AmazonEchoApi:
             headers.update({"User-Agent": DEFAULT_AGENT})
         if self._csrf_cookie:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
-            _LOGGER.debug("Adding <%s> to headers", csrf)
+            _LOGGER.debug("Adding to headers: %s", csrf)
             headers.update(csrf)
 
         if json_data:
             json_header = {"Content-Type": "application/json; charset=utf-8"}
-            _LOGGER.debug("Adding %s to headers", json_header)
+            _LOGGER.debug("Adding to headers: %s", json_header)
             headers.update(json_header)
 
         _cookies = (
@@ -593,6 +594,7 @@ class AmazonEchoApi:
                 URI_IDS,
                 await self._http_phrase_error(raw_resp.status),
             )
+            self._sensors_available = False
             return []
 
         json_data = await raw_resp.json()
@@ -819,10 +821,12 @@ class AmazonEchoApi:
                 else:
                     self._devices[dev_serial] = {key: data}
 
-        entity_ids_list = await self._get_devices_ids()
-        devices_sensors = (
-            await self._get_sensors_states(entity_ids_list) if entity_ids_list else {}
-        )
+        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
+
+        if self._sensors_available and (
+            entity_ids_list := await self._get_devices_ids()
+        ):
+            devices_sensors = await self._get_sensors_states(entity_ids_list)
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():
