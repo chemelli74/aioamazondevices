@@ -9,16 +9,16 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from http import HTTPMethod, HTTPStatus
-from http.cookies import Morsel, SimpleCookie
+from http.cookies import Morsel
 from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
-from aiohttp import ClientConnectorError, ClientResponse, ClientSession
+from aiohttp import ClientConnectorError, ClientResponse, ClientSession, CookieJar
 from bs4 import BeautifulSoup, Tag
 from langcodes import Language
-from multidict import CIMultiDictProxy, MultiDictProxy
+from multidict import MultiDictProxy
 from yarl import URL
 
 from .const import (
@@ -305,29 +305,9 @@ class AmazonEchoApi:
         """Create HTTP client session."""
         if not hasattr(self, "session") or self.session.closed:
             _LOGGER.debug("Creating HTTP session (aiohttp)")
-            headers = DEFAULT_HEADERS
-            headers.update({"Accept-Language": self._language})
-            self.session = ClientSession(
-                headers=headers,
-                cookies=self._cookies,
-            )
-
-    async def _parse_cookies_from_headers(
-        self, headers: CIMultiDictProxy[str]
-    ) -> dict[str, str]:
-        """Parse cookies with a value from headers."""
-        cookies_with_value: dict[str, str] = {}
-
-        for value in headers.getall("Set-Cookie", ()):
-            cookie = SimpleCookie()
-            cookie.load(value)
-
-            for name, morsel in cookie.items():
-                if morsel.value and morsel.value not in ("-", ""):
-                    cookies_with_value[name] = morsel.value
-
-        _LOGGER.debug("Cookies from headers: %s", cookies_with_value)
-        return cookies_with_value
+            cookie_jar = CookieJar()
+            cookie_jar.update_cookies(self._cookies)
+            self.session = ClientSession(cookie_jar=cookie_jar)
 
     async def _ignore_ap_signin_error(self, response: ClientResponse) -> bool:
         """Return true if error is due to signin endpoint."""
@@ -393,18 +373,17 @@ class AmazonEchoApi:
         _cookies = (
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
+        self.session.cookie_jar.update_cookies(_cookies)
         try:
             resp = await self.session.request(
                 method,
                 URL(url, encoded=True),
                 data=input_data if not json_data else orjson.dumps(input_data),
-                cookies=_cookies,
                 headers=headers,
             )
         except (TimeoutError, ClientConnectorError) as exc:
             raise CannotConnect(f"Connection error during {method}") from exc
 
-        self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
         if not self._csrf_cookie:
             self._csrf_cookie = resp.cookies.get(CSRF_COOKIE, Morsel()).value
             _LOGGER.debug("CSRF cookie value: <%s>", self._csrf_cookie)
