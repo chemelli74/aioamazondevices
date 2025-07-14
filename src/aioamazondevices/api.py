@@ -108,6 +108,14 @@ class AmazonSequenceType(StrEnum):
     Stop = "Alexa.DeviceControls.Stop"
 
 
+@dataclass
+class AmazonMessage:
+    """Amazon message details."""
+
+    type: str
+    value: str | int | float | None = None
+
+
 class AmazonMusicSource(StrEnum):
     """Amazon music sources."""
 
@@ -937,8 +945,7 @@ class AmazonEchoApi:
     async def _send_message(
         self,
         device: AmazonDevice,
-        message_type: str,
-        message_body: str,
+        messages: list[AmazonMessage],
         message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
@@ -946,6 +953,44 @@ class AmazonEchoApi:
             _LOGGER.warning("Trying to send message before login")
             return
 
+        operation_nodes = []
+        for message in messages:
+            operation_node = self._build_operation_node(
+                device, message.type, message.value, message_source
+            )
+            operation_nodes.append(operation_node)
+
+        sequence = {
+            "@type": "com.amazon.alexa.behaviors.model.Sequence",
+            "startNode": {
+                "@type": "com.amazon.alexa.behaviors.model.SerialNode",
+                "nodesToExecute": operation_nodes,
+            },
+        }
+
+        node_data = {
+            "behaviorId": "PREVIEW",
+            "sequenceJson": orjson.dumps(sequence).decode("utf-8"),
+            "status": "ENABLED",
+        }
+
+        _LOGGER.debug("Preview data payload: %s", node_data)
+        await self._session_request(
+            method=HTTPMethod.POST,
+            url=f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
+            input_data=node_data,
+            json_data=True,
+        )
+
+        return
+
+    def _build_operation_node(
+        self,
+        device: AmazonDevice,
+        message_type: str,
+        message_body: str | float | None,
+        message_source: AmazonMusicSource | None = None,
+    ) -> dict[str, Any]:
         base_payload = {
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
@@ -1034,53 +1079,58 @@ class AmazonEchoApi:
                 "skillId": "amzn1.ask.1p.alexadevicecontrols",
             }
 
-        sequence = {
-            "@type": "com.amazon.alexa.behaviors.model.Sequence",
-            "startNode": {
-                "@type": "com.amazon.alexa.behaviors.model.SerialNode",
-                "nodesToExecute": [
-                    {
-                        "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",  # noqa: E501
-                        "type": message_type,
-                        "operationPayload": payload,
-                    },
-                ],
-            },
+        return {
+            "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",
+            "type": message_type,
+            "operationPayload": payload,
         }
-
-        node_data = {
-            "behaviorId": "PREVIEW",
-            "sequenceJson": orjson.dumps(sequence).decode("utf-8"),
-            "status": "ENABLED",
-        }
-
-        _LOGGER.debug("Preview data payload: %s", node_data)
-        await self._session_request(
-            method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
-            input_data=node_data,
-            json_data=True,
-        )
-
-        return
 
     async def call_alexa_speak(
         self,
         device: AmazonDevice,
         message_body: str,
+        volume: int | None = None,
     ) -> None:
         """Call Alexa.Speak to send a message."""
-        return await self._send_message(device, AmazonSequenceType.Speak, message_body)
+        return await self._alexa_talk(
+            device, AmazonSequenceType.Speak, message_body, volume
+        )
 
     async def call_alexa_announcement(
         self,
         device: AmazonDevice,
         message_body: str,
+        volume: int | None = None,
     ) -> None:
         """Call AlexaAnnouncement to send a message."""
-        return await self._send_message(
-            device, AmazonSequenceType.Announcement, message_body
+        return await self._alexa_talk(
+            device, AmazonSequenceType.Announcement, message_body, volume
         )
+
+    async def _alexa_talk(
+        self,
+        device: AmazonDevice,
+        sequence_type: str,
+        message_body: str,
+        volume: int | None = None,
+    ) -> None:
+        operations = []
+        current_volume = None
+        if volume:
+            current_volume = 10
+            # get volume here to reset later
+            operations = [
+                AmazonMessage(AmazonSequenceType.Volume, volume),
+            ]
+
+        operations.append(AmazonMessage(sequence_type, message_body))
+
+        if volume:
+            # reset volume here to reset later
+            operations = [
+                AmazonMessage(AmazonSequenceType.Volume, current_volume),
+            ]
+        return await self._send_message(device, operations)
 
     async def call_alexa_sound(
         self,
@@ -1088,7 +1138,9 @@ class AmazonEchoApi:
         message_body: str,
     ) -> None:
         """Call Alexa.Sound to play sound."""
-        return await self._send_message(device, AmazonSequenceType.Sound, message_body)
+        return await self._send_message(
+            device, [AmazonMessage(AmazonSequenceType.Sound, message_body)]
+        )
 
     async def call_alexa_music(
         self,
@@ -1098,7 +1150,9 @@ class AmazonEchoApi:
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
         return await self._send_message(
-            device, AmazonSequenceType.Music, message_body, message_source
+            device,
+            [AmazonMessage(AmazonSequenceType.Music, message_body)],
+            message_source,
         )
 
     async def call_alexa_text_command(
@@ -1108,7 +1162,7 @@ class AmazonEchoApi:
     ) -> None:
         """Call Alexa.Sound to play sound."""
         return await self._send_message(
-            device, AmazonSequenceType.TextCommand, message_body
+            device, [AmazonMessage(AmazonSequenceType.TextCommand, message_body)]
         )
 
     async def set_do_not_disturb(self, device: AmazonDevice, state: bool) -> None:
@@ -1130,7 +1184,7 @@ class AmazonEchoApi:
     ) -> None:
         """Call Alexa.DeviceControls.Volume to set volume."""
         return await self._send_message(
-            device, AmazonSequenceType.Volume, str(message_body)
+            device, [AmazonMessage(AmazonSequenceType.Volume, message_body)]
         )
 
     async def stop_playback(
@@ -1138,7 +1192,9 @@ class AmazonEchoApi:
         device: AmazonDevice,
     ) -> None:
         """Call Alexa.DeviceControls.Stop to stop playback."""
-        return await self._send_message(device, AmazonSequenceType.Stop, "")
+        return await self._send_message(
+            device, [AmazonMessage(AmazonSequenceType.Stop)]
+        )
 
     async def _media_command(
         self, device: AmazonDevice, command: dict[str, Any]
