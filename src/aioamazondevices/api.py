@@ -588,7 +588,7 @@ class AmazonEchoApi:
 
     async def _get_devices_ids(self) -> list[dict[str, str]]:
         """Retrieve devices entityId and applianceId."""
-        ql_query = """
+        graphql_query = """
         query CustomerSmartHome {
           endpoints(
             endpointsQueryParams: { paginationParams: { disablePagination: true } }
@@ -609,12 +609,10 @@ class AmazonEchoApi:
         }
         """
 
-        payload = {"query": ql_query}
-
         _, raw_resp = await self._session_request(
             method=HTTPMethod.POST,
             url=f"https://alexa.amazon.{self._domain}{URI_NEXUS_GRAPHQL}",
-            input_data=payload,
+            input_data={"query": graphql_query},
             json_data=True,
         )
 
