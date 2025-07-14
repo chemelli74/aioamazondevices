@@ -5,6 +5,12 @@
 ### Features
 
 - Use external aiohttp clientsession ([`01e2f6b`](https://github.com/chemelli74/aioamazondevices/commit/01e2f6b6c802103282145a3aaf22ff60b37bb0a7))
+
+
+## v3.3.0 (2025-07-14)
+
+### Features
+
 - Use cookiejar instead of simplecookie ([`af68555`](https://github.com/chemelli74/aioamazondevices/commit/af68555b72cb73dbf5a704d7c407f8827c694fdc))
 
 
