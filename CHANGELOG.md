@@ -1,5 +1,7 @@
 # Changelog
 
+## v3.4.0-rc.1 (2025-07-14)
+
 ## v3.3.0 (2025-07-14)
 
 ### Features
@@ -19,6 +21,11 @@
 ### Bug fixes
 
 - Correct show 5 gen 1 model ([`81096ae`](https://github.com/chemelli74/aioamazondevices/commit/81096ae39037ea5c565f9e4fe4ca71cbe03399fd))
+
+
+### Features
+
+- Rework id retrieval ([`a9f1510`](https://github.com/chemelli74/aioamazondevices/commit/a9f151045c40928ba736452327d678aa6df03e32))
 
 
 ## v3.2.8 (2025-07-07)
