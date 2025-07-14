@@ -382,12 +382,12 @@ class AmazonEchoApi:
             headers.update({"User-Agent": DEFAULT_AGENT})
         if self._csrf_cookie:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
-            _LOGGER.debug("Adding <%s> to headers", csrf)
+            _LOGGER.debug("Adding to headers: %s", csrf)
             headers.update(csrf)
 
         if json_data:
             json_header = {"Content-Type": "application/json; charset=utf-8"}
-            _LOGGER.debug("Adding %s to headers", json_header)
+            _LOGGER.debug("Adding to headers: %s", json_header)
             headers.update(json_header)
 
         _cookies = (
