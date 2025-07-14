@@ -20,7 +20,7 @@ packages = [
     { include = "aioamazondevices", from = "src" },
 ]
 dependencies = [
-"aiohttp",
+"aiohttp (>=3.12.7)",
 "beautifulsoup4",
 "colorlog",
 "langcodes",
