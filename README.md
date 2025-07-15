@@ -77,6 +77,16 @@ Please open an issue [here](https://github.com/chemelli74/aioamazondevices/issue
 
 Current device list: `DEVICE_TYPE_TO_MODEL` from [const.py](https://github.com/chemelli74/aioamazondevices/blob/main/src/aioamazondevices/const.py)
 
+## Rodmap
+
+The development roadmap includes the following items (in order of priority):
+
+- Stabilizing library for all countries
+- Re-introduce sensors via graphQL
+- Introduce timers/schedules/alarms
+- Introduce real time websocket updates (media player control)
+- Introduce control for Bluetooth connected devices
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
