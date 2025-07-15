@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.3.1-rc.1 (2025-07-15)
+
+### Bug fixes
+
+- Update openid.assoc_handle for aus/nz ([`e8aded2`](https://github.com/chemelli74/aioamazondevices/commit/e8aded246020be4b415a5598733470fc3d8166b3))
+
+
 ## v3.3.0 (2025-07-14)
 
 ### Features
