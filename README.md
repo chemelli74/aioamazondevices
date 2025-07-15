@@ -77,7 +77,7 @@ Please open an issue [here](https://github.com/chemelli74/aioamazondevices/issue
 
 Current device list: `DEVICE_TYPE_TO_MODEL` from [const.py](https://github.com/chemelli74/aioamazondevices/blob/main/src/aioamazondevices/const.py)
 
-## Rodmap
+## Roadmap
 
 The development roadmap includes the following items (in order of priority):
 
