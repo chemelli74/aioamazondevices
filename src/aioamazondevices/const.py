@@ -30,15 +30,18 @@ TO_REDACT = {
     "user_id",
 }
 
+AMAZON_DE_OVERRIDE = {
+    "domain": "de",
+    "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_de",
+}
+AMAZON_US_OVERRIDE = {
+    "domain": "com",
+    "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
+}
+
 DOMAIN_BY_ISO3166_COUNTRY = {
-    "ar": {
-        "domain": "com",
-        "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
-    },
-    "at": {
-        "domain": "de",
-        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_de",
-    },
+    "ar": AMAZON_US_OVERRIDE,
+    "at": AMAZON_DE_OVERRIDE,
     "au": {
         "domain": "com.au",
         "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
@@ -53,16 +56,14 @@ DOMAIN_BY_ISO3166_COUNTRY = {
         "domain": "co.uk",
         "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_uk",
     },
-    "il": {
-        "domain": "com",
-        "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
-    },
+    "il": AMAZON_US_OVERRIDE,
     "jp": {
         "domain": "co.jp",
     },
     "mx": {
         "domain": "com.mx",
     },
+    "no": AMAZON_DE_OVERRIDE,
     "nz": {
         "domain": "com.au",
         "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
@@ -70,9 +71,9 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     "tr": {
         "domain": "com.tr",
     },
-    "us": {
-        "domain": "com",
-        "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
+    "us": AMAZON_US_OVERRIDE,
+    "za": {
+        "domain": "co.za",
     },
 }
 

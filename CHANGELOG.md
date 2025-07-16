@@ -1,9 +1,22 @@
 # Changelog
 
-## v3.4.0-rc.2 (2025-07-16)
+## v3.4.0-rc.2 (2025-07-17)
+
+### Features
+
+- Rework id retrieval ([`a9f1510`](https://github.com/chemelli74/aioamazondevices/commit/a9f151045c40928ba736452327d678aa6df03e32))
+
+
+## v3.3.2 (2025-07-16)
+
+### Bug fixes
+
+- Add norway and south africa details ([`ce348f3`](https://github.com/chemelli74/aioamazondevices/commit/ce348f30fcad46f0a8664487f03540dd3a2e46e7))
+
 
 ### Refactoring
 
+- Country details for reuse ([`5d04ad1`](https://github.com/chemelli74/aioamazondevices/commit/5d04ad123c7885c96ddb13fcd135e95e1a2140a1))
 - Improve dev container settings ([`ae6c6ff`](https://github.com/chemelli74/aioamazondevices/commit/ae6c6ff1fe55d0c01ebdc692b88221ec328f76ed))
 
 
@@ -26,8 +39,6 @@
 - Update openid.assoc_handle for au and nz ([`a33fbeb`](https://github.com/chemelli74/aioamazondevices/commit/a33fbebd8296b592cb2081c36a79542a91f770d0))
 
 
-## v3.4.0-rc.1 (2025-07-14)
-
 ## v3.3.0 (2025-07-14)
 
 ### Features
@@ -47,11 +58,6 @@
 ### Bug fixes
 
 - Correct show 5 gen 1 model ([`81096ae`](https://github.com/chemelli74/aioamazondevices/commit/81096ae39037ea5c565f9e4fe4ca71cbe03399fd))
-
-
-### Features
-
-- Rework id retrieval ([`a9f1510`](https://github.com/chemelli74/aioamazondevices/commit/a9f151045c40928ba736452327d678aa6df03e32))
 
 
 ## v3.2.8 (2025-07-07)

@@ -118,6 +118,13 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/ivanfmartinez">
+                    <img src="https://avatars.githubusercontent.com/u/677001?v=4" width="100;" alt="ivanfmartinez"/>
+                    <br />
+                    <sub><b>Ivan F. Martinez</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/lchavezcuu">
                     <img src="https://avatars.githubusercontent.com/u/22165856?v=4" width="100;" alt="lchavezcuu"/>
                     <br />
