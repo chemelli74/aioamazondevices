@@ -155,7 +155,7 @@ async def main() -> None:
 
     if not login_data_stored and not args.password:
         print(f"You have to specify credentials for {args.email}")
-        args.password = getpass.getpass(f"enter the password for {args.email}: ")
+        args.password = getpass.getpass("Password: ")
 
     api = AmazonEchoApi(
         args.country,
