@@ -93,6 +93,47 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- prettier-ignore-start -->
 <!-- readme: contributors -start -->
+<table>
+	<tbody>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/chemelli74">
+                    <img src="https://avatars.githubusercontent.com/u/57354320?v=4" width="100;" alt="chemelli74"/>
+                    <br />
+                    <sub><b>Simone Chemelli</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/jeeftor">
+                    <img src="https://avatars.githubusercontent.com/u/6491743?v=4" width="100;" alt="jeeftor"/>
+                    <br />
+                    <sub><b>Jeef</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/jamesonuk">
+                    <img src="https://avatars.githubusercontent.com/u/1040621?v=4" width="100;" alt="jamesonuk"/>
+                    <br />
+                    <sub><b>jameson_uk</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/lchavezcuu">
+                    <img src="https://avatars.githubusercontent.com/u/22165856?v=4" width="100;" alt="lchavezcuu"/>
+                    <br />
+                    <sub><b>Luis Chavez</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/tronikos">
+                    <img src="https://avatars.githubusercontent.com/u/9987465?v=4" width="100;" alt="tronikos"/>
+                    <br />
+                    <sub><b>tronikos</b></sub>
+                </a>
+            </td>
+		</tr>
+	<tbody>
+</table>
 <!-- readme: contributors -end -->
 <!-- prettier-ignore-end -->
 
