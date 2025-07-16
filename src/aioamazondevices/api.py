@@ -152,14 +152,9 @@ class AmazonEchoApi:
         self._devices: dict[str, Any] = {}
         self._sensors_available: bool = True
 
-        if locale and (lang := locale.get("language")):
-            language = lang
-        else:
-            lang_object = Language.make(territory=self._login_country_code.upper())
-            lang_maximized = lang_object.maximize()
-            language = f"{lang_maximized.language}-{lang_maximized.region}"
-
-        self._language = language
+        lang_object = Language.make(territory=self._login_country_code.upper())
+        lang_maximized = lang_object.maximize()
+        self._language = f"{lang_maximized.language}-{lang_maximized.region}"
 
         _LOGGER.debug(
             "Initialize library with domain <%s> and language <%s>",
