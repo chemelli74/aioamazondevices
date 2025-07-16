@@ -1,5 +1,30 @@
 # Changelog
 
+## v3.3.2-rc.1 (2025-07-16)
+
+### Bug fixes
+
+- Add norway and south africa details ([`9e7036c`](https://github.com/chemelli74/aioamazondevices/commit/9e7036c86e027ef6f5bba14608d3b608690381df))
+
+
+### Refactoring
+
+- Country details for reuse ([`5d04ad1`](https://github.com/chemelli74/aioamazondevices/commit/5d04ad123c7885c96ddb13fcd135e95e1a2140a1))
+- Improve dev container settings ([`ae6c6ff`](https://github.com/chemelli74/aioamazondevices/commit/ae6c6ff1fe55d0c01ebdc692b88221ec328f76ed))
+
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`d7899ee`](https://github.com/chemelli74/aioamazondevices/commit/d7899ee290fbc210db9d0bbce49c077fa3336ca2))
+- Automate contributors list ([`2a77341`](https://github.com/chemelli74/aioamazondevices/commit/2a77341571648a311c4709d8aeed0627e78c0d17))
+- Add roadmap section to readme ([`3896fa9`](https://github.com/chemelli74/aioamazondevices/commit/3896fa9e829f870e4eacdaae6e91ff297ab89ea2))
+
+
+### Build system
+
+- Bump aiohttp from 3.12.13 to 3.12.14 ([`c7b9aac`](https://github.com/chemelli74/aioamazondevices/commit/c7b9aace0b15fb53376c81a6bf014e18cad44ad1))
+
+
 ## v3.3.1 (2025-07-15)
 
 ### Bug fixes
