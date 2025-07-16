@@ -9,16 +9,16 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from http import HTTPMethod, HTTPStatus
-from http.cookies import Morsel, SimpleCookie
+from http.cookies import Morsel
 from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
-from aiohttp import ClientConnectorError, ClientResponse, ClientSession
+from aiohttp import ClientConnectorError, ClientResponse, ClientSession, CookieJar
 from bs4 import BeautifulSoup, Tag
 from langcodes import Language
-from multidict import CIMultiDictProxy, MultiDictProxy
+from multidict import MultiDictProxy
 from yarl import URL
 
 from .const import (
@@ -161,15 +161,11 @@ class AmazonEchoApi:
 
         self.session: ClientSession
         self._devices: dict[str, Any] = {}
+        self._sensors_available: bool = True
 
-        if locale and (lang := locale.get("language")):
-            language = lang
-        else:
-            lang_object = Language.make(territory=self._login_country_code.upper())
-            lang_maximized = lang_object.maximize()
-            language = f"{lang_maximized.language}-{lang_maximized.region}"
-
-        self._language = language
+        lang_object = Language.make(territory=self._login_country_code.upper())
+        lang_maximized = lang_object.maximize()
+        self._language = f"{lang_maximized.language}-{lang_maximized.region}"
 
         _LOGGER.debug(
             "Initialize library with domain <%s> and language <%s>",
@@ -315,29 +311,9 @@ class AmazonEchoApi:
         """Create HTTP client session."""
         if not hasattr(self, "session") or self.session.closed:
             _LOGGER.debug("Creating HTTP session (aiohttp)")
-            headers = DEFAULT_HEADERS
-            headers.update({"Accept-Language": self._language})
-            self.session = ClientSession(
-                headers=headers,
-                cookies=self._cookies,
-            )
-
-    async def _parse_cookies_from_headers(
-        self, headers: CIMultiDictProxy[str]
-    ) -> dict[str, str]:
-        """Parse cookies with a value from headers."""
-        cookies_with_value: dict[str, str] = {}
-
-        for value in headers.getall("Set-Cookie", ()):
-            cookie = SimpleCookie()
-            cookie.load(value)
-
-            for name, morsel in cookie.items():
-                if morsel.value and morsel.value not in ("-", ""):
-                    cookies_with_value[name] = morsel.value
-
-        _LOGGER.debug("Cookies from headers: %s", cookies_with_value)
-        return cookies_with_value
+            cookie_jar = CookieJar()
+            cookie_jar.update_cookies(self._cookies)
+            self.session = ClientSession(cookie_jar=cookie_jar)
 
     async def _ignore_ap_signin_error(self, response: ClientResponse) -> bool:
         """Return true if error is due to signin endpoint."""
@@ -392,29 +368,28 @@ class AmazonEchoApi:
             headers.update({"User-Agent": DEFAULT_AGENT})
         if self._csrf_cookie:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
-            _LOGGER.debug("Adding <%s> to headers", csrf)
+            _LOGGER.debug("Adding to headers: %s", csrf)
             headers.update(csrf)
 
         if json_data:
             json_header = {"Content-Type": "application/json; charset=utf-8"}
-            _LOGGER.debug("Adding %s to headers", json_header)
+            _LOGGER.debug("Adding to headers: %s", json_header)
             headers.update(json_header)
 
         _cookies = (
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
+        self.session.cookie_jar.update_cookies(_cookies)
         try:
             resp = await self.session.request(
                 method,
                 URL(url, encoded=True),
                 data=input_data if not json_data else orjson.dumps(input_data),
-                cookies=_cookies,
                 headers=headers,
             )
         except (TimeoutError, ClientConnectorError) as exc:
             raise CannotConnect(f"Connection error during {method}") from exc
 
-        self._cookies.update(**await self._parse_cookies_from_headers(resp.headers))
         if not self._csrf_cookie:
             self._csrf_cookie = resp.cookies.get(CSRF_COOKIE, Morsel()).value
             _LOGGER.debug("CSRF cookie value: <%s>", self._csrf_cookie)
@@ -625,6 +600,7 @@ class AmazonEchoApi:
                 URI_IDS,
                 await self._http_phrase_error(raw_resp.status),
             )
+            self._sensors_available = False
             return []
 
         json_data = await raw_resp.json()
@@ -851,10 +827,12 @@ class AmazonEchoApi:
                 else:
                     self._devices[dev_serial] = {key: data}
 
-        entity_ids_list = await self._get_devices_ids()
-        devices_sensors = (
-            await self._get_sensors_states(entity_ids_list) if entity_ids_list else {}
-        )
+        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
+
+        if self._sensors_available and (
+            entity_ids_list := await self._get_devices_ids()
+        ):
+            devices_sensors = await self._get_sensors_states(entity_ids_list)
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():
@@ -1078,6 +1056,8 @@ class AmazonEchoApi:
                 ],
                 "skillId": "amzn1.ask.1p.alexadevicecontrols",
             }
+        else:
+            raise ValueError(f"Message type <{message_type}> is not recognised")
 
         return {
             "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",

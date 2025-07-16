@@ -77,15 +77,64 @@ Please open an issue [here](https://github.com/chemelli74/aioamazondevices/issue
 
 Current device list: `DEVICE_TYPE_TO_MODEL` from [const.py](https://github.com/chemelli74/aioamazondevices/blob/main/src/aioamazondevices/const.py)
 
+## Roadmap
+
+The development roadmap includes the following items (in order of priority):
+
+- Stabilizing library for all countries
+- Re-introduce sensors via graphQL
+- Introduce timers/schedules/alarms
+- Introduce real time websocket updates (media player control)
+- Introduce control for Bluetooth connected devices
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
 <!-- prettier-ignore-start -->
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- markdownlint-disable -->
-<!-- markdownlint-enable -->
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+<!-- readme: contributors -start -->
+<table>
+	<tbody>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/chemelli74">
+                    <img src="https://avatars.githubusercontent.com/u/57354320?v=4" width="100;" alt="chemelli74"/>
+                    <br />
+                    <sub><b>Simone Chemelli</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/jeeftor">
+                    <img src="https://avatars.githubusercontent.com/u/6491743?v=4" width="100;" alt="jeeftor"/>
+                    <br />
+                    <sub><b>Jeef</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/jamesonuk">
+                    <img src="https://avatars.githubusercontent.com/u/1040621?v=4" width="100;" alt="jamesonuk"/>
+                    <br />
+                    <sub><b>jameson_uk</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/lchavezcuu">
+                    <img src="https://avatars.githubusercontent.com/u/22165856?v=4" width="100;" alt="lchavezcuu"/>
+                    <br />
+                    <sub><b>Luis Chavez</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/tronikos">
+                    <img src="https://avatars.githubusercontent.com/u/9987465?v=4" width="100;" alt="tronikos"/>
+                    <br />
+                    <sub><b>tronikos</b></sub>
+                </a>
+            </td>
+		</tr>
+	<tbody>
+</table>
+<!-- readme: contributors -end -->
 <!-- prettier-ignore-end -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!

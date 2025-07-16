@@ -1,5 +1,33 @@
 # Changelog
 
+## v3.3.1 (2025-07-15)
+
+### Bug fixes
+
+- Update openid.assoc_handle for au and nz ([`a33fbeb`](https://github.com/chemelli74/aioamazondevices/commit/a33fbebd8296b592cb2081c36a79542a91f770d0))
+
+
+## v3.3.0 (2025-07-14)
+
+### Features
+
+- Use cookiejar instead of simplecookie ([`af68555`](https://github.com/chemelli74/aioamazondevices/commit/af68555b72cb73dbf5a704d7c407f8827c694fdc))
+
+
+## v3.2.10 (2025-07-13)
+
+### Bug fixes
+
+- Limit sensor data missing warning ([`8beb9f6`](https://github.com/chemelli74/aioamazondevices/commit/8beb9f6a4659fd159eda4856075f44d2301c363d))
+
+
+## v3.2.9 (2025-07-13)
+
+### Bug fixes
+
+- Correct show 5 gen 1 model ([`81096ae`](https://github.com/chemelli74/aioamazondevices/commit/81096ae39037ea5c565f9e4fe4ca71cbe03399fd))
+
+
 ## v3.2.8 (2025-07-07)
 
 ### Bug fixes

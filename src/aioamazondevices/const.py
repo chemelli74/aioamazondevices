@@ -37,12 +37,11 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     },
     "at": {
         "domain": "de",
-        "language": "en-US",
         "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_de",
     },
     "au": {
         "domain": "com.au",
-        "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
+        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
     },
     "be": {
         "domain": "com.be",
@@ -66,7 +65,7 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     },
     "nz": {
         "domain": "com.au",
-        "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
+        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
     },
     "tr": {
         "domain": "com.tr",
@@ -317,7 +316,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": None,
     },
     "A4ZP7ZC4PI6TO": {
-        "model": "Echo Show 3",
+        "model": "Echo Show 5",
         "hw_version": "Gen1",
     },
     "A4ZXE0RM7LQ7A": {
