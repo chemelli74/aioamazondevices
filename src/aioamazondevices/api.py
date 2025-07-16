@@ -1,5 +1,6 @@
 """Support for Amazon devices."""
 
+import asyncio
 import base64
 import hashlib
 import mimetypes
@@ -374,15 +375,35 @@ class AmazonEchoApi:
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
         self.session.cookie_jar.update_cookies(_cookies)
+
+        resp = None
         try:
-            resp = await self.session.request(
-                method,
-                URL(url, encoded=True),
-                data=input_data if not json_data else orjson.dumps(input_data),
-                headers=headers,
-            )
+            for delay in [0, 1, 2, 5, 8, 12, 21]:
+                if delay:
+                    _LOGGER.debug(
+                        "Sleeping for %s seconds before retrying API call", delay
+                    )
+                    await asyncio.sleep(delay)
+
+                resp = await self.session.request(
+                    method,
+                    URL(url, encoded=True),
+                    data=input_data if not json_data else orjson.dumps(input_data),
+                    headers=headers,
+                )
+
+                if resp.status not in [
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    HTTPStatus.SERVICE_UNAVAILABLE,
+                    HTTPStatus.TOO_MANY_REQUESTS,
+                ]:
+                    break
+
         except (TimeoutError, ClientConnectorError) as exc:
             raise CannotConnect(f"Connection error during {method}") from exc
+
+        if not resp:
+            raise CannotRetrieveData("No response received")
 
         if not self._csrf_cookie:
             self._csrf_cookie = resp.cookies.get(CSRF_COOKIE, Morsel()).value
