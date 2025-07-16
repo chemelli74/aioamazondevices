@@ -1,10 +1,10 @@
 # Changelog
 
-## v3.3.2-rc.1 (2025-07-16)
+## v3.3.2 (2025-07-16)
 
 ### Bug fixes
 
-- Add norway and south africa details ([`9e7036c`](https://github.com/chemelli74/aioamazondevices/commit/9e7036c86e027ef6f5bba14608d3b608690381df))
+- Add norway and south africa details ([`ce348f3`](https://github.com/chemelli74/aioamazondevices/commit/ce348f30fcad46f0a8664487f03540dd3a2e46e7))
 
 
 ### Refactoring
