@@ -1,12 +1,12 @@
 # Changelog
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
+## v3.3.2-rc.1 (2025-07-16)
+
+### Features
+
+- Queues api calls to avoid hitting the limit ([`05cd79c`](https://github.com/chemelli74/aioamazondevices/commit/05cd79c7463ab529d1da46111934a2e5d5e3435b))
+
+
 ## v3.3.1 (2025-07-15)
 
 ### Bug fixes
@@ -18,7 +18,6 @@
 
 ### Features
 
-<<<<<<< HEAD
 - Use cookiejar instead of simplecookie ([`af68555`](https://github.com/chemelli74/aioamazondevices/commit/af68555b72cb73dbf5a704d7c407f8827c694fdc))
 
 
@@ -83,22 +82,6 @@
 ### Bug fixes
 
 - Store csrf cookie at the right time ([`b882c90`](https://github.com/chemelli74/aioamazondevices/commit/b882c90d904c35bf230a48e56a71d56f7a5924f5))
-=======
-- Queues api calls to avoid hitting the limit ([`05cd79c`](https://github.com/chemelli74/aioamazondevices/commit/05cd79c7463ab529d1da46111934a2e5d5e3435b))
->>>>>>> 0ff188e (chore: update changelog)
-
-=======
-## v3.3.0-rc.1 (2025-07-01)
->>>>>>> 51e5a12 (3.3.0-rc.1)
-
-### Bug fixes
-
-- Handle api throttling ([`a3c0a71`](https://github.com/chemelli74/aioamazondevices/commit/a3c0a71dda891df9536e0905a53010e0f43e57ab))
-
-
-### Features
-
-- Queues api calls to avoid hitting the limit ([`05cd79c`](https://github.com/chemelli74/aioamazondevices/commit/05cd79c7463ab529d1da46111934a2e5d5e3435b))
 
 
 ## v3.2.1 (2025-07-01)
@@ -126,9 +109,6 @@
 
 - Align signin payload to mobile app ([`64b608c`](https://github.com/chemelli74/aioamazondevices/commit/64b608c4fab116779a351284cff844a420027659))
 
-=======
-## v3.2.0-rc.3 (2025-06-29)
->>>>>>> fa9ac98 (3.2.0-rc.3)
 
 ## v3.1.22 (2025-06-27)
 
@@ -143,46 +123,15 @@
 
 - Redact sensitive data from debug logs - part ii ([`031f166`](https://github.com/chemelli74/aioamazondevices/commit/031f166f21778b3d796ad246b1ffb31def44a614))
 
-=======
-## v3.2.0-rc.2 (2025-06-26)
->>>>>>> 36d63fb (3.2.0-rc.2)
 
 ## v3.1.20 (2025-06-26)
 
 ### Bug fixes
 
 - Inspect sensors for old devices ([`eb4fab1`](https://github.com/chemelli74/aioamazondevices/commit/eb4fab1af6e9bef3929d0fc3944c60750b43c676))
-=======
-## v3.2.0-rc.1 (2025-06-26)
-
-### Bug fixes
-
-- Handle api throttling ([`a3c0a71`](https://github.com/chemelli74/aioamazondevices/commit/a3c0a71dda891df9536e0905a53010e0f43e57ab))
-
-
-### Features
-
-- Queues api calls to avoid hitting the limit ([`05cd79c`](https://github.com/chemelli74/aioamazondevices/commit/05cd79c7463ab529d1da46111934a2e5d5e3435b))
->>>>>>> 7a3342a (3.2.0-rc.1)
-
-
-## v3.2.0-rc.1 (2025-06-26)
-
-### Bug fixes
-
-- Handle api throttling ([`a3c0a71`](https://github.com/chemelli74/aioamazondevices/commit/a3c0a71dda891df9536e0905a53010e0f43e57ab))
-
 
 
 ## v3.1.19 (2025-06-24)
-=======
-## v3.2.0-rc.1 (2025-06-23)
->>>>>>> cd29f58 (3.2.0-rc.1)
-=======
->>>>>>> 879e3af (chore: merge)
-=======
-## v3.1.19 (2025-06-24)
->>>>>>> bb8f513 (chore: changelog)
 
 ### Bug fixes
 
