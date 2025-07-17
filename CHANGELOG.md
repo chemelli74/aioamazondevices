@@ -1,5 +1,18 @@
 # Changelog
 
+## v3.4.0 (2025-07-17)
+
+### Documentation
+
+- Move docs to wiki ([`2d3d096`](https://github.com/chemelli74/aioamazondevices/commit/2d3d096815fcc79a9033c59b4a52abb8a3acf14c))
+- Contrib-readme-action has updated readme ([`16a87b6`](https://github.com/chemelli74/aioamazondevices/commit/16a87b66fdb610b05efd13659db47b80c91576a6))
+
+
+### Features
+
+- Ask for login password using getpass ([`9f86a63`](https://github.com/chemelli74/aioamazondevices/commit/9f86a63fa39477a431901efe64404d4d327ccf23))
+
+
 ## v3.3.2 (2025-07-16)
 
 ### Bug fixes
