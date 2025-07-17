@@ -638,13 +638,11 @@ class AmazonEchoApi:
 
             # Add identifier information to the device
             # but only if the device was previously found
-            if serial_number not in self._devices:
-                continue
+            if serial_number in self._devices:
+                self._devices[serial_number] |= {NODE_IDENTIFIER: identifier}
 
-            self._devices[serial_number] |= {NODE_IDENTIFIER: identifier}
-
-            # Add to entity IDs list for sensor retrieval
-            entity_ids_list.append({"entityId": entity_id, "entityType": "ENTITY"})
+                # Add to entity IDs list for sensor retrieval
+                entity_ids_list.append({"entityId": entity_id, "entityType": "ENTITY"})
 
         return entity_ids_list
 
