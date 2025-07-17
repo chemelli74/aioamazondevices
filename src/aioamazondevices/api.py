@@ -373,7 +373,9 @@ class AmazonEchoApi:
 
         for delay in [0, 1, 2, 5, 8, 12, 21]:
             if delay:
-                _LOGGER.debug("Sleeping for %s seconds before retrying API call", delay)
+                _LOGGER.info(
+                    "Sleeping for %s seconds before retrying API call to %s", delay, url
+                )
                 await asyncio.sleep(delay)
 
             try:
@@ -392,6 +394,7 @@ class AmazonEchoApi:
                 ]:
                     break
             except (TimeoutError, ClientConnectorError) as exc:
+                _LOGGER.warning("Connection error to %s: %s", url, repr(exc))
                 raise CannotConnect(f"Connection error during {method}") from exc
 
         if not self._csrf_cookie:
