@@ -1,6 +1,7 @@
 """Test script for aioamazondevices library."""
 
 import asyncio
+import getpass
 import json
 import logging
 import sys
@@ -150,12 +151,11 @@ async def main() -> None:
     """Run main."""
     parser, args = get_arguments()
 
-    if not args.password:
-        print("You have to specify a password")
-        parser.print_help()
-        sys.exit(1)
-
     login_data_stored = read_from_file(args.login_data_file)
+
+    if not login_data_stored and not args.password:
+        print(f"You have to specify credentials for {args.email}")
+        args.password = getpass.getpass("Password: ")
 
     api = AmazonEchoApi(
         args.country,

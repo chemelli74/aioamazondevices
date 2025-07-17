@@ -1,10 +1,48 @@
 # Changelog
 
-## v3.3.2-rc.1 (2025-07-16)
+## v3.5.0-rc.1 (2025-07-17)
 
 ### Features
 
 - Queues api calls to avoid hitting the limit ([`05cd79c`](https://github.com/chemelli74/aioamazondevices/commit/05cd79c7463ab529d1da46111934a2e5d5e3435b))
+
+
+## v3.4.0 (2025-07-17)
+
+### Documentation
+
+- Move docs to wiki ([`2d3d096`](https://github.com/chemelli74/aioamazondevices/commit/2d3d096815fcc79a9033c59b4a52abb8a3acf14c))
+- Contrib-readme-action has updated readme ([`16a87b6`](https://github.com/chemelli74/aioamazondevices/commit/16a87b66fdb610b05efd13659db47b80c91576a6))
+
+
+### Features
+
+- Ask for login password using getpass ([`9f86a63`](https://github.com/chemelli74/aioamazondevices/commit/9f86a63fa39477a431901efe64404d4d327ccf23))
+
+
+## v3.3.2 (2025-07-16)
+
+### Bug fixes
+
+- Add norway and south africa details ([`ce348f3`](https://github.com/chemelli74/aioamazondevices/commit/ce348f30fcad46f0a8664487f03540dd3a2e46e7))
+
+
+### Refactoring
+
+- Country details for reuse ([`5d04ad1`](https://github.com/chemelli74/aioamazondevices/commit/5d04ad123c7885c96ddb13fcd135e95e1a2140a1))
+- Improve dev container settings ([`ae6c6ff`](https://github.com/chemelli74/aioamazondevices/commit/ae6c6ff1fe55d0c01ebdc692b88221ec328f76ed))
+
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`d7899ee`](https://github.com/chemelli74/aioamazondevices/commit/d7899ee290fbc210db9d0bbce49c077fa3336ca2))
+- Automate contributors list ([`2a77341`](https://github.com/chemelli74/aioamazondevices/commit/2a77341571648a311c4709d8aeed0627e78c0d17))
+- Add roadmap section to readme ([`3896fa9`](https://github.com/chemelli74/aioamazondevices/commit/3896fa9e829f870e4eacdaae6e91ff297ab89ea2))
+
+
+### Build system
+
+- Bump aiohttp from 3.12.13 to 3.12.14 ([`c7b9aac`](https://github.com/chemelli74/aioamazondevices/commit/c7b9aace0b15fb53376c81a6bf014e18cad44ad1))
 
 
 ## v3.3.1 (2025-07-15)

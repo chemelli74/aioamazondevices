@@ -63,6 +63,7 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     "mx": {
         "domain": "com.mx",
     },
+    "no": AMAZON_DE_OVERRIDE,
     "nz": {
         "domain": "com.au",
         "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
@@ -71,6 +72,9 @@ DOMAIN_BY_ISO3166_COUNTRY = {
         "domain": "com.tr",
     },
     "us": AMAZON_US_OVERRIDE,
+    "za": {
+        "domain": "co.za",
+    },
 }
 
 # Amazon APP info
