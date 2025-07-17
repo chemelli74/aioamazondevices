@@ -1,5 +1,6 @@
 """Support for Amazon devices."""
 
+import asyncio
 import base64
 import hashlib
 import mimetypes
@@ -356,15 +357,39 @@ class AmazonEchoApi:
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
         self.session.cookie_jar.update_cookies(_cookies)
-        try:
-            resp = await self.session.request(
-                method,
-                URL(url, encoded=True),
-                data=input_data if not json_data else orjson.dumps(input_data),
-                headers=headers,
-            )
-        except (TimeoutError, ClientConnectorError) as exc:
-            raise CannotConnect(f"Connection error during {method}") from exc
+
+        resp: ClientResponse | None = None
+        for delay in [0, 1, 2, 5, 8, 12, 21]:
+            if delay:
+                _LOGGER.info(
+                    "Sleeping for %s seconds before retrying API call to %s", delay, url
+                )
+                await asyncio.sleep(delay)
+
+            try:
+                resp = await self.session.request(
+                    method,
+                    URL(url, encoded=True),
+                    data=input_data if not json_data else orjson.dumps(input_data),
+                    headers=headers,
+                )
+
+            except (TimeoutError, ClientConnectorError) as exc:
+                _LOGGER.warning("Connection error to %s: %s", url, repr(exc))
+                raise CannotConnect(f"Connection error during {method}") from exc
+
+            # Retry with a delay only for specific HTTP status
+            # that can benefits of a back-off
+            if resp.status not in [
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                HTTPStatus.TOO_MANY_REQUESTS,
+            ]:
+                break
+
+        if resp is None:
+            _LOGGER.error("No response received from %s", url)
+            raise CannotConnect(f"No response received from {url}")
 
         if not self._csrf_cookie:
             self._csrf_cookie = resp.cookies.get(CSRF_COOKIE, Morsel()).value
@@ -863,7 +888,7 @@ class AmazonEchoApi:
         )
         if not model_details:
             _LOGGER.warning(
-                "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices?tab=readme-ov-file#unknown-device-type",
+                "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices/wiki/Unknown-Device-Types",
                 device.device_type,
                 device.account_name,
             )
