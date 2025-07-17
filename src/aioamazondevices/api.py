@@ -386,17 +386,19 @@ class AmazonEchoApi:
                     data=input_data if not json_data else orjson.dumps(input_data),
                     headers=headers,
                 )
-                # Retry with a delay only for specific HTTP status
-                # that can benefits of a back-off
-                if resp.status not in [
-                    HTTPStatus.INTERNAL_SERVER_ERROR,
-                    HTTPStatus.SERVICE_UNAVAILABLE,
-                    HTTPStatus.TOO_MANY_REQUESTS,
-                ]:
-                    break
+
             except (TimeoutError, ClientConnectorError) as exc:
                 _LOGGER.warning("Connection error to %s: %s", url, repr(exc))
                 raise CannotConnect(f"Connection error during {method}") from exc
+
+            # Retry with a delay only for specific HTTP status
+            # that can benefits of a back-off
+            if resp.status not in [
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                HTTPStatus.TOO_MANY_REQUESTS,
+            ]:
+                break
 
         if resp is None:
             _LOGGER.error("No response received from %s", url)
