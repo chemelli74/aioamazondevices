@@ -62,30 +62,17 @@ The script accept command line arguments or a library_test.json config file:
 }
 ```
 
+## Known Issues & Limitations
+
+See [wiki](https://github.com/chemelli74/aioamazondevices/wiki/Known-Issues-and-Limitations)
+
 ## Unknown device type
 
-Library logs a warning if an unknown device type is linked to your Amazon account.
-
-Please open an issue [here](https://github.com/chemelli74/aioamazondevices/issues) and provide the following information:
-
-- device type
-- brand
-- model
-- generation
-- entities are available in Home Assistant
-- entities work in Home Assistant
-
-Current device list: `DEVICE_TYPE_TO_MODEL` from [const.py](https://github.com/chemelli74/aioamazondevices/blob/main/src/aioamazondevices/const.py)
+See [wiki](https://github.com/chemelli74/aioamazondevices/wiki/Unknown-Device-Types)
 
 ## Roadmap
 
-The development roadmap includes the following items (in order of priority):
-
-- Stabilizing library for all countries
-- Re-introduce sensors via graphQL
-- Introduce timers/schedules/alarms
-- Introduce real time websocket updates (media player control)
-- Introduce control for Bluetooth connected devices
+See [wiki](https://github.com/chemelli74/aioamazondevices/wiki/Roadmap)
 
 ## Contributors ✨
 
