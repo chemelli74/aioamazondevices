@@ -2,11 +2,6 @@
 
 ## v3.5.0-rc.1 (2025-07-17)
 
-### Features
-
-- Queues api calls to avoid hitting the limit ([`05cd79c`](https://github.com/chemelli74/aioamazondevices/commit/05cd79c7463ab529d1da46111934a2e5d5e3435b))
-
-
 ## v3.4.0 (2025-07-17)
 
 ### Documentation
@@ -25,6 +20,12 @@
 ### Bug fixes
 
 - Add norway and south africa details ([`ce348f3`](https://github.com/chemelli74/aioamazondevices/commit/ce348f30fcad46f0a8664487f03540dd3a2e46e7))
+- Handle api throttling ([`fd74f93`](https://github.com/chemelli74/aioamazondevices/commit/fd74f9380ba9dcedd81426da9b3995b0ea92da62))
+
+
+### Features
+
+- Queues api calls to avoid hitting the limit ([`8e8dc4a`](https://github.com/chemelli74/aioamazondevices/commit/8e8dc4aec1bb78c8d0374618f4ac4989711f2fa0))
 
 
 ### Refactoring
