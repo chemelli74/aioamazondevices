@@ -243,6 +243,15 @@ async def main() -> None:
         sys.exit(4)
     print("Session authenticated!")
 
+    print("-" * 20)
+    print("Sensors:")
+
+    for sensor_name in device_single.sensors:
+        sensor = device_single.sensors[sensor_name]
+        print(f"{sensor.name} with value: {sensor.value}")
+
+    print("-" * 20)
+
     print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
     await api.call_alexa_speak(device_single, "Test Speak message from new library")
 
