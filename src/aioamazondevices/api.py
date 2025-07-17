@@ -371,6 +371,7 @@ class AmazonEchoApi:
         )
         self.session.cookie_jar.update_cookies(_cookies)
 
+        resp: ClientResponse | None = None
         for delay in [0, 1, 2, 5, 8, 12, 21]:
             if delay:
                 _LOGGER.info(
@@ -396,6 +397,10 @@ class AmazonEchoApi:
             except (TimeoutError, ClientConnectorError) as exc:
                 _LOGGER.warning("Connection error to %s: %s", url, repr(exc))
                 raise CannotConnect(f"Connection error during {method}") from exc
+
+        if resp is None:
+            _LOGGER.error("No response received from %s", url)
+            raise CannotConnect(f"No response received from {url}")
 
         if not self._csrf_cookie:
             self._csrf_cookie = resp.cookies.get(CSRF_COOKIE, Morsel()).value
