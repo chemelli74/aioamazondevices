@@ -24,7 +24,8 @@ from aiohttp import (
     ClientTimeout,
     CookieJar,
     TraceConfig,
-    TraceConnectionReuseconnParams,
+    TraceRequestEndParams,
+    TraceRequestStartParams,
 )
 from bs4 import BeautifulSoup, Tag
 from langcodes import Language
@@ -126,7 +127,7 @@ class AmazonMusicSource(StrEnum):
 async def on_request_start(
     session: ClientSession,  # noqa: ARG001
     trace_config_ctx: SimpleNamespace,  # noqa: ARG001
-    params: TraceConnectionReuseconnParams,  # noqa: ARG001
+    params: TraceRequestStartParams,  # noqa: ARG001
 ) -> None:
     """Log the start of a request."""
     _LOGGER.warning("Starting request")
@@ -135,7 +136,7 @@ async def on_request_start(
 async def on_request_end(
     session: ClientSession,  # noqa: ARG001
     trace_config_ctx: SimpleNamespace,  # noqa: ARG001
-    params: TraceConnectionReuseconnParams,  # noqa: ARG001
+    params: TraceRequestEndParams,  # noqa: ARG001
 ) -> None:
     """Log the end of a request."""
     _LOGGER.warning("Ending request")
