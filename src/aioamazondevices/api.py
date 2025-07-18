@@ -11,6 +11,7 @@ from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from http import HTTPMethod, HTTPStatus
 from http.cookies import Morsel
+from logging import DEBUG
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, cast
@@ -333,11 +334,14 @@ class AmazonEchoApi:
             cookie_jar = CookieJar()
             cookie_jar.update_cookies(self._cookies)
 
-            trace_config = TraceConfig()
-            trace_config.on_request_start.append(on_request_start)
-            trace_config.on_request_end.append(on_request_end)
+            if _LOGGER.parent and _LOGGER.parent.level == DEBUG:
+                trace_config = TraceConfig()
+                trace_config.on_request_start.append(on_request_start)
+                trace_config.on_request_end.append(on_request_end)
+
             self.session = ClientSession(
-                cookie_jar=cookie_jar, trace_configs=[trace_config]
+                cookie_jar=cookie_jar,
+                trace_configs=[trace_config] if trace_config else None,
             )
 
     async def _ignore_ap_signin_error(self, response: ClientResponse) -> bool:
