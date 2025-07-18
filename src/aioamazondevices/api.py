@@ -16,10 +16,19 @@ from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
-from aiohttp import ClientConnectorError, ClientResponse, ClientSession, CookieJar
+from aiohttp import (
+    ClientConnectorError,
+    ClientResponse,
+    ClientSession,
+    ClientTimeout,
+    CookieJar,
+    TraceConfig,
+    TraceConnectionReuseconnParams,
+)
 from bs4 import BeautifulSoup, Tag
 from langcodes import Language
 from multidict import MultiDictProxy
+from type import SimpleNamespace
 from yarl import URL
 
 from .const import (
@@ -112,6 +121,24 @@ class AmazonMusicSource(StrEnum):
 
     Radio = "TUNEIN"
     AmazonMusic = "AMAZON_MUSIC"
+
+
+async def on_request_start(
+    session: ClientSession,  # noqa: ARG001
+    trace_config_ctx: SimpleNamespace,  # noqa: ARG001
+    params: TraceConnectionReuseconnParams,  # noqa: ARG001
+) -> None:
+    """Log the start of a request."""
+    _LOGGER.warning("Starting request")
+
+
+async def on_request_end(
+    session: ClientSession,  # noqa: ARG001
+    trace_config_ctx: SimpleNamespace,  # noqa: ARG001
+    params: TraceConnectionReuseconnParams,  # noqa: ARG001
+) -> None:
+    """Log the end of a request."""
+    _LOGGER.warning("Ending request")
 
 
 class AmazonEchoApi:
@@ -299,11 +326,18 @@ class AmazonEchoApi:
 
     def _client_session(self) -> None:
         """Create HTTP client session."""
+        trace_config: TraceConfig | None = None
         if not hasattr(self, "session") or self.session.closed:
             _LOGGER.debug("Creating HTTP session (aiohttp)")
             cookie_jar = CookieJar()
             cookie_jar.update_cookies(self._cookies)
-            self.session = ClientSession(cookie_jar=cookie_jar)
+
+            trace_config = TraceConfig()
+            trace_config.on_request_start.append(on_request_start)
+            trace_config.on_request_end.append(on_request_end)
+            self.session = ClientSession(
+                cookie_jar=cookie_jar, trace_configs=[trace_config]
+            )
 
     async def _ignore_ap_signin_error(self, response: ClientResponse) -> bool:
         """Return true if error is due to signin endpoint."""
@@ -378,6 +412,14 @@ class AmazonEchoApi:
                     "Sleeping for %s seconds before retrying API call to %s", delay, url
                 )
                 await asyncio.sleep(delay)
+                version = AMAZON_APP_VERSION.replace(".0", "")
+                headers.update(
+                    {
+                        "User-Agent": (
+                            f"AmazonWebView/AmazonAlexa/{version}/iOS/{AMAZON_CLIENT_OS}/iPhone"
+                        )
+                    }
+                )
 
             try:
                 resp = await self.session.request(
@@ -385,6 +427,7 @@ class AmazonEchoApi:
                     URL(url, encoded=True),
                     data=input_data if not json_data else orjson.dumps(input_data),
                     headers=headers,
+                    timeout=ClientTimeout(30),
                 )
 
             except (TimeoutError, ClientConnectorError) as exc:
