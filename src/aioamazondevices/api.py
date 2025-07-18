@@ -12,6 +12,7 @@ from enum import StrEnum
 from http import HTTPMethod, HTTPStatus
 from http.cookies import Morsel
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
@@ -28,7 +29,6 @@ from aiohttp import (
 from bs4 import BeautifulSoup, Tag
 from langcodes import Language
 from multidict import MultiDictProxy
-from type import SimpleNamespace
 from yarl import URL
 
 from .const import (
@@ -412,14 +412,6 @@ class AmazonEchoApi:
                     "Sleeping for %s seconds before retrying API call to %s", delay, url
                 )
                 await asyncio.sleep(delay)
-                version = AMAZON_APP_VERSION.replace(".0", "")
-                headers.update(
-                    {
-                        "User-Agent": (
-                            f"AmazonWebView/AmazonAlexa/{version}/iOS/{AMAZON_CLIENT_OS}/iPhone"
-                        )
-                    }
-                )
 
             try:
                 resp = await self.session.request(
