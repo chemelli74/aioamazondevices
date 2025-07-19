@@ -22,6 +22,7 @@ from aioamazondevices.exceptions import (
     CannotRegisterDevice,
     WrongCountry,
 )
+from aioamazondevices.utils import obfuscate_email, scrub_fields
 
 
 def get_arguments() -> tuple[ArgumentParser, Namespace]:
@@ -65,15 +66,19 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         "--save_raw_data",
         "-s",
         action="store_true",
-        default=True,
         help="Save HTML source on disk",
     )
     parser.add_argument(
         "--test",
         "-t",
         action="store_true",
-        default=True,
         help="Execute test actions",
+    )
+    parser.add_argument(
+        "--login_only",
+        "-l",
+        action="store_true",
+        help="Only login without doing other actions",
     )
     parser.add_argument(
         "--configfile",
@@ -154,7 +159,10 @@ async def main() -> None:
     login_data_stored = read_from_file(args.login_data_file)
 
     if not login_data_stored and not args.password:
-        print(f"You have to specify credentials for {args.email}")
+        print(
+            "You have to specify credentials for ",
+            args.email if sys.stdout.isatty() else obfuscate_email(args.email),
+        )
         args.password = getpass.getpass("Password: ")
 
     api = AmazonEchoApi(
@@ -192,10 +200,17 @@ async def main() -> None:
     print("Logged-in.")
 
     print("-" * 20)
-    print("Login data:", login_data)
+    print(
+        "Login data:", login_data if sys.stdout.isatty() else scrub_fields(login_data)
+    )
     print("-" * 20)
 
     save_to_file(f"{SAVE_PATH}/output-login-data.json", login_data)
+
+    if args.login_only:
+        print("!!! Login only requested, exiting !!!")
+        await api.close()
+        sys.exit(0)
 
     print("-" * 20)
     try:
