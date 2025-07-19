@@ -383,3 +383,6 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": "Gen2",
     },
 }
+
+# HTTP2_SITE = "https://alexa.{region}.gateway.devices.a2z.com"
+HTTP2_SITE = "https://avs-alexa-{region}.amazon.com"
