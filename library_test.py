@@ -159,7 +159,10 @@ async def main() -> None:
     login_data_stored = read_from_file(args.login_data_file)
 
     if not login_data_stored and not args.password:
-        print("You have to specify credentials for ", args.email if sys.stdout.isatty() else obfuscate_email(args.email))
+        print(
+            "You have to specify credentials for ",
+            args.email if sys.stdout.isatty() else obfuscate_email(args.email),
+        )
         args.password = getpass.getpass("Password: ")
 
     api = AmazonEchoApi(
@@ -197,7 +200,9 @@ async def main() -> None:
     print("Logged-in.")
 
     print("-" * 20)
-    print("Login data:", login_data if sys.stdout.isatty() else scrub_fields(login_data))
+    print(
+        "Login data:", login_data if sys.stdout.isatty() else scrub_fields(login_data)
+    )
     print("-" * 20)
 
     save_to_file(f"{SAVE_PATH}/output-login-data.json", login_data)
