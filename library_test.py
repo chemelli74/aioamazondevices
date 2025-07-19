@@ -72,7 +72,6 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         "--test",
         "-t",
         action="store_true",
-        default=True,
         help="Execute test actions",
     )
     parser.add_argument(
