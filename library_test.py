@@ -65,7 +65,6 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         "--save_raw_data",
         "-s",
         action="store_true",
-        default=True,
         help="Save HTML source on disk",
     )
     parser.add_argument(
@@ -73,6 +72,12 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         "-t",
         action="store_true",
         help="Execute test actions",
+    )
+    parser.add_argument(
+        "--login_only",
+        "-l",
+        action="store_true",
+        help="Only login without doing other actions",
     )
     parser.add_argument(
         "--configfile",
@@ -196,6 +201,11 @@ async def main() -> None:
 
     save_to_file(f"{SAVE_PATH}/output-login-data.json", login_data)
 
+    if args.login_only:
+        print("!!! Login only requested, exiting !!!")
+        await api.close()
+        sys.exit(0)
+        
     print("-" * 20)
     try:
         devices = await api.get_devices_data()
