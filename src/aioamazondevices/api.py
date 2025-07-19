@@ -2,9 +2,11 @@
 
 import asyncio
 import base64
+import contextlib
 import hashlib
 import mimetypes
 import secrets
+import ssl
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -15,8 +17,16 @@ from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
+import certifi
+import httpx
 import orjson
-from aiohttp import ClientConnectorError, ClientResponse, ClientSession, CookieJar
+from aiohttp import (
+    ClientConnectionError,
+    ClientConnectorError,
+    ClientResponse,
+    ClientSession,
+    CookieJar,
+)
 from bs4 import BeautifulSoup, Tag
 from langcodes import Language
 from multidict import MultiDictProxy
@@ -943,7 +953,7 @@ class AmazonEchoApi:
     ) -> None:
         """Send message to specific device."""
         if not self._login_stored_data:
-            _LOGGER.warning("Trying to send message before login")
+            _LOGGER.warning("No login data available, cannot send message")
             return
 
         base_payload = {
@@ -1111,3 +1121,85 @@ class AmazonEchoApi:
         await self._session_request(
             method="PUT", url=url, input_data=payload, json_data=True
         )
+
+    async def get_avs_directives(self) -> None:
+        """Get AVS directives."""
+        if not self._login_stored_data:
+            _LOGGER.warning("No login data available, cannot get directives")
+            return
+
+        region = self._login_stored_data["customer_info"]["home_region"]
+        url = f"https://alexa.{region}.gateway.devices.a2z.com/v20160207/directives"
+
+        if not await self._refresh_token():
+            _LOGGER.warning("Failed to refresh access token, cannot get directives")
+            return
+
+        client = httpx.AsyncClient(
+            http2=True,
+            verify=ssl.create_default_context(
+                purpose=ssl.Purpose.SERVER_AUTH, cafile=certifi.where()
+            ),
+            timeout=httpx.Timeout(None),
+        )
+
+        try:
+            async with client.stream(
+                "GET",
+                url,
+                headers={
+                    "Authorization": f"Bearer {self._login_stored_data['access_token']}",  # noqa: E501
+                    "Accept": "text/event-stream",
+                    "Accept-Encoding": "gzip",
+                },
+            ) as response:
+                _LOGGER.debug(
+                    "AVS Directives response status: %s", response.status_code
+                )
+                async for chunk in response.aiter_lines():
+                    _LOGGER.debug("AVS Directives chunk: %s", chunk)
+        except httpx.RemoteProtocolError as excp:
+            _LOGGER.warning("Disconnect detected: %s", excp)
+
+    async def _refresh_token(self) -> bool:
+        """Refresh token."""
+        if not self._login_stored_data:
+            _LOGGER.debug("No login data available, cannot refresh token")
+            return False
+
+        data = {
+            "app_name": AMAZON_APP_NAME,
+            "app_version": AMAZON_APP_VERSION,
+            "di.sdk.version": "6.12.4",
+            "source_token": self._login_stored_data["refresh_token"],
+            "package_name": AMAZON_APP_BUNDLE_ID,
+            "di.hw.version": "iPhone",
+            "platform": "iOS",
+            "requested_token_type": "access_token",
+            "source_token_type": "refresh_token",
+            "di.os.name": "iOS",
+            "di.os.version": AMAZON_CLIENT_OS,
+            "current_version": "6.12.4",
+            "previous_version": "6.12.4",
+        }
+
+        for dom in [self._domain, "com"]:
+            with contextlib.suppress(ClientConnectionError):
+                response = await self.session.post(
+                    f"https://api.amazon.{dom}/auth/token",
+                    data=data,
+                )
+        _LOGGER.debug("refresh response %s with \n%s", response, orjson.dumps(data))
+        if response.status != HTTPStatus.OK:
+            _LOGGER.debug("Failed to refresh access token")
+            return False
+        response = await response.json()
+        _LOGGER.debug("Refresh token json:\n%s ", response)
+        if response.get("access_token"):
+            self._login_stored_data["access_token"] = response.get("access_token")
+            self.expires_in = datetime.now(tz=UTC).timestamp() + int(
+                response.get("expires_in")
+            )
+
+            return True
+        return False
