@@ -65,14 +65,12 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         "--save_raw_data",
         "-s",
         action="store_true",
-        default=True,
         help="Save HTML source on disk",
     )
     parser.add_argument(
         "--test",
         "-t",
         action="store_true",
-        default=True,
         help="Execute test actions",
     )
     parser.add_argument(
