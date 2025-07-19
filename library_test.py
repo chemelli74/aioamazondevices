@@ -205,7 +205,7 @@ async def main() -> None:
         print("!!! Login only requested, exiting !!!")
         await api.close()
         sys.exit(0)
-        
+
     print("-" * 20)
     try:
         devices = await api.get_devices_data()
