@@ -129,16 +129,14 @@ class AmazonEchoApi:
         # Force country digits as lower case
         country_code = login_country_code.lower()
 
-        locale = DOMAIN_BY_ISO3166_COUNTRY.get(country_code)
-        domain = locale["domain"] if locale else country_code
-        market = locale.get("market") if locale else f"https://www.amazon.{domain}"
+        locale = DOMAIN_BY_ISO3166_COUNTRY.get(country_code, {})
+        domain = locale.get("domain", country_code)
+        market = locale.get("market", f"https://www.amazon.{domain}")
+        assoc_handle = locale.get(
+            "openid.assoc_handle", f"{DEFAULT_ASSOC_HANDLE}_{country_code}"
+        )
 
-        if locale and (assoc := locale.get("openid.assoc_handle")):
-            assoc_handle = assoc
-        else:
-            assoc_handle = f"{DEFAULT_ASSOC_HANDLE}_{country_code}"
         self._assoc_handle = assoc_handle
-
         self._login_email = login_email
         self._login_password = login_password
         self._login_country_code = country_code
