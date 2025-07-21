@@ -384,5 +384,4 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     },
 }
 
-# HTTP2_SITE = "https://alexa.{region}.gateway.devices.a2z.com"
-HTTP2_SITE = "https://avs-alexa-{region}.amazon.com"
+HTTP2_SITE = "https://alexa.{region}.gateway.devices.a2z.com/v20160207"

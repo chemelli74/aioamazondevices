@@ -1127,7 +1127,6 @@ class AmazonEchoApi:
     async def _http2_init_client(self) -> None:
         """Create HTTP2 client session."""
         self._http2_client = httpx.AsyncClient(
-            http1=False,
             http2=True,
             verify=ssl.create_default_context(
                 purpose=ssl.Purpose.SERVER_AUTH, cafile=certifi.where()
@@ -1150,7 +1149,7 @@ class AmazonEchoApi:
         try:
             async with self._http2_client.stream(
                 "GET",
-                f"{await self._http2_site()}/v20160207/directives",
+                f"{await self._http2_site()}/directives",
                 headers={
                     "Authorization": f"Bearer {self._login_stored_data['access_token']}",  # noqa: E501
                     "Accept": "text/event-stream",
