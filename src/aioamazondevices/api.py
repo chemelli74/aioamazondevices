@@ -131,6 +131,7 @@ class AmazonEchoApi:
 
         locale = DOMAIN_BY_ISO3166_COUNTRY.get(country_code)
         domain = locale["domain"] if locale else country_code
+        market = locale.get("market") if locale else f"https://www.amazon.{domain}"
 
         if locale and (assoc := locale.get("openid.assoc_handle")):
             assoc_handle = assoc
@@ -142,6 +143,7 @@ class AmazonEchoApi:
         self._login_password = login_password
         self._login_country_code = country_code
         self._domain = domain
+        self._market = market
         self._cookies = self._build_init_cookies()
         self._csrf_cookie: str | None = None
         self._save_raw_data = save_raw_data
@@ -158,9 +160,10 @@ class AmazonEchoApi:
         self._language = f"{lang_maximized.language}-{lang_maximized.region}"
 
         _LOGGER.debug(
-            "Initialize library with domain <%s> and language <%s>",
+            "Initialize library: domain <amazon.%s>, language <%s>, market: <%s>",
             self._domain,
             self._language,
+            self._market,
         )
 
     def _load_website_cookies(self) -> dict[str, str]:
@@ -584,14 +587,14 @@ class AmazonEchoApi:
             raise CannotAuthenticate
 
         resp_me_json = await resp_me.json()
-        country_of_residence: str = resp_me_json["countryOfResidence"].lower()
-        selected_country = self._login_country_code.lower()
-        if country_of_residence != selected_country:
+        amazon_market = resp_me_json["marketPlaceDomainName"]
+
+        if amazon_market != self._market:
             _LOGGER.warning(
                 "Selected country <%s> doesn't matches Amazon API reply:\n%s\n vs \n%s",
                 self._login_country_code.upper(),
-                {"selected": selected_country},
-                {"amazon": country_of_residence},
+                {"input ": self._market},
+                {"amazon": amazon_market},
             )
             raise WrongCountry
 
