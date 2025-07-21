@@ -61,6 +61,10 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     "mx": {
         "domain": "com.mx",
     },
+    "nl": {
+        "domain": "nl",
+        "market": "https://www.amazon.co.uk",
+    },
     "no": AMAZON_DE_OVERRIDE,
     "nz": {
         "domain": "com.au",
