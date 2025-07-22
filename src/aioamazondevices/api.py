@@ -584,16 +584,13 @@ class AmazonEchoApi:
             raise CannotAuthenticate
 
         resp_me_json = await resp_me.json()
-        market = resp_me_json["marketPlaceDomainName"]
+        amazon_country = resp_me_json["countryOfResidence"]
 
-        _domain = f"https://www.amazon.{self._domain}"
-
-        if market != _domain:
+        if amazon_country.lower() != self._login_country_code:
             _LOGGER.warning(
-                "Selected country <%s> doesn't matches Amazon API reply:\n%s\n vs \n%s",
+                "Selected country <%s> doesn't match Amazon country of residence <%s>",
                 self._login_country_code.upper(),
-                {"site  ": _domain},
-                {"market": market},
+                amazon_country,
             )
             raise WrongCountry
 
