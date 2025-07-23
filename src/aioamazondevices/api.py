@@ -33,7 +33,6 @@ from .const import (
     AMAZON_DEVICE_TYPE,
     BIN_EXTENSION,
     CSRF_COOKIE,
-    DEFAULT_AGENT,
     DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
     DEVICE_TO_IGNORE,
@@ -50,7 +49,7 @@ from .const import (
     NODE_PREFERENCES,
     SAVE_PATH,
     SENSORS,
-    URI_IDS,
+    URI_NEXUS_GRAPHQL,
     URI_QUERIES,
     URI_SENSORS,
     URI_SIGNIN,
@@ -83,6 +82,7 @@ class AmazonDevice:
     capabilities: list[str]
     device_family: str
     device_type: str
+    endpoint_id: str
     device_owner_customer_id: str
     device_cluster_members: list[str]
     device_locale: str
@@ -151,7 +151,6 @@ class AmazonEchoApi:
 
         self.session: ClientSession
         self._devices: dict[str, Any] = {}
-        self._sensors_available: bool = True
 
         lang_object = Language.make(territory=self._login_country_code.upper())
         lang_maximized = lang_object.maximize()
@@ -316,14 +315,6 @@ class AmazonEchoApi:
             )
         return False
 
-    async def _ignore_phoenix_error(self, response: ClientResponse) -> bool:
-        """Return true if error is due to phoenix endpoint."""
-        # Endpoint URI_IDS replies with error 199 or 299
-        # during maintenance
-        return response.status in [HTTP_ERROR_199, HTTP_ERROR_299] and (
-            URI_IDS in response.url.path
-        )
-
     async def _http_phrase_error(self, error: int) -> str:
         """Convert numeric error in human phrase."""
         if error == HTTP_ERROR_199:
@@ -340,7 +331,6 @@ class AmazonEchoApi:
         url: str,
         input_data: dict[str, Any] | None = None,
         json_data: bool = False,
-        amazon_user_agent: bool = True,
     ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
@@ -353,9 +343,6 @@ class AmazonEchoApi:
 
         headers = DEFAULT_HEADERS
         headers.update({"Accept-Language": self._language})
-        if not amazon_user_agent:
-            _LOGGER.debug("Changing User-Agent to %s", DEFAULT_AGENT)
-            headers.update({"User-Agent": DEFAULT_AGENT})
         if self._csrf_cookie:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
             _LOGGER.debug("Adding to headers: %s", csrf)
@@ -423,9 +410,7 @@ class AmazonEchoApi:
                 HTTPStatus.UNAUTHORIZED,
             ]:
                 raise CannotAuthenticate(await self._http_phrase_error(resp.status))
-            if not await self._ignore_ap_signin_error(
-                resp
-            ) and not await self._ignore_phoenix_error(resp):
+            if not await self._ignore_ap_signin_error(resp):
                 raise CannotRetrieveData(
                     f"Request failed: {await self._http_phrase_error(resp.status)}"
                 )
@@ -601,88 +586,63 @@ class AmazonEchoApi:
 
     async def _get_devices_ids(self) -> list[dict[str, str]]:
         """Retrieve devices entityId and applianceId."""
-        _, raw_resp = await self._session_request(
-            "GET",
-            url=f"https://alexa.amazon.{self._domain}{URI_IDS}",
-            amazon_user_agent=False,
-        )
+        graphql_query = """
+        query CustomerSmartHome {
+          endpoints(
+            endpointsQueryParams: { paginationParams: { disablePagination: true } }
+          ) {
+            items {
+              endpointId
+              friendlyName
+              legacyIdentifiers {
+                chrsIdentifier { entityId }
+              }
+              serialNumber {
+                type
+                value { text }
+              }
+              legacyAppliance { applianceId }
+            }
+          }
+        }
+        """
 
-        # Sensors data not available
-        if raw_resp.status != HTTPStatus.OK:
-            _LOGGER.warning(
-                "Sensors data not available [%s error '%s'], skipping",
-                URI_IDS,
-                await self._http_phrase_error(raw_resp.status),
-            )
-            self._sensors_available = False
-            return []
+        _, raw_resp = await self._session_request(
+            method=HTTPMethod.POST,
+            url=f"https://alexa.amazon.{self._domain}{URI_NEXUS_GRAPHQL}",
+            input_data={"query": graphql_query},
+            json_data=True,
+        )
 
         json_data = await raw_resp.json()
 
-        network_detail = orjson.loads(json_data["networkDetail"])
-        # Navigate through the nested structure step by step
-        location_details = network_detail["locationDetails"]["locationDetails"]
-        default_location = location_details["Default_Location"]
-        amazon_bridge = default_location["amazonBridgeDetails"]["amazonBridgeDetails"]
-
-        # New devices are based on LambdaBridge_AAA structure
-        lambda_bridge_aaa = amazon_bridge.get("LambdaBridge_AAA/SonarCloudService")
-        appliance_details_aaa = (
-            lambda_bridge_aaa["applianceDetails"]["applianceDetails"]
-            if lambda_bridge_aaa
-            else {}
-        )
-
-        entity_ids_list: list[dict[str, str]] = await self._get_entities_ids(
-            appliance_details_aaa, "AAA_SonarCloudService"
-        )
-
-        # Old devices are based on LambdaBridge_AlexaBridge structure
-        for bridge_key, bridge_value in amazon_bridge.items():
-            if "LambdaBridge_AlexaBridge/" in bridge_key:
-                # Value key:    "LambdaBridge_AlexaBridge/XXXXXXXXXXXXXX@XXXXXXXXXXXXXX"
-                # Value subkey: "AlexaBridge_XXXXXXXXXXXXXX@XXXXXXXXXXXXXX_XXXXXXXXXXXX"
-                subkey = bridge_key.split("_")[1].replace("/", "_")
-
-                appliance_details_alexa = bridge_value["applianceDetails"][
-                    "applianceDetails"
-                ]
-                entity_ids_list.extend(
-                    await self._get_entities_ids(appliance_details_alexa, subkey)
-                )
-
-        return entity_ids_list
-
-    async def _get_entities_ids(
-        self, appliance_details: dict[str, Any], searchkey: str
-    ) -> list[dict[str, str]]:
-        """Extract entityId and applianceId."""
         entity_ids_list: list[dict[str, str]] = []
-        # Process each appliance that starts with "searchkey"
-        for appliance_key, appliance_data in appliance_details.items():
-            if not appliance_key.startswith(searchkey):
-                continue
 
-            entity_id = appliance_data["entityId"]
-            appliance_id = appliance_data["applianceId"]
+        endpoints = json_data["data"]["endpoints"]
+        for endpoint in endpoints["items"]:
+            serial_number = (
+                endpoint["serialNumber"]["value"]["text"]
+                if endpoint["serialNumber"]
+                else None
+            )
+            endpoint_id = endpoint["endpointId"]
+            entity_id = endpoint["legacyIdentifiers"]["chrsIdentifier"]["entityId"]
+            appliance_id = endpoint["legacyAppliance"]["applianceId"]
 
             # Create identifier object for this appliance
             identifier = {
+                "endpointId": endpoint_id,
                 "entityId": entity_id,
                 "applianceId": appliance_id,
             }
 
-            # Update device information for each device in the identifier list
-            for device_identifier in appliance_data["alexaDeviceIdentifierList"]:
-                serial_number = device_identifier["dmsDeviceSerialNumber"]
+            # Add identifier information to the device
+            # but only if the device was previously found
+            if serial_number in self._devices:
+                self._devices[serial_number] |= {NODE_IDENTIFIER: identifier}
 
-                # Add identifier information to the device
-                # but only if the device was previously found
-                if serial_number in self._devices:
-                    self._devices[serial_number] |= {NODE_IDENTIFIER: identifier}
-
-            # Add to entity IDs list for sensor retrieval
-            entity_ids_list.append({"entityId": entity_id, "entityType": "ENTITY"})
+                # Add to entity IDs list for sensor retrieval
+                entity_ids_list.append({"entityId": entity_id, "entityType": "ENTITY"})
 
         return entity_ids_list
 
@@ -843,10 +803,8 @@ class AmazonEchoApi:
 
         devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
 
-        if self._sensors_available and (
-            entity_ids_list := await self._get_devices_ids()
-        ):
-            devices_sensors = await self._get_sensors_states(entity_ids_list)
+        entity_ids_list = await self._get_devices_ids()
+        devices_sensors = await self._get_sensors_states(entity_ids_list)
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():
@@ -873,6 +831,7 @@ class AmazonEchoApi:
                 capabilities=devices_node["capabilities"],
                 device_family=devices_node["deviceFamily"],
                 device_type=devices_node["deviceType"],
+                endpoint_id=identifier_node.get("endpointId"),
                 device_owner_customer_id=devices_node["deviceOwnerCustomerId"],
                 device_cluster_members=(
                     devices_node["clusterMembers"] or [serial_number]
