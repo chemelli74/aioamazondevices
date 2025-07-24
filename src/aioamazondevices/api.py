@@ -129,19 +129,19 @@ class AmazonEchoApi:
         # Force country digits as lower case
         country_code = login_country_code.lower()
 
-        locale = DOMAIN_BY_ISO3166_COUNTRY.get(country_code)
-        domain = locale["domain"] if locale else country_code
+        locale = DOMAIN_BY_ISO3166_COUNTRY.get(country_code, {})
+        domain = locale.get("domain", country_code)
+        market = locale.get("market", f"https://www.amazon.{domain}")
+        assoc_handle = locale.get(
+            "openid.assoc_handle", f"{DEFAULT_ASSOC_HANDLE}_{country_code}"
+        )
 
-        if locale and (assoc := locale.get("openid.assoc_handle")):
-            assoc_handle = assoc
-        else:
-            assoc_handle = f"{DEFAULT_ASSOC_HANDLE}_{country_code}"
         self._assoc_handle = assoc_handle
-
         self._login_email = login_email
         self._login_password = login_password
         self._login_country_code = country_code
         self._domain = domain
+        self._market = market
         self._cookies = self._build_init_cookies()
         self._csrf_cookie: str | None = None
         self._save_raw_data = save_raw_data
@@ -158,9 +158,10 @@ class AmazonEchoApi:
         self._language = f"{lang_maximized.language}-{lang_maximized.region}"
 
         _LOGGER.debug(
-            "Initialize library with domain <%s> and language <%s>",
+            "Initialize library: domain <amazon.%s>, language <%s>, market: <%s>",
             self._domain,
             self._language,
+            self._market,
         )
 
     def _load_website_cookies(self) -> dict[str, str]:
@@ -584,16 +585,14 @@ class AmazonEchoApi:
             raise CannotAuthenticate
 
         resp_me_json = await resp_me.json()
-        market = resp_me_json["marketPlaceDomainName"]
+        amazon_market = resp_me_json["marketPlaceDomainName"]
 
-        _domain = f"https://www.amazon.{self._domain}"
-
-        if market != _domain:
+        if amazon_market != self._market:
             _LOGGER.warning(
                 "Selected country <%s> doesn't matches Amazon API reply:\n%s\n vs \n%s",
                 self._login_country_code.upper(),
-                {"site  ": _domain},
-                {"market": market},
+                {"input ": self._market},
+                {"amazon": amazon_market},
             )
             raise WrongCountry
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.5.1-rc.1 (2025-07-21)
+
+### Bug fixes
+
+- Change country logic for fixing brasil ([`68315c3`](https://github.com/chemelli74/aioamazondevices/commit/68315c374689870133fcc121bf61a62e474bd80c))
+
+
 ## v3.5.0 (2025-07-17)
 
 ### Features
