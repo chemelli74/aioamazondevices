@@ -1,10 +1,21 @@
 # Changelog
 
-## v3.5.1-rc.1 (2025-07-21)
+## v3.5.1 (2025-07-24)
 
 ### Bug fixes
 
-- Change country logic for fixing brasil ([`68315c3`](https://github.com/chemelli74/aioamazondevices/commit/68315c374689870133fcc121bf61a62e474bd80c))
+- Change country logic for fixing brasil and netherland ([`63b074b`](https://github.com/chemelli74/aioamazondevices/commit/63b074b30fb6f15508eeb3ba570d0c19b9991b34))
+
+
+### Build system
+
+- Pump poetry requirement ([`597c20a`](https://github.com/chemelli74/aioamazondevices/commit/597c20ada10a996f00f00c73f4e507824b3a3c8b))
+
+
+### Testing
+
+- Improve cleanup script ([`ebf221b`](https://github.com/chemelli74/aioamazondevices/commit/ebf221b02607cdfbf653dd7e7d1d9a965d86c6bf))
+- Remove wrong default for store_true ([`7b69fe5`](https://github.com/chemelli74/aioamazondevices/commit/7b69fe5f92c41e190931f9bba80c7400bd188c86))
 
 
 ## v3.5.0 (2025-07-17)
