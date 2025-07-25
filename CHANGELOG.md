@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.5.3-rc.1 (2025-07-25)
+
+### Bug fixes
+
+- Add model model details ([`0201a9e`](https://github.com/chemelli74/aioamazondevices/commit/0201a9eddd42a163e0f61d88f7027b8c027b060b))
+
+
 ## v3.5.2 (2025-07-25)
 
 ### Bug fixes
