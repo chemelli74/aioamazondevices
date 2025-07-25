@@ -2,9 +2,11 @@
 
 import asyncio
 import base64
+import contextlib
 import hashlib
 import mimetypes
 import secrets
+import ssl
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -15,8 +17,16 @@ from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
+import certifi
+import httpx
 import orjson
-from aiohttp import ClientConnectorError, ClientResponse, ClientSession, CookieJar
+from aiohttp import (
+    ClientConnectionError,
+    ClientConnectorError,
+    ClientResponse,
+    ClientSession,
+    CookieJar,
+)
 from bs4 import BeautifulSoup, Tag
 from langcodes import Language
 from multidict import MultiDictProxy
@@ -40,6 +50,7 @@ from .const import (
     DEVICE_TYPE_TO_MODEL,
     DOMAIN_BY_ISO3166_COUNTRY,
     HTML_EXTENSION,
+    HTTP2_SITE,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
     JSON_EXTENSION,
@@ -150,6 +161,7 @@ class AmazonEchoApi:
         self._list_for_clusters: dict[str, str] = {}
 
         self.session: ClientSession
+        self._http2_client: httpx.AsyncClient
         self._devices: dict[str, Any] = {}
         self._sensors_available: bool = True
 
@@ -942,7 +954,7 @@ class AmazonEchoApi:
     ) -> None:
         """Send message to specific device."""
         if not self._login_stored_data:
-            _LOGGER.warning("Trying to send message before login")
+            _LOGGER.warning("No login data available, cannot send message")
             return
 
         base_payload = {
@@ -1110,3 +1122,124 @@ class AmazonEchoApi:
         await self._session_request(
             method="PUT", url=url, input_data=payload, json_data=True
         )
+
+    async def _http2_init_client(self) -> None:
+        """Create HTTP2 client session."""
+        self._http2_client = httpx.AsyncClient(
+            http2=True,
+            verify=ssl.create_default_context(
+                purpose=ssl.Purpose.SERVER_AUTH, cafile=certifi.where()
+            ),
+            timeout=httpx.Timeout(None),
+        )
+
+    async def get_avs_directives(self) -> None:
+        """Get AVS directives."""
+        await self._http2_init_client()
+
+        if not self._login_stored_data:
+            _LOGGER.warning("No login data available, cannot get directives")
+            return
+
+        if not await self._refresh_token():
+            _LOGGER.warning("Failed to refresh access token, cannot get directives")
+            return
+
+        try:
+            async with self._http2_client.stream(
+                "GET",
+                f"{await self._http2_site()}/directives",
+                headers={
+                    "Authorization": f"Bearer {self._login_stored_data['access_token']}",  # noqa: E501
+                    "Accept": "text/event-stream",
+                    "Accept-Encoding": "gzip",
+                },
+            ) as response:
+                _LOGGER.debug(
+                    "AVS Directives response status: %s [%s]",
+                    response.status_code,
+                    response.http_version,
+                )
+                async for chunk in response.aiter_text():
+                    _LOGGER.debug("AVS Directives chunk: %s", chunk)
+                    if chunk.startswith("-----"):
+                        _LOGGER.debug("Pinging...")
+                        await self._ping()
+            _LOGGER.debug("AVS Directives stream closed")
+        except httpx.RemoteProtocolError as excp:
+            _LOGGER.warning("Disconnect detected: %s", excp)
+
+    async def _http2_site(self) -> str:
+        """Get HTTP2 site."""
+        if not self._login_stored_data:
+            _LOGGER.debug("No login data available, cannot get HTTP2 site")
+            return ""
+
+        region = self._login_stored_data["customer_info"]["home_region"]
+        return HTTP2_SITE.replace("{region}", region)
+
+    async def _refresh_token(self) -> bool:
+        """Refresh token."""
+        if not self._login_stored_data:
+            _LOGGER.debug("No login data available, cannot refresh token")
+            return False
+
+        data = {
+            "app_name": AMAZON_APP_NAME,
+            "app_version": AMAZON_APP_VERSION,
+            "di.sdk.version": "6.12.4",
+            "source_token": self._login_stored_data["refresh_token"],
+            "package_name": AMAZON_APP_BUNDLE_ID,
+            "di.hw.version": "iPhone",
+            "platform": "iOS",
+            "requested_token_type": "access_token",
+            "source_token_type": "refresh_token",
+            "di.os.name": "iOS",
+            "di.os.version": AMAZON_CLIENT_OS,
+            "current_version": "6.12.4",
+            "previous_version": "6.12.4",
+        }
+
+        for dom in [self._domain, "com"]:
+            with contextlib.suppress(ClientConnectionError):
+                response = await self.session.post(
+                    f"https://api.amazon.{dom}/auth/token",
+                    data=data,
+                )
+        _LOGGER.debug("refresh response %s with \n%s", response, orjson.dumps(data))
+        if response.status != HTTPStatus.OK:
+            _LOGGER.debug("Failed to refresh access token")
+            return False
+        response = await response.json()
+        _LOGGER.debug("Refresh token json:\n%s ", response)
+        if response.get("access_token"):
+            self._login_stored_data["access_token"] = response.get("access_token")
+            self.expires_in = datetime.now(tz=UTC).timestamp() + int(
+                response.get("expires_in")
+            )
+
+            return True
+        return False
+
+    async def _ping(self) -> None:
+        """Ping."""
+        if not self._login_stored_data:
+            _LOGGER.warning("No login data available, cannot get directives")
+            return
+
+        response = await self._http2_client.post(
+            f"{await self._http2_site()}/ping",
+            headers={
+                "Authorization": f"Bearer {self._login_stored_data['access_token']}",
+            },
+        )
+        _LOGGER.debug(
+            "Received response: %s:%s",
+            response.status_code,
+            response.text,
+        )
+        if response.status_code in [403]:
+            _LOGGER.debug("Detected ping 403")
+            raise ValueError(
+                "Detected ping 403, please check your credentials and region"
+            )
