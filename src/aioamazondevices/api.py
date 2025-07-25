@@ -362,7 +362,7 @@ class AmazonEchoApi:
         _cookies = (
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
-        self.session.cookie_jar.update_cookies(_cookies)
+        self._session.cookie_jar.update_cookies(_cookies)
 
         resp: ClientResponse | None = None
         for delay in [0, 1, 2, 5, 8, 12, 21]:
@@ -373,7 +373,7 @@ class AmazonEchoApi:
                 await asyncio.sleep(delay)
 
             try:
-                resp = await self.session.request(
+                resp = await self._session.request(
                     method,
                     URL(url, encoded=True),
                     data=input_data if not json_data else orjson.dumps(input_data),
