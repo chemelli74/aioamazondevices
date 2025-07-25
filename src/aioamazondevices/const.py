@@ -150,6 +150,7 @@ DEVICE_TO_IGNORE: list[str] = [
     "A2TF17PFR55MTB",  # Alexa App for Android
     "A1RTAM01W29CUP",  # Alexa App for PC
     "A18BI6KPKDOEI4",  # ecobee4 Smart Thermostat with Built-in Alexa - issue #199
+    "A15ERDAKK5HQQG",  # unsupported Sonos devices - issue #257
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
@@ -262,6 +263,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Fire Tablet HD 10 Plus",
         "hw_version": "Gen11",
     },
+    "A2RG3FY1YV97SS": {
+        "manufacturer": "Sonos Inc.",
+        "model": "Sonos Move",
+        "hw_version": "Gen1",
+    },
     "A2RU4B77X9R9NZ": {
         "model": "Echo Link Amp",
         "hw_version": None,
@@ -273,6 +279,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A2UONLFQW0PADH": {
         "model": "Echo Show 8",
         "hw_version": "Gen3",
+    },
+    "A2Z8O30CD35N8F": {
+        "manufacturer": "Sonos Inc.",
+        "model": "Sonos Arc",
+        "hw_version": "Gen1",
     },
     "A303PJF6ISQ7IC": {
         "model": "Echo Auto",
@@ -409,6 +420,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "manufacturer": "ecobee Inc.",
         "model": "ecobee Switch+",
         "hw_version": None,
+    },
+    "AVD3HM0HOJAAL": {
+        "manufacturer": "Sonos Inc.",
+        "model": "Sonos One",
+        "hw_version": "Gen2",
     },
     "AVU7CPPF2ZRAS": {
         "model": "Fire Tablet HD 8 Plus",
