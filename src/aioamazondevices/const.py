@@ -149,6 +149,7 @@ DEVICE_TO_IGNORE: list[str] = [
     AMAZON_DEVICE_TYPE,  # Alexa App for iOS
     "A2TF17PFR55MTB",  # Alexa App for Android
     "A1RTAM01W29CUP",  # Alexa App for PC
+    "A18BI6KPKDOEI4",  # ecobee4 Smart Thermostat with Built-in Alexa - issue #199
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
@@ -172,6 +173,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Plus",
         "hw_version": "Gen2",
     },
+    "A1C66CX2XD756O": {
+        "model": "Fire Tablet HD 8",
+        "hw_version": "Gen8",
+    },
     "A1EIANJ7PNB0Q7": {
         "model": "Echo Show 15",
         "hw_version": "Gen1",
@@ -184,12 +189,16 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Fire TV Stick 4K",
         "hw_version": "Gen2",
     },
+    "A1Q7QCGNMXAKYW": {
+        "model": "Fire Tablet 7",
+        "hw_version": "Gen9",
+    },
     "A1RABVCI4QCIKC": {
         "model": "Echo Dot",
         "hw_version": "Gen3",
     },
     "A1TD5Z1R8IWBHA ": {
-        "model": "Fire HD 8",
+        "model": "Fire Tablet HD 8",
         "hw_version": "Gen12",
     },
     "A1VGB7MHSIEYFK": {
@@ -250,8 +259,12 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": "Gen5",
     },
     "A2N49KXGVA18AR": {
-        "model": "Fire HD 10 Plus",
+        "model": "Fire Tablet HD 10 Plus",
         "hw_version": "Gen11",
+    },
+    "A2RU4B77X9R9NZ": {
+        "model": "Echo Link Amp",
+        "hw_version": None,
     },
     "A2U21SRK4QGSE1": {
         "model": "Echo Dot",
@@ -269,6 +282,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot",
         "hw_version": "Gen3",
     },
+    "A31DTMEEVDDOIV": {
+        "model": "Fire TV Stick Lite",
+        "hw_version": "Gen1",
+    },
     "A32DDESGESSHZA": {
         "model": "Echo Dot",
         "hw_version": "Gen3",
@@ -280,6 +297,15 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A33S43L213VSHQ ": {
         "model": "Smart TV 4K",
         "hw_version": "4 Series",
+    },
+    "A38949IHXHRQ5P": {
+        "model": "Echo Tap",
+        "hw_version": "Gen1",
+    },
+    "A39OV95SPFQ9YG": {
+        "manufacturer": "Sonos Inc.",
+        "model": "Sonos Era 100",
+        "hw_version": None,
     },
     "A3C9PE6TNYLTCH": {
         "model": "Speaker Group",
@@ -293,9 +319,17 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "FireTV 4k MAX",
         "hw_version": "Gen1",
     },
+    "A3FX4UWTP28V1P": {
+        "model": "Echo",
+        "hw_version": "Gen3",
+    },
     "A3HF4YRA2L7XGC": {
         "model": "Fire TV Cube",
         "hw_version": "Gen1",
+    },
+    "A3HND3J60V1OXX": {
+        "model": "Echo Loop",
+        "hw_version": None,
     },
     "A3NPD82ABCPIDP": {
         "manufacturer": "Sonos Inc.",
