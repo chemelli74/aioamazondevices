@@ -720,13 +720,9 @@ class AmazonEchoApi:
             final_sensors.update({_id: dict_sensors})
         return final_sensors
 
-    async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
+    async def login_mode_interactive_registration(self) -> BeautifulSoup:
         """Login to Amazon interactively via OTP."""
-        _LOGGER.debug(
-            "Logging-in for %s [otp code: %s]",
-            obfuscate_email(self._login_email),
-            bool(otp_code),
-        )
+        _LOGGER.debug("Logging-in for %s", obfuscate_email(self._login_email))
         self._client_session()
 
         code_verifier = self._create_code_verifier()
@@ -756,6 +752,13 @@ class AmazonEchoApi:
             )
             raise CannotAuthenticate
 
+        return login_soup
+
+    async def login_mode_interactive_with_otp(
+        self, login_soup: BeautifulSoup, otp_code: str
+    ) -> dict[str, Any]:
+        """Login to Amazon interactively with OTP code."""
+        code_verifier = self._create_code_verifier()
         login_method, login_url = self._get_request_from_soup(login_soup)
 
         login_inputs = self._get_inputs_from_soup(login_soup)
