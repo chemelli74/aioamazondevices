@@ -156,23 +156,26 @@ async def main() -> None:
         print(f"You have to specify credentials for {args.email}")
         args.password = getpass.getpass("Password: ")
 
+    client_session = ClientSession()
+
     api = AmazonEchoApi(
+        client_session,
         args.country,
         args.email,
         args.password,
         login_data_stored,
-        args.save_raw_data,
     )
 
-    client_session = ClientSession()
+    if args.save_raw_data:
+        api.save_raw_data()
 
     try:
         try:
             if login_data_stored:
-                login_data = await api.login_mode_stored_data(client_session)
+                login_data = await api.login_mode_stored_data()
             else:
                 login_data = await api.login_mode_interactive(
-                    args.otp_code or input("OTP Code: "), client_session
+                    args.otp_code or input("OTP Code: ")
                 )
         except CannotAuthenticate:
             print(f"Cannot authenticate with {args.email} credentials")

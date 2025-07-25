@@ -119,11 +119,11 @@ class AmazonEchoApi:
 
     def __init__(
         self,
+        client_session: ClientSession,
         login_country_code: str,
         login_email: str,
         login_password: str,
         login_data: dict[str, Any] | None = None,
-        save_raw_data: bool = False,
     ) -> None:
         """Initialize the scanner."""
         # Force country digits as lower case
@@ -144,12 +144,12 @@ class AmazonEchoApi:
         self._market = market
         self._cookies = self._build_init_cookies()
         self._csrf_cookie: str | None = None
-        self._save_raw_data = save_raw_data
+        self._save_raw_data = False
         self._login_stored_data = login_data
         self._serial = self._serial_number()
         self._list_for_clusters: dict[str, str] = {}
 
-        self._session: ClientSession
+        self._session = client_session
         self._devices: dict[str, Any] = {}
         self._sensors_available: bool = True
 
@@ -163,6 +163,11 @@ class AmazonEchoApi:
             self._language,
             self._market,
         )
+
+    def save_raw_data(self) -> None:
+        """Save raw data to disk."""
+        self._save_raw_data = True
+        _LOGGER.debug("Saving raw data to disk")
 
     def _load_website_cookies(self) -> dict[str, str]:
         """Get website cookies, if avaliables."""
@@ -712,16 +717,13 @@ class AmazonEchoApi:
             final_sensors.update({_id: dict_sensors})
         return final_sensors
 
-    async def login_mode_interactive(
-        self, otp_code: str, client_session: ClientSession
-    ) -> dict[str, Any]:
+    async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
         _LOGGER.debug(
             "Logging-in for %s [otp code: %s]",
             obfuscate_email(self._login_email),
             bool(otp_code),
         )
-        self._session = client_session
 
         code_verifier = self._create_code_verifier()
         client_id = self._build_client_id()
@@ -782,9 +784,7 @@ class AmazonEchoApi:
 
         return register_device
 
-    async def login_mode_stored_data(
-        self, client_session: ClientSession
-    ) -> dict[str, Any]:
+    async def login_mode_stored_data(self) -> dict[str, Any]:
         """Login to Amazon using previously stored data."""
         if not self._login_stored_data:
             _LOGGER.debug(
@@ -797,8 +797,6 @@ class AmazonEchoApi:
             "Logging-in for %s with stored data",
             obfuscate_email(self._login_email),
         )
-
-        self._session = client_session
 
         await self._check_country()
 
