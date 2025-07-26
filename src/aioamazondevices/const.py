@@ -151,6 +151,10 @@ DEVICE_TO_IGNORE: list[str] = [
     "A1RTAM01W29CUP",  # Alexa App for PC
     "A18BI6KPKDOEI4",  # ecobee4 Smart Thermostat with Built-in Alexa - issue #199
     "A15ERDAKK5HQQG",  # unsupported Sonos devices - issue #257
+    "A3GZUE7F9MEB4U",  # Sony headset WH-1000XM3 - issue #269
+    "A23ZD3FSVQM5EE",  # Sony headset WH-1000XM2 - issue #326
+    "A7S41FQ5TWBC9",  # Sony headset WH-1000XM4 - issue #327
+    "A1L4KDRIILU6N9",  # Sony headset WH-CH700N  - issue #345
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
