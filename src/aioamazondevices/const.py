@@ -438,4 +438,13 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Plus",
         "hw_version": "Gen2",
     },
+    "AQ24620N8QD5Q": {
+        "model": "Echo Show 15",
+        "hw_version": "Gen2",
+    },
+    "A2OSP3UA4VC85F": {
+        "manufacturer": "Sonos Inc.",
+        "model": "Sonos One",
+        "hw_version": "Gen1",
+    },
 }
