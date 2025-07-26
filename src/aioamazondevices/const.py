@@ -267,6 +267,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Fire Tablet HD 10 Plus",
         "hw_version": "Gen11",
     },
+    "A2OSP3UA4VC85F": {
+        "manufacturer": "Sonos Inc.",
+        "model": "Sonos One",
+        "hw_version": "Gen1",
+    },
     "A2RG3FY1YV97SS": {
         "manufacturer": "Sonos Inc.",
         "model": "Sonos Move",
@@ -412,6 +417,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Stereo Pair",
         "hw_version": "Virtual",
     },
+    "AQ24620N8QD5Q": {
+        "model": "Echo Show 15",
+        "hw_version": "Gen2",
+    },
     "ASQZWP4GPYUT7": {
         "model": "Echo pop",
         "hw_version": "Gen1",
@@ -437,14 +446,5 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "G2A0V704840708AP": {
         "model": "Echo Plus",
         "hw_version": "Gen2",
-    },
-    "AQ24620N8QD5Q": {
-        "model": "Echo Show 15",
-        "hw_version": "Gen2",
-    },
-    "A2OSP3UA4VC85F": {
-        "manufacturer": "Sonos Inc.",
-        "model": "Sonos One",
-        "hw_version": "Gen1",
     },
 }
