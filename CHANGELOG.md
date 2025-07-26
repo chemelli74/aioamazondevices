@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.5.2 (2025-07-25)
+
+### Bug fixes
+
+- Add more device data ([`0324732`](https://github.com/chemelli74/aioamazondevices/commit/03247322606f2ab4f267d2311488983ef5f0d9e3))
+
+
 ## v3.5.1 (2025-07-24)
 
 ### Bug fixes
