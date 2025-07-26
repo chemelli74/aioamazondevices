@@ -156,6 +156,7 @@ DEVICE_TO_IGNORE: list[str] = [
     "A23ZD3FSVQM5EE",  # Sony headset WH-1000XM2 - issue #326
     "A7S41FQ5TWBC9",  # Sony headset WH-1000XM4 - issue #327
     "A1L4KDRIILU6N9",  # Sony headset WH-CH700N  - issue #345
+    "A2IJJ9QXVOSYK0",  # JBL TUNE770NC - issue #391
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
