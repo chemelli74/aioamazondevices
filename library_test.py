@@ -81,6 +81,13 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         Command line options override those in the file.",
     )
 
+    parser.add_argument(
+        "--music_provider",
+        "-mp",
+        type=str,
+        help="Music provider, either 'Amazon' or 'Spotify'",
+    )
+
     arguments_cli = parser.parse_args()
     args = vars(arguments_cli)
     # Re-parse the command line
@@ -148,6 +155,10 @@ async def wait_action_complete(sleep: int = 4) -> None:
 async def main() -> None:
     """Run main."""
     parser, args = get_arguments()
+
+    _music_provider = AmazonMusicSource.AmazonMusic
+    if args.music_provider and args.music_provider == "Spotify":
+        _music_provider = AmazonMusicSource.Spotify
 
     login_data_stored = read_from_file(args.login_data_file)
 
