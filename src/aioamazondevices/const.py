@@ -157,6 +157,7 @@ DEVICE_TO_IGNORE: list[str] = [
     "A7S41FQ5TWBC9",  # Sony headset WH-1000XM4 - issue #327
     "A1L4KDRIILU6N9",  # Sony headset WH-CH700N  - issue #345
     "A2IJJ9QXVOSYK0",  # JBL TUNE770NC - issue #391
+    "AKOAGQTKAS9YB",  # Amazon Echo Connect - issue #406
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
@@ -448,5 +449,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "G2A0V704840708AP": {
         "model": "Echo Plus",
         "hw_version": "Gen2",
+    },
+    "AECNEXTDY5AD9": {
+        "manufacturer": "Cozyla",
+        "model": "Frame with Alexa",
+        "hw_version": None,
     },
 }
