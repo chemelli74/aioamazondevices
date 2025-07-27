@@ -944,7 +944,7 @@ class AmazonEchoApi:
         self,
         device: AmazonDevice,
         message_type: str,
-        message_body: str | float,
+        message_body: str,
         message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
@@ -1036,7 +1036,7 @@ class AmazonEchoApi:
                     "deviceSerialNumber": device.serial_number,
                 },
                 "connectionRequest": {
-                    "uri": "connection://AMAZON.Launch/" + str(message_body),
+                    "uri": "connection://AMAZON.Launch/" + message_body,
                 },
             }
         else:
@@ -1155,4 +1155,6 @@ class AmazonEchoApi:
             _vol_clean = math.ceil(volume / 10.0) * 10
         if volume != _vol_clean:
             _LOGGER.debug("Volume %s rounded to %s", volume, _vol_clean)
-        return await self._send_message(device, AmazonSequenceType.Volume, _vol_clean)
+        return await self._send_message(
+            device, AmazonSequenceType.Volume, str(_vol_clean)
+        )
