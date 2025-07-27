@@ -22,6 +22,7 @@ from langcodes import Language
 from multidict import MultiDictProxy
 from yarl import URL
 
+from . import __version__
 from .const import (
     _LOGGER,
     AMAZON_APP_BUNDLE_ID,
@@ -158,7 +159,8 @@ class AmazonEchoApi:
         self._language = f"{lang_maximized.language}-{lang_maximized.region}"
 
         _LOGGER.debug(
-            "Initialize library: domain <amazon.%s>, language <%s>, market: <%s>",
+            "Initialize library v%s: domain <amazon.%s>, language <%s>, market: <%s>",
+            __version__,
             self._domain,
             self._language,
             self._market,
