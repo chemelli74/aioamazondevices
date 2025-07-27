@@ -108,6 +108,7 @@ class AmazonSequenceType(StrEnum):
     TextCommand = "Alexa.TextCommand"
     LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
 
+
 class AmazonMusicSource(StrEnum):
     """Amazon music sources."""
 
@@ -1111,7 +1112,7 @@ class AmazonEchoApi:
         return await self._send_message(
             device, AmazonSequenceType.TextCommand, message_body
         )
-    
+
     async def call_alexa_skill(
         self,
         device: AmazonDevice,
