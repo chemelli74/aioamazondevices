@@ -3,6 +3,7 @@
 import asyncio
 import base64
 import hashlib
+import math
 import mimetypes
 import secrets
 import uuid
@@ -44,6 +45,8 @@ from .const import (
     HTTP_ERROR_199,
     HTTP_ERROR_299,
     JSON_EXTENSION,
+    MAX_VOLUME,
+    MIN_VOLUME,
     NODE_BLUETOOTH,
     NODE_DEVICES,
     NODE_DO_NOT_DISTURB,
@@ -107,6 +110,7 @@ class AmazonSequenceType(StrEnum):
     Music = "Alexa.Music.PlaySearchPhrase"
     TextCommand = "Alexa.TextCommand"
     LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
+    Volume = "Alexa.DeviceControls.Volume"
 
 
 class AmazonMusicSource(StrEnum):
@@ -940,7 +944,7 @@ class AmazonEchoApi:
         self,
         device: AmazonDevice,
         message_type: str,
-        message_body: str,
+        message_body: str | float,
         message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
@@ -1022,6 +1026,8 @@ class AmazonEchoApi:
                 "skillId": "amzn1.ask.1p.tellalexa",
                 "text": message_body,
             }
+        elif message_type == AmazonSequenceType.Volume:
+            payload = {**base_payload, "value": message_body}
         elif message_type == AmazonSequenceType.LaunchSkill:
             payload = {
                 **base_payload,
@@ -1030,7 +1036,7 @@ class AmazonEchoApi:
                     "deviceSerialNumber": device.serial_number,
                 },
                 "connectionRequest": {
-                    "uri": "connection://AMAZON.Launch/" + message_body,
+                    "uri": "connection://AMAZON.Launch/" + str(message_body),
                 },
             }
         else:
@@ -1134,3 +1140,19 @@ class AmazonEchoApi:
         await self._session_request(
             method="PUT", url=url, input_data=payload, json_data=True
         )
+
+    async def set_volume(
+        self,
+        device: AmazonDevice,
+        volume: int,
+    ) -> None:
+        """Call Alexa.DeviceControls.Volume to set volume."""
+        if volume < MIN_VOLUME:
+            _vol_clean = MIN_VOLUME
+        if volume > MAX_VOLUME:
+            _vol_clean = MAX_VOLUME
+        else:
+            _vol_clean = math.ceil(volume / 10.0) * 10
+        if volume != _vol_clean:
+            _LOGGER.debug("Volume %s rounded to %s", volume, _vol_clean)
+        return await self._send_message(device, AmazonSequenceType.Volume, _vol_clean)
