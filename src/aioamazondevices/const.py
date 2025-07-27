@@ -404,6 +404,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Fire TV Stick",
         "hw_version": "Gen1",
     },
+    "AECNEXTDY5AD9": {
+        "manufacturer": "Cozyla",
+        "model": "Frame with Alexa",
+        "hw_version": None,
+    },
     "AIPK7MM90V7TB": {
         "model": "Echo Show 10",
         "hw_version": "Gen3",
@@ -449,10 +454,5 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "G2A0V704840708AP": {
         "model": "Echo Plus",
         "hw_version": "Gen2",
-    },
-    "AECNEXTDY5AD9": {
-        "manufacturer": "Cozyla",
-        "model": "Frame with Alexa",
-        "hw_version": None,
     },
 }
