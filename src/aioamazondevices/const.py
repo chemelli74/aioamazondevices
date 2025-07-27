@@ -70,6 +70,11 @@ DOMAIN_BY_ISO3166_COUNTRY = {
         "domain": "com.au",
         "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
     },
+    "pt": {
+        "domain": "es",
+        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_es",
+        "market": "https://www.amazon.es",
+    },
     "tr": {
         "domain": "com.tr",
     },
