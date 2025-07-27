@@ -73,7 +73,7 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     "pt": {
         "domain": "es",
         "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_es",
-        "market": "https://www.amazon.es",
+        "market": "https://www.amazon.com",
     },
     "tr": {
         "domain": "com.tr",
