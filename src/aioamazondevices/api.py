@@ -109,6 +109,14 @@ class AmazonSequenceType(StrEnum):
     LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
 
 
+@dataclass
+class AmazonMessage:
+    """Amazon message details."""
+
+    type: str
+    value: str | int | float | None = None
+
+
 class AmazonMusicSource(StrEnum):
     """Amazon music sources."""
 
@@ -939,8 +947,7 @@ class AmazonEchoApi:
     async def _send_message(
         self,
         device: AmazonDevice,
-        message_type: str,
-        message_body: str,
+        messages: list[AmazonMessage],
         message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
@@ -948,6 +955,44 @@ class AmazonEchoApi:
             _LOGGER.warning("Trying to send message before login")
             return
 
+        operation_nodes = []
+        for message in messages:
+            operation_node = self._build_operation_node(
+                device, message.type, message.value, message_source
+            )
+            operation_nodes.append(operation_node)
+
+        sequence = {
+            "@type": "com.amazon.alexa.behaviors.model.Sequence",
+            "startNode": {
+                "@type": "com.amazon.alexa.behaviors.model.SerialNode",
+                "nodesToExecute": operation_nodes,
+            },
+        }
+
+        node_data = {
+            "behaviorId": "PREVIEW",
+            "sequenceJson": orjson.dumps(sequence).decode("utf-8"),
+            "status": "ENABLED",
+        }
+
+        _LOGGER.debug("Preview data payload: %s", node_data)
+        await self._session_request(
+            method=HTTPMethod.POST,
+            url=f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
+            input_data=node_data,
+            json_data=True,
+        )
+
+        return
+
+    def _build_operation_node(
+        self,
+        device: AmazonDevice,
+        message_type: str,
+        message_body: str | float | None,
+        message_source: AmazonMusicSource | None = None,
+    ) -> dict[str, Any]:
         base_payload = {
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
@@ -1022,49 +1067,14 @@ class AmazonEchoApi:
                 "skillId": "amzn1.ask.1p.tellalexa",
                 "text": message_body,
             }
-        elif message_type == AmazonSequenceType.LaunchSkill:
-            payload = {
-                **base_payload,
-                "targetDevice": {
-                    "deviceType": device.device_type,
-                    "deviceSerialNumber": device.serial_number,
-                },
-                "connectionRequest": {
-                    "uri": "connection://AMAZON.Launch/" + message_body,
-                },
-            }
         else:
             raise ValueError(f"Message type <{message_type}> is not recognised")
 
-        sequence = {
-            "@type": "com.amazon.alexa.behaviors.model.Sequence",
-            "startNode": {
-                "@type": "com.amazon.alexa.behaviors.model.SerialNode",
-                "nodesToExecute": [
-                    {
-                        "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",  # noqa: E501
-                        "type": message_type,
-                        "operationPayload": payload,
-                    },
-                ],
-            },
+        return {
+            "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",
+            "type": message_type,
+            "operationPayload": payload,
         }
-
-        node_data = {
-            "behaviorId": "PREVIEW",
-            "sequenceJson": orjson.dumps(sequence).decode("utf-8"),
-            "status": "ENABLED",
-        }
-
-        _LOGGER.debug("Preview data payload: %s", node_data)
-        await self._session_request(
-            method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
-            input_data=node_data,
-            json_data=True,
-        )
-
-        return
 
     async def call_alexa_speak(
         self,
@@ -1072,7 +1082,9 @@ class AmazonEchoApi:
         message_body: str,
     ) -> None:
         """Call Alexa.Speak to send a message."""
-        return await self._send_message(device, AmazonSequenceType.Speak, message_body)
+        return await self._send_message(
+            device, [AmazonMessage(AmazonSequenceType.Speak, message_body)]
+        )
 
     async def call_alexa_announcement(
         self,
@@ -1081,7 +1093,7 @@ class AmazonEchoApi:
     ) -> None:
         """Call AlexaAnnouncement to send a message."""
         return await self._send_message(
-            device, AmazonSequenceType.Announcement, message_body
+            device, [AmazonMessage(AmazonSequenceType.Announcement, message_body)]
         )
 
     async def call_alexa_sound(
@@ -1090,7 +1102,9 @@ class AmazonEchoApi:
         message_body: str,
     ) -> None:
         """Call Alexa.Sound to play sound."""
-        return await self._send_message(device, AmazonSequenceType.Sound, message_body)
+        return await self._send_message(
+            device, [AmazonMessage(AmazonSequenceType.Sound, message_body)]
+        )
 
     async def call_alexa_music(
         self,
@@ -1100,7 +1114,9 @@ class AmazonEchoApi:
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
         return await self._send_message(
-            device, AmazonSequenceType.Music, message_body, message_source
+            device,
+            [AmazonMessage(AmazonSequenceType.Music, message_body)],
+            message_source,
         )
 
     async def call_alexa_text_command(
@@ -1110,7 +1126,7 @@ class AmazonEchoApi:
     ) -> None:
         """Call Alexa.Sound to play sound."""
         return await self._send_message(
-            device, AmazonSequenceType.TextCommand, message_body
+            device, [AmazonMessage(AmazonSequenceType.TextCommand, message_body)]
         )
 
     async def call_alexa_skill(
@@ -1120,7 +1136,7 @@ class AmazonEchoApi:
     ) -> None:
         """Call Alexa.LaunchSkill to launch a skill."""
         return await self._send_message(
-            device, AmazonSequenceType.LaunchSkill, message_body
+            device, [AmazonMessage(AmazonSequenceType.LaunchSkill, message_body)]
         )
 
     async def set_do_not_disturb(self, device: AmazonDevice, state: bool) -> None:
