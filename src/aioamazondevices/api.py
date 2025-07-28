@@ -22,6 +22,7 @@ from langcodes import Language
 from multidict import MultiDictProxy
 from yarl import URL
 
+from . import __version__
 from .const import (
     _LOGGER,
     AMAZON_APP_BUNDLE_ID,
@@ -105,6 +106,7 @@ class AmazonSequenceType(StrEnum):
     Sound = "Alexa.Sound"
     Music = "Alexa.Music.PlaySearchPhrase"
     TextCommand = "Alexa.TextCommand"
+    LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
 
 
 class AmazonMusicSource(StrEnum):
@@ -158,7 +160,8 @@ class AmazonEchoApi:
         self._language = f"{lang_maximized.language}-{lang_maximized.region}"
 
         _LOGGER.debug(
-            "Initialize library: domain <amazon.%s>, language <%s>, market: <%s>",
+            "Initialize library v%s: domain <amazon.%s>, language <%s>, market: <%s>",
+            __version__,
             self._domain,
             self._language,
             self._market,
@@ -1007,6 +1010,17 @@ class AmazonEchoApi:
                 "skillId": "amzn1.ask.1p.tellalexa",
                 "text": message_body,
             }
+        elif message_type == AmazonSequenceType.LaunchSkill:
+            payload = {
+                **base_payload,
+                "targetDevice": {
+                    "deviceType": device.device_type,
+                    "deviceSerialNumber": device.serial_number,
+                },
+                "connectionRequest": {
+                    "uri": "connection://AMAZON.Launch/" + message_body,
+                },
+            }
         else:
             raise ValueError(f"Message type <{message_type}> is not recognised")
 
@@ -1085,6 +1099,16 @@ class AmazonEchoApi:
         """Call Alexa.Sound to play sound."""
         return await self._send_message(
             device, AmazonSequenceType.TextCommand, message_body
+        )
+
+    async def call_alexa_skill(
+        self,
+        device: AmazonDevice,
+        message_body: str,
+    ) -> None:
+        """Call Alexa.LaunchSkill to launch a skill."""
+        return await self._send_message(
+            device, AmazonSequenceType.LaunchSkill, message_body
         )
 
     async def set_do_not_disturb(self, device: AmazonDevice, state: bool) -> None:

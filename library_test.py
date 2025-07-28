@@ -281,6 +281,13 @@ async def main() -> None:
     print(f"Text command on {device_single.account_name}")
     await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
 
+    await wait_action_complete(10)
+
+    print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)
+    await api.call_alexa_skill(
+        device_cluster, "amzn1.ask.skill.94c477e7-61c0-43f5-b7d9-36d7498a4d04"
+    )
+
     print("Closing session")
     await client_session.close()
 

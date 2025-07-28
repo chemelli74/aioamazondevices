@@ -1,5 +1,19 @@
 # Changelog
 
+## v3.6.0 (2025-07-27)
+
+### Features
+
+- Add ability to launch skills ([`0711ffb`](https://github.com/chemelli74/aioamazondevices/commit/0711ffbe8f94cbde6d9d6b5708c32320bd5cd864))
+
+
+## v3.5.3 (2025-07-27)
+
+### Bug fixes
+
+- Add model model details ([`e5670d6`](https://github.com/chemelli74/aioamazondevices/commit/e5670d681c8d6b9bc36ffc8de268fe5ba7430dcc))
+
+
 ## v3.5.2 (2025-07-25)
 
 ### Bug fixes
