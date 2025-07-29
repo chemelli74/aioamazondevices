@@ -1,5 +1,17 @@
 # Changelog
 
+## v3.7.0 (2025-07-29)
+
+### Features
+
+- Add samsung soundbar details ([`5aabffc`](https://github.com/chemelli74/aioamazondevices/commit/5aabffcdf83ec98f879361dbaf5f518e2894e18b))
+
+
+### Build system
+
+- Bump akhilmhdh/contributors-readme-action from 2.3.10 to 2.3.11 ([`2b65ec2`](https://github.com/chemelli74/aioamazondevices/commit/2b65ec222a1eda881273af4441d9a794dbdcf693))
+
+
 ## v3.6.0 (2025-07-27)
 
 ### Features
