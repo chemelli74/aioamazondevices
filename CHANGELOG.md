@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.6.1-rc.1 (2025-07-27)
+
+### Bug fixes
+
+- Add portugal details ([`9ac086a`](https://github.com/chemelli74/aioamazondevices/commit/9ac086abdeb7b05279b09adb557040b9ce893ed6))
+
+
 ## v3.6.0 (2025-07-27)
 
 ### Features
