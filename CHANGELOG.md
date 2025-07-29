@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.7.0-rc.1 (2025-07-27)
+
+### Features
+
+- Add volume control ([`3a18b43`](https://github.com/chemelli74/aioamazondevices/commit/3a18b4370917bba8f30418a8ecce961b1344a26f))
+
+
 ## v3.6.0 (2025-07-27)
 
 ### Features

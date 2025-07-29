@@ -241,8 +241,33 @@ async def main() -> None:
         sys.exit(4)
     print("Session authenticated!")
 
-    print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
-    await api.call_alexa_speak(device_single, "Test Speak message from new library")
+    print("Volume to 100% on :", device_single.account_name)
+    await api.set_volume(device_single, 100)
+
+    await wait_action_complete(1)
+
+    print(
+        "Sending message via 'Alexa.Speak' at 100% volume to:",
+        device_single.account_name,
+    )
+    await api.call_alexa_speak(
+        device_single, "Test Speak message at 100% from new library"
+    )
+
+    await wait_action_complete()
+
+    print("Volume to 30% on :", device_single.account_name)
+    await api.set_volume(device_single, 30)
+
+    await wait_action_complete(1)
+
+    print(
+        "Sending message via 'Alexa.Speak' at 30% volume to:",
+        device_single.account_name,
+    )
+    await api.call_alexa_speak(
+        device_single, "Test Speak message at 30% from new library"
+    )
 
     await wait_action_complete()
 
