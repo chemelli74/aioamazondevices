@@ -1,5 +1,63 @@
 # Changelog
 
+## v4.0.0 (2025-07-30)
+
+### Features
+
+- Use external aiohttp clientsession ([`9bb6189`](https://github.com/chemelli74/aioamazondevices/commit/9bb618912d9cea73193780cd7e1df5cd193b96d0))
+
+
+## v3.7.0 (2025-07-29)
+
+### Features
+
+- Add samsung soundbar details ([`5aabffc`](https://github.com/chemelli74/aioamazondevices/commit/5aabffcdf83ec98f879361dbaf5f518e2894e18b))
+
+
+### Build system
+
+- Bump akhilmhdh/contributors-readme-action from 2.3.10 to 2.3.11 ([`2b65ec2`](https://github.com/chemelli74/aioamazondevices/commit/2b65ec222a1eda881273af4441d9a794dbdcf693))
+
+
+## v3.6.0 (2025-07-27)
+
+### Features
+
+- Add ability to launch skills ([`0711ffb`](https://github.com/chemelli74/aioamazondevices/commit/0711ffbe8f94cbde6d9d6b5708c32320bd5cd864))
+
+
+## v3.5.3 (2025-07-27)
+
+### Bug fixes
+
+- Add model model details ([`e5670d6`](https://github.com/chemelli74/aioamazondevices/commit/e5670d681c8d6b9bc36ffc8de268fe5ba7430dcc))
+
+
+## v3.5.2 (2025-07-25)
+
+### Bug fixes
+
+- Add more device data ([`0324732`](https://github.com/chemelli74/aioamazondevices/commit/03247322606f2ab4f267d2311488983ef5f0d9e3))
+
+
+## v3.5.1 (2025-07-24)
+
+### Bug fixes
+
+- Change country logic for fixing brasil and netherland ([`63b074b`](https://github.com/chemelli74/aioamazondevices/commit/63b074b30fb6f15508eeb3ba570d0c19b9991b34))
+
+
+### Build system
+
+- Pump poetry requirement ([`597c20a`](https://github.com/chemelli74/aioamazondevices/commit/597c20ada10a996f00f00c73f4e507824b3a3c8b))
+
+
+### Testing
+
+- Improve cleanup script ([`ebf221b`](https://github.com/chemelli74/aioamazondevices/commit/ebf221b02607cdfbf653dd7e7d1d9a965d86c6bf))
+- Remove wrong default for store_true ([`7b69fe5`](https://github.com/chemelli74/aioamazondevices/commit/7b69fe5f92c41e190931f9bba80c7400bd188c86))
+
+
 ## v3.5.0 (2025-07-17)
 
 ### Features

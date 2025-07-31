@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, cast
 
 import orjson
+from aiohttp import ClientSession
 from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonDevice, AmazonEchoApi, AmazonMusicSource
@@ -65,14 +66,12 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         "--save_raw_data",
         "-s",
         action="store_true",
-        default=True,
         help="Save HTML source on disk",
     )
     parser.add_argument(
         "--test",
         "-t",
         action="store_true",
-        default=True,
         help="Execute test actions",
     )
     parser.add_argument(
@@ -157,13 +156,18 @@ async def main() -> None:
         print(f"You have to specify credentials for {args.email}")
         args.password = getpass.getpass("Password: ")
 
+    client_session = ClientSession()
+
     api = AmazonEchoApi(
+        client_session,
         args.country,
         args.email,
         args.password,
         login_data_stored,
-        args.save_raw_data,
     )
+
+    if args.save_raw_data:
+        api.save_raw_data()
 
     try:
         try:
@@ -171,7 +175,7 @@ async def main() -> None:
                 login_data = await api.login_mode_stored_data()
             else:
                 login_data = await api.login_mode_interactive(
-                    args.otp_code or input("OTP Code: "),
+                    args.otp_code or input("OTP Code: ")
                 )
         except CannotAuthenticate:
             print(f"Cannot authenticate with {args.email} credentials")
@@ -186,7 +190,7 @@ async def main() -> None:
             print(f"Wrong country {args.country} selected")
             raise
     except AmazonError:
-        await api.close()
+        await client_session.close()
         sys.exit(2)
 
     print("Logged-in.")
@@ -202,7 +206,7 @@ async def main() -> None:
         devices = await api.get_devices_data()
     except (CannotAuthenticate, CannotConnect, CannotRegisterDevice) as exc:
         print(exc)
-        await api.close()
+        await client_session.close()
         sys.exit(3)
 
     print("Devices count  :", len(devices))
@@ -211,7 +215,7 @@ async def main() -> None:
 
     if not devices:
         print("!!! Warning: No devices found !!!")
-        await api.close()
+        await client_session.close()
         sys.exit(0)
 
     save_to_file(f"{SAVE_PATH}/output-devices.json", devices)
@@ -221,7 +225,7 @@ async def main() -> None:
 
     if not args.test:
         print("!!! No testing requested, exiting !!!")
-        await api.close()
+        await client_session.close()
         sys.exit(0)
 
     device_single = find_device(
@@ -242,7 +246,7 @@ async def main() -> None:
 
     if not await api.auth_check_status():
         print("!!! Error: Session not authenticated !!!")
-        await api.close()
+        await client_session.close()
         sys.exit(4)
     print("Session authenticated!")
 
@@ -280,7 +284,15 @@ async def main() -> None:
     print(f"Text command on {device_single.account_name}")
     await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
 
-    await api.close()
+    await wait_action_complete(10)
+
+    print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)
+    await api.call_alexa_skill(
+        device_cluster, "amzn1.ask.skill.94c477e7-61c0-43f5-b7d9-36d7498a4d04"
+    )
+
+    print("Closing session")
+    await client_session.close()
 
 
 def set_logging() -> None:
