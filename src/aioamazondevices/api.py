@@ -2,6 +2,7 @@
 
 import asyncio
 import base64
+import contextlib
 import hashlib
 import mimetypes
 import secrets
@@ -17,6 +18,7 @@ from urllib.parse import parse_qs, urlencode
 
 import orjson
 from aiohttp import (
+    ClientConnectionError,
     ClientConnectorError,
     ClientResponse,
     ClientSession,
@@ -807,6 +809,12 @@ class AmazonEchoApi:
             obfuscate_email(self._login_email),
         )
 
+        # Refresh token and check if session is authenticated
+        await self._refresh_token()
+        await self.auth_check_status()
+
+        await self._check_country()
+
         return self._login_stored_data
 
     async def _get_alexa_domain(self) -> str:
@@ -970,6 +978,55 @@ class AmazonEchoApi:
             )
 
         return model_details
+
+    async def _refresh_token(self) -> bool:
+        """Refresh token."""
+        if not self._login_stored_data:
+            _LOGGER.debug("No login data available, cannot refresh token")
+            return False
+
+        data = {
+            "app_name": AMAZON_APP_NAME,
+            "app_version": AMAZON_APP_VERSION,
+            "di.sdk.version": "6.12.4",
+            "source_token": self._login_stored_data["refresh_token"],
+            "package_name": AMAZON_APP_BUNDLE_ID,
+            "di.hw.version": "iPhone",
+            "platform": "iOS",
+            "requested_token_type": "access_token",
+            "source_token_type": "refresh_token",
+            "di.os.name": "iOS",
+            "di.os.version": AMAZON_CLIENT_OS,
+            "current_version": "6.12.4",
+            "previous_version": "6.12.4",
+        }
+
+        for dom in [self._domain, "com"]:
+            with contextlib.suppress(ClientConnectionError):
+                response = await self._session.post(
+                    f"https://api.amazon.{dom}/auth/token",
+                    data=data,
+                )
+        _LOGGER.debug(
+            "Refresh token response %s with payload %s", response, orjson.dumps(data)
+        )
+
+        if response.status != HTTPStatus.OK:
+            _LOGGER.debug("Failed to refresh access token")
+            return False
+
+        response = await response.json()
+        _LOGGER.debug("Refresh token json:\n%s ", response)
+
+        if response.get("access_token"):
+            self._login_stored_data["access_token"] = response.get("access_token")
+            self.expires_in = datetime.now(tz=UTC).timestamp() + int(
+                response.get("expires_in")
+            )
+            return True
+
+        _LOGGER.debug("No access token found in response")
+        return False
 
     async def _send_message(
         self,
