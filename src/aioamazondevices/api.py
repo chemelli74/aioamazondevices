@@ -933,7 +933,7 @@ class AmazonEchoApi:
     ) -> None:
         """Send message to specific device."""
         if not self._login_stored_data:
-            _LOGGER.warning("Trying to send message before login")
+            _LOGGER.warning("No login data available, cannot send message")
             return
 
         base_payload = {
