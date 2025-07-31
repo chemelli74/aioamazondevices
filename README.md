@@ -112,12 +112,21 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/AzonInc">
+                    <img src="https://avatars.githubusercontent.com/u/11911587?v=4" width="100;" alt="AzonInc"/>
+                    <br />
+                    <sub><b>Flo</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/lchavezcuu">
                     <img src="https://avatars.githubusercontent.com/u/22165856?v=4" width="100;" alt="lchavezcuu"/>
                     <br />
                     <sub><b>Luis Chavez</b></sub>
                 </a>
             </td>
+		</tr>
+		<tr>
             <td align="center">
                 <a href="https://github.com/tronikos">
                     <img src="https://avatars.githubusercontent.com/u/9987465?v=4" width="100;" alt="tronikos"/>

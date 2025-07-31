@@ -16,12 +16,13 @@ from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
-from aiohttp import ClientConnectorError, ClientResponse, ClientSession, CookieJar
+from aiohttp import ClientConnectorError, ClientResponse, ClientSession
 from bs4 import BeautifulSoup, Tag
 from langcodes import Language
 from multidict import MultiDictProxy
 from yarl import URL
 
+from . import __version__
 from .const import (
     _LOGGER,
     AMAZON_APP_BUNDLE_ID,
@@ -105,6 +106,7 @@ class AmazonSequenceType(StrEnum):
     Sound = "Alexa.Sound"
     Music = "Alexa.Music.PlaySearchPhrase"
     TextCommand = "Alexa.TextCommand"
+    LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
 
 
 class AmazonMusicSource(StrEnum):
@@ -119,11 +121,11 @@ class AmazonEchoApi:
 
     def __init__(
         self,
+        client_session: ClientSession,
         login_country_code: str,
         login_email: str,
         login_password: str,
         login_data: dict[str, Any] | None = None,
-        save_raw_data: bool = False,
     ) -> None:
         """Initialize the scanner."""
         # Force country digits as lower case
@@ -144,12 +146,12 @@ class AmazonEchoApi:
         self._market = market
         self._cookies = self._build_init_cookies()
         self._csrf_cookie: str | None = None
-        self._save_raw_data = save_raw_data
+        self._save_raw_data = False
         self._login_stored_data = login_data
         self._serial = self._serial_number()
         self._list_for_clusters: dict[str, str] = {}
 
-        self.session: ClientSession
+        self._session = client_session
         self._devices: dict[str, Any] = {}
         self._sensors_available: bool = True
 
@@ -158,11 +160,17 @@ class AmazonEchoApi:
         self._language = f"{lang_maximized.language}-{lang_maximized.region}"
 
         _LOGGER.debug(
-            "Initialize library: domain <amazon.%s>, language <%s>, market: <%s>",
+            "Initialize library v%s: domain <amazon.%s>, language <%s>, market: <%s>",
+            __version__,
             self._domain,
             self._language,
             self._market,
         )
+
+    def save_raw_data(self) -> None:
+        """Save raw data to disk."""
+        self._save_raw_data = True
+        _LOGGER.debug("Saving raw data to disk")
 
     def _load_website_cookies(self) -> dict[str, str]:
         """Get website cookies, if avaliables."""
@@ -298,14 +306,6 @@ class AmazonEchoApi:
             raise TypeError(f"Unable to extract authorization code from url: {url}")
         return parsed_url["openid.oa2.authorization_code"][0]
 
-    def _client_session(self) -> None:
-        """Create HTTP client session."""
-        if not hasattr(self, "session") or self.session.closed:
-            _LOGGER.debug("Creating HTTP session (aiohttp)")
-            cookie_jar = CookieJar()
-            cookie_jar.update_cookies(self._cookies)
-            self.session = ClientSession(cookie_jar=cookie_jar)
-
     async def _ignore_ap_signin_error(self, response: ClientResponse) -> bool:
         """Return true if error is due to signin endpoint."""
         # Endpoint URI_SIGNIN replies with error 404
@@ -370,7 +370,7 @@ class AmazonEchoApi:
         _cookies = (
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
-        self.session.cookie_jar.update_cookies(_cookies)
+        self._session.cookie_jar.update_cookies(_cookies)
 
         resp: ClientResponse | None = None
         for delay in [0, 1, 2, 5, 8, 12, 21]:
@@ -381,7 +381,7 @@ class AmazonEchoApi:
                 await asyncio.sleep(delay)
 
             try:
-                resp = await self.session.request(
+                resp = await self._session.request(
                     method,
                     URL(url, encoded=True),
                     data=input_data if not json_data else orjson.dumps(input_data),
@@ -722,8 +722,11 @@ class AmazonEchoApi:
 
     async def login_mode_interactive_registration(self) -> BeautifulSoup:
         """Login to Amazon interactively via OTP."""
-        _LOGGER.debug("Logging-in for %s", obfuscate_email(self._login_email))
-        self._client_session()
+        _LOGGER.debug(
+            "Logging-in for %s [otp code: %s]",
+            obfuscate_email(self._login_email),
+            bool(otp_code),
+        )
 
         code_verifier = self._create_code_verifier()
         client_id = self._build_client_id()
@@ -805,17 +808,9 @@ class AmazonEchoApi:
             obfuscate_email(self._login_email),
         )
 
-        self._client_session()
-
         await self._check_country()
 
         return self._login_stored_data
-
-    async def close(self) -> None:
-        """Close http client session."""
-        if hasattr(self, "session"):
-            _LOGGER.debug("Closing HTTP session (aiohttp)")
-            await self.session.close()
 
     async def get_devices_data(
         self,
@@ -945,7 +940,7 @@ class AmazonEchoApi:
     ) -> None:
         """Send message to specific device."""
         if not self._login_stored_data:
-            _LOGGER.warning("Trying to send message before login")
+            _LOGGER.warning("No login data available, cannot send message")
             return
 
         base_payload = {
@@ -1021,6 +1016,17 @@ class AmazonEchoApi:
                 **base_payload,
                 "skillId": "amzn1.ask.1p.tellalexa",
                 "text": message_body,
+            }
+        elif message_type == AmazonSequenceType.LaunchSkill:
+            payload = {
+                **base_payload,
+                "targetDevice": {
+                    "deviceType": device.device_type,
+                    "deviceSerialNumber": device.serial_number,
+                },
+                "connectionRequest": {
+                    "uri": "connection://AMAZON.Launch/" + message_body,
+                },
             }
         else:
             raise ValueError(f"Message type <{message_type}> is not recognised")
@@ -1100,6 +1106,16 @@ class AmazonEchoApi:
         """Call Alexa.Sound to play sound."""
         return await self._send_message(
             device, AmazonSequenceType.TextCommand, message_body
+        )
+
+    async def call_alexa_skill(
+        self,
+        device: AmazonDevice,
+        message_body: str,
+    ) -> None:
+        """Call Alexa.LaunchSkill to launch a skill."""
+        return await self._send_message(
+            device, AmazonSequenceType.LaunchSkill, message_body
         )
 
     async def set_do_not_disturb(self, device: AmazonDevice, state: bool) -> None:

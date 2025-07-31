@@ -1,5 +1,38 @@
 # Changelog
 
+## v4.0.0 (2025-07-30)
+
+### Features
+
+- Use external aiohttp clientsession ([`9bb6189`](https://github.com/chemelli74/aioamazondevices/commit/9bb618912d9cea73193780cd7e1df5cd193b96d0))
+
+
+## v3.7.0 (2025-07-29)
+
+### Features
+
+- Add samsung soundbar details ([`5aabffc`](https://github.com/chemelli74/aioamazondevices/commit/5aabffcdf83ec98f879361dbaf5f518e2894e18b))
+
+
+### Build system
+
+- Bump akhilmhdh/contributors-readme-action from 2.3.10 to 2.3.11 ([`2b65ec2`](https://github.com/chemelli74/aioamazondevices/commit/2b65ec222a1eda881273af4441d9a794dbdcf693))
+
+
+## v3.6.0 (2025-07-27)
+
+### Features
+
+- Add ability to launch skills ([`0711ffb`](https://github.com/chemelli74/aioamazondevices/commit/0711ffbe8f94cbde6d9d6b5708c32320bd5cd864))
+
+
+## v3.5.3 (2025-07-27)
+
+### Bug fixes
+
+- Add model model details ([`e5670d6`](https://github.com/chemelli74/aioamazondevices/commit/e5670d681c8d6b9bc36ffc8de268fe5ba7430dcc))
+
+
 ## v3.5.2 (2025-07-25)
 
 ### Bug fixes
