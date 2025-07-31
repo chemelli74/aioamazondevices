@@ -722,11 +722,7 @@ class AmazonEchoApi:
 
     async def login_mode_interactive_registration(self) -> BeautifulSoup:
         """Login to Amazon interactively via OTP."""
-        _LOGGER.debug(
-            "Logging-in for %s [otp code: %s]",
-            obfuscate_email(self._login_email),
-            bool(otp_code),
-        )
+        _LOGGER.debug("Logging-in for %s", obfuscate_email(self._login_email))
 
         code_verifier = self._create_code_verifier()
         client_id = self._build_client_id()
