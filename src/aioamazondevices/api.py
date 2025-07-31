@@ -25,7 +25,6 @@ from aiohttp import (
     ClientConnectorError,
     ClientResponse,
     ClientSession,
-    CookieJar,
 )
 from bs4 import BeautifulSoup, Tag
 from langcodes import Language
