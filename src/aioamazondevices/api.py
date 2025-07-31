@@ -578,7 +578,11 @@ class AmazonEchoApi:
 
     async def _check_country(self) -> None:
         """Check if user selected country matches Amazon account country."""
-        url = f"https://alexa.amazon.{self._domain}/api/users/me"
+        if self._login_country_code.lower() == "au":
+            url = "https://alexa.amazon.com/api/users/me"
+        else:
+            url = f"https://alexa.amazon.{self._domain}/api/users/me"
+
         _, resp_me = await self._session_request(HTTPMethod.GET, url)
 
         if resp_me.status != HTTPStatus.OK:
