@@ -1,5 +1,12 @@
 # Changelog
 
+## v4.0.1-rc.1 (2025-07-31)
+
+### Bug fixes
+
+- Force api/users/me endpoint for australia ([`65d29a5`](https://github.com/chemelli74/aioamazondevices/commit/65d29a556f35e2ed990ff7d30e72a67771bde89b))
+
+
 ## v4.0.0 (2025-07-30)
 
 ### Features
