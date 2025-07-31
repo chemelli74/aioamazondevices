@@ -1,5 +1,7 @@
 # Changelog
 
+## v4.1.0-rc.1 (2025-07-31)
+
 ## v4.0.0 (2025-07-30)
 
 ### Features
@@ -56,6 +58,11 @@
 
 - Improve cleanup script ([`ebf221b`](https://github.com/chemelli74/aioamazondevices/commit/ebf221b02607cdfbf653dd7e7d1d9a965d86c6bf))
 - Remove wrong default for store_true ([`7b69fe5`](https://github.com/chemelli74/aioamazondevices/commit/7b69fe5f92c41e190931f9bba80c7400bd188c86))
+
+
+### Features
+
+- Add server-sent-events via http2 ([`65ef9fd`](https://github.com/chemelli74/aioamazondevices/commit/65ef9fd92d961a9ac06cbbaf3cdccf841b21222e))
 
 
 ## v3.5.0 (2025-07-17)
