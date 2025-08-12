@@ -50,6 +50,7 @@ DOMAIN_BY_ISO3166_COUNTRY = {
         "domain": "com.be",
     },
     "br": AMAZON_US_OVERRIDE | {"market": "https://www.amazon.com.br"},
+    "cl": AMAZON_US_OVERRIDE,
     "gb": {
         "domain": "co.uk",
         "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_uk",
