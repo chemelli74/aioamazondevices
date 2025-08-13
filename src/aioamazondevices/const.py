@@ -69,6 +69,7 @@ DOMAIN_BY_ISO3166_COUNTRY = {
     "nz": {
         "domain": "com.au",
         "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
+        "users_me_domain": "com",
     },
     "tr": {
         "domain": "com.tr",
