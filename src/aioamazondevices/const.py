@@ -1,6 +1,7 @@
 """Constants for Amazon devices."""
 
 import logging
+from typing import Any
 
 _LOGGER = logging.getLogger(__package__)
 
@@ -30,16 +31,16 @@ TO_REDACT = {
     "user_id",
 }
 
-AMAZON_DE_OVERRIDE = {
+AMAZON_DE_OVERRIDE: dict[str, str] = {
     "domain": "de",
     "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_de",
 }
-AMAZON_US_OVERRIDE = {
+AMAZON_US_OVERRIDE: dict[str, str] = {
     "domain": "com",
     "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
 }
 
-DOMAIN_BY_ISO3166_COUNTRY = {
+DOMAIN_BY_ISO3166_COUNTRY: dict[str, dict[str, Any]] = {
     "ar": AMAZON_US_OVERRIDE,
     "at": AMAZON_DE_OVERRIDE,
     "au": {
