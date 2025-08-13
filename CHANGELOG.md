@@ -1,5 +1,12 @@
 # Changelog
 
+## v4.0.1-rc.2 (2025-08-13)
+
+### Bug fixes
+
+- Allow api/users/me url exceptions ([`e0211da`](https://github.com/chemelli74/aioamazondevices/commit/e0211da836b9281c72576da13fd4edd78d986daf))
+
+
 ## v4.0.1-rc.1 (2025-07-31)
 
 ### Bug fixes
