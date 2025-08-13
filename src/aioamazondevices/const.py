@@ -43,15 +43,12 @@ AMAZON_US_OVERRIDE: dict[str, str] = {
 DOMAIN_BY_ISO3166_COUNTRY: dict[str, dict[str, Any]] = {
     "ar": AMAZON_US_OVERRIDE,
     "at": AMAZON_DE_OVERRIDE,
-    "au": {
-        "domain": "com.au",
-        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
-        "users_me_domain": "com",
-    },
+    "au": AMAZON_US_OVERRIDE
+    | {"market": ["https://www.amazon.com.au", "https://www.amazon.com"]},
     "be": {
         "domain": "com.be",
     },
-    "br": AMAZON_US_OVERRIDE | {"market": "https://www.amazon.com.br"},
+    "br": AMAZON_US_OVERRIDE | {"market": ["https://www.amazon.com.br"]},
     "gb": {
         "domain": "co.uk",
         "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_uk",
@@ -65,14 +62,11 @@ DOMAIN_BY_ISO3166_COUNTRY: dict[str, dict[str, Any]] = {
     },
     "nl": {
         "domain": "nl",
-        "market": "https://www.amazon.co.uk",
+        "market": ["https://www.amazon.co.uk"],
     },
     "no": AMAZON_DE_OVERRIDE,
-    "nz": {
-        "domain": "com.au",
-        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
-        "users_me_domain": "com",
-    },
+    "nz": AMAZON_US_OVERRIDE
+    | {"market": ["https://www.amazon.com.au", "https://www.amazon.com"]},
     "tr": {
         "domain": "com.tr",
     },

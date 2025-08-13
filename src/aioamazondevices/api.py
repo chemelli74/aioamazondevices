@@ -133,11 +133,10 @@ class AmazonEchoApi:
 
         locale: dict = DOMAIN_BY_ISO3166_COUNTRY.get(country_code, {})
         domain: str = locale.get("domain", country_code)
-        market: list[str] = locale.get("market", f"https://www.amazon.{domain}")
+        market: list[str] = locale.get("market", [f"https://www.amazon.{domain}"])
         assoc_handle: str = locale.get(
             "openid.assoc_handle", f"{DEFAULT_ASSOC_HANDLE}_{country_code}"
         )
-        users_me_domain = locale.get("users_me_domain", domain)
 
         self._assoc_handle = assoc_handle
         self._login_email = login_email
@@ -145,7 +144,6 @@ class AmazonEchoApi:
         self._login_country_code = country_code
         self._domain = domain
         self._market = market
-        self._users_me_domain = users_me_domain
         self._cookies = self._build_init_cookies()
         self._csrf_cookie: str | None = None
         self._save_raw_data = False
@@ -161,13 +159,12 @@ class AmazonEchoApi:
         lang_maximized = lang_object.maximize()
         self._language = f"{lang_maximized.language}-{lang_maximized.region}"
 
-        _LOGGER.debug("Initialize library v%s", __version__)
         _LOGGER.debug(
-            "domain <amazon.%s>, language <%s>, market: <%s>, users_me_domain: <amazon.%s>",  # noqa: E501
+            "Initialize library v%s: domain <amazon.%s>, language <%s>, market: <%s>",
+            __version__,
             self._domain,
             self._language,
             self._market,
-            self._users_me_domain,
         )
 
     def save_raw_data(self) -> None:
@@ -581,8 +578,7 @@ class AmazonEchoApi:
 
     async def _check_country(self) -> None:
         """Check if user selected country matches Amazon account country."""
-        url = f"https://alexa.amazon.{self._users_me_domain}/api/users/me"
-
+        url = f"https://alexa.amazon.{self._domain}/api/users/me"
         _, resp_me = await self._session_request(HTTPMethod.GET, url)
 
         if resp_me.status != HTTPStatus.OK:
@@ -591,7 +587,7 @@ class AmazonEchoApi:
         resp_me_json = await resp_me.json()
         amazon_market = resp_me_json["marketPlaceDomainName"]
 
-        if amazon_market != self._market:
+        if amazon_market not in self._market:
             _LOGGER.warning(
                 "Selected country <%s> doesn't matches Amazon API reply:\n%s\n vs \n%s",
                 self._login_country_code.upper(),
