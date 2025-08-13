@@ -133,7 +133,7 @@ class AmazonEchoApi:
 
         locale: dict = DOMAIN_BY_ISO3166_COUNTRY.get(country_code, {})
         domain: str = locale.get("domain", country_code)
-        market: list[str] = locale.get("market", f"https://www.amazon.{domain}")
+        market: list[str] = locale.get("market", [f"https://www.amazon.{domain}"])
         assoc_handle: str = locale.get(
             "openid.assoc_handle", f"{DEFAULT_ASSOC_HANDLE}_{country_code}"
         )
