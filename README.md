@@ -91,17 +91,17 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/jeeftor">
-                    <img src="https://avatars.githubusercontent.com/u/6491743?v=4" width="100;" alt="jeeftor"/>
-                    <br />
-                    <sub><b>Jeef</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/jamesonuk">
                     <img src="https://avatars.githubusercontent.com/u/1040621?v=4" width="100;" alt="jamesonuk"/>
                     <br />
                     <sub><b>jameson_uk</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/jeeftor">
+                    <img src="https://avatars.githubusercontent.com/u/6491743?v=4" width="100;" alt="jeeftor"/>
+                    <br />
+                    <sub><b>Jeef</b></sub>
                 </a>
             </td>
             <td align="center">
