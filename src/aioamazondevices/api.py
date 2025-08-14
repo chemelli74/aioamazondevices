@@ -587,9 +587,9 @@ class AmazonEchoApi:
         resp_me_json = await resp_me.json()
         amazon_market = resp_me_json["marketPlaceDomainName"]
 
-        if amazon_market != self._market:
+        if amazon_market not in self._market:
             _LOGGER.warning(
-                "Selected country <%s> doesn't matches Amazon API reply:\n%s\n vs \n%s",
+                "Selected country <%s> doesn't match Amazon API reply:\n%s\n vs \n%s",
                 self._login_country_code.upper(),
                 {"input ": self._market},
                 {"amazon": amazon_market},
