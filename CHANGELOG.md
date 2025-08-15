@@ -1,5 +1,7 @@
 # Changelog
 
+## v5.0.0-rc.1 (2025-07-31)
+
 ## v4.0.0 (2025-07-30)
 
 ### Features
@@ -31,6 +33,11 @@
 ### Bug fixes
 
 - Add model model details ([`e5670d6`](https://github.com/chemelli74/aioamazondevices/commit/e5670d681c8d6b9bc36ffc8de268fe5ba7430dcc))
+
+
+### Features
+
+- Support otp code via sms and e-mail ([`6c9ef03`](https://github.com/chemelli74/aioamazondevices/commit/6c9ef0300e1f1e2522296992bf190c1f13cf14ea))
 
 
 ## v3.5.2 (2025-07-25)
