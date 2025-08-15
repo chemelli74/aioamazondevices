@@ -58,9 +58,12 @@ The script accept command line arguments or a library_test.json config file:
   "cluster_device_name": "Everywhere",
   "login_data_file": "out/login_data.json",
   "save_raw_data": true,
-  "test": true
+  "test": true,
+  "music_provider": "Amazon"
 }
 ```
+
+`music_provider` can be `Amazon` or `Spotify`
 
 ## Known Issues & Limitations
 
