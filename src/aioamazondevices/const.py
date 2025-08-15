@@ -71,6 +71,7 @@ DOMAIN_BY_ISO3166_COUNTRY: dict[str, dict[str, Any]] = {
         "domain": "com.au",
         "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
     },
+    "pl": AMAZON_US_OVERRIDE,
     "tr": {
         "domain": "com.tr",
     },
