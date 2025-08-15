@@ -128,6 +128,13 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 		</tr>
 		<tr>
             <td align="center">
+                <a href="https://github.com/maxmati">
+                    <img src="https://avatars.githubusercontent.com/u/509560?v=4" width="100;" alt="maxmati"/>
+                    <br />
+                    <sub><b>Mateusz Nowotyński</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/tronikos">
                     <img src="https://avatars.githubusercontent.com/u/9987465?v=4" width="100;" alt="tronikos"/>
                     <br />
