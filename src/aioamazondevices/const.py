@@ -39,6 +39,47 @@ AMAZON_US_OVERRIDE: dict[str, str] = {
     "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
 }
 
+DOMAIN_BY_ISO3166_COUNTRY: dict[str, dict[str, Any]] = {
+    "ar": AMAZON_US_OVERRIDE,
+    "at": AMAZON_DE_OVERRIDE,
+    "au": {
+        "domain": "com.au",
+        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
+    },
+    "be": {
+        "domain": "com.be",
+    },
+    "br": AMAZON_US_OVERRIDE | {"market": "https://www.amazon.com.br"},
+    "gb": {
+        "domain": "co.uk",
+        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_uk",
+    },
+    "il": AMAZON_US_OVERRIDE,
+    "jp": {
+        "domain": "co.jp",
+    },
+    "mx": {
+        "domain": "com.mx",
+    },
+    "nl": {
+        "domain": "nl",
+        "market": "https://www.amazon.co.uk",
+    },
+    "no": AMAZON_DE_OVERRIDE,
+    "nz": {
+        "domain": "com.au",
+        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
+    },
+    "pl": AMAZON_US_OVERRIDE,
+    "tr": {
+        "domain": "com.tr",
+    },
+    "us": AMAZON_US_OVERRIDE,
+    "za": {
+        "domain": "co.za",
+    },
+}
+
 # Amazon APP info
 AMAZON_APP_BUNDLE_ID = "com.amazon.echo"
 AMAZON_APP_ID = "MAPiOSLib/6.0/ToHideRetailLink"
