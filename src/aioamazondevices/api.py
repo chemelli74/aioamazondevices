@@ -132,7 +132,7 @@ class AmazonEchoApi:
         country_code = login_country_code.lower()
 
         locale: dict = DOMAIN_BY_ISO3166_COUNTRY.get(country_code, {})
-        domain: str = locale.get("domain", country_code)
+        domain: str = "com"
         market: list[str] = locale.get("market", [f"https://www.amazon.{domain}"])
         assoc_handle: str = locale.get(
             "openid.assoc_handle", f"{DEFAULT_ASSOC_HANDLE}_{country_code}"
@@ -246,11 +246,11 @@ class AmazonEchoApi:
         code_challenge = self._create_s256_code_challenge(code_verifier)
 
         oauth_params = {
-            "openid.return_to": f"https://www.amazon.{self._domain}/ap/maplanding",
+            "openid.return_to": "https://www.amazon.com/ap/maplanding",
             "openid.oa2.code_challenge_method": "S256",
-            "openid.assoc_handle": self._assoc_handle,
+            "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
             "openid.identity": "http://specs.openid.net/auth/2.0/identifier_select",
-            "pageId": self._assoc_handle,
+            "pageId": DEFAULT_ASSOC_HANDLE,
             "accountStatusPolicy": "P1",
             "openid.claimed_id": "http://specs.openid.net/auth/2.0/identifier_select",
             "openid.mode": "checkid_setup",
@@ -265,9 +265,7 @@ class AmazonEchoApi:
             "openid.oa2.response_type": "code",
         }
 
-        return (
-            f"https://www.amazon.{self._domain}{URI_SIGNIN}?{urlencode(oauth_params)}"
-        )
+        return f"https://www.amazon.com{URI_SIGNIN}?{urlencode(oauth_params)}"
 
     def _get_inputs_from_soup(self, soup: BeautifulSoup) -> dict[str, str]:
         """Extract hidden form input fields from a Amazon login page."""
@@ -372,6 +370,17 @@ class AmazonEchoApi:
         )
         self._session.cookie_jar.update_cookies(_cookies)
 
+        if url == "https://api.amazon.co.uk/auth/token":
+            headers.update(
+                {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "x-amzn-identity-auth-domain": "api.amazon.com",
+                }
+            )
+
+        _LOGGER.warning("HEADERS: %s", headers)
+        _LOGGER.warning("COOKIES: %s", _cookies)
+
         resp: ClientResponse | None = None
         for delay in [0, 1, 2, 5, 8, 12, 21]:
             if delay:
@@ -401,6 +410,7 @@ class AmazonEchoApi:
             ]:
                 break
 
+        headers.pop("x-amzn-identity-auth-domain", None)
         if resp is None:
             _LOGGER.error("No response received from %s", url)
             raise CannotConnect(f"No response received from {url}")
@@ -508,6 +518,7 @@ class AmazonEchoApi:
                 "software_version": AMAZON_DEVICE_SOFTWARE_VERSION,
             },
             "auth_data": {
+                "use_global_authentication": "true",
                 "client_id": self._build_client_id(),
                 "authorization_code": authorization_code,
                 "code_verifier": code_verifier.decode(),
@@ -523,7 +534,7 @@ class AmazonEchoApi:
             ],
         }
 
-        register_url = f"https://api.amazon.{self._domain}/auth/register"
+        register_url = "https://api.amazon.com/auth/register"
         _, resp = await self._session_request(
             method=HTTPMethod.POST,
             url=register_url,
@@ -783,7 +794,47 @@ class AmazonEchoApi:
 
         _LOGGER.info("Register device: %s", scrub_fields(register_device))
 
-        await self._check_country()
+        _, resp = await self._session_request(
+            HTTPMethod.GET,
+            url="https://alexa.amazon.com/api/users/me",
+        )
+
+        _me_resp = await resp.json()
+        if _me_resp["marketPlaceDomainName"] not in "www.amazon.com":
+            self._domain = _me_resp["marketPlaceDomainName"].replace(
+                "https://www.amazon.", ""
+            )
+            payload = {
+                "app_name": DEFAULT_ASSOC_HANDLE,
+                "app_version": AMAZON_APP_VERSION,
+                "di.sdk.version": "6.12.4",
+                "source_token": self._login_stored_data["refresh_token"],
+                "package_name": AMAZON_APP_BUNDLE_ID,
+                "di.hw.version": "iPhone",
+                "platform": "iOS",
+                "requested_token_type": "auth_cookies",
+                "source_token_type": "refresh_token",
+                "di.os.name": "iOS",
+                "di.os.version": AMAZON_CLIENT_OS,
+                "current_version": "6.12.4",
+                "previous_version": "6.12.4",
+                "domain": _me_resp["marketPlaceDomainName"].replace("https://", ""),
+            }
+
+            _, _token_resp = await self._session_request(
+                method=HTTPMethod.POST,
+                url=f"https://api.amazon.{self._domain}/auth/token",
+                input_data=payload,
+                json_data=False,
+            )
+            x = await _token_resp.json()
+            # Need to take cookies from response and create them as cookies
+            website_cookies = self._login_stored_data["website_cookies"] = {}
+            for cookie in x["response"]["tokens"]["cookies"][".amazon.co.uk"]:
+                self._session.cookie_jar.update_cookies({cookie["Name"]: cookie})
+                website_cookies.update({cookie["Name"]: cookie["Value"]})
+            _LOGGER.debug(self._login_stored_data["website_cookies"])
+            _LOGGER.debug(x)
 
         return register_device
 
@@ -800,8 +851,6 @@ class AmazonEchoApi:
             "Logging-in for %s with stored data",
             obfuscate_email(self._login_email),
         )
-
-        await self._check_country()
 
         return self._login_stored_data
 
