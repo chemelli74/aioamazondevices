@@ -370,7 +370,7 @@ class AmazonEchoApi:
         )
         self._session.cookie_jar.update_cookies(_cookies)
 
-        if url == "https://api.amazon.co.uk/auth/token":
+        if url.endswith("/auth/token"):
             headers.update(
                 {
                     "Content-Type": "application/x-www-form-urlencoded",
@@ -799,10 +799,12 @@ class AmazonEchoApi:
         )
 
         _me_resp = await resp.json()
-        if _me_resp["marketPlaceDomainName"] not in "www.amazon.com":
-            self._domain = _me_resp["marketPlaceDomainName"].replace(
-                "https://www.amazon.", ""
-            )
+        _me_market = _me_resp["marketPlaceDomainName"]
+
+        if _me_market != "https://www.amazon.com":
+            self._domain = _me_market.replace("https://www.amazon.", "")
+            self._market = _me_market
+
             payload = {
                 "app_name": DEFAULT_ASSOC_HANDLE,
                 "app_version": AMAZON_APP_VERSION,
@@ -817,7 +819,7 @@ class AmazonEchoApi:
                 "di.os.version": AMAZON_CLIENT_OS,
                 "current_version": "6.12.4",
                 "previous_version": "6.12.4",
-                "domain": _me_resp["marketPlaceDomainName"].replace("https://", ""),
+                "domain": _me_market.replace("https://", ""),
             }
 
             _, _token_resp = await self._session_request(
@@ -829,7 +831,7 @@ class AmazonEchoApi:
             x = await _token_resp.json()
             # Need to take cookies from response and create them as cookies
             website_cookies = self._login_stored_data["website_cookies"] = {}
-            for cookie in x["response"]["tokens"]["cookies"][".amazon.co.uk"]:
+            for cookie in x["response"]["tokens"]["cookies"][f".amazon.{self._domain}"]:
                 self._session.cookie_jar.update_cookies({cookie["Name"]: cookie})
                 website_cookies.update({cookie["Name"]: cookie["Value"]})
             _LOGGER.debug(self._login_stored_data["website_cookies"])
