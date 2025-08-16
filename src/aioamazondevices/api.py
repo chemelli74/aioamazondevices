@@ -2,6 +2,7 @@
 
 import asyncio
 import base64
+import contextlib
 import hashlib
 import mimetypes
 import secrets
@@ -16,7 +17,12 @@ from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
-from aiohttp import ClientConnectorError, ClientResponse, ClientSession
+from aiohttp import (
+    ClientConnectionError,
+    ClientConnectorError,
+    ClientResponse,
+    ClientSession,
+)
 from bs4 import BeautifulSoup, Tag
 from langcodes import Language
 from multidict import MultiDictProxy
@@ -49,6 +55,8 @@ from .const import (
     NODE_DO_NOT_DISTURB,
     NODE_IDENTIFIER,
     NODE_PREFERENCES,
+    REFRESH_ACCESS_TOKEN,
+    REFRESH_AUTH_COOKIES,
     SAVE_PATH,
     SENSORS,
     URI_IDS,
@@ -612,7 +620,7 @@ class AmazonEchoApi:
         """Retrieve devices entityId and applianceId."""
         _, raw_resp = await self._session_request(
             "GET",
-            url=f"https://alexa.amazon.{self._domain}{URI_IDS}",
+            url=f"https://alexa.amazon.com{URI_IDS}",
             amazon_user_agent=False,
         )
 
@@ -804,38 +812,21 @@ class AmazonEchoApi:
         if _me_market != "https://www.amazon.com":
             self._domain = _me_market.replace("https://www.amazon.", "")
             self._market = _me_market
+            self._language = _me_resp["marketPlaceLocale"]
 
-            payload = {
-                "app_name": DEFAULT_ASSOC_HANDLE,
-                "app_version": AMAZON_APP_VERSION,
-                "di.sdk.version": "6.12.4",
-                "source_token": self._login_stored_data["refresh_token"],
-                "package_name": AMAZON_APP_BUNDLE_ID,
-                "di.hw.version": "iPhone",
-                "platform": "iOS",
-                "requested_token_type": "auth_cookies",
-                "source_token_type": "refresh_token",
-                "di.os.name": "iOS",
-                "di.os.version": AMAZON_CLIENT_OS,
-                "current_version": "6.12.4",
-                "previous_version": "6.12.4",
-                "domain": _me_market.replace("https://", ""),
-            }
+            _, json_token_resp = await self._refresh_data(REFRESH_AUTH_COOKIES)
 
-            _, _token_resp = await self._session_request(
-                method=HTTPMethod.POST,
-                url=f"https://api.amazon.{self._domain}/auth/token",
-                input_data=payload,
-                json_data=False,
-            )
-            x = await _token_resp.json()
             # Need to take cookies from response and create them as cookies
             website_cookies = self._login_stored_data["website_cookies"] = {}
-            for cookie in x["response"]["tokens"]["cookies"][f".amazon.{self._domain}"]:
+            for cookie in json_token_resp["response"]["tokens"]["cookies"][
+                f".amazon.{self._domain}"
+            ]:
                 self._session.cookie_jar.update_cookies({cookie["Name"]: cookie})
                 website_cookies.update({cookie["Name"]: cookie["Value"]})
             _LOGGER.debug(self._login_stored_data["website_cookies"])
-            _LOGGER.debug(x)
+            _LOGGER.debug(json_token_resp)
+
+            await self._refresh_data(REFRESH_ACCESS_TOKEN)
 
         return register_device
 
@@ -1172,3 +1163,60 @@ class AmazonEchoApi:
         await self._session_request(
             method="PUT", url=url, input_data=payload, json_data=True
         )
+
+    async def _refresh_data(self, data_type: str) -> tuple[bool, dict]:
+        """Refresh data."""
+        if not self._login_stored_data:
+            _LOGGER.debug("No login data available, cannot refresh")
+            return False, {}
+
+        data = {
+            "app_name": AMAZON_APP_NAME,
+            "app_version": AMAZON_APP_VERSION,
+            "di.sdk.version": "6.12.4",
+            "source_token": self._login_stored_data["refresh_token"],
+            "package_name": AMAZON_APP_BUNDLE_ID,
+            "di.hw.version": "iPhone",
+            "platform": "iOS",
+            "requested_token_type": data_type,
+            "source_token_type": "refresh_token",
+            "di.os.name": "iOS",
+            "di.os.version": AMAZON_CLIENT_OS,
+            "current_version": "6.12.4",
+            "previous_version": "6.12.4",
+            "domain": f"www.amazon.{self._domain}",
+        }
+
+        for dom in [self._domain, "com"]:
+            with contextlib.suppress(ClientConnectionError):
+                response = await self._session.post(
+                    f"https://api.amazon.{dom}/auth/token",
+                    data=data,
+                )
+        _LOGGER.debug(
+            "Refresh data response %s with payload %s",
+            response.status,
+            orjson.dumps(data),
+        )
+
+        if response.status != HTTPStatus.OK:
+            _LOGGER.debug("Failed to refresh data")
+            return False, {}
+
+        json_response = await response.json()
+        _LOGGER.debug("Refresh data json:\n%s ", json_response)
+
+        if data_type == REFRESH_ACCESS_TOKEN and (
+            new_token := json_response.get(REFRESH_ACCESS_TOKEN)
+        ):
+            self._login_stored_data[REFRESH_ACCESS_TOKEN] = new_token
+            self.expires_in = datetime.now(tz=UTC).timestamp() + int(
+                json_response.get("expires_in")
+            )
+            return True, json_response
+
+        if data_type == REFRESH_AUTH_COOKIES:
+            return True, json_response
+
+        _LOGGER.debug("Unexpected refresh data response")
+        return False, {}
