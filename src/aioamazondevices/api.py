@@ -350,7 +350,7 @@ class AmazonEchoApi:
             json_data,
         )
 
-        headers = DEFAULT_HEADERS
+        headers = DEFAULT_HEADERS.copy()
         headers.update({"Accept-Language": self._language})
         if not amazon_user_agent:
             _LOGGER.debug("Changing User-Agent to %s", DEFAULT_AGENT)
@@ -410,7 +410,6 @@ class AmazonEchoApi:
             ]:
                 break
 
-        headers.pop("x-amzn-identity-auth-domain", None)
         if resp is None:
             _LOGGER.error("No response received from %s", url)
             raise CannotConnect(f"No response received from {url}")
