@@ -801,32 +801,7 @@ class AmazonEchoApi:
 
         _LOGGER.info("Register device: %s", scrub_fields(register_device))
 
-        _, resp = await self._session_request(
-            HTTPMethod.GET,
-            url="https://alexa.amazon.com/api/users/me",
-        )
-
-        _me_resp = await resp.json()
-        _me_market = _me_resp["marketPlaceDomainName"]
-
-        if _me_market != "https://www.amazon.com":
-            self._domain = _me_market.replace("https://www.amazon.", "")
-            self._market = _me_market
-            self._language = _me_resp["marketPlaceLocale"]
-
-            _, json_token_resp = await self._refresh_data(REFRESH_AUTH_COOKIES)
-
-            # Need to take cookies from response and create them as cookies
-            website_cookies = self._login_stored_data["website_cookies"] = {}
-            for cookie in json_token_resp["response"]["tokens"]["cookies"][
-                f".amazon.{self._domain}"
-            ]:
-                self._session.cookie_jar.update_cookies({cookie["Name"]: cookie})
-                website_cookies.update({cookie["Name"]: cookie["Value"]})
-            _LOGGER.debug(self._login_stored_data["website_cookies"])
-            _LOGGER.debug(json_token_resp)
-
-            await self._refresh_data(REFRESH_ACCESS_TOKEN)
+        await self._check_marketplace()
 
         return register_device
 
@@ -844,7 +819,45 @@ class AmazonEchoApi:
             obfuscate_email(self._login_email),
         )
 
+        await self._check_marketplace()
+
         return self._login_stored_data
+
+    async def _check_marketplace(self) -> None:
+        _, resp = await self._session_request(
+            HTTPMethod.GET,
+            url="https://alexa.amazon.com/api/users/me",
+        )
+
+        if not self._login_stored_data:
+            _LOGGER.debug(
+                "Cannot find previous login data,\
+                    use login_mode_interactive() method instead",
+            )
+            raise WrongMethod
+
+        _me_resp = await resp.json()
+        _me_market = _me_resp["marketPlaceDomainName"]
+
+        if _me_market != "https://www.amazon.com":
+            self._domain = _me_market.replace("https://www.amazon.", "")
+            self._market = _me_market
+            self._language = _me_resp["marketPlaceLocale"]
+            self._login_stored_data["marketPlaceDomainName"] = _me_market
+
+            _, json_token_resp = await self._refresh_data(REFRESH_AUTH_COOKIES)
+
+            # Need to take cookies from response and create them as cookies
+            website_cookies = self._login_stored_data["website_cookies"] = {}
+            for cookie in json_token_resp["response"]["tokens"]["cookies"][
+                f".amazon.{self._domain}"
+            ]:
+                self._session.cookie_jar.update_cookies({cookie["Name"]: cookie})
+                website_cookies.update({cookie["Name"]: cookie["Value"]})
+            _LOGGER.debug(self._login_stored_data["website_cookies"])
+            _LOGGER.debug(json_token_resp)
+
+            await self._refresh_data(REFRESH_ACCESS_TOKEN)
 
     async def get_devices_data(
         self,
