@@ -140,7 +140,7 @@ class AmazonEchoApi:
 
         self._cookies = self._build_init_cookies()
         self._save_raw_data = False
-        self._login_stored_data = login_data
+        self._login_stored_data = login_data or {}
         self._serial = self._serial_number()
         self._list_for_clusters: dict[str, str] = {}
 
@@ -164,7 +164,7 @@ class AmazonEchoApi:
         """Set country specific data."""
         # Force lower case
         domain = domain.replace("https://www.amazon.", "").lower()
-        country_code = domain.split(".")[-1]
+        country_code = domain.split(".")[-1] if not "com" else "us"
 
         lang_object = Language.make(territory=country_code.upper())
         lang_maximized = lang_object.maximize()
@@ -389,9 +389,6 @@ class AmazonEchoApi:
                 }
             )
 
-        _LOGGER.warning("HEADERS: %s", headers)
-        _LOGGER.warning("COOKIES: %s", _cookies)
-
         resp: ClientResponse | None = None
         for delay in [0, 1, 2, 5, 8, 12, 21]:
             if delay:
@@ -425,9 +422,11 @@ class AmazonEchoApi:
             _LOGGER.error("No response received from %s", url)
             raise CannotConnect(f"No response received from {url}")
 
-        if not self._csrf_cookie:
-            self._csrf_cookie = resp.cookies.get(CSRF_COOKIE, Morsel()).value
-            _LOGGER.debug("CSRF cookie value: <%s>", self._csrf_cookie)
+        if not self._csrf_cookie and (
+            csrf := resp.cookies.get(CSRF_COOKIE, Morsel()).value
+        ):
+            self._csrf_cookie = csrf
+            _LOGGER.debug("CSRF cookie value: <%s> [%s]", self._csrf_cookie, url)
 
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
@@ -783,6 +782,7 @@ class AmazonEchoApi:
         _LOGGER.info("Register device: %s", scrub_fields(register_device))
 
         await self._check_marketplace()
+        await self._get_crsf_cookie()
 
         return register_device
 
@@ -805,17 +805,11 @@ class AmazonEchoApi:
         return self._login_stored_data
 
     async def _check_marketplace(self) -> None:
+        """Check the marketplace for the current user."""
         _, resp = await self._session_request(
             HTTPMethod.GET,
             url="https://alexa.amazon.com/api/users/me",
         )
-
-        if not self._login_stored_data:
-            _LOGGER.debug(
-                "Cannot find previous login data,\
-                    use login_mode_interactive() method instead",
-            )
-            raise WrongMethod
 
         _me_resp = await resp.json()
         _me_market = _me_resp["marketPlaceDomainName"]
@@ -827,38 +821,32 @@ class AmazonEchoApi:
 
             # Need to take cookies from response and create them as cookies
             website_cookies = self._login_stored_data["website_cookies"] = {}
-            # this was self._session.cookie_jar.clear_domain("amazon.com")
             self._session.cookie_jar.clear()
+
             cookie_json = json_token_resp["response"]["tokens"]["cookies"]
             for cookie_domain in cookie_json:
                 for cookie in cookie_json[cookie_domain]:
-                    new_cookie = {cookie["Name"]: cookie["Value"].replace(r'"', r"")}
+                    new_cookie_value = cookie["Value"].replace(r'"', r"")
+                    new_cookie = {cookie["Name"]: new_cookie_value}
                     self._session.cookie_jar.update_cookies(
                         new_cookie, URL(cookie_domain)
                     )
                     website_cookies.update(new_cookie)
-                    _LOGGER.debug("Updated cookies...")
-                    if cookie["Name"] == "sesion-token":
+                    if cookie["Name"] == "session-token":
                         self._login_stored_data["store_authentication_cookie"] = {
-                            "cookie": cookie["Value"].replace(r'"', r"")
+                            "cookie": new_cookie_value
                         }
 
-            _LOGGER.debug(self._login_stored_data["website_cookies"])
-            _LOGGER.debug(json_token_resp)
-            self._csrf_cookie = None
-
-            # this was await self._refresh_data(REFRESH_ACCESS_TOKEN)
-
+    async def _get_crsf_cookie(self) -> None:
+        """Force getting the needed cookie."""
         await self._session_request(
             method=HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._domain}/api/welcome",
         )
-        _, resp = await self._session_request(
+        await self._session_request(
             method=HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._domain}/spa/index.html",
         )
-        for c in resp.cookies:
-            _LOGGER.error(c)
 
     async def get_devices_data(
         self,
