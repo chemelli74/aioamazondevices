@@ -159,7 +159,6 @@ async def main() -> None:
 
     api = AmazonEchoApi(
         client_session,
-        args.country,
         args.email,
         args.password,
         login_data_stored,

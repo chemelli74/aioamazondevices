@@ -121,7 +121,6 @@ class AmazonEchoApi:
     def __init__(
         self,
         client_session: ClientSession,
-        login_country_code: str,
         login_email: str,
         login_password: str,
         login_data: dict[str, Any] | None = None,
@@ -130,10 +129,9 @@ class AmazonEchoApi:
         self._login_email = login_email
         self._login_password = login_password
 
-        self._country_specific_data(login_country_code.lower())
+        self._country_specific_data("us")
 
         self._cookies = self._build_init_cookies()
-        self._csrf_cookie: str | None = None
         self._save_raw_data = False
         self._login_stored_data = login_data
         self._serial = self._serial_number()
@@ -160,6 +158,9 @@ class AmazonEchoApi:
             "openid.assoc_handle", f"{DEFAULT_ASSOC_HANDLE}_{country_code}"
         )
         self._language = f"{lang_maximized.language}-{lang_maximized.region}"
+
+        # Reset CSRF cookie when changing country
+        self._csrf_cookie: str | None = None
 
         _LOGGER.debug(
             "Initialize country <%s>: domain <amazon.%s>, language <%s>, openid.assoc_handle: <%s>",  # noqa: E501
