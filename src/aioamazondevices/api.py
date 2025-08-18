@@ -728,6 +728,21 @@ class AmazonEchoApi:
             bool(otp_code),
         )
 
+        device_login_data = await self._login_mode_interactive_oauth(otp_code)
+
+        register_device = await self._register_device(device_login_data)
+        self._login_stored_data = register_device
+
+        _LOGGER.info("Register device: %s", scrub_fields(register_device))
+
+        await self._check_country()
+
+        return register_device
+
+    async def _login_mode_interactive_oauth(
+        self, otp_code: str
+    ) -> dict[str, str | bytes]:
+        """Login interactive, part 1."""
         code_verifier = self._create_code_verifier()
         client_id = self._build_client_id()
 
@@ -742,7 +757,7 @@ class AmazonEchoApi:
         login_inputs["email"] = self._login_email
         login_inputs["password"] = self._login_password
 
-        _LOGGER.debug("Register at %s", login_url)
+        _LOGGER.debug("Login at %s", login_url)
         login_soup, _ = await self._session_request(
             method=login_method,
             url=login_url,
@@ -772,20 +787,11 @@ class AmazonEchoApi:
         authcode = self._extract_code_from_url(login_resp.url)
         _LOGGER.debug("Login extracted authcode: %s", authcode)
 
-        device_login_data = {
+        return {
             "authorization_code": authcode,
             "code_verifier": code_verifier,
             "domain": self._domain,
         }
-
-        register_device = await self._register_device(device_login_data)
-        self._login_stored_data = register_device
-
-        _LOGGER.info("Register device: %s", scrub_fields(register_device))
-
-        await self._check_country()
-
-        return register_device
 
     async def login_mode_stored_data(self) -> dict[str, Any]:
         """Login to Amazon using previously stored data."""
