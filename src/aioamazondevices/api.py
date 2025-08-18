@@ -2,7 +2,6 @@
 
 import asyncio
 import base64
-import contextlib
 import hashlib
 import mimetypes
 import secrets
@@ -18,7 +17,6 @@ from urllib.parse import parse_qs, urlencode
 
 import orjson
 from aiohttp import (
-    ClientConnectionError,
     ClientConnectorError,
     ClientResponse,
     ClientSession,
@@ -376,7 +374,8 @@ class AmazonEchoApi:
         _cookies = (
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
-        self._session.cookie_jar.update_cookies(_cookies)
+        if not self._login_stored_data:
+            self._session.cookie_jar.update_cookies(_cookies, URL("amazon.com"))
 
         if url.endswith("/auth/token"):
             headers.update(
@@ -620,7 +619,7 @@ class AmazonEchoApi:
         """Retrieve devices entityId and applianceId."""
         _, raw_resp = await self._session_request(
             "GET",
-            url=f"https://alexa.amazon.com{URI_IDS}",
+            url=f"https://alexa.amazon.{self._domain}{URI_IDS}",
             amazon_user_agent=False,
         )
 
@@ -849,15 +848,38 @@ class AmazonEchoApi:
 
             # Need to take cookies from response and create them as cookies
             website_cookies = self._login_stored_data["website_cookies"] = {}
-            for cookie in json_token_resp["response"]["tokens"]["cookies"][
-                f".amazon.{self._domain}"
-            ]:
-                self._session.cookie_jar.update_cookies({cookie["Name"]: cookie})
-                website_cookies.update({cookie["Name"]: cookie["Value"]})
+            # this was self._session.cookie_jar.clear_domain("amazon.com")
+            self._session.cookie_jar.clear()
+            cookie_json = json_token_resp["response"]["tokens"]["cookies"]
+            for cookie_domain in cookie_json:
+                for cookie in cookie_json[cookie_domain]:
+                    new_cookie = {cookie["Name"]: cookie["Value"].replace(r'"', r"")}
+                    self._session.cookie_jar.update_cookies(
+                        new_cookie, URL(cookie_domain)
+                    )
+                    website_cookies.update(new_cookie)
+                    _LOGGER.debug("Updated cookies...")
+                    if cookie["Name"] == "sesion-token":
+                        self._login_stored_data["store_authentication_cookie"] = {
+                            "cookie": cookie["Value"].replace(r'"', r"")
+                        }
+
             _LOGGER.debug(self._login_stored_data["website_cookies"])
             _LOGGER.debug(json_token_resp)
+            self._csrf_cookie = None
 
-            await self._refresh_data(REFRESH_ACCESS_TOKEN)
+            # this was await self._refresh_data(REFRESH_ACCESS_TOKEN)
+
+        await self._session_request(
+            method=HTTPMethod.GET,
+            url=f"https://alexa.amazon.{self._domain}/api/welcome",
+        )
+        _, resp = await self._session_request(
+            method=HTTPMethod.GET,
+            url=f"https://alexa.amazon.{self._domain}/spa/index.html",
+        )
+        for c in resp.cookies:
+            _LOGGER.error(c)
 
     async def get_devices_data(
         self,
@@ -1200,12 +1222,10 @@ class AmazonEchoApi:
             "domain": f"www.amazon.{self._domain}",
         }
 
-        for dom in [self._domain, "com"]:
-            with contextlib.suppress(ClientConnectionError):
-                response = await self._session.post(
-                    f"https://api.amazon.{dom}/auth/token",
-                    data=data,
-                )
+        response = await self._session.post(
+            "https://api.amazon.com/auth/token",
+            data=data,
+        )
         _LOGGER.debug(
             "Refresh data response %s with payload %s",
             response.status,
