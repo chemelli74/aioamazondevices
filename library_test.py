@@ -21,7 +21,6 @@ from aioamazondevices.exceptions import (
     CannotAuthenticate,
     CannotConnect,
     CannotRegisterDevice,
-    WrongCountry,
 )
 
 
@@ -185,9 +184,6 @@ async def main() -> None:
             raise
         except CannotRegisterDevice:
             print(f"Cannot register device for {args.email}")
-            raise
-        except WrongCountry:
-            print(f"Wrong country {args.country} selected")
             raise
     except AmazonError:
         await client_session.close()

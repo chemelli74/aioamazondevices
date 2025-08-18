@@ -61,7 +61,6 @@ from .exceptions import (
     CannotConnect,
     CannotRegisterDevice,
     CannotRetrieveData,
-    WrongCountry,
     WrongMethod,
 )
 from .utils import obfuscate_email, scrub_fields
@@ -128,22 +127,11 @@ class AmazonEchoApi:
         login_data: dict[str, Any] | None = None,
     ) -> None:
         """Initialize the scanner."""
-        # Force country digits as lower case
-        country_code = login_country_code.lower()
-
-        locale: dict = DOMAIN_BY_ISO3166_COUNTRY.get(country_code, {})
-        domain: str = locale.get("domain", country_code)
-        market: list[str] = locale.get("market", [f"https://www.amazon.{domain}"])
-        assoc_handle: str = locale.get(
-            "openid.assoc_handle", f"{DEFAULT_ASSOC_HANDLE}_{country_code}"
-        )
-
-        self._assoc_handle = assoc_handle
         self._login_email = login_email
         self._login_password = login_password
-        self._login_country_code = country_code
-        self._domain = domain
-        self._market = market
+
+        self._country_specific_data(login_country_code.lower())
+
         self._cookies = self._build_init_cookies()
         self._csrf_cookie: str | None = None
         self._save_raw_data = False
@@ -155,16 +143,30 @@ class AmazonEchoApi:
         self._devices: dict[str, Any] = {}
         self._sensors_available: bool = True
 
-        lang_object = Language.make(territory=self._login_country_code.upper())
+        _LOGGER.debug("Initialize library v%s", __version__)
+
+    def _country_specific_data(self, country_code: str) -> None:
+        """Set country specific data."""
+        # Force lower case
+        country_code = country_code.lower()
+
+        locale: dict = DOMAIN_BY_ISO3166_COUNTRY.get(country_code, {})
+        lang_object = Language.make(territory=country_code.upper())
         lang_maximized = lang_object.maximize()
+
+        self._domain: str = locale.get("domain", country_code)
+        self._login_country_code: str = country_code
+        self._assoc_handle: str = locale.get(
+            "openid.assoc_handle", f"{DEFAULT_ASSOC_HANDLE}_{country_code}"
+        )
         self._language = f"{lang_maximized.language}-{lang_maximized.region}"
 
         _LOGGER.debug(
-            "Initialize library v%s: domain <amazon.%s>, language <%s>, market: <%s>",
-            __version__,
+            "Initialize country <%s>: domain <amazon.%s>, language <%s>, openid.assoc_handle: <%s>",  # noqa: E501
+            self._login_country_code.upper(),
             self._domain,
             self._language,
-            self._market,
+            self._assoc_handle,
         )
 
     def save_raw_data(self) -> None:
@@ -490,6 +492,7 @@ class AmazonEchoApi:
         """Register a dummy Alexa device."""
         authorization_code: str = data["authorization_code"]
         code_verifier: bytes = data["code_verifier"]
+        client_id: str = data["client_id"]
 
         body = {
             "requested_extensions": ["device_info", "customer_info"],
@@ -508,7 +511,7 @@ class AmazonEchoApi:
                 "software_version": AMAZON_DEVICE_SOFTWARE_VERSION,
             },
             "auth_data": {
-                "client_id": self._build_client_id(),
+                "client_id": client_id,
                 "authorization_code": authorization_code,
                 "code_verifier": code_verifier.decode(),
                 "code_algorithm": "SHA-256",
@@ -575,28 +578,6 @@ class AmazonEchoApi:
         }
         await self._save_to_file(login_data, "login_data", JSON_EXTENSION)
         return login_data
-
-    async def _check_country(self) -> None:
-        """Check if user selected country matches Amazon account country."""
-        url = f"https://alexa.amazon.{self._domain}/api/users/me"
-        _, resp_me = await self._session_request(HTTPMethod.GET, url)
-
-        if resp_me.status != HTTPStatus.OK:
-            raise CannotAuthenticate
-
-        resp_me_json = await resp_me.json()
-        amazon_market = resp_me_json["marketPlaceDomainName"]
-
-        if amazon_market not in self._market:
-            _LOGGER.warning(
-                "Selected country <%s> doesn't match Amazon API reply:\n%s\n vs \n%s",
-                self._login_country_code.upper(),
-                {"input ": self._market},
-                {"amazon": amazon_market},
-            )
-            raise WrongCountry
-
-        _LOGGER.debug("User selected country matches Amazon API one")
 
     async def _get_devices_ids(self) -> list[dict[str, str]]:
         """Retrieve devices entityId and applianceId."""
@@ -730,12 +711,32 @@ class AmazonEchoApi:
 
         device_login_data = await self._login_mode_interactive_oauth(otp_code)
 
+        alexa_domain = await self._get_alexa_domain()
+        if alexa_domain != f"alexa.amazon.{self._domain}":
+            _LOGGER.warning(
+                "Unexpected Alexa domain: %s",
+                alexa_domain,
+            )
+            #
+            # TODO(chemelli74): make it dynamic
+            # 001
+            self._country_specific_data("it")
+
+            _LOGGER.debug("Clear cookies and close aiohttp session")
+            self._session.cookie_jar.clear()
+            await self._session.close()
+            s = 2
+            _LOGGER.debug("Sleep %s seconds", s)
+            await asyncio.sleep(s)
+            _LOGGER.debug("New aiohttp session")
+            self._session = ClientSession()
+
+            device_login_data = await self._login_mode_interactive_oauth(otp_code)
+
         register_device = await self._register_device(device_login_data)
         self._login_stored_data = register_device
 
         _LOGGER.info("Register device: %s", scrub_fields(register_device))
-
-        await self._check_country()
 
         return register_device
 
@@ -791,7 +792,20 @@ class AmazonEchoApi:
             "authorization_code": authcode,
             "code_verifier": code_verifier,
             "domain": self._domain,
+            "client_id": client_id,
         }
+
+    async def _get_alexa_domain(self) -> str:
+        """Get the Alexa domain."""
+        _LOGGER.debug("Retrieve Alexa domain")
+        _, raw_resp = await self._session_request(
+            method=HTTPMethod.GET,
+            url="https://alexa.amazon.com/api/welcome",
+        )
+        json_data = await raw_resp.json()
+        return cast(
+            "str", json_data.get("alexaHostName", f"alexa.amazon.{self._domain}")
+        )
 
     async def login_mode_stored_data(self) -> dict[str, Any]:
         """Login to Amazon using previously stored data."""
@@ -806,8 +820,6 @@ class AmazonEchoApi:
             "Logging-in for %s with stored data",
             obfuscate_email(self._login_email),
         )
-
-        await self._check_country()
 
         return self._login_stored_data
 
