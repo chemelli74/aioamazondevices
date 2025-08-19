@@ -1,5 +1,25 @@
 # Changelog
 
+## v4.0.1 (2025-08-19)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`623aaa7`](https://github.com/chemelli74/aioamazondevices/commit/623aaa742aa44aaf187500e4a209914c9faf893d))
+- Contrib-readme-action has updated readme ([`c928c10`](https://github.com/chemelli74/aioamazondevices/commit/c928c1070839eab5533d4a8c2de11b12d5770dde))
+
+
+### Bug fixes
+
+- Add proper configuration for poland ([`b22894c`](https://github.com/chemelli74/aioamazondevices/commit/b22894c81f98440730e0480da274def699d7ea32))
+
+
+### Build system
+
+- Bump actions/checkout from 4 to 5 ([`eb1e1e4`](https://github.com/chemelli74/aioamazondevices/commit/eb1e1e46b34b1c234e37b68f9a2954ab1fd2641c))
+- Bump python-semantic-release/python-semantic-release from 10.3.0 to 10.3.1 ([`65e62f3`](https://github.com/chemelli74/aioamazondevices/commit/65e62f3af12631a629ebef92963f2f15ecd2228f))
+- Bump python-semantic-release/python-semantic-release from 10.2.0 to 10.3.0 ([`de4d5c8`](https://github.com/chemelli74/aioamazondevices/commit/de4d5c8351403b49f3a946c5259d30b254c31825))
+
+
 ## v4.0.0 (2025-07-30)
 
 ### Features
