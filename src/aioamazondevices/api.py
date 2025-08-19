@@ -132,8 +132,10 @@ class AmazonEchoApi:
         login_data: dict[str, Any] | None = None,
     ) -> None:
         """Initialize the scanner."""
-        # Start with US as default
-        self._country_specific_data(DEFAULT_SITE)
+        # Check if there is a previous login, otherwise use default (US)
+        site = login_data.get("site", DEFAULT_SITE) if login_data else DEFAULT_SITE
+        _LOGGER.debug("Using site: %s", site)
+        self._country_specific_data(site)
 
         self._login_email = login_email
         self._login_password = login_password
@@ -378,8 +380,7 @@ class AmazonEchoApi:
         _cookies = (
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
-        if not self._login_stored_data:
-            self._session.cookie_jar.update_cookies(_cookies, URL("amazon.com"))
+        self._session.cookie_jar.update_cookies(_cookies, URL(f"amazon.{self._domain}"))
 
         if url.endswith("/auth/token"):
             headers.update(
@@ -593,7 +594,7 @@ class AmazonEchoApi:
             "device_info": device_info,
             "customer_info": customer_info,
         }
-        await self._save_to_file(login_data, "login_data", JSON_EXTENSION)
+        _LOGGER.info("Register device: %s", scrub_fields(login_data))
         return login_data
 
     async def _get_devices_ids(self) -> list[dict[str, str]]:
@@ -726,6 +727,22 @@ class AmazonEchoApi:
             bool(otp_code),
         )
 
+        device_login_data = await self._login_mode_interactive_oauth(otp_code)
+
+        login_data = await self._register_device(device_login_data)
+        self._login_stored_data = login_data
+
+        await self._domain_refresh_auth_cookies()
+
+        self._login_stored_data.update({"site": f"https://www.amazon.{self._domain}"})
+        await self._save_to_file(self._login_stored_data, "login_data", JSON_EXTENSION)
+
+        return self._login_stored_data
+
+    async def _login_mode_interactive_oauth(
+        self, otp_code: str
+    ) -> dict[str, str | bytes]:
+        """Login interactive via oauth URL."""
         code_verifier = self._create_code_verifier()
         client_id = self._build_client_id()
 
@@ -770,20 +787,11 @@ class AmazonEchoApi:
         authcode = self._extract_code_from_url(login_resp.url)
         _LOGGER.debug("Login extracted authcode: %s", authcode)
 
-        device_login_data = {
+        return {
             "authorization_code": authcode,
             "code_verifier": code_verifier,
             "domain": self._domain,
         }
-
-        register_device = await self._register_device(device_login_data)
-        self._login_stored_data = register_device
-
-        _LOGGER.info("Register device: %s", scrub_fields(register_device))
-
-        await self._domain_refresh_auth_cookies()
-
-        return register_device
 
     async def login_mode_stored_data(self) -> dict[str, Any]:
         """Login to Amazon using previously stored data."""
