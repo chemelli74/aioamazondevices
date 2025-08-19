@@ -164,7 +164,7 @@ class AmazonEchoApi:
         """Set country specific data."""
         # Force lower case
         domain = domain.replace("https://www.amazon.", "").lower()
-        country_code = domain.split(".")[-1] if not "com" else "us"
+        country_code = domain.split(".")[-1] if domain != "com" else "us"
 
         lang_object = Language.make(territory=country_code.upper())
         lang_maximized = lang_object.maximize()
@@ -781,8 +781,7 @@ class AmazonEchoApi:
 
         _LOGGER.info("Register device: %s", scrub_fields(register_device))
 
-        await self._check_marketplace()
-        await self._get_crsf_cookie()
+        await self._domain_refresh_auth_cookies()
 
         return register_device
 
@@ -800,53 +799,50 @@ class AmazonEchoApi:
             obfuscate_email(self._login_email),
         )
 
-        await self._check_marketplace()
-
         return self._login_stored_data
 
-    async def _check_marketplace(self) -> None:
-        """Check the marketplace for the current user."""
-        _, resp = await self._session_request(
-            HTTPMethod.GET,
-            url="https://alexa.amazon.com/api/users/me",
-        )
-
-        _me_resp = await resp.json()
-        _me_market = _me_resp["marketPlaceDomainName"]
-
-        if _me_market != DEFAULT_SITE:
-            self._country_specific_data(_me_market)
-
-            _, json_token_resp = await self._refresh_data(REFRESH_AUTH_COOKIES)
-
-            # Need to take cookies from response and create them as cookies
-            website_cookies = self._login_stored_data["website_cookies"] = {}
-            self._session.cookie_jar.clear()
-
-            cookie_json = json_token_resp["response"]["tokens"]["cookies"]
-            for cookie_domain in cookie_json:
-                for cookie in cookie_json[cookie_domain]:
-                    new_cookie_value = cookie["Value"].replace(r'"', r"")
-                    new_cookie = {cookie["Name"]: new_cookie_value}
-                    self._session.cookie_jar.update_cookies(
-                        new_cookie, URL(cookie_domain)
-                    )
-                    website_cookies.update(new_cookie)
-                    if cookie["Name"] == "session-token":
-                        self._login_stored_data["store_authentication_cookie"] = {
-                            "cookie": new_cookie_value
-                        }
-
-    async def _get_crsf_cookie(self) -> None:
-        """Force getting the needed cookie."""
-        await self._session_request(
+    async def _get_alexa_domain(self) -> str:
+        """Get the Alexa domain."""
+        _LOGGER.debug("Retrieve Alexa domain")
+        _, raw_resp = await self._session_request(
             method=HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._domain}/api/welcome",
         )
-        await self._session_request(
-            method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._domain}/spa/index.html",
+        json_data = await raw_resp.json()
+        return cast(
+            "str", json_data.get("alexaHostName", f"alexa.amazon.{self._domain}")
         )
+
+    async def _refresh_auth_cookies(self) -> None:
+        """Refresh cookies after domain swap."""
+        _, json_token_resp = await self._refresh_data(REFRESH_AUTH_COOKIES)
+
+        # Need to take cookies from response and create them as cookies
+        website_cookies = self._login_stored_data["website_cookies"] = {}
+        self._session.cookie_jar.clear()
+
+        cookie_json = json_token_resp["response"]["tokens"]["cookies"]
+        for cookie_domain in cookie_json:
+            for cookie in cookie_json[cookie_domain]:
+                new_cookie_value = cookie["Value"].replace(r'"', r"")
+                new_cookie = {cookie["Name"]: new_cookie_value}
+                self._session.cookie_jar.update_cookies(new_cookie, URL(cookie_domain))
+                website_cookies.update(new_cookie)
+                if cookie["Name"] == "session-token":
+                    self._login_stored_data["store_authentication_cookie"] = {
+                        "cookie": new_cookie_value
+                    }
+
+    async def _domain_refresh_auth_cookies(self) -> None:
+        """Refresh cookies after domain swap."""
+        _LOGGER.debug("Refreshing auth cookies after domain change")
+
+        # Get the new Alexa domain
+        user_domain = (await self._get_alexa_domain()).replace("alexa", "https://www")
+        if user_domain != DEFAULT_SITE:
+            _LOGGER.debug("User domain changed to %s", user_domain)
+            self._country_specific_data(user_domain)
+            await self._refresh_auth_cookies()
 
     async def get_devices_data(
         self,
