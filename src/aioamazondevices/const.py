@@ -161,6 +161,7 @@ DEVICE_TO_IGNORE: list[str] = [
     "A2IJJ9QXVOSYK0",  # JBL TUNE770NC - issue #391
     "AKOAGQTKAS9YB",  # Amazon Echo Connect - issue #406
     "A3PAHYZLPKL73D",  # EERO 6 Wifi AP - issue #426
+    "A3KOTUS4DKHU1W",  # Samsung Fridge - issue #429
     "AN630UQPG2CA4",  # Insignia TV - issue #430
     "A3SSG6GR8UU7SN",  # Amazon Echo Sub - issue #437
 ]
