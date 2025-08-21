@@ -51,7 +51,6 @@ The script accept command line arguments or a library_test.json config file:
 
 ```json
 {
-  "country": "IT",
   "email": "<my_address@gmail.com>",
   "password": "<my_password>",
   "single_device_name": "Echo Dot Livingroom",
