@@ -181,6 +181,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "FireTV 4k MAX",
         "hw_version": "Gen2",
     },
+    "A1X92YQU8MWAPD": {
+        "manufacturer": "Devialet",
+        "model": "Freebox Delta",
+        "hw_version": None,
+    },
     "A1XWJRHALS1REP": {
         "model": "Echo Show 5",
         "hw_version": "Gen2",
@@ -332,7 +337,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": None,
     },
     "A3RMGO6LYLH7YN": {
-        "model": "Echo Dot",
+        "model": "Echo",
         "hw_version": "Gen4",
     },
     "A3S5BH2HU6VAYF": {
