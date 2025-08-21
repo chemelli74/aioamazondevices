@@ -1,5 +1,12 @@
 # Changelog
 
+## v4.0.2 (2025-08-21)
+
+### Bug fixes
+
+- Add new models ([`d03997f`](https://github.com/chemelli74/aioamazondevices/commit/d03997f7b672a830b7c570ea5d217b20ca495c10))
+
+
 ## v4.0.1 (2025-08-19)
 
 ### Documentation
