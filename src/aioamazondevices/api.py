@@ -3,7 +3,6 @@
 import asyncio
 import base64
 import contextlib
-import contextlib
 import hashlib
 import mimetypes
 import secrets
@@ -20,14 +19,9 @@ from urllib.parse import parse_qs, urlencode
 import orjson
 from aiohttp import (
     ClientConnectionError,
-    (
-    ClientConnectionError,
     ClientConnectorError,
-   
     ClientResponse,
-   
     ClientSession,
-),
 )
 from bs4 import BeautifulSoup, Tag
 from langcodes import Language
@@ -818,8 +812,6 @@ class AmazonEchoApi:
         # Refresh token and check if session is authenticated
         await self._refresh_token()
         await self.auth_check_status()
-
-        await self._check_country()
 
         return self._login_stored_data
 
