@@ -16,7 +16,11 @@ from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
-from aiohttp import ClientConnectorError, ClientResponse, ClientSession
+from aiohttp import (
+    ClientConnectorError,
+    ClientResponse,
+    ClientSession,
+)
 from bs4 import BeautifulSoup, Tag
 from langcodes import Language
 from multidict import MultiDictProxy
@@ -37,9 +41,9 @@ from .const import (
     DEFAULT_AGENT,
     DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
+    DEFAULT_SITE,
     DEVICE_TO_IGNORE,
     DEVICE_TYPE_TO_MODEL,
-    DOMAIN_BY_ISO3166_COUNTRY,
     HTML_EXTENSION,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
@@ -49,6 +53,8 @@ from .const import (
     NODE_DO_NOT_DISTURB,
     NODE_IDENTIFIER,
     NODE_PREFERENCES,
+    REFRESH_ACCESS_TOKEN,
+    REFRESH_AUTH_COOKIES,
     SAVE_PATH,
     SENSORS,
     URI_IDS,
@@ -61,7 +67,6 @@ from .exceptions import (
     CannotConnect,
     CannotRegisterDevice,
     CannotRetrieveData,
-    WrongCountry,
     WrongMethod,
 )
 from .utils import obfuscate_email, scrub_fields
@@ -122,32 +127,22 @@ class AmazonEchoApi:
     def __init__(
         self,
         client_session: ClientSession,
-        login_country_code: str,
         login_email: str,
         login_password: str,
         login_data: dict[str, Any] | None = None,
     ) -> None:
         """Initialize the scanner."""
-        # Force country digits as lower case
-        country_code = login_country_code.lower()
+        # Check if there is a previous login, otherwise use default (US)
+        site = login_data.get("site", DEFAULT_SITE) if login_data else DEFAULT_SITE
+        _LOGGER.debug("Using site: %s", site)
+        self._country_specific_data(site)
 
-        locale: dict = DOMAIN_BY_ISO3166_COUNTRY.get(country_code, {})
-        domain: str = locale.get("domain", country_code)
-        market: list[str] = locale.get("market", [f"https://www.amazon.{domain}"])
-        assoc_handle: str = locale.get(
-            "openid.assoc_handle", f"{DEFAULT_ASSOC_HANDLE}_{country_code}"
-        )
-
-        self._assoc_handle = assoc_handle
         self._login_email = login_email
         self._login_password = login_password
-        self._login_country_code = country_code
-        self._domain = domain
-        self._market = market
+
         self._cookies = self._build_init_cookies()
-        self._csrf_cookie: str | None = None
         self._save_raw_data = False
-        self._login_stored_data = login_data
+        self._login_stored_data = login_data or {}
         self._serial = self._serial_number()
         self._list_for_clusters: dict[str, str] = {}
 
@@ -155,22 +150,39 @@ class AmazonEchoApi:
         self._devices: dict[str, Any] = {}
         self._sensors_available: bool = True
 
-        lang_object = Language.make(territory=self._login_country_code.upper())
-        lang_maximized = lang_object.maximize()
-        self._language = f"{lang_maximized.language}-{lang_maximized.region}"
+        _LOGGER.debug("Initialize library v%s", __version__)
 
-        _LOGGER.debug(
-            "Initialize library v%s: domain <amazon.%s>, language <%s>, market: <%s>",
-            __version__,
-            self._domain,
-            self._language,
-            self._market,
-        )
+    @property
+    def domain(self) -> str:
+        """Return current Amazon domain."""
+        return self._domain
 
     def save_raw_data(self) -> None:
         """Save raw data to disk."""
         self._save_raw_data = True
         _LOGGER.debug("Saving raw data to disk")
+
+    def _country_specific_data(self, domain: str) -> None:
+        """Set country specific data."""
+        # Force lower case
+        domain = domain.replace("https://www.amazon.", "").lower()
+        country_code = domain.split(".")[-1] if domain != "com" else "us"
+
+        lang_object = Language.make(territory=country_code.upper())
+        lang_maximized = lang_object.maximize()
+
+        self._domain: str = domain
+        self._language = f"{lang_maximized.language}-{lang_maximized.region}"
+
+        # Reset CSRF cookie when changing country
+        self._csrf_cookie: str | None = None
+
+        _LOGGER.debug(
+            "Initialize country <%s>: domain <amazon.%s>, language <%s>",
+            country_code.upper(),
+            self._domain,
+            self._language,
+        )
 
     def _load_website_cookies(self) -> dict[str, str]:
         """Get website cookies, if avaliables."""
@@ -246,11 +258,11 @@ class AmazonEchoApi:
         code_challenge = self._create_s256_code_challenge(code_verifier)
 
         oauth_params = {
-            "openid.return_to": f"https://www.amazon.{self._domain}/ap/maplanding",
+            "openid.return_to": "https://www.amazon.com/ap/maplanding",
             "openid.oa2.code_challenge_method": "S256",
-            "openid.assoc_handle": self._assoc_handle,
+            "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
             "openid.identity": "http://specs.openid.net/auth/2.0/identifier_select",
-            "pageId": self._assoc_handle,
+            "pageId": DEFAULT_ASSOC_HANDLE,
             "accountStatusPolicy": "P1",
             "openid.claimed_id": "http://specs.openid.net/auth/2.0/identifier_select",
             "openid.mode": "checkid_setup",
@@ -265,9 +277,7 @@ class AmazonEchoApi:
             "openid.oa2.response_type": "code",
         }
 
-        return (
-            f"https://www.amazon.{self._domain}{URI_SIGNIN}?{urlencode(oauth_params)}"
-        )
+        return f"https://www.amazon.com{URI_SIGNIN}?{urlencode(oauth_params)}"
 
     def _get_inputs_from_soup(self, soup: BeautifulSoup) -> dict[str, str]:
         """Extract hidden form input fields from a Amazon login page."""
@@ -352,7 +362,7 @@ class AmazonEchoApi:
             json_data,
         )
 
-        headers = DEFAULT_HEADERS
+        headers = DEFAULT_HEADERS.copy()
         headers.update({"Accept-Language": self._language})
         if not amazon_user_agent:
             _LOGGER.debug("Changing User-Agent to %s", DEFAULT_AGENT)
@@ -370,7 +380,15 @@ class AmazonEchoApi:
         _cookies = (
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
-        self._session.cookie_jar.update_cookies(_cookies)
+        self._session.cookie_jar.update_cookies(_cookies, URL(f"amazon.{self._domain}"))
+
+        if url.endswith("/auth/token"):
+            headers.update(
+                {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "x-amzn-identity-auth-domain": "api.amazon.com",
+                }
+            )
 
         resp: ClientResponse | None = None
         for delay in [0, 1, 2, 5, 8, 12, 21]:
@@ -405,9 +423,11 @@ class AmazonEchoApi:
             _LOGGER.error("No response received from %s", url)
             raise CannotConnect(f"No response received from {url}")
 
-        if not self._csrf_cookie:
-            self._csrf_cookie = resp.cookies.get(CSRF_COOKIE, Morsel()).value
-            _LOGGER.debug("CSRF cookie value: <%s>", self._csrf_cookie)
+        if not self._csrf_cookie and (
+            csrf := resp.cookies.get(CSRF_COOKIE, Morsel()).value
+        ):
+            self._csrf_cookie = csrf
+            _LOGGER.debug("CSRF cookie value: <%s> [%s]", self._csrf_cookie, url)
 
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
@@ -508,6 +528,7 @@ class AmazonEchoApi:
                 "software_version": AMAZON_DEVICE_SOFTWARE_VERSION,
             },
             "auth_data": {
+                "use_global_authentication": "true",
                 "client_id": self._build_client_id(),
                 "authorization_code": authorization_code,
                 "code_verifier": code_verifier.decode(),
@@ -523,7 +544,7 @@ class AmazonEchoApi:
             ],
         }
 
-        register_url = f"https://api.amazon.{self._domain}/auth/register"
+        register_url = "https://api.amazon.com/auth/register"
         _, resp = await self._session_request(
             method=HTTPMethod.POST,
             url=register_url,
@@ -573,30 +594,8 @@ class AmazonEchoApi:
             "device_info": device_info,
             "customer_info": customer_info,
         }
-        await self._save_to_file(login_data, "login_data", JSON_EXTENSION)
+        _LOGGER.info("Register device: %s", scrub_fields(login_data))
         return login_data
-
-    async def _check_country(self) -> None:
-        """Check if user selected country matches Amazon account country."""
-        url = f"https://alexa.amazon.{self._domain}/api/users/me"
-        _, resp_me = await self._session_request(HTTPMethod.GET, url)
-
-        if resp_me.status != HTTPStatus.OK:
-            raise CannotAuthenticate
-
-        resp_me_json = await resp_me.json()
-        amazon_market = resp_me_json["marketPlaceDomainName"]
-
-        if amazon_market not in self._market:
-            _LOGGER.warning(
-                "Selected country <%s> doesn't match Amazon API reply:\n%s\n vs \n%s",
-                self._login_country_code.upper(),
-                {"input ": self._market},
-                {"amazon": amazon_market},
-            )
-            raise WrongCountry
-
-        _LOGGER.debug("User selected country matches Amazon API one")
 
     async def _get_devices_ids(self) -> list[dict[str, str]]:
         """Retrieve devices entityId and applianceId."""
@@ -728,6 +727,22 @@ class AmazonEchoApi:
             bool(otp_code),
         )
 
+        device_login_data = await self._login_mode_interactive_oauth(otp_code)
+
+        login_data = await self._register_device(device_login_data)
+        self._login_stored_data = login_data
+
+        await self._domain_refresh_auth_cookies()
+
+        self._login_stored_data.update({"site": f"https://www.amazon.{self._domain}"})
+        await self._save_to_file(self._login_stored_data, "login_data", JSON_EXTENSION)
+
+        return self._login_stored_data
+
+    async def _login_mode_interactive_oauth(
+        self, otp_code: str
+    ) -> dict[str, str | bytes]:
+        """Login interactive via oauth URL."""
         code_verifier = self._create_code_verifier()
         client_id = self._build_client_id()
 
@@ -772,20 +787,11 @@ class AmazonEchoApi:
         authcode = self._extract_code_from_url(login_resp.url)
         _LOGGER.debug("Login extracted authcode: %s", authcode)
 
-        device_login_data = {
+        return {
             "authorization_code": authcode,
             "code_verifier": code_verifier,
             "domain": self._domain,
         }
-
-        register_device = await self._register_device(device_login_data)
-        self._login_stored_data = register_device
-
-        _LOGGER.info("Register device: %s", scrub_fields(register_device))
-
-        await self._check_country()
-
-        return register_device
 
     async def login_mode_stored_data(self) -> dict[str, Any]:
         """Login to Amazon using previously stored data."""
@@ -801,9 +807,50 @@ class AmazonEchoApi:
             obfuscate_email(self._login_email),
         )
 
-        await self._check_country()
-
         return self._login_stored_data
+
+    async def _get_alexa_domain(self) -> str:
+        """Get the Alexa domain."""
+        _LOGGER.debug("Retrieve Alexa domain")
+        _, raw_resp = await self._session_request(
+            method=HTTPMethod.GET,
+            url=f"https://alexa.amazon.{self._domain}/api/welcome",
+        )
+        json_data = await raw_resp.json()
+        return cast(
+            "str", json_data.get("alexaHostName", f"alexa.amazon.{self._domain}")
+        )
+
+    async def _refresh_auth_cookies(self) -> None:
+        """Refresh cookies after domain swap."""
+        _, json_token_resp = await self._refresh_data(REFRESH_AUTH_COOKIES)
+
+        # Need to take cookies from response and create them as cookies
+        website_cookies = self._login_stored_data["website_cookies"] = {}
+        self._session.cookie_jar.clear()
+
+        cookie_json = json_token_resp["response"]["tokens"]["cookies"]
+        for cookie_domain in cookie_json:
+            for cookie in cookie_json[cookie_domain]:
+                new_cookie_value = cookie["Value"].replace(r'"', r"")
+                new_cookie = {cookie["Name"]: new_cookie_value}
+                self._session.cookie_jar.update_cookies(new_cookie, URL(cookie_domain))
+                website_cookies.update(new_cookie)
+                if cookie["Name"] == "session-token":
+                    self._login_stored_data["store_authentication_cookie"] = {
+                        "cookie": new_cookie_value
+                    }
+
+    async def _domain_refresh_auth_cookies(self) -> None:
+        """Refresh cookies after domain swap."""
+        _LOGGER.debug("Refreshing auth cookies after domain change")
+
+        # Get the new Alexa domain
+        user_domain = (await self._get_alexa_domain()).replace("alexa", "https://www")
+        if user_domain != DEFAULT_SITE:
+            _LOGGER.debug("User domain changed to %s", user_domain)
+            self._country_specific_data(user_domain)
+            await self._refresh_auth_cookies()
 
     async def get_devices_data(
         self,
@@ -1122,3 +1169,58 @@ class AmazonEchoApi:
         await self._session_request(
             method="PUT", url=url, input_data=payload, json_data=True
         )
+
+    async def _refresh_data(self, data_type: str) -> tuple[bool, dict]:
+        """Refresh data."""
+        if not self._login_stored_data:
+            _LOGGER.debug("No login data available, cannot refresh")
+            return False, {}
+
+        data = {
+            "app_name": AMAZON_APP_NAME,
+            "app_version": AMAZON_APP_VERSION,
+            "di.sdk.version": "6.12.4",
+            "source_token": self._login_stored_data["refresh_token"],
+            "package_name": AMAZON_APP_BUNDLE_ID,
+            "di.hw.version": "iPhone",
+            "platform": "iOS",
+            "requested_token_type": data_type,
+            "source_token_type": "refresh_token",
+            "di.os.name": "iOS",
+            "di.os.version": AMAZON_CLIENT_OS,
+            "current_version": "6.12.4",
+            "previous_version": "6.12.4",
+            "domain": f"www.amazon.{self._domain}",
+        }
+
+        response = await self._session.post(
+            "https://api.amazon.com/auth/token",
+            data=data,
+        )
+        _LOGGER.debug(
+            "Refresh data response %s with payload %s",
+            response.status,
+            orjson.dumps(data),
+        )
+
+        if response.status != HTTPStatus.OK:
+            _LOGGER.debug("Failed to refresh data")
+            return False, {}
+
+        json_response = await response.json()
+        _LOGGER.debug("Refresh data json:\n%s ", json_response)
+
+        if data_type == REFRESH_ACCESS_TOKEN and (
+            new_token := json_response.get(REFRESH_ACCESS_TOKEN)
+        ):
+            self._login_stored_data[REFRESH_ACCESS_TOKEN] = new_token
+            self.expires_in = datetime.now(tz=UTC).timestamp() + int(
+                json_response.get("expires_in")
+            )
+            return True, json_response
+
+        if data_type == REFRESH_AUTH_COOKIES:
+            return True, json_response
+
+        _LOGGER.debug("Unexpected refresh data response")
+        return False, {}

@@ -25,7 +25,3 @@ class CannotRegisterDevice(AmazonError):
 
 class WrongMethod(AmazonError):
     """Exception raised when the wrong login metho is used."""
-
-
-class WrongCountry(AmazonError):
-    """Exceptio nraised when Amazon country."""
