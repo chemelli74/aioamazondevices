@@ -1,7 +1,6 @@
 """Constants for Amazon devices."""
 
 import logging
-from typing import Any
 
 _LOGGER = logging.getLogger(__package__)
 
@@ -31,56 +30,6 @@ TO_REDACT = {
     "user_id",
 }
 
-AMAZON_DE_OVERRIDE: dict[str, str] = {
-    "domain": "de",
-    "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_de",
-}
-AMAZON_US_OVERRIDE: dict[str, str] = {
-    "domain": "com",
-    "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
-}
-
-DOMAIN_BY_ISO3166_COUNTRY: dict[str, dict[str, Any]] = {
-    "ar": AMAZON_US_OVERRIDE,
-    "at": AMAZON_DE_OVERRIDE,
-    "au": {
-        "domain": "com.au",
-        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
-    },
-    "be": {
-        "domain": "com.be",
-    },
-    "br": AMAZON_US_OVERRIDE | {"market": "https://www.amazon.com.br"},
-    "gb": {
-        "domain": "co.uk",
-        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_uk",
-    },
-    "il": AMAZON_US_OVERRIDE,
-    "jp": {
-        "domain": "co.jp",
-    },
-    "mx": {
-        "domain": "com.mx",
-    },
-    "nl": {
-        "domain": "nl",
-        "market": "https://www.amazon.co.uk",
-    },
-    "no": AMAZON_DE_OVERRIDE,
-    "nz": {
-        "domain": "com.au",
-        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
-    },
-    "pl": AMAZON_US_OVERRIDE,
-    "tr": {
-        "domain": "com.tr",
-    },
-    "us": AMAZON_US_OVERRIDE,
-    "za": {
-        "domain": "co.za",
-    },
-}
-
 # Amazon APP info
 AMAZON_APP_BUNDLE_ID = "com.amazon.echo"
 AMAZON_APP_ID = "MAPiOSLib/6.0/ToHideRetailLink"
@@ -90,6 +39,7 @@ AMAZON_DEVICE_SOFTWARE_VERSION = "35602678"
 AMAZON_DEVICE_TYPE = "A2IVLV5VM2W81"
 AMAZON_CLIENT_OS = "18.5"
 
+DEFAULT_SITE = "https://www.amazon.com"
 DEFAULT_HEADERS = {
     "User-Agent": (
         f"AmazonWebView/AmazonAlexa/{AMAZON_APP_VERSION}/iOS/{AMAZON_CLIENT_OS}/iPhone"
@@ -99,6 +49,9 @@ DEFAULT_HEADERS = {
     "Connection": "keep-alive",
 }
 CSRF_COOKIE = "csrf"
+
+REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
+REFRESH_AUTH_COOKIES = "auth_cookies"
 
 NODE_DEVICES = "devices"
 NODE_DO_NOT_DISTURB = "doNotDisturbDeviceStatusList"
