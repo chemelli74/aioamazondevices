@@ -1,5 +1,12 @@
 # Changelog
 
+## v5.0.0 (2025-08-21)
+
+### Features
+
+- Enable global login ([`60b6636`](https://github.com/chemelli74/aioamazondevices/commit/60b66369c3e82b3cb4e954966ababd48d099f4db))
+
+
 ## v4.0.2 (2025-08-21)
 
 ### Bug fixes
