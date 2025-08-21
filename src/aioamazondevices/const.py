@@ -162,6 +162,7 @@ DEVICE_TO_IGNORE: list[str] = [
     "AKOAGQTKAS9YB",  # Amazon Echo Connect - issue #406
     "A3PAHYZLPKL73D",  # EERO 6 Wifi AP - issue #426
     "AN630UQPG2CA4",  # Insignia TV - issue #430
+    "A3SSG6GR8UU7SN",  # Amazon Echo Sub - issue #437
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
