@@ -160,6 +160,8 @@ DEVICE_TO_IGNORE: list[str] = [
     "A1L4KDRIILU6N9",  # Sony headset WH-CH700N  - issue #345
     "A2IJJ9QXVOSYK0",  # JBL TUNE770NC - issue #391
     "AKOAGQTKAS9YB",  # Amazon Echo Connect - issue #406
+    "A3PAHYZLPKL73D",  # EERO 6 Wifi AP - issue #426
+    "AN630UQPG2CA4",  # Insignia TV - issue #430
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
@@ -244,13 +246,17 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot Clock",
         "hw_version": "Gen5",
     },
+    "A2E0SNTXJVT7WK ": {
+        "model": "Fire TV Stick",
+        "hw_version": "Gen2",
+    },
     "A2F7IJUT32OLN4": {
         "manufacturer": "Samsung Electronics Co., Ltd.",
         "model": "Soundbar Q990D",
         "hw_version": None,
     },
     "A2GFL5ZMWNE0PX": {
-        "model": "Fire TV",
+        "model": "Fire TV Stick",
         "hw_version": "Gen3",
     },
     "A2H4LV5GIZ1JFT": {
@@ -457,6 +463,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "AVU7CPPF2ZRAS": {
         "model": "Fire Tablet HD 8 Plus",
         "hw_version": "Gen10",
+    },
+    "AWZZ5CVHX2CD": {
+        "model": "Echo Show",
+        "hw_version": "Gen2",
     },
     "G2A0V704840708AP": {
         "model": "Echo Plus",
