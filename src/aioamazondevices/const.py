@@ -369,6 +369,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo",
         "hw_version": "Gen2",
     },
+    "ADMKNMEVNL158": {
+        "model": "Echo Hub",
+        "hw_version": "Gen1",
+    },
     "ADOUDFQX2QVX0": {
         "model": "Fire TV Omni QLED",
         "hw_version": None,
