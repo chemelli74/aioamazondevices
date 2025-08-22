@@ -1,5 +1,17 @@
 # Changelog
 
+## v5.0.1-rc.1 (2025-08-21)
+
+### Bug fixes
+
+- More models ([`039211e`](https://github.com/chemelli74/aioamazondevices/commit/039211ea6c01f7b4d8ec050577fe93b5a7c23966))
+
+
+### Documentation
+
+- Small update ([`3432096`](https://github.com/chemelli74/aioamazondevices/commit/34320962633b5c856b05213f09782bc76f61a4f0))
+
+
 ## v5.0.0 (2025-08-21)
 
 ### Features
