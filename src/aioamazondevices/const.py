@@ -30,55 +30,6 @@ TO_REDACT = {
     "user_id",
 }
 
-AMAZON_DE_OVERRIDE = {
-    "domain": "de",
-    "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_de",
-}
-AMAZON_US_OVERRIDE = {
-    "domain": "com",
-    "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
-}
-
-DOMAIN_BY_ISO3166_COUNTRY = {
-    "ar": AMAZON_US_OVERRIDE,
-    "at": AMAZON_DE_OVERRIDE,
-    "au": {
-        "domain": "com.au",
-        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
-    },
-    "be": {
-        "domain": "com.be",
-    },
-    "br": AMAZON_US_OVERRIDE | {"market": "https://www.amazon.com.br"},
-    "gb": {
-        "domain": "co.uk",
-        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_uk",
-    },
-    "il": AMAZON_US_OVERRIDE,
-    "jp": {
-        "domain": "co.jp",
-    },
-    "mx": {
-        "domain": "com.mx",
-    },
-    "nl": {
-        "domain": "nl",
-        "market": "https://www.amazon.co.uk",
-    },
-    "no": AMAZON_DE_OVERRIDE,
-    "nz": {
-        "domain": "com.au",
-        "openid.assoc_handle": f"{DEFAULT_ASSOC_HANDLE}_au",
-    },
-    "tr": {
-        "domain": "com.tr",
-    },
-    "us": AMAZON_US_OVERRIDE,
-    "za": {
-        "domain": "co.za",
-    },
-}
-
 # Amazon APP info
 AMAZON_APP_BUNDLE_ID = "com.amazon.echo"
 AMAZON_APP_ID = "MAPiOSLib/6.0/ToHideRetailLink"
@@ -88,6 +39,7 @@ AMAZON_DEVICE_SOFTWARE_VERSION = "35602678"
 AMAZON_DEVICE_TYPE = "A2IVLV5VM2W81"
 AMAZON_CLIENT_OS = "18.5"
 
+DEFAULT_SITE = "https://www.amazon.com"
 DEFAULT_HEADERS = {
     "User-Agent": (
         f"AmazonWebView/AmazonAlexa/{AMAZON_APP_VERSION}/iOS/{AMAZON_CLIENT_OS}/iPhone"
@@ -98,6 +50,9 @@ DEFAULT_HEADERS = {
 }
 DEFAULT_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"  # noqa: E501
 CSRF_COOKIE = "csrf"
+
+REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
+REFRESH_AUTH_COOKIES = "auth_cookies"
 
 NODE_DEVICES = "devices"
 NODE_DO_NOT_DISTURB = "doNotDisturbDeviceStatusList"
@@ -158,6 +113,10 @@ DEVICE_TO_IGNORE: list[str] = [
     "A1L4KDRIILU6N9",  # Sony headset WH-CH700N  - issue #345
     "A2IJJ9QXVOSYK0",  # JBL TUNE770NC - issue #391
     "AKOAGQTKAS9YB",  # Amazon Echo Connect - issue #406
+    "A3PAHYZLPKL73D",  # EERO 6 Wifi AP - issue #426
+    "A3KOTUS4DKHU1W",  # Samsung Fridge - issue #429
+    "AN630UQPG2CA4",  # Insignia TV - issue #430
+    "A3SSG6GR8UU7SN",  # Amazon Echo Sub - issue #437
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
@@ -242,13 +201,17 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot Clock",
         "hw_version": "Gen5",
     },
+    "A2E0SNTXJVT7WK ": {
+        "model": "Fire TV Stick",
+        "hw_version": "Gen2",
+    },
     "A2F7IJUT32OLN4": {
         "manufacturer": "Samsung Electronics Co., Ltd.",
         "model": "Soundbar Q990D",
         "hw_version": None,
     },
     "A2GFL5ZMWNE0PX": {
-        "model": "Fire TV",
+        "model": "Fire TV Stick",
         "hw_version": "Gen3",
     },
     "A2H4LV5GIZ1JFT": {
@@ -455,6 +418,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "AVU7CPPF2ZRAS": {
         "model": "Fire Tablet HD 8 Plus",
         "hw_version": "Gen10",
+    },
+    "AWZZ5CVHX2CD": {
+        "model": "Echo Show",
+        "hw_version": "Gen2",
     },
     "G2A0V704840708AP": {
         "model": "Echo Plus",

@@ -21,20 +21,12 @@ from aioamazondevices.exceptions import (
     CannotAuthenticate,
     CannotConnect,
     CannotRegisterDevice,
-    WrongCountry,
 )
 
 
 def get_arguments() -> tuple[ArgumentParser, Namespace]:
     """Get parsed passed in arguments."""
     parser = ArgumentParser(description="aioamazondevices library test")
-    parser.add_argument(
-        "--country",
-        "-c",
-        type=str,
-        default="it",
-        help="Set Amazon login country (ISO3166 standard)",
-    )
     parser.add_argument(
         "--email",
         "-e",
@@ -160,7 +152,6 @@ async def main() -> None:
 
     api = AmazonEchoApi(
         client_session,
-        args.country,
         args.email,
         args.password,
         login_data_stored,
@@ -183,13 +174,10 @@ async def main() -> None:
             print(f"Cannot authenticate with {args.email} credentials")
             raise
         except CannotConnect:
-            print(f"Cannot authenticate to {args.country} Amazon host")
+            print(f"Cannot connect to {api.domain} Amazon host")
             raise
         except CannotRegisterDevice:
             print(f"Cannot register device for {args.email}")
-            raise
-        except WrongCountry:
-            print(f"Wrong country {args.country} selected")
             raise
     except AmazonError:
         await client_session.close()

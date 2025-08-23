@@ -1,6 +1,38 @@
 # Changelog
 
-## v5.0.0-rc.1 (2025-07-31)
+## v5.0.0 (2025-08-21)
+
+### Features
+
+- Enable global login ([`60b6636`](https://github.com/chemelli74/aioamazondevices/commit/60b66369c3e82b3cb4e954966ababd48d099f4db))
+
+
+## v4.0.2 (2025-08-21)
+
+### Bug fixes
+
+- Add new models ([`d03997f`](https://github.com/chemelli74/aioamazondevices/commit/d03997f7b672a830b7c570ea5d217b20ca495c10))
+
+
+## v4.0.1 (2025-08-19)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`623aaa7`](https://github.com/chemelli74/aioamazondevices/commit/623aaa742aa44aaf187500e4a209914c9faf893d))
+- Contrib-readme-action has updated readme ([`c928c10`](https://github.com/chemelli74/aioamazondevices/commit/c928c1070839eab5533d4a8c2de11b12d5770dde))
+
+
+### Bug fixes
+
+- Add proper configuration for poland ([`b22894c`](https://github.com/chemelli74/aioamazondevices/commit/b22894c81f98440730e0480da274def699d7ea32))
+
+
+### Build system
+
+- Bump actions/checkout from 4 to 5 ([`eb1e1e4`](https://github.com/chemelli74/aioamazondevices/commit/eb1e1e46b34b1c234e37b68f9a2954ab1fd2641c))
+- Bump python-semantic-release/python-semantic-release from 10.3.0 to 10.3.1 ([`65e62f3`](https://github.com/chemelli74/aioamazondevices/commit/65e62f3af12631a629ebef92963f2f15ecd2228f))
+- Bump python-semantic-release/python-semantic-release from 10.2.0 to 10.3.0 ([`de4d5c8`](https://github.com/chemelli74/aioamazondevices/commit/de4d5c8351403b49f3a946c5259d30b254c31825))
+
 
 ## v4.0.0 (2025-07-30)
 
@@ -33,11 +65,6 @@
 ### Bug fixes
 
 - Add model model details ([`e5670d6`](https://github.com/chemelli74/aioamazondevices/commit/e5670d681c8d6b9bc36ffc8de268fe5ba7430dcc))
-
-
-### Features
-
-- Support otp code via sms and e-mail ([`6c9ef03`](https://github.com/chemelli74/aioamazondevices/commit/6c9ef0300e1f1e2522296992bf190c1f13cf14ea))
 
 
 ## v3.5.2 (2025-07-25)

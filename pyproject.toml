@@ -1,6 +1,6 @@
 [project]
 name = "aioamazondevices"
-version = "5.0.0-rc.1"
+version = "5.0.0"
 requires-python = ">=3.12"
 description = "Python library to control Amazon devices"
 authors = [
@@ -29,6 +29,7 @@ dependencies = [
 ]
 
 [project.urls]
+"Homepage" = "https://github.com/chemelli74/aioamazondevices"
 "Bug Tracker" = "https://github.com/chemelli74/aioamazondevices/issues"
 "Changelog" = "https://github.com/chemelli74/aioamazondevices/blob/main/CHANGELOG.md"
 

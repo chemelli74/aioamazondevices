@@ -51,7 +51,6 @@ The script accept command line arguments or a library_test.json config file:
 
 ```json
 {
-  "country": "IT",
   "email": "<my_address@gmail.com>",
   "password": "<my_password>",
   "single_device_name": "Echo Dot Livingroom",
@@ -91,17 +90,17 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/jeeftor">
-                    <img src="https://avatars.githubusercontent.com/u/6491743?v=4" width="100;" alt="jeeftor"/>
-                    <br />
-                    <sub><b>Jeef</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/jamesonuk">
                     <img src="https://avatars.githubusercontent.com/u/1040621?v=4" width="100;" alt="jamesonuk"/>
                     <br />
                     <sub><b>jameson_uk</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/jeeftor">
+                    <img src="https://avatars.githubusercontent.com/u/6491743?v=4" width="100;" alt="jeeftor"/>
+                    <br />
+                    <sub><b>Jeef</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -127,6 +126,13 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
             </td>
 		</tr>
 		<tr>
+            <td align="center">
+                <a href="https://github.com/maxmati">
+                    <img src="https://avatars.githubusercontent.com/u/509560?v=4" width="100;" alt="maxmati"/>
+                    <br />
+                    <sub><b>Mateusz Nowotyński</b></sub>
+                </a>
+            </td>
             <td align="center">
                 <a href="https://github.com/tronikos">
                     <img src="https://avatars.githubusercontent.com/u/9987465?v=4" width="100;" alt="tronikos"/>
