@@ -723,7 +723,9 @@ class AmazonEchoApi:
             for feature in endpoint["features"]:
                 if feature["name"] == "temperatureSensor":
                     device_sensors["temperature"] = AmazonDeviceSensor(
-                        "temperature", feature["properties"][0]["value"]["value"], None
+                        "temperature",
+                        feature["properties"][0]["value"]["value"],
+                        feature["properties"][0]["value"]["scale"],
                     )
                 if feature["name"] == "motionSensor":
                     device_sensors["motion"] = AmazonDeviceSensor(
