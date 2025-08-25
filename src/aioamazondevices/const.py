@@ -61,34 +61,10 @@ NODE_BLUETOOTH = "bluetoothStates"
 NODE_IDENTIFIER = "identifier"
 NODE_SENSORS = "sensors"
 
-URI_QUERIES = {
-    NODE_DEVICES: "/api/devices-v2/device",
-    NODE_DO_NOT_DISTURB: "/api/dnd/device-status-list",
-    NODE_PREFERENCES: "/api/device-preferences",
-    NODE_BLUETOOTH: "/api/bluetooth",
-    # "/api/ping"
-    # "/api/np/command"
-    # "/api/np/player"
-    # "/api/device-wifi-details"
-    # "/api/activities"
-    # "/api/behaviors/v2/automations"
-    # "/api/notifications"
-}
-
+URI_DEVICES = "/api/devices-v2/device"
 URI_SIGNIN = "/ap/signin"
-URI_IDS = "/api/phoenix"
-URI_SENSORS = "/api/phoenix/state"
+URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 
-SENSORS = [
-    "babyCryDetectionState",
-    "beepingApplianceDetectionState",
-    "coughDetectionState",
-    "dogBarkDetectionState",
-    "humanPresenceDetectionState",
-    "illuminance",
-    "temperature",
-    "waterSoundsDetectionState",
-]
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
 # File extensions
