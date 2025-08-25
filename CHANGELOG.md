@@ -1,5 +1,22 @@
 # Changelog
 
+## v5.1.0-rc.1 (2025-08-25)
+
+### Bug fixes
+
+- Motion sensor logic ([`88a28d1`](https://github.com/chemelli74/aioamazondevices/commit/88a28d1f177d4fbed2fed2aef3c051865f8594bc))
+
+
+### Features
+
+- Replace sensor endpoint with graphql ([`21de66e`](https://github.com/chemelli74/aioamazondevices/commit/21de66e4be577c62a588e05f2930d0e9e2308a1e))
+
+
+### Documentation
+
+- Small update ([`3432096`](https://github.com/chemelli74/aioamazondevices/commit/34320962633b5c856b05213f09782bc76f61a4f0))
+
+
 ## v5.0.0 (2025-08-21)
 
 ### Features
