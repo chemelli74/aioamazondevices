@@ -88,312 +88,79 @@ DEVICE_TO_IGNORE: list[str] = [
     "A3SSG6GR8UU7SN",  # Amazon Echo Sub - issue #437
 ]
 
-DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
-    "A10A33FOX2NUBK": {
-        "model": "Echo Spot",
-        "hw_version": "Gen1",
-    },
-    "A11QM4H9HGV71H": {
-        "model": "Echo Show 5",
-        "hw_version": "Gen3",
-    },
-    "A13W6HQIHKEN3Z": {
-        "model": "Echo Auto",
-        "hw_version": "Gen2",
-    },
-    "A15996VY63BQ2D": {
-        "model": "Echo Show 8",
-        "hw_version": "Gen2",
-    },
-    "A18O6U1UQFJ0XK": {
-        "model": "Echo Plus",
-        "hw_version": "Gen2",
-    },
-    "A1C66CX2XD756O": {
-        "model": "Fire Tablet HD 8",
-        "hw_version": "Gen8",
-    },
-    "A1EIANJ7PNB0Q7": {
-        "model": "Echo Show 15",
-        "hw_version": "Gen1",
-    },
-    "A1NL4BVLQ4L3N3": {
-        "model": "Echo Show",
-        "hw_version": "Gen1",
-    },
-    "A1Q6UGEXJZWJQ0": {
-        "model": "Fire TV Stick 4K",
-        "hw_version": "Gen2",
-    },
-    "A1Q7QCGNMXAKYW": {
-        "model": "Fire Tablet 7",
-        "hw_version": "Gen9",
-    },
-    "A1RABVCI4QCIKC": {
-        "model": "Echo Dot",
-        "hw_version": "Gen3",
-    },
-    "A1TD5Z1R8IWBHA ": {
-        "model": "Fire Tablet HD 8",
-        "hw_version": "Gen12",
-    },
-    "A1VGB7MHSIEYFK": {
-        "model": "Fire TV Cube",
-        "hw_version": "Gen3",
-    },
-    "A1WAR447VT003J": {
-        "manufacturer": "Yamaha",
-        "model": "RX A4 Aventage",
-        "hw_version": None,
-    },
-    "A1WZKXFLI43K86": {
-        "model": "FireTV 4k MAX",
-        "hw_version": "Gen2",
-    },
-    "A1XWJRHALS1REP": {
-        "model": "Echo Show 5",
-        "hw_version": "Gen2",
-    },
-    "A1Z88NGR2BK6A2": {
-        "model": "Echo Show 8",
-        "hw_version": "Gen1",
-    },
-    "A265XOI9586NML": {
-        "model": "Fire TV Stick with Alexa Voice Remote",
-        "hw_version": None,
-    },
-    "A271DR1789MXDS": {
-        "model": "Fire Tablet 7",
-        "hw_version": "Gen12",
-    },
-    "A2DS1Q2TPDJ48U": {
-        "model": "Echo Dot Clock",
-        "hw_version": "Gen5",
-    },
-    "A2E0SNTXJVT7WK ": {
-        "model": "Fire TV Stick",
-        "hw_version": "Gen2",
-    },
-    "A2F7IJUT32OLN4": {
-        "manufacturer": "Samsung Electronics Co., Ltd.",
-        "model": "Soundbar Q990D",
-        "hw_version": None,
-    },
-    "A2GFL5ZMWNE0PX": {
-        "model": "Fire TV Stick",
-        "hw_version": "Gen3",
-    },
-    "A2H4LV5GIZ1JFT": {
-        "model": "Echo Dot Clock",
-        "hw_version": "Gen4",
-    },
-    "A2JKHJ0PX4J3L3": {
-        "model": "Fire TV Cube",
-        "hw_version": "Gen2",
-    },
-    "A2LWARUGJLBYEW": {
-        "model": "Fire TV Stick",
-        "hw_version": "Gen2",
-    },
-    "A2M35JJZWCQOMZ": {
-        "model": "Echo Plus",
-        "hw_version": "Gen1",
-    },
-    "A2M4YX06LWP8WI": {
-        "model": "Fire Tablet 7",
-        "hw_version": "Gen5",
-    },
-    "A2N49KXGVA18AR": {
-        "model": "Fire Tablet HD 10 Plus",
-        "hw_version": "Gen11",
-    },
-    "A2OSP3UA4VC85F": {
-        "manufacturer": "Sonos Inc.",
-        "model": "Sonos One",
-        "hw_version": "Gen1",
-    },
-    "A2RG3FY1YV97SS": {
-        "manufacturer": "Sonos Inc.",
-        "model": "Sonos Move",
-        "hw_version": "Gen1",
-    },
-    "A2RU4B77X9R9NZ": {
-        "model": "Echo Link Amp",
-        "hw_version": None,
-    },
-    "A2U21SRK4QGSE1": {
-        "model": "Echo Dot",
-        "hw_version": "Gen4",
-    },
-    "A2UONLFQW0PADH": {
-        "model": "Echo Show 8",
-        "hw_version": "Gen3",
-    },
-    "A2Z8O30CD35N8F": {
-        "manufacturer": "Sonos Inc.",
-        "model": "Sonos Arc",
-        "hw_version": "Gen1",
-    },
-    "A303PJF6ISQ7IC": {
-        "model": "Echo Auto",
-        "hw_version": "Gen1",
-    },
-    "A30YDR2MK8HMRV": {
-        "model": "Echo Dot",
-        "hw_version": "Gen3",
-    },
-    "A31DTMEEVDDOIV": {
-        "model": "Fire TV Stick Lite",
-        "hw_version": "Gen1",
-    },
-    "A32DDESGESSHZA": {
-        "model": "Echo Dot",
-        "hw_version": "Gen3",
-    },
-    "A32DOYMUN6DTXA": {
-        "model": "Echo Dot",
-        "hw_version": "Gen3",
-    },
-    "A33S43L213VSHQ ": {
-        "model": "Smart TV 4K",
-        "hw_version": "4 Series",
-    },
-    "A38949IHXHRQ5P": {
-        "model": "Echo Tap",
-        "hw_version": "Gen1",
-    },
-    "A39OV95SPFQ9YG": {
-        "manufacturer": "Sonos Inc.",
-        "model": "Sonos Era 100",
-        "hw_version": None,
-    },
-    "A3C9PE6TNYLTCH": {
-        "model": "Speaker Group",
-        "hw_version": None,
-    },
-    "A3EH2E0YZ30OD6": {
-        "model": "Echo Spot",
-        "hw_version": "Gen2",
-    },
-    "A3EVMLQTU6WL1W": {
-        "model": "FireTV 4k MAX",
-        "hw_version": "Gen1",
-    },
-    "A3FX4UWTP28V1P": {
-        "model": "Echo",
-        "hw_version": "Gen3",
-    },
-    "A3HF4YRA2L7XGC": {
-        "model": "Fire TV Cube",
-        "hw_version": "Gen1",
-    },
-    "A3HND3J60V1OXX": {
-        "model": "Echo Loop",
-        "hw_version": None,
-    },
-    "A3NPD82ABCPIDP": {
-        "manufacturer": "Sonos Inc.",
-        "model": "Sonos Beam",
-        "hw_version": None,
-    },
-    "A3RBAYBE7VM004": {
-        "model": "Echo Studio",
-        "hw_version": None,
-    },
-    "A3RMGO6LYLH7YN": {
-        "model": "Echo Dot",
-        "hw_version": "Gen4",
-    },
-    "A3S5BH2HU6VAYF": {
-        "model": "Echo Dot",
-        "hw_version": "Gen2",
-    },
-    "A3VRME03NAXFUB": {
-        "model": "Echo Flex",
-        "hw_version": None,
-    },
-    "A4ZP7ZC4PI6TO": {
-        "model": "Echo Show 5",
-        "hw_version": "Gen1",
-    },
-    "A4ZXE0RM7LQ7A": {
-        "model": "Echo Dot",
-        "hw_version": "Gen5",
-    },
-    "A50R5P5LEX87M ": {
-        "manufacturer": "JBL",
-        "model": "JBL BAR 500",
-        "hw_version": None,
-    },
-    "A7WXQPH584YP": {
-        "model": "Echo",
-        "hw_version": "Gen2",
-    },
-    "AB72C64C86AW2": {
-        "model": "Echo",
-        "hw_version": "Gen2",
-    },
-    "ADOUDFQX2QVX0": {
-        "model": "Fire TV Omni QLED",
-        "hw_version": None,
-    },
-    "ADVBD696BHNV5": {
-        "model": "Fire TV Stick",
-        "hw_version": "Gen1",
-    },
-    "AECNEXTDY5AD9": {
-        "manufacturer": "Cozyla",
-        "model": "Frame with Alexa",
-        "hw_version": None,
-    },
-    "AIPK7MM90V7TB": {
-        "model": "Echo Show 10",
-        "hw_version": "Gen3",
-    },
-    "AKNO1N0KSFN8L": {
-        "model": "Echo Dot",
-        "hw_version": "Gen1",
-    },
-    "AKPGW064GI9HE": {
-        "model": "Fire TV Stick 4K",
-        "hw_version": "Gen1",
-    },
-    "AP1F6KUH00XPV": {
-        "model": "Echo Stereo Pair",
-        "hw_version": "Virtual",
-    },
-    "AQ24620N8QD5Q": {
-        "model": "Echo Show 15",
-        "hw_version": "Gen2",
-    },
-    "ASQZWP4GPYUT7": {
-        "model": "Echo pop",
-        "hw_version": "Gen1",
-    },
-    "ATNLRCEBX3W4P": {
-        "model": "Fire Tablet HD 10",
-        "hw_version": "Gen11",
-    },
-    "AUPUQSVCVHXP0": {
-        "manufacturer": "ecobee Inc.",
-        "model": "ecobee Switch+",
-        "hw_version": None,
-    },
-    "AVD3HM0HOJAAL": {
-        "manufacturer": "Sonos Inc.",
-        "model": "Sonos One",
-        "hw_version": "Gen2",
-    },
-    "AVU7CPPF2ZRAS": {
-        "model": "Fire Tablet HD 8 Plus",
-        "hw_version": "Gen10",
-    },
-    "AWZZ5CVHX2CD": {
-        "model": "Echo Show",
-        "hw_version": "Gen2",
-    },
-    "G2A0V704840708AP": {
-        "model": "Echo Plus",
-        "hw_version": "Gen2",
-    },
-}
+CONFIRMED_DEVICES: list[str] = [
+    "A10A33FOX2NUBK",  # Echo Spot / Gen1
+    "A11QM4H9HGV71H",  # Echo Show 5 /Gen3
+    "A13W6HQIHKEN3Z",  # Echo Auto / Gen2
+    "A15996VY63BQ2D",  # Echo Show 8/ Gen2
+    "A18O6U1UQFJ0XK",  # Echo Plus / Gen2
+    "A1C66CX2XD756O",  # Fire Tablet HD 8 /Gen8
+    "A1EIANJ7PNB0Q7",  # Echo Show 15 / Gen1
+    "A1NL4BVLQ4L3N3",  # Echo Show /Gen1
+    "A1Q6UGEXJZWJQ0",  # Fire TV Stick 4K / Gen2
+    "A1Q7QCGNMXAKYW",  # Fire Tablet 7 / Gen9
+    "A1RABVCI4QCIKC",  # Echo Dot / Gen3
+    "A1TD5Z1R8IWBHA",  # Fire Tablet HD 8 / Gen12
+    "A1VGB7MHSIEYFK",  # Fire TV Cube / Gen3
+    "A1WAR447VT003J",  # Yamaha / RX A4 Aventage
+    "A1WZKXFLI43K86",  # FireTV 4k MAX / Gen2
+    "A1XWJRHALS1REP",  # Echo Show 5 / Gen2
+    "A1Z88NGR2BK6A2",  # Echo Show 8 / Gen1
+    "A265XOI9586NML",  # Fire TV Stick with Alexa Voice Remote
+    "A271DR1789MXDS",  # Fire Tablet 7 / Gen12
+    "A2DS1Q2TPDJ48U",  # Echo Dot Clock / Gen5
+    "A2E0SNTXJVT7WK",  # Fire TV Stick / Gen2
+    "A2F7IJUT32OLN4",  # Samsung Electronics Co., Ltd. / Soundbar Q990D
+    "A2GFL5ZMWNE0PX",  # Fire TV Stick / Gen3
+    "A2H4LV5GIZ1JFT",  # Echo Dot Clock / Gen4
+    "A2JKHJ0PX4J3L3",  # Fire TV Cube / Gen2
+    "A2LWARUGJLBYEW",  # Fire TV Stick / Gen2
+    "A2M35JJZWCQOMZ",  # Echo Plus / Gen1
+    "A2M4YX06LWP8WI",  # Fire Tablet 7 / Gen5
+    "A2N49KXGVA18AR",  # Fire Tablet HD 10 Plus / Gen11
+    "A2OSP3UA4VC85F",  # Sonos Inc. / Sonos One / Gen1
+    "A2RG3FY1YV97SS",  # Sonos Inc. / Sonos Move / Gen1
+    "A2RU4B77X9R9NZ",  # Echo Link Amp
+    "A2U21SRK4QGSE1",  # Echo Dot / Gen4
+    "A2UONLFQW0PADH",  # Echo Show 8 / Gen3
+    "A2Z8O30CD35N8F",  # Sonos Inc. / Sonos Arc / Gen1
+    "A303PJF6ISQ7IC",  # Echo Auto / Gen1
+    "A30YDR2MK8HMRV",  # Echo Dot / Gen3
+    "A31DTMEEVDDOIV",  # Fire TV Stick Lite / Gen1
+    "A32DDESGESSHZA",  # Echo Dot / Gen3
+    "A32DOYMUN6DTXA",  # Echo Dot / Gen3
+    "A33S43L213VSHQ ",  # Smart TV 4K / 4 Series
+    "A38949IHXHRQ5P",  # Echo Tap / Gen1
+    "A39OV95SPFQ9YG",  # Sonos Inc. / Sonos Era 100
+    "A3C9PE6TNYLTCH",  # Speaker Group
+    "A3EH2E0YZ30OD6",  # Echo Spot/  Gen2
+    "A3EVMLQTU6WL1W",  # FireTV 4k MAX / Gen1
+    "A3FX4UWTP28V1P",  # Echo / Gen3
+    "A3HF4YRA2L7XGC",  # Fire TV Cube / Gen1
+    "A3HND3J60V1OXX",  # Echo Loop
+    "A3NPD82ABCPIDP",  # Sonos Inc. / Sonos Beam
+    "A3RBAYBE7VM004",  # Echo Studio
+    "A3RMGO6LYLH7YN",  # Echo Dot / Gen4
+    "A3S5BH2HU6VAYF",  # Echo Dot / Gen2
+    "A3VRME03NAXFUB",  # Echo Flex
+    "A4ZP7ZC4PI6TO",  # Echo Show 5 / Gen1
+    "A4ZXE0RM7LQ7A",  # Echo Dot / Gen5
+    "A50R5P5LEX87M",  # JBL / JBL BAR 500
+    "A7WXQPH584YP",  # Echo / Gen2
+    "AB72C64C86AW2",  # Echo / Gen2
+    "ADOUDFQX2QVX0",  # Fire TV Omni QLED
+    "ADVBD696BHNV5",  # Fire TV Stick / Gen1
+    "AECNEXTDY5AD9",  # Cozyla / Frame with Alexa
+    "AIPK7MM90V7TB",  # Echo Show 10 / Gen3
+    "AKNO1N0KSFN8L",  # Echo Dot / Gen1
+    "AKPGW064GI9HE",  # Fire TV Stick 4K / Gen1
+    "AP1F6KUH00XPV",  # Echo Stereo Pair / Virtual
+    "AQ24620N8QD5Q",  # Echo Show 15 / Gen2
+    "ASQZWP4GPYUT7",  # Echo pop / Gen1
+    "ATNLRCEBX3W4P",  # Fire Tablet HD 10 / Gen11
+    "AUPUQSVCVHXP0",  # ecobee Inc. / ecobee Switch+
+    "AVD3HM0HOJAAL",  # Sonos Inc. / Sonos One / Gen2
+    "AVU7CPPF2ZRAS",  # Fire Tablet HD 8 Plus / Gen10
+    "AWZZ5CVHX2CD",  # Echo Show / Gen2
+    "G2A0V704840708AP",  # Echo Plus / Gen2
+]
