@@ -48,7 +48,6 @@ from .const import (
     HTTP_ERROR_199,
     HTTP_ERROR_299,
     JSON_EXTENSION,
-    NODE_BLUETOOTH,
     NODE_DEVICES,
     NODE_DO_NOT_DISTURB,
     NODE_IDENTIFIER,
@@ -94,7 +93,6 @@ class AmazonDevice:
     serial_number: str
     software_version: str
     do_not_disturb: bool
-    bluetooth_state: bool
     entity_id: str
     appliance_id: str
     sensors: dict[str, AmazonDeviceSensor]
@@ -912,7 +910,6 @@ class AmazonEchoApi:
                 continue
 
             do_not_disturb_node = device[NODE_DO_NOT_DISTURB]
-            bluetooth_node = device[NODE_BLUETOOTH]
             identifier_node = device.get(NODE_IDENTIFIER, {})
 
             serial_number: str = devices_node["serialNumber"]
@@ -933,7 +930,6 @@ class AmazonEchoApi:
                 serial_number=serial_number,
                 software_version=devices_node["softwareVersion"],
                 do_not_disturb=do_not_disturb_node["enabled"],
-                bluetooth_state=bluetooth_node["online"],
                 entity_id=identifier_node.get("entityId"),
                 appliance_id=identifier_node.get("applianceId"),
                 sensors=sensors,
