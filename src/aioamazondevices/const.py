@@ -55,13 +55,12 @@ REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
 REFRESH_AUTH_COOKIES = "auth_cookies"
 
 NODE_DEVICES = "devices"
-NODE_DO_NOT_DISTURB = "doNotDisturbDeviceStatusList"
 NODE_IDENTIFIER = "identifier"
 NODE_SENSORS = "sensors"
 
 URI_QUERIES = {
     NODE_DEVICES: "/api/devices-v2/device",
-    NODE_DO_NOT_DISTURB: "/api/dnd/device-status-list",
+    # "/api/dnd/device-status-list",
     # "/api/device-preferences",
     # "/api/bluetooth",
     # "/api/ping"
