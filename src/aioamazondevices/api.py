@@ -56,10 +56,9 @@ from .const import (
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     SAVE_PATH,
-    SENSORS,
-    URI_IDS,
+    SENSOR_STATE_OFF,
+    URI_NEXUS_GRAPHQL,
     URI_QUERIES,
-    URI_SENSORS,
     URI_SIGNIN,
 )
 from .exceptions import (
@@ -326,14 +325,6 @@ class AmazonEchoApi:
             )
         return False
 
-    async def _ignore_phoenix_error(self, response: ClientResponse) -> bool:
-        """Return true if error is due to phoenix endpoint."""
-        # Endpoint URI_IDS replies with error 199 or 299
-        # during maintenance
-        return response.status in [HTTP_ERROR_199, HTTP_ERROR_299] and (
-            URI_IDS in response.url.path
-        )
-
     async def _http_phrase_error(self, error: int) -> str:
         """Convert numeric error in human phrase."""
         if error == HTTP_ERROR_199:
@@ -444,9 +435,7 @@ class AmazonEchoApi:
                 HTTPStatus.UNAUTHORIZED,
             ]:
                 raise CannotAuthenticate(await self._http_phrase_error(resp.status))
-            if not await self._ignore_ap_signin_error(
-                resp
-            ) and not await self._ignore_phoenix_error(resp):
+            if not await self._ignore_ap_signin_error(resp):
                 raise CannotRetrieveData(
                     f"Request failed: {await self._http_phrase_error(resp.status)}"
                 )
@@ -597,127 +586,160 @@ class AmazonEchoApi:
         _LOGGER.info("Register device: %s", scrub_fields(login_data))
         return login_data
 
-    async def _get_devices_ids(self) -> list[dict[str, str]]:
-        """Retrieve devices entityId and applianceId."""
-        _, raw_resp = await self._session_request(
-            "GET",
-            url=f"https://alexa.amazon.{self._domain}{URI_IDS}",
-            amazon_user_agent=False,
-        )
-
-        # Sensors data not available
-        if raw_resp.status != HTTPStatus.OK:
-            _LOGGER.warning(
-                "Sensors data not available [%s error '%s'], skipping",
-                URI_IDS,
-                await self._http_phrase_error(raw_resp.status),
-            )
-            self._sensors_available = False
-            return []
-
-        json_data = await raw_resp.json()
-
-        network_detail = orjson.loads(json_data["networkDetail"])
-        # Navigate through the nested structure step by step
-        location_details = network_detail["locationDetails"]["locationDetails"]
-        default_location = location_details["Default_Location"]
-        amazon_bridge = default_location["amazonBridgeDetails"]["amazonBridgeDetails"]
-
-        # New devices are based on LambdaBridge_AAA structure
-        lambda_bridge_aaa = amazon_bridge.get("LambdaBridge_AAA/SonarCloudService")
-        appliance_details_aaa = (
-            lambda_bridge_aaa["applianceDetails"]["applianceDetails"]
-            if lambda_bridge_aaa
-            else {}
-        )
-
-        entity_ids_list: list[dict[str, str]] = await self._get_entities_ids(
-            appliance_details_aaa, "AAA_SonarCloudService"
-        )
-
-        # Old devices are based on LambdaBridge_AlexaBridge structure
-        for bridge_key, bridge_value in amazon_bridge.items():
-            if "LambdaBridge_AlexaBridge/" in bridge_key:
-                # Value key:    "LambdaBridge_AlexaBridge/XXXXXXXXXXXXXX@XXXXXXXXXXXXXX"
-                # Value subkey: "AlexaBridge_XXXXXXXXXXXXXX@XXXXXXXXXXXXXX_XXXXXXXXXXXX"
-                subkey = bridge_key.split("_")[1].replace("/", "_")
-
-                appliance_details_alexa = bridge_value["applianceDetails"][
-                    "applianceDetails"
-                ]
-                entity_ids_list.extend(
-                    await self._get_entities_ids(appliance_details_alexa, subkey)
-                )
-
-        return entity_ids_list
-
-    async def _get_entities_ids(
-        self, appliance_details: dict[str, Any], searchkey: str
-    ) -> list[dict[str, str]]:
-        """Extract entityId and applianceId."""
-        entity_ids_list: list[dict[str, str]] = []
-        # Process each appliance that starts with "searchkey"
-        for appliance_key, appliance_data in appliance_details.items():
-            if not appliance_key.startswith(searchkey):
-                continue
-
-            entity_id = appliance_data["entityId"]
-            appliance_id = appliance_data["applianceId"]
-
-            # Create identifier object for this appliance
-            identifier = {
-                "entityId": entity_id,
-                "applianceId": appliance_id,
+    async def _get_devices_state(
+        self,
+    ) -> dict[str, Any]:
+        """Get Device State."""
+        query = """
+        query getDevicesState ($latencyTolerance: LatencyToleranceValue) {
+          listEndpoints(listEndpointsInput: {}) {
+            endpoints {
+              endpointId: id
+              friendlyNameObject { value { text } }
+              manufacturer { value { text } }
+              model { value { text} }
+              serialNumber { value { text } }
+              softwareVersion { value { text } }
+              creationTime
+              enablement
+              settings {
+                doNotDisturb {
+                  id
+                  endpointId
+                  name
+                  toggleValue
+                  error {
+                    type
+                    message
+                  }
+                }
+              }
+              displayCategories {
+                all { value }
+                primary { value }
+              }
+              alexaEnabledMetadata {
+                iconId
+                isVisible
+                category
+                capabilities
+              }
+              legacyIdentifiers {
+                dmsIdentifier {
+                  deviceType { value { text } }
+                }
+                chrsIdentifier { entityId }
+              }
+              legacyAppliance { applianceId }
+              associatedUnits { id }
+              connections {
+                  type
+                  macAddress
+                  bleMeshDeviceUuid
+              }
+              features(latencyToleranceValue: $latencyTolerance) {
+                name
+                instance
+                properties {
+                  name
+                  type
+                  accuracy
+                  error { message }
+                  __typename
+                  ... on Illuminance {
+                    illuminanceValue { value }
+                    timeOfSample
+                    timeOfLastChange
+                  }
+                  ... on Reachability {
+                      reachabilityStatusValue
+                      timeOfSample
+                      timeOfLastChange
+                  }
+                  ... on DetectionState {
+                      detectionStateValue
+                      timeOfSample
+                      timeOfLastChange
+                  }
+                  ... on Volume {
+                      value { volValue: value }
+                  }
+                  ... on TemperatureSensor {
+                      name
+                      value {
+                        value
+                        scale
+                      }
+                      timeOfSample
+                      timeOfLastChange
+                  }
+                }
+              }
             }
+          }
+        }
+        """
 
-            # Update device information for each device in the identifier list
-            for device_identifier in appliance_data["alexaDeviceIdentifierList"]:
-                serial_number = device_identifier["dmsDeviceSerialNumber"]
+        payload = {
+            "operationName": "getDevicesState",
+            "variables": {
+                "latencyTolerance": "LOW",
+            },
+            "query": query,
+        }
 
-                # Add identifier information to the device
-                # but only if the device was previously found
-                if serial_number in self._devices:
-                    self._devices[serial_number] |= {NODE_IDENTIFIER: identifier}
-
-            # Add to entity IDs list for sensor retrieval
-            entity_ids_list.append({"entityId": entity_id, "entityType": "ENTITY"})
-
-        return entity_ids_list
-
-    async def _get_sensors_states(
-        self, entity_ids_list: list[dict[str, str]]
-    ) -> dict[str, dict[str, AmazonDeviceSensor]]:
-        """Retrieve devices sensors states."""
-        _data = {"stateRequests": entity_ids_list}
         _, raw_resp = await self._session_request(
-            "POST",
-            url=f"https://alexa.amazon.{self._domain}{URI_SENSORS}",
-            input_data=_data,
+            method=HTTPMethod.POST,
+            url=f"https://alexa.amazon.{self._domain}{URI_NEXUS_GRAPHQL}",
+            input_data=payload,
             json_data=True,
         )
-        json_data = await raw_resp.json()
 
-        final_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
-        for sensors in json_data["deviceStates"]:
-            _id = sensors["entity"]["entityId"]
-            dict_sensors: dict[str, AmazonDeviceSensor] = {}
-            for sensor in sensors["capabilityStates"]:
-                sensor_json = orjson.loads(sensor)
-                if sensor_json["name"] in SENSORS:
-                    _value = sensor_json["value"]
-                    _value_dict = isinstance(_value, dict)
-                    _name = sensor_json["name"]
-                    dict_sensors.update(
-                        {
-                            _name: AmazonDeviceSensor(
-                                name=_name,
-                                value=(_value["value"] if _value_dict else _value),
-                                scale=_value.get("scale") if _value_dict else None,
-                            )
-                        }
+        devices_state: dict[str, Any] = await raw_resp.json()
+        return devices_state
+
+    async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
+        """Retrieve devices sensors states."""
+        devices_state = await self._get_devices_state()
+        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
+
+        endpoints = devices_state["data"]["listEndpoints"]
+        for endpoint in endpoints["endpoints"]:
+            serial_number = (
+                endpoint["serialNumber"]["value"]["text"]
+                if endpoint["serialNumber"]
+                else None
+            )
+            if serial_number in self._devices:
+                devices_sensors[serial_number] = self._get_device_sensor_state(endpoint)
+
+        return devices_sensors
+
+    def _get_device_sensor_state(
+        self, endpoint: dict[str, Any]
+    ) -> dict[str, AmazonDeviceSensor]:
+        device_sensors: dict[str, AmazonDeviceSensor] = {}
+        if endpoint["features"]:
+            for feature in endpoint["features"]:
+                if feature["name"] == "temperatureSensor":
+                    device_sensors["temperature"] = AmazonDeviceSensor(
+                        "temperature", feature["properties"][0]["value"]["value"], None
                     )
-            final_sensors.update({_id: dict_sensors})
-        return final_sensors
+                if feature["name"] == "motionSensor":
+                    device_sensors["motion"] = AmazonDeviceSensor(
+                        "motion",  # I think this may have been named incorrectly before
+                        feature["properties"][0]["detectionStateValue"]
+                        == SENSOR_STATE_OFF,
+                        None,
+                    )
+                if feature["name"] == "lightSensor":
+                    device_sensors["illuminance"] = AmazonDeviceSensor(
+                        "illuminance",
+                        feature["properties"][0]["illuminanceValue"]["value"],
+                        None,
+                    )
+
+        return device_sensors
 
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
@@ -875,12 +897,9 @@ class AmazonEchoApi:
                 else:
                     self._devices[dev_serial] = {key: data}
 
-        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
-
-        if self._sensors_available and (
-            entity_ids_list := await self._get_devices_ids()
-        ):
-            devices_sensors = await self._get_sensors_states(entity_ids_list)
+        devices_sensors: dict[
+            str, dict[str, AmazonDeviceSensor]
+        ] = await self._get_sensors_states()
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():
@@ -894,14 +913,10 @@ class AmazonEchoApi:
             bluetooth_node = device[NODE_BLUETOOTH]
             identifier_node = device.get(NODE_IDENTIFIER, {})
 
-            # Add sensors
-            sensors = {}
-            if identifier_node:
-                for _device_id, _device_sensors in devices_sensors.items():
-                    if _device_id == identifier_node["entityId"]:
-                        sensors = _device_sensors
-
             serial_number: str = devices_node["serialNumber"]
+            # Add sensors
+            sensors = devices_sensors.get(serial_number, {})
+
             final_devices_list[serial_number] = AmazonDevice(
                 account_name=devices_node["accountName"],
                 capabilities=devices_node["capabilities"],
