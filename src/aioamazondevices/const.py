@@ -54,24 +54,7 @@ CSRF_COOKIE = "csrf"
 REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
 REFRESH_AUTH_COOKIES = "auth_cookies"
 
-NODE_DEVICES = "devices"
-NODE_IDENTIFIER = "identifier"
-NODE_SENSORS = "sensors"
-
-URI_QUERIES = {
-    NODE_DEVICES: "/api/devices-v2/device",
-    # "/api/dnd/device-status-list",
-    # "/api/device-preferences",
-    # "/api/bluetooth",
-    # "/api/ping"
-    # "/api/np/command"
-    # "/api/np/player"
-    # "/api/device-wifi-details"
-    # "/api/activities"
-    # "/api/behaviors/v2/automations"
-    # "/api/notifications"
-}
-
+URI_DEVICES = "/api/devices-v2/device"
 URI_SIGNIN = "/ap/signin"
 URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 
