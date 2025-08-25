@@ -78,7 +78,7 @@ URI_QUERIES = {
 URI_SIGNIN = "/ap/signin"
 URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 
-SENSOR_STATE_OFF = "NOT_DETECTED"
+SENSOR_STATE_MOTION_DETECTED = "DETECTED"
 
 # File extensions
 SAVE_PATH = "out"
