@@ -56,7 +56,7 @@ from .const import (
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     SAVE_PATH,
-    SENSOR_STATE_OFF,
+    SENSOR_STATE_MOTION_DETECTED,
     URI_NEXUS_GRAPHQL,
     URI_QUERIES,
     URI_SIGNIN,
@@ -727,9 +727,9 @@ class AmazonEchoApi:
                     )
                 if feature["name"] == "motionSensor":
                     device_sensors["motion"] = AmazonDeviceSensor(
-                        "motion",  # I think this may have been named incorrectly before
-                        feature["properties"][0]["detectionStateValue"]
-                        == SENSOR_STATE_OFF,
+                        "humanPresenceDetectionState",  # name to match legacy value
+                        feature["properties"][0].get("detectionStateValue", "NOT_SET")
+                        == SENSOR_STATE_MOTION_DETECTED,
                         None,
                     )
                 if feature["name"] == "lightSensor":
