@@ -49,7 +49,6 @@ from .const import (
     HTTP_ERROR_299,
     JSON_EXTENSION,
     NODE_DEVICES,
-    NODE_DO_NOT_DISTURB,
     NODE_IDENTIFIER,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
@@ -91,7 +90,6 @@ class AmazonDevice:
     online: bool
     serial_number: str
     software_version: str
-    do_not_disturb: bool
     entity_id: str
     appliance_id: str
     sensors: dict[str, AmazonDeviceSensor]
@@ -715,6 +713,10 @@ class AmazonEchoApi:
         self, endpoint: dict[str, Any]
     ) -> dict[str, AmazonDeviceSensor]:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
+        if endpoint["settings"] and endpoint["settings"]["doNotDisturb"]:
+            device_sensors["dnd"] = AmazonDeviceSensor(
+                "dnd", endpoint["settings"]["doNotDisturb"]["toggleValue"], None
+            )
         if endpoint["features"]:
             for feature in endpoint["features"]:
                 if feature["name"] == "temperatureSensor":
@@ -906,7 +908,6 @@ class AmazonEchoApi:
             if not devices_node or (devices_node.get("deviceType") in DEVICE_TO_IGNORE):
                 continue
 
-            do_not_disturb_node = device[NODE_DO_NOT_DISTURB]
             identifier_node = device.get(NODE_IDENTIFIER, {})
 
             serial_number: str = devices_node["serialNumber"]
@@ -925,7 +926,6 @@ class AmazonEchoApi:
                 online=devices_node["online"],
                 serial_number=serial_number,
                 software_version=devices_node["softwareVersion"],
-                do_not_disturb=do_not_disturb_node["enabled"],
                 entity_id=identifier_node.get("entityId"),
                 appliance_id=identifier_node.get("applianceId"),
                 sensors=sensors,
