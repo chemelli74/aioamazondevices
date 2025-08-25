@@ -83,6 +83,8 @@ class AmazonDevice:
     capabilities: list[str]
     device_family: str
     device_type: str
+    device_manufacturer: str
+    device_model: str
     device_owner_customer_id: str
     device_cluster_members: list[str]
     device_locale: str
@@ -901,6 +903,8 @@ class AmazonEchoApi:
             capabilities=device_data["capabilities"],
             device_family=device_data["deviceFamily"],
             device_type=device_data["deviceType"],
+            device_manufacturer=endpoint["manufacturer"]["value"]["text"],
+            device_model=endpoint["model"]["value"]["text"],
             device_owner_customer_id=device_data["deviceOwnerCustomerId"],
             device_cluster_members=device_data["clusterMembers"]
             or device_data["serialNumber"],
