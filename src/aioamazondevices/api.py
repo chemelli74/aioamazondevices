@@ -88,8 +88,8 @@ class AmazonDevice:
     online: bool
     serial_number: str
     software_version: str
-    entity_id: str
-    appliance_id: str
+    entity_id: str | None
+    endpoint_id: str | None
     sensors: dict[str, AmazonDeviceSensor]
 
 
@@ -891,7 +891,7 @@ class AmazonEchoApi:
 
         _LOGGER.debug("JSON data: |%s|", scrub_fields(json_data))
 
-        for data in json_data:
+        for data in json_data["devices"]:
             dev_serial = data.get("serialNumber")
             self._devices[dev_serial] = data
 
@@ -918,8 +918,12 @@ class AmazonEchoApi:
                 online=device["online"],
                 serial_number=serial_number,
                 software_version=device["softwareVersion"],
-                entity_id=device_endpoint["entityId"],
-                appliance_id=device_endpoint["applianceId"],
+                entity_id=device_endpoint["legacyIdentifiers"]["chrsIdentifier"][
+                    "entityId"
+                ]
+                if device_endpoint
+                else None,
+                endpoint_id=device_endpoint["endpointId"] if device_endpoint else None,
                 sensors=sensors,
             )
 
