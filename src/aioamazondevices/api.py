@@ -85,12 +85,11 @@ class AmazonDevice:
     device_type: str
     device_owner_customer_id: str
     device_cluster_members: list[str]
-    device_locale: str
     online: bool
     serial_number: str
     software_version: str
-    entity_id: str
-    appliance_id: str
+    entity_id: str | None
+    endpoint_id: str | None
     sensors: dict[str, AmazonDeviceSensor]
 
 
@@ -894,7 +893,7 @@ class AmazonEchoApi:
 
         _LOGGER.debug("JSON data: |%s|", scrub_fields(json_data))
 
-        for data in json_data:
+        for data in json_data["devices"]:
             dev_serial = data.get("serialNumber")
             self._devices[dev_serial] = data
 
@@ -918,12 +917,15 @@ class AmazonEchoApi:
                 device_type=device["deviceType"],
                 device_owner_customer_id=device["deviceOwnerCustomerId"],
                 device_cluster_members=(device["clusterMembers"] or [serial_number]),
-                device_locale=self._language,
                 online=device["online"],
                 serial_number=serial_number,
                 software_version=device["softwareVersion"],
-                entity_id=device_endpoint["entityId"],
-                appliance_id=device_endpoint["applianceId"],
+                entity_id=device_endpoint["legacyIdentifiers"]["chrsIdentifier"][
+                    "entityId"
+                ]
+                if device_endpoint
+                else None,
+                endpoint_id=device_endpoint["endpointId"] if device_endpoint else None,
                 sensors=sensors,
             )
 
@@ -987,7 +989,7 @@ class AmazonEchoApi:
         base_payload = {
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
-            "locale": device.device_locale,
+            "locale": self._language,
             "customerId": device.device_owner_customer_id,
         }
 
@@ -1022,7 +1024,7 @@ class AmazonEchoApi:
                 "expireAfter": "PT5S",
                 "content": [
                     {
-                        "locale": device.device_locale,
+                        "locale": self._language,
                         "display": {
                             "title": "Home Assistant",
                             "body": message_body,
