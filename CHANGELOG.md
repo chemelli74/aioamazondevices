@@ -1,5 +1,12 @@
 # Changelog
 
+## v5.1.0-rc.2 (2025-08-25)
+
+### Bug fixes
+
+- Temperature sensor scale ([`3d8eb04`](https://github.com/chemelli74/aioamazondevices/commit/3d8eb04dfe6e9fee5b8accb42b95e94dc84e2298))
+
+
 ## v5.1.0-rc.1 (2025-08-25)
 
 ### Bug fixes
