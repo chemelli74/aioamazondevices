@@ -76,19 +76,8 @@ URI_QUERIES = {
 }
 
 URI_SIGNIN = "/ap/signin"
-URI_IDS = "/api/phoenix"
-URI_SENSORS = "/api/phoenix/state"
+URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 
-SENSORS = [
-    "babyCryDetectionState",
-    "beepingApplianceDetectionState",
-    "coughDetectionState",
-    "dogBarkDetectionState",
-    "humanPresenceDetectionState",
-    "illuminance",
-    "temperature",
-    "waterSoundsDetectionState",
-]
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
 # File extensions
