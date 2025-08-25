@@ -52,7 +52,6 @@ from .const import (
     NODE_DEVICES,
     NODE_DO_NOT_DISTURB,
     NODE_IDENTIFIER,
-    NODE_PREFERENCES,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     SAVE_PATH,
@@ -95,7 +94,6 @@ class AmazonDevice:
     serial_number: str
     software_version: str
     do_not_disturb: bool
-    response_style: str | None
     bluetooth_state: bool
     entity_id: str
     appliance_id: str
@@ -913,7 +911,6 @@ class AmazonEchoApi:
             if not devices_node or (devices_node.get("deviceType") in DEVICE_TO_IGNORE):
                 continue
 
-            preferences_node = device.get(NODE_PREFERENCES, {})
             do_not_disturb_node = device[NODE_DO_NOT_DISTURB]
             bluetooth_node = device[NODE_BLUETOOTH]
             identifier_node = device.get(NODE_IDENTIFIER, {})
@@ -931,12 +928,11 @@ class AmazonEchoApi:
                 device_cluster_members=(
                     devices_node["clusterMembers"] or [serial_number]
                 ),
-                device_locale=preferences_node.get("locale", self._language),
+                device_locale=self._language,
                 online=devices_node["online"],
                 serial_number=serial_number,
                 software_version=devices_node["softwareVersion"],
                 do_not_disturb=do_not_disturb_node["enabled"],
-                response_style=preferences_node.get("responseStyle"),
                 bluetooth_state=bluetooth_node["online"],
                 entity_id=identifier_node.get("entityId"),
                 appliance_id=identifier_node.get("applianceId"),
