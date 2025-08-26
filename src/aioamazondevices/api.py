@@ -808,6 +808,10 @@ class AmazonEchoApi:
             obfuscate_email(self._login_email),
         )
 
+        # Refresh token and check if session is authenticated
+        await self._refresh_data(REFRESH_ACCESS_TOKEN)
+        await self.auth_check_status()
+
         return self._login_stored_data
 
     async def _get_alexa_domain(self) -> str:
