@@ -4,6 +4,7 @@ import asyncio
 import base64
 import hashlib
 import mimetypes
+import re
 import secrets
 import uuid
 from dataclasses import dataclass
@@ -974,9 +975,16 @@ class AmazonEchoApi:
                 device.account_name,
             )
         model_details: dict[str, str | None] = {}
+        model = device.device_manufacturer
+        hw_gen_regex = r"\s*\(\d{1,2}(?:st|nd|rd|th) Gen\)$"  # codespell:ignore nd
+        hw_ver_full = re.search(hw_gen_regex, model) if model else None
+        hw_ver_formated = None
+        if hw_ver_full and model:
+            model = model.removesuffix(hw_ver_full.group(0))
+            hw_ver_formated = hw_ver_full.group(0).strip(" ()")
         model_details["manufacturer"] = device.device_manufacturer
-        model_details["model"] = device.device_model
-        model_details["hw_version"] = ""
+        model_details["model"] = model
+        model_details["hw_version"] = hw_ver_formated
         return model_details
 
     async def _send_message(
