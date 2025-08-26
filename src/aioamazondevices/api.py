@@ -631,8 +631,8 @@ class AmazonEchoApi:
                 "dnd", endpoint_dnd.get("toggleValue"), None
             )
         for feature in endpoint.get("features", {}):
-            first_property = feature["properties"][0]
-            if first_property["type"] != "RETRIEVABLE":
+            first_property = (feature.get("properties") or [None])[0] or {}
+            if first_property.get("type") != "RETRIEVABLE":
                 continue
 
             if feature["name"] == "temperatureSensor":
