@@ -58,7 +58,7 @@ URI_DEVICES = "/api/devices-v2/device"
 URI_SIGNIN = "/ap/signin"
 URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 
-SENSOR_STATE_MOTION_DETECTED = "DETECTED"
+SENSOR_STATE_OFF = "NOT_DETECTED"
 
 # File extensions
 SAVE_PATH = "out"
