@@ -608,7 +608,7 @@ class AmazonEchoApi:
         devices_endpoints: dict[str, dict[str, Any]] = {}
 
         endpoints = devices_state["data"]["listEndpoints"]
-        for endpoint in endpoints["endpoints"]:
+        for endpoint in endpoints.get("endpoints"):
             serial_number = (
                 endpoint["serialNumber"]["value"]["text"]
                 if endpoint["serialNumber"]
