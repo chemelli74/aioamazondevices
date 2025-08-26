@@ -431,9 +431,10 @@ class AmazonEchoApi:
 
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
-            "Response %s for url %s with content type: %s",
-            resp.status,
+            "Response for url %s :\nstatus      : %s \
+                                  \ncontent type: %s ",
             url,
+            resp.status,
             content_type,
         )
 
@@ -862,9 +863,6 @@ class AmazonEchoApi:
                 method=HTTPMethod.GET,
                 url=f"https://alexa.amazon.{self._domain}{URI_QUERIES[key]}",
             )
-            _LOGGER.debug("Response URL: %s", raw_resp.url)
-            response_code = raw_resp.status
-            _LOGGER.debug("Response code: |%s|", response_code)
 
             response_data = await raw_resp.text()
             json_data = {} if len(response_data) == 0 else await raw_resp.json()
