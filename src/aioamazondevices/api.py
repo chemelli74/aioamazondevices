@@ -641,7 +641,7 @@ class AmazonEchoApi:
                         first_property["value"]["scale"],
                     )
                 if feature["name"] == "motionSensor":
-                    device_sensors["motion"] = AmazonDeviceSensor(
+                    device_sensors["humanPresenceDetectionState"] = AmazonDeviceSensor(
                         "humanPresenceDetectionState",  # name to match legacy value
                         first_property.get("detectionStateValue", "NOT_SET")
                         == SENSOR_STATE_MOTION_DETECTED,
