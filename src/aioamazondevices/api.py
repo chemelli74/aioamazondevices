@@ -624,7 +624,9 @@ class AmazonEchoApi:
         self, endpoint: dict[str, Any]
     ) -> dict[str, AmazonDeviceSensor]:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
-        if endpoint_dnd := endpoint.get("settings", {}).get("doNotDisturb"):
+        if (
+            endpoint_dnd := endpoint.get("settings", {}).get("doNotDisturb")
+        ) and not endpoint_dnd["error"]:
             device_sensors["dnd"] = AmazonDeviceSensor(
                 "dnd", endpoint_dnd.get("toggleValue"), None
             )
