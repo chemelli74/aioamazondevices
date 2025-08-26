@@ -69,6 +69,32 @@ BIN_EXTENSION = ".bin"
 SPEAKER_GROUP_FAMILY = "WHA"
 SPEAKER_GROUP_MODEL = "Speaker Group"
 
+SENSORS: dict[str, dict[str, str | None]] = {
+    "temperatureSensor": {
+        "name": "temperature",
+        "key": "value",
+        "subkey": "value",
+        "scale": "scale",
+    },
+    "motionSensor": {
+        "name": "motion",
+        "key": "detectionStateValue",
+        "subkey": None,
+        "scale": None,
+    },
+    "lightSensor": {
+        "name": "illuminance",
+        "key": "illuminanceValue",
+        "subkey": "value",
+        "scale": None,
+    },
+    "speaker": {
+        "name": "volume",
+        "key": "value",
+        "subkey": "volValue",
+        "scale": None,
+    },
+}
 DEVICE_TO_IGNORE: list[str] = [
     AMAZON_DEVICE_TYPE,  # Alexa App for iOS
     "A2TF17PFR55MTB",  # Alexa App for Android

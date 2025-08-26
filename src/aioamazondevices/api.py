@@ -51,6 +51,7 @@ from .const import (
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     SAVE_PATH,
+    SENSORS,
     URI_DEVICES,
     URI_NEXUS_GRAPHQL,
     URI_SIGNIN,
@@ -632,27 +633,24 @@ class AmazonEchoApi:
             )
         for feature in endpoint.get("features", {}):
             first_property = (feature.get("properties") or [None])[0] or {}
-            if first_property.get("type") != "RETRIEVABLE":
+            if (
+                first_property.get("type") != "RETRIEVABLE"
+                or (sensor := SENSORS.get(feature["name"])) is None
+            ):
                 continue
 
-            if feature["name"] == "temperatureSensor":
-                device_sensors["temperature"] = AmazonDeviceSensor(
-                    "temperature",
-                    first_property["value"]["value"],
-                    first_property["value"]["scale"],
-                )
-            if feature["name"] == "motionSensor":
-                device_sensors["motion"] = AmazonDeviceSensor(
-                    "motion",  # name to match legacy value
-                    first_property["detectionStateValue"],
-                    None,
-                )
-            if feature["name"] == "lightSensor":
-                device_sensors["illuminance"] = AmazonDeviceSensor(
-                    "illuminance",
-                    first_property["illuminanceValue"]["value"],
-                    None,
-                )
+            if not (name := sensor["name"]):
+                raise TypeError("Unable to read sensor template")
+
+            value = first_property[sensor["key"]]
+            scale = value["scale"] if sensor["scale"] else None
+            if subkey := sensor["subkey"]:
+                value = value[subkey]
+            device_sensors[name] = AmazonDeviceSensor(
+                name,
+                value,
+                scale,
+            )
 
         return device_sensors
 
