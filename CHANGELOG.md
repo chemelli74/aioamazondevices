@@ -1,5 +1,18 @@
 # Changelog
 
+## v5.1.0-rc.3 (2025-08-26)
+
+### Bug fixes
+
+- Key for motion sensor ([`0764dfa`](https://github.com/chemelli74/aioamazondevices/commit/0764dfa92da8c397de48bb7c8453ddacc14a97c9))
+
+
+### Refactoring
+
+- Move graphql query to own file ([`9cb3895`](https://github.com/chemelli74/aioamazondevices/commit/9cb3895d67ed341fa50a0a8ab645e2ed8beca44b))
+- Move dnd to graphql ([`887fd5b`](https://github.com/chemelli74/aioamazondevices/commit/887fd5b84f89227043f2276e8ab165d1a7c3ed04))
+
+
 ## v5.1.0-rc.2 (2025-08-25)
 
 ### Bug fixes
