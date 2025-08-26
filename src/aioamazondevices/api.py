@@ -4,7 +4,6 @@ import asyncio
 import base64
 import hashlib
 import mimetypes
-import re
 import secrets
 import uuid
 from dataclasses import dataclass
@@ -38,13 +37,13 @@ from .const import (
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
     BIN_EXTENSION,
-    CONFIRMED_DEVICES,
     CSRF_COOKIE,
     DEFAULT_AGENT,
     DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
     DEFAULT_SITE,
     DEVICE_TO_IGNORE,
+    DEVICE_TYPE_TO_MODEL,
     HTML_EXTENSION,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
@@ -84,8 +83,6 @@ class AmazonDevice:
     capabilities: list[str]
     device_family: str
     device_type: str
-    device_manufacturer: str | None
-    device_model: str | None
     device_owner_customer_id: str
     device_cluster_members: list[str]
     online: bool
@@ -916,9 +913,6 @@ class AmazonEchoApi:
                 capabilities=device["capabilities"],
                 device_family=device["deviceFamily"],
                 device_type=device["deviceType"],
-                device_manufacturer=device_endpoint["manufacturer"]["value"]["text"]
-                or None,
-                device_model=device_endpoint["model"]["value"]["text"] or None,
                 device_owner_customer_id=device["deviceOwnerCustomerId"],
                 device_cluster_members=(device["clusterMembers"] or [serial_number]),
                 online=device["online"],
@@ -966,23 +960,16 @@ class AmazonEchoApi:
 
     def get_model_details(self, device: AmazonDevice) -> dict[str, str | None] | None:
         """Return model datails."""
-        if device.device_type not in CONFIRMED_DEVICES:
+        model_details: dict[str, str | None] | None = DEVICE_TYPE_TO_MODEL.get(
+            device.device_type
+        )
+        if not model_details:
             _LOGGER.warning(
                 "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices/wiki/Unknown-Device-Types",
                 device.device_type,
                 device.account_name,
             )
-        model_details: dict[str, str | None] = {}
-        model = device.device_manufacturer
-        hw_gen_regex = r"\s*\(\d{1,2}(?:st|nd|rd|th) Gen\)$"  # codespell:ignore nd
-        hw_ver_full = re.search(hw_gen_regex, model) if model else None
-        hw_ver_formated = None
-        if hw_ver_full and model:
-            model = model.removesuffix(hw_ver_full.group(0))
-            hw_ver_formated = hw_ver_full.group(0).strip(" ()")
-        model_details["manufacturer"] = device.device_manufacturer
-        model_details["model"] = model
-        model_details["hw_version"] = hw_ver_formated
+
         return model_details
 
     async def _send_message(
