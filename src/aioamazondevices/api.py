@@ -802,7 +802,7 @@ class AmazonEchoApi:
         response_data = await raw_resp.text()
         json_data = {} if len(response_data) == 0 else await raw_resp.json()
 
-        _LOGGER.debug("JSON data: |%s|", scrub_fields(json_data))
+        _LOGGER.debug("JSON devices data: %s", scrub_fields(json_data))
 
         for data in json_data["devices"]:
             dev_serial = data.get("serialNumber")
