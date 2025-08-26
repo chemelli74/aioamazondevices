@@ -583,14 +583,12 @@ class AmazonEchoApi:
         self,
     ) -> dict[str, Any]:
         """Get Device State."""
-        query = QUERY_DEVICE_STATE
-
         payload = {
             "operationName": "getDevicesState",
             "variables": {
                 "latencyTolerance": "LOW",
             },
-            "query": query,
+            "query": QUERY_DEVICE_STATE,
         }
 
         _, raw_resp = await self._session_request(
@@ -600,8 +598,7 @@ class AmazonEchoApi:
             json_data=True,
         )
 
-        devices_state: dict[str, Any] = await raw_resp.json()
-        return devices_state
+        return cast("dict", await raw_resp.json())
 
     async def _get_sensors_states(
         self,
@@ -632,28 +629,27 @@ class AmazonEchoApi:
             device_sensors["dnd"] = AmazonDeviceSensor(
                 "dnd", endpoint_dnd.get("toggleValue"), None
             )
-        if endpoint["features"]:
-            for feature in endpoint.get("features", {}):
-                first_property = feature["properties"][0]
-                if feature["name"] == "temperatureSensor":
-                    device_sensors["temperature"] = AmazonDeviceSensor(
-                        "temperature",
-                        first_property["value"]["value"],
-                        first_property["value"]["scale"],
-                    )
-                if feature["name"] == "motionSensor":
-                    device_sensors["humanPresenceDetectionState"] = AmazonDeviceSensor(
-                        "humanPresenceDetectionState",  # name to match legacy value
-                        first_property.get("detectionStateValue", "NOT_SET")
-                        == SENSOR_STATE_MOTION_DETECTED,
-                        None,
-                    )
-                if feature["name"] == "lightSensor":
-                    device_sensors["illuminance"] = AmazonDeviceSensor(
-                        "illuminance",
-                        first_property["illuminanceValue"]["value"],
-                        None,
-                    )
+        for feature in endpoint.get("features", {}):
+            first_property = feature["properties"][0]
+            if feature["name"] == "temperatureSensor":
+                device_sensors["temperature"] = AmazonDeviceSensor(
+                    "temperature",
+                    first_property["value"]["value"],
+                    first_property["value"]["scale"],
+                )
+            if feature["name"] == "motionSensor":
+                device_sensors["humanPresenceDetectionState"] = AmazonDeviceSensor(
+                    "humanPresenceDetectionState",  # name to match legacy value
+                    first_property.get("detectionStateValue", "NOT_SET")
+                    == SENSOR_STATE_MOTION_DETECTED,
+                    None,
+                )
+            if feature["name"] == "lightSensor":
+                device_sensors["illuminance"] = AmazonDeviceSensor(
+                    "illuminance",
+                    first_property["illuminanceValue"]["value"],
+                    None,
+                )
 
         return device_sensors
 
