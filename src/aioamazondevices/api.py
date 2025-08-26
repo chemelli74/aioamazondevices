@@ -51,7 +51,6 @@ from .const import (
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     SAVE_PATH,
-    SENSOR_STATE_MOTION_DETECTED,
     URI_DEVICES,
     URI_NEXUS_GRAPHQL,
     URI_SIGNIN,
@@ -631,6 +630,9 @@ class AmazonEchoApi:
             )
         for feature in endpoint.get("features", {}):
             first_property = feature["properties"][0]
+            if first_property["type"] != "RETRIEVABLE":
+                continue
+
             if feature["name"] == "temperatureSensor":
                 device_sensors["temperature"] = AmazonDeviceSensor(
                     "temperature",
@@ -638,10 +640,9 @@ class AmazonEchoApi:
                     first_property["value"]["scale"],
                 )
             if feature["name"] == "motionSensor":
-                device_sensors["humanPresenceDetectionState"] = AmazonDeviceSensor(
-                    "humanPresenceDetectionState",  # name to match legacy value
-                    first_property.get("detectionStateValue", "NOT_SET")
-                    == SENSOR_STATE_MOTION_DETECTED,
+                device_sensors["motion"] = AmazonDeviceSensor(
+                    "motion",  # name to match legacy value
+                    first_property["detectionStateValue"],
                     None,
                 )
             if feature["name"] == "lightSensor":
