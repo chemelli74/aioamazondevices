@@ -91,7 +91,6 @@ class AmazonDevice:
     device_type: str
     device_owner_customer_id: str
     device_cluster_members: list[str]
-    device_locale: str
     online: bool
     serial_number: str
     software_version: str
@@ -912,7 +911,6 @@ class AmazonEchoApi:
                 device_cluster_members=(
                     devices_node["clusterMembers"] or [serial_number]
                 ),
-                device_locale=preferences_node.get("locale", self._language),
                 online=devices_node["online"],
                 serial_number=serial_number,
                 software_version=devices_node["softwareVersion"],
@@ -984,7 +982,7 @@ class AmazonEchoApi:
         base_payload = {
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
-            "locale": device.device_locale,
+            "locale": self._language,
             "customerId": device.device_owner_customer_id,
         }
 
@@ -1019,7 +1017,7 @@ class AmazonEchoApi:
                 "expireAfter": "PT5S",
                 "content": [
                     {
-                        "locale": device.device_locale,
+                        "locale": self._language,
                         "display": {
                             "title": "Home Assistant",
                             "body": message_body,
