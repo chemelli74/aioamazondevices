@@ -627,29 +627,30 @@ class AmazonEchoApi:
         self, endpoint: dict[str, Any]
     ) -> dict[str, AmazonDeviceSensor]:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
-        if endpoint["settings"] and endpoint["settings"]["doNotDisturb"]:
+        if endpoint_dnd := endpoint.get("settings", {}).get("doNotDisturb"):
             device_sensors["dnd"] = AmazonDeviceSensor(
-                "dnd", endpoint["settings"]["doNotDisturb"]["toggleValue"], None
+                "dnd", endpoint_dnd.get("toggleValue"), None
             )
         if endpoint["features"]:
-            for feature in endpoint["features"]:
+            for feature in endpoint.get("features", {}):
+                first_property = feature["properties"][0]
                 if feature["name"] == "temperatureSensor":
                     device_sensors["temperature"] = AmazonDeviceSensor(
                         "temperature",
-                        feature["properties"][0]["value"]["value"],
-                        feature["properties"][0]["value"]["scale"],
+                        first_property["value"]["value"],
+                        first_property["value"]["scale"],
                     )
                 if feature["name"] == "motionSensor":
                     device_sensors["motion"] = AmazonDeviceSensor(
                         "humanPresenceDetectionState",  # name to match legacy value
-                        feature["properties"][0].get("detectionStateValue", "NOT_SET")
+                        first_property.get("detectionStateValue", "NOT_SET")
                         == SENSOR_STATE_MOTION_DETECTED,
                         None,
                     )
                 if feature["name"] == "lightSensor":
                     device_sensors["illuminance"] = AmazonDeviceSensor(
                         "illuminance",
-                        feature["properties"][0]["illuminanceValue"]["value"],
+                        first_property["illuminanceValue"]["value"],
                         None,
                     )
 
