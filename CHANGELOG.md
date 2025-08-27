@@ -37,6 +37,18 @@
 - Small update ([`3432096`](https://github.com/chemelli74/aioamazondevices/commit/34320962633b5c856b05213f09782bc76f61a4f0))
 
 
+## v5.0.1 (2025-08-27)
+
+### Bug fixes
+
+- More models ([`07836f0`](https://github.com/chemelli74/aioamazondevices/commit/07836f096b5ebb8efb01642b8926d79840a270ff))
+
+
+### Documentation
+
+- Small update ([`3432096`](https://github.com/chemelli74/aioamazondevices/commit/34320962633b5c856b05213f09782bc76f61a4f0))
+
+
 ## v5.0.0 (2025-08-21)
 
 ### Features
