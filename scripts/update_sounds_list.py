@@ -6,45 +6,42 @@ from pathlib import Path
 from typing import Any, cast
 
 import orjson
-from aiohttp import ClientSession, ClientTimeout
 
-# URL of the JSON file
-url = "https://m.media-amazon.com/images/G/01/mobile-apps/dex/ask-tech-docs/ask-soundlibrary._TTH_.json"
+# URL of the JSON file: https://alexa.amazon.it/api/behaviors/entities?skillId=amzn1.ask.1p.sound
+# need authentication in order to be downloaded
+local_json_filename = "scripts/downloaded_sounds_list.json"
 destination_python_filename = "src/aioamazondevices/sounds.py"
-destination_strings_filename = "scripts/sounds_strings.json"
-destination_services_filename = "scripts/sounds_services.yaml"
+destination_strings_filename = "scripts/ha/sounds_strings.json"
+destination_services_filename = "scripts/ha/sounds_services.yaml"
+
+_LOADED_DATA_TYPE = list[dict[str, Any]]
+_PROCESSED_DATA_TYPE = dict[str, str]
 
 
-async def get_data() -> dict[str, Any]:
+async def get_data() -> _LOADED_DATA_TYPE:
     """Get data from URL."""
-    async with ClientSession() as session:
-        resp = await session.get(url, timeout=ClientTimeout(10))
-        return cast("dict[str,Any]", await resp.json())
+    file = Path.open(Path(local_json_filename), mode="r", encoding="utf-8")
+    data = cast("_LOADED_DATA_TYPE", orjson.loads(file.read()))
+    file.close()
+    return data
 
 
 async def process_data(
-    data: dict[str, Any],
-) -> tuple[dict[str, Any], dict[str, Any], list[str]]:
+    data: _LOADED_DATA_TYPE,
+) -> _PROCESSED_DATA_TYPE:
     """Process received data."""
-    result_python: dict[str, Any] = {}
-    result_strings: dict[str, Any] = {}
-    result_yaml: list[str] = []
-    if "sounds" in data:
-        for item in data["sounds"]:
-            description: str = item["name"]
-            description_root_str: str = description.split("(")[0].strip()
-            filename: str = item["audioFilePath"]
-            filename_root_str = filename.split("/")[-1][:-3]
-            root_count = result_python.get(filename_root_str, 0)
-            result_python.update({filename_root_str: root_count + 1})
-            result_strings.update({filename_root_str: description_root_str})
-            if filename_root_str not in result_yaml:
-                result_yaml.append(filename_root_str)
+    results: _PROCESSED_DATA_TYPE = {}
 
-    return result_python, result_strings, result_yaml
+    for item in data:
+        description: str = item["displayName"]
+        filename: str = item["id"]
+        if item["availability"] == "AVAILABLE":
+            results.update({filename: description})
+
+    return results
 
 
-async def save_data_python(data: dict[str, Any]) -> None:
+async def save_data_python(data: _PROCESSED_DATA_TYPE) -> None:
     """Save data to sounds.py."""
     data_json = orjson.dumps(
         data,
@@ -59,7 +56,7 @@ async def save_data_python(data: dict[str, Any]) -> None:
         file.write("\n")
 
 
-async def save_data_strings(data: dict[str, Any]) -> None:
+async def save_data_strings(data: _PROCESSED_DATA_TYPE) -> None:
     """Save data to sounds_string.json."""
     data_json = orjson.dumps(
         {"selector": {"sound": {"options": data}}},
@@ -72,10 +69,9 @@ async def save_data_strings(data: dict[str, Any]) -> None:
         file.write("\n")
 
 
-async def save_data_yaml(data: list[str]) -> None:
+async def save_data_yaml(data: _PROCESSED_DATA_TYPE) -> None:
     """Save data to sounds_services.yaml."""
     elaborated_data = ""
-    data.sort()
     for entry in data:
         elaborated_data = elaborated_data + "            - " + entry + "\n"
     with Path.open(
@@ -96,15 +92,11 @@ async def save_data_yaml(data: list[str]) -> None:
 
 async def main() -> None:
     """Script main execution."""
-    url_data = await get_data()
-    (
-        processed_data_python,
-        processed_data_strings,
-        process_data_yaml,
-    ) = await process_data(data=url_data)
-    await save_data_python(data=processed_data_python)
-    await save_data_strings(data=processed_data_strings)
-    await save_data_yaml(data=process_data_yaml)
+    input_data = await get_data()
+    processed_data = await process_data(data=input_data)
+    await save_data_python(data=processed_data)
+    await save_data_strings(data=processed_data)
+    await save_data_yaml(data=processed_data)
 
 
 if __name__ == "__main__":
