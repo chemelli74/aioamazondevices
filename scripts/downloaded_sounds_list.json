@@ -1,0 +1,617 @@
+[
+  {
+    "id": "horror_10",
+    "displayName": "Halloween creepy door",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "holiday",
+      "categoryDisplayName": "Festive season"
+    }
+  },
+  {
+    "id": "med_system_alerts_minimal_dragon_short",
+    "displayName": "Friendly dragon",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "animals",
+      "categoryDisplayName": "Animals"
+    }
+  },
+  {
+    "id": "amzn_sfx_doorbell_chime_01",
+    "displayName": "Doorbell 2",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "bell_and_buzzers",
+      "categoryDisplayName": "Bells and buzzers"
+    }
+  },
+  {
+    "id": "halloween_bats",
+    "displayName": "Halloween bats",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "holiday",
+      "categoryDisplayName": "Festive season"
+    }
+  },
+  {
+    "id": "squeaky_12",
+    "displayName": "Squeaky door",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "miscellaneous",
+      "categoryDisplayName": "Miscellaneous"
+    }
+  },
+  {
+    "id": "amzn_sfx_dog_med_bark_1x_02",
+    "displayName": "Dog bark",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "animals",
+      "categoryDisplayName": "Animals"
+    }
+  },
+  {
+    "id": "boing_03",
+    "displayName": "Boing 2",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "miscellaneous",
+      "categoryDisplayName": "Miscellaneous"
+    }
+  },
+  {
+    "id": "amzn_sfx_scifi_alarm_04",
+    "displayName": "Red alert",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "sci_fi",
+      "categoryDisplayName": "Sci-fi"
+    }
+  },
+  {
+    "id": "med_ui_success_generic_1-1",
+    "displayName": "Success 1",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "miscellaneous",
+      "categoryDisplayName": "Miscellaneous"
+    }
+  },
+  {
+    "id": "amzn_sfx_rooster_crow_01",
+    "displayName": "Rooster",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "animals",
+      "categoryDisplayName": "Animals"
+    }
+  },
+  {
+    "id": "holiday_halloween_ghost",
+    "displayName": "Halloween ghost",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "holiday",
+      "categoryDisplayName": "Festive season"
+    }
+  },
+  {
+    "id": "halloween_wolf",
+    "displayName": "Halloween wolf",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "holiday",
+      "categoryDisplayName": "Festive season"
+    }
+  },
+  {
+    "id": "bell_02",
+    "displayName": "Bells",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "bell_and_buzzers",
+      "categoryDisplayName": "Bells and buzzers"
+    }
+  },
+  {
+    "id": "buzzers_pistols_01",
+    "displayName": "Buzzer",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "bell_and_buzzers",
+      "categoryDisplayName": "Bells and buzzers"
+    }
+  },
+  {
+    "id": "amzn_sfx_scifi_alarm_01",
+    "displayName": "Sirens",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "sci_fi",
+      "categoryDisplayName": "Sci-fi"
+    }
+  },
+  {
+    "id": "amzn_sfx_wolf_howl_02",
+    "displayName": "Wolf howl",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "animals",
+      "categoryDisplayName": "Animals"
+    }
+  },
+  {
+    "id": "amzn_sfx_church_bell_1x_02",
+    "displayName": "Church bell",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "bell_and_buzzers",
+      "categoryDisplayName": "Bells and buzzers"
+    }
+  },
+  {
+    "id": "christmas_05",
+    "displayName": "Christmas bells",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "holiday",
+      "categoryDisplayName": "Festive season"
+    }
+  },
+  {
+    "id": "air_horn_03",
+    "displayName": "Air horn",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "miscellaneous",
+      "categoryDisplayName": "Miscellaneous"
+    }
+  },
+  {
+    "id": "camera_01",
+    "displayName": "Camera",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "miscellaneous",
+      "categoryDisplayName": "Miscellaneous"
+    }
+  },
+  {
+    "id": "halloween_crows",
+    "displayName": "Halloween crows",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "holiday",
+      "categoryDisplayName": "Festive season"
+    }
+  },
+  {
+    "id": "amzn_sfx_lion_roar_02",
+    "displayName": "Lion roar",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "animals",
+      "categoryDisplayName": "Animals"
+    }
+  },
+  {
+    "id": "clock_01",
+    "displayName": "Ticking clock",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "miscellaneous",
+      "categoryDisplayName": "Miscellaneous"
+    }
+  },
+  {
+    "id": "amzn_sfx_scifi_engines_on_02",
+    "displayName": "Engines on",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "sci_fi",
+      "categoryDisplayName": "Sci-fi"
+    }
+  },
+  {
+    "id": "med_system_alerts_minimals_tiger_short",
+    "displayName": "Playful tiger",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "animals",
+      "categoryDisplayName": "Animals"
+    }
+  },
+  {
+    "id": "amzn_sfx_crowd_applause_01",
+    "displayName": "Crowd applause",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "crowds",
+      "categoryDisplayName": "Crowds"
+    }
+  },
+  {
+    "id": "halloween_footsteps",
+    "displayName": "Halloween spooky footsteps",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "holiday",
+      "categoryDisplayName": "Festive season"
+    }
+  },
+  {
+    "id": "amzn_sfx_large_crowd_cheer_01",
+    "displayName": "Crowd cheers",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "crowds",
+      "categoryDisplayName": "Crowds"
+    }
+  },
+  {
+    "id": "amzn_sfx_trumpet_bugle_04",
+    "displayName": "Trumpet",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "miscellaneous",
+      "categoryDisplayName": "Miscellaneous"
+    }
+  },
+  {
+    "id": "zap_01",
+    "displayName": "Zap",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "sci_fi",
+      "categoryDisplayName": "Sci-fi"
+    }
+  },
+  {
+    "id": "med_system_alerts_minimal_owl_short",
+    "displayName": "Happy owl ",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "animals",
+      "categoryDisplayName": "Animals"
+    }
+  },
+  {
+    "id": "futuristic_10",
+    "displayName": "Aircraft",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "sci_fi",
+      "categoryDisplayName": "Sci-fi"
+    }
+  },
+  {
+    "id": "med_system_alerts_minimals_galaxy_short",
+    "displayName": "Infinite Galaxy",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "sci_fi",
+      "categoryDisplayName": "Sci-fi"
+    }
+  },
+  {
+    "id": "amzn_sfx_cat_meow_1x_01",
+    "displayName": "Cat meow",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "animals",
+      "categoryDisplayName": "Animals"
+    }
+  },
+  {
+    "id": "boing_01",
+    "displayName": "Boing 1",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "miscellaneous",
+      "categoryDisplayName": "Miscellaneous"
+    }
+  },
+  {
+    "id": "med_system_alerts_minimals_blue_wave_small",
+    "displayName": "Underwater World Sonata",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "animals",
+      "categoryDisplayName": "Animals"
+    }
+  },
+  {
+    "id": "amzn_sfx_doorbell_01",
+    "displayName": "Doorbell 1",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "bell_and_buzzers",
+      "categoryDisplayName": "Bells and buzzers"
+    }
+  },
+  {
+    "id": "amzn_sfx_scifi_sheilds_up_01",
+    "displayName": "Shields up",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "sci_fi",
+      "categoryDisplayName": "Sci-fi"
+    }
+  },
+  {
+    "id": "med_system_alerts_minimals_panda_short",
+    "displayName": "Baby panda",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "animals",
+      "categoryDisplayName": "Animals"
+    }
+  },
+  {
+    "id": "amzn_sfx_doorbell_chime_02",
+    "displayName": "Doorbell 3",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "bell_and_buzzers",
+      "categoryDisplayName": "Bells and buzzers"
+    }
+  },
+  {
+    "id": "halloween_wind",
+    "displayName": "Halloween wind",
+    "description": null,
+    "supportedProperties": ["Alexa.Sound"],
+    "supportedTriggers": [],
+    "supportedOperations": ["Alexa.Sound"],
+    "supportedConditions": [],
+    "availability": "AVAILABLE",
+    "icon": null,
+    "providerData": {
+      "categoryType": "holiday",
+      "categoryDisplayName": "Festive season"
+    }
+  }
+]
