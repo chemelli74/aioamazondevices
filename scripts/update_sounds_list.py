@@ -72,7 +72,7 @@ async def save_data_strings(data: _PROCESSED_DATA_TYPE) -> None:
 async def save_data_yaml(data: _PROCESSED_DATA_TYPE) -> None:
     """Save data to sounds_services.yaml."""
     elaborated_data = ""
-    for entry in data:
+    for entry in dict(sorted(data.items())):
         elaborated_data = elaborated_data + "            - " + entry + "\n"
     with Path.open(
         Path(destination_services_filename), mode="w", encoding="utf-8"
