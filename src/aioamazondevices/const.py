@@ -60,12 +60,14 @@ NODE_PREFERENCES = "devicePreferences"
 NODE_BLUETOOTH = "bluetoothStates"
 NODE_IDENTIFIER = "identifier"
 NODE_SENSORS = "sensors"
+NODE_NOTIFICATIONS = "notifications"
 
 URI_QUERIES = {
     NODE_DEVICES: "/api/devices-v2/device",
     NODE_DO_NOT_DISTURB: "/api/dnd/device-status-list",
     NODE_PREFERENCES: "/api/device-preferences",
     NODE_BLUETOOTH: "/api/bluetooth",
+    NODE_NOTIFICATIONS: "/api/notifications",
     # "/api/ping"
     # "/api/np/command"
     # "/api/np/player"
