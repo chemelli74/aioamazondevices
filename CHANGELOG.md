@@ -1,10 +1,10 @@
 # Changelog
 
-## v5.0.2-rc.1 (2025-08-28)
+## v6.0.0 (2025-08-31)
 
 ### Bug fixes
 
-- Switch url for sounds list ([`130f765`](https://github.com/chemelli74/aioamazondevices/commit/130f765ce393da1f1770134af1b6fea2ae894fc1))
+- Switch url for sounds list ([`3dae0b6`](https://github.com/chemelli74/aioamazondevices/commit/3dae0b6164a30b165473d42dbe9c9e71dc78500a))
 
 
 ## v5.0.1 (2025-08-27)
