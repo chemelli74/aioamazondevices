@@ -1,40 +1,10 @@
 # Changelog
 
-## v5.1.0-rc.3 (2025-08-26)
+## v6.0.0 (2025-08-31)
 
 ### Bug fixes
 
-- Key for motion sensor ([`0764dfa`](https://github.com/chemelli74/aioamazondevices/commit/0764dfa92da8c397de48bb7c8453ddacc14a97c9))
-
-
-### Refactoring
-
-- Move graphql query to own file ([`9cb3895`](https://github.com/chemelli74/aioamazondevices/commit/9cb3895d67ed341fa50a0a8ab645e2ed8beca44b))
-- Move dnd to graphql ([`887fd5b`](https://github.com/chemelli74/aioamazondevices/commit/887fd5b84f89227043f2276e8ab165d1a7c3ed04))
-
-
-## v5.1.0-rc.2 (2025-08-25)
-
-### Bug fixes
-
-- Temperature sensor scale ([`3d8eb04`](https://github.com/chemelli74/aioamazondevices/commit/3d8eb04dfe6e9fee5b8accb42b95e94dc84e2298))
-
-
-## v5.1.0-rc.1 (2025-08-25)
-
-### Bug fixes
-
-- Motion sensor logic ([`88a28d1`](https://github.com/chemelli74/aioamazondevices/commit/88a28d1f177d4fbed2fed2aef3c051865f8594bc))
-
-
-### Features
-
-- Replace sensor endpoint with graphql ([`21de66e`](https://github.com/chemelli74/aioamazondevices/commit/21de66e4be577c62a588e05f2930d0e9e2308a1e))
-
-
-### Documentation
-
-- Small update ([`3432096`](https://github.com/chemelli74/aioamazondevices/commit/34320962633b5c856b05213f09782bc76f61a4f0))
+- Switch url for sounds list ([`3dae0b6`](https://github.com/chemelli74/aioamazondevices/commit/3dae0b6164a30b165473d42dbe9c9e71dc78500a))
 
 
 ## v5.0.1 (2025-08-27)
