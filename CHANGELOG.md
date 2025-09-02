@@ -1,5 +1,7 @@
 # Changelog
 
+## v7.0.0-rc.1 (2025-09-02)
+
 ## v6.0.0 (2025-08-31)
 
 ### Bug fixes
@@ -12,6 +14,13 @@
 ### Bug fixes
 
 - More models ([`07836f0`](https://github.com/chemelli74/aioamazondevices/commit/07836f096b5ebb8efb01642b8926d79840a270ff))
+- Check auth status at startup ([`4f2d5cb`](https://github.com/chemelli74/aioamazondevices/commit/4f2d5cb173e36cdd21a15840139c7ded944ecf5b))
+- Refresh token and check auth status at startup ([`b1223d2`](https://github.com/chemelli74/aioamazondevices/commit/b1223d2146fea3442e63e7f83124e4d49f2dbe3b))
+
+
+### Features
+
+- Enable global login ([`8f23f00`](https://github.com/chemelli74/aioamazondevices/commit/8f23f00a8e14758c08cfeb1e3cf2104f5379cd61))
 
 
 ### Documentation
