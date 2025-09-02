@@ -91,7 +91,6 @@ class AmazonDevice:
     device_type: str
     device_owner_customer_id: str
     device_cluster_members: list[str]
-    device_locale: str
     online: bool
     serial_number: str
     software_version: str
@@ -431,9 +430,10 @@ class AmazonEchoApi:
 
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
-            "Response %s for url %s with content type: %s",
-            resp.status,
+            "Response for url %s :\nstatus      : %s \
+                                  \ncontent type: %s ",
             url,
+            resp.status,
             content_type,
         )
 
@@ -866,9 +866,6 @@ class AmazonEchoApi:
                 method=HTTPMethod.GET,
                 url=f"https://alexa.amazon.{self._domain}{URI_QUERIES[key]}",
             )
-            _LOGGER.debug("Response URL: %s", raw_resp.url)
-            response_code = raw_resp.status
-            _LOGGER.debug("Response code: |%s|", response_code)
 
             response_data = await raw_resp.text()
             json_data = {} if len(response_data) == 0 else await raw_resp.json()
@@ -918,7 +915,6 @@ class AmazonEchoApi:
                 device_cluster_members=(
                     devices_node["clusterMembers"] or [serial_number]
                 ),
-                device_locale=preferences_node.get("locale", self._language),
                 online=devices_node["online"],
                 serial_number=serial_number,
                 software_version=devices_node["softwareVersion"],
@@ -990,7 +986,7 @@ class AmazonEchoApi:
         base_payload = {
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
-            "locale": device.device_locale,
+            "locale": self._language,
             "customerId": device.device_owner_customer_id,
         }
 
@@ -1025,7 +1021,7 @@ class AmazonEchoApi:
                 "expireAfter": "PT5S",
                 "content": [
                     {
-                        "locale": device.device_locale,
+                        "locale": self._language,
                         "display": {
                             "title": "Home Assistant",
                             "body": message_body,
