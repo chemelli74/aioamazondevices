@@ -1,16 +1,17 @@
 # Changelog
 
-## v6.0.0-rc.1 (2025-08-21)
+## v6.0.0 (2025-08-31)
 
 ### Bug fixes
 
-- Refresh token and check auth status at startup ([`a426c61`](https://github.com/chemelli74/aioamazondevices/commit/a426c6123b4850cce93bf848f08ce96a768bc264))
-- Refresh token and check auth status at startup ([`b1223d2`](https://github.com/chemelli74/aioamazondevices/commit/b1223d2146fea3442e63e7f83124e4d49f2dbe3b))
+- Switch url for sounds list ([`3dae0b6`](https://github.com/chemelli74/aioamazondevices/commit/3dae0b6164a30b165473d42dbe9c9e71dc78500a))
 
 
-### Features
+## v5.0.1 (2025-08-27)
 
-- Enable global login ([`8f23f00`](https://github.com/chemelli74/aioamazondevices/commit/8f23f00a8e14758c08cfeb1e3cf2104f5379cd61))
+### Bug fixes
+
+- More models ([`07836f0`](https://github.com/chemelli74/aioamazondevices/commit/07836f096b5ebb8efb01642b8926d79840a270ff))
 
 
 ### Documentation

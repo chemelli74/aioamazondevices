@@ -1,7 +1,6 @@
 [project]
 name = "aioamazondevices"
 version = "6.0.0"
-
 requires-python = ">=3.12"
 description = "Python library to control Amazon devices"
 authors = [
