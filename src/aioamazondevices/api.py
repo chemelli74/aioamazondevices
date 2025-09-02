@@ -768,7 +768,7 @@ class AmazonEchoApi:
             _LOGGER.debug(
                 'Cannot find "auth-mfa-otpcode" in html source [%s]', login_url
             )
-            raise CannotAuthenticate
+            raise CannotAuthenticate("Missing MFA OTP code in login page")
 
         login_method, login_url = self._get_request_from_soup(login_soup)
 
@@ -806,6 +806,10 @@ class AmazonEchoApi:
             "Logging-in for %s with stored data",
             obfuscate_email(self._login_email),
         )
+
+        # Check if session is still authenticated
+        if not await self.auth_check_status():
+            raise CannotAuthenticate("Session no longer authenticated")
 
         return self._login_stored_data
 
