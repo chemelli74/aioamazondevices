@@ -52,6 +52,7 @@ from .const import (
     NODE_DEVICES,
     NODE_DO_NOT_DISTURB,
     NODE_IDENTIFIER,
+    NODE_NOTIFICATIONS,
     NODE_PREFERENCES,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
@@ -82,6 +83,19 @@ class AmazonDeviceSensor:
 
 
 @dataclass
+class AmazonSchedule:
+    """Amazon schedule class."""
+
+    type: str
+    status: str
+    label: str  # alarmLabel, reminderLabel, timerLabel
+    original_date: str
+    original_time: str
+    recurring_pattern: str
+    remaining_time: int
+
+
+@dataclass
 class AmazonDevice:
     """Amazon device class."""
 
@@ -100,6 +114,7 @@ class AmazonDevice:
     entity_id: str
     appliance_id: str
     sensors: dict[str, AmazonDeviceSensor]
+    notifications: list[AmazonSchedule]
 
 
 class AmazonSequenceType(StrEnum):
@@ -868,6 +883,7 @@ class AmazonEchoApi:
 
             _LOGGER.debug("JSON data: |%s|", scrub_fields(json_data))
 
+            schedule: dict[str, Any]
             for data in json_data[key]:
                 dev_serial = data.get("serialNumber") or data.get("deviceSerialNumber")
                 if previous_data := self._devices.get(dev_serial):
@@ -884,6 +900,8 @@ class AmazonEchoApi:
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():
+            notification_node: list[dict[str, Any]] = device.get(NODE_NOTIFICATIONS, [])
+
             # Remove stale, orphaned and virtual devices
             devices_node = device.get(NODE_DEVICES)
             if not devices_node or (devices_node.get("deviceType") in DEVICE_TO_IGNORE):
@@ -902,6 +920,24 @@ class AmazonEchoApi:
                         sensors = _device_sensors
 
             serial_number: str = devices_node["serialNumber"]
+
+            final_notifications: list[AmazonSchedule] = []
+            for schedule in notification_node:
+                _type: str = schedule["type"]
+                label_desc = _type.lower() + "Label"
+                if schedule["status"] == "ON":
+                    final_notifications.append(
+                        AmazonSchedule(
+                            type=_type,
+                            status=schedule["status"],
+                            label=schedule[label_desc],
+                            original_date=schedule["originalDate"],
+                            original_time=schedule["originalTime"],
+                            recurring_pattern=schedule["recurringPattern"],
+                            remaining_time=schedule["remainingTime"],
+                        )
+                    )
+
             final_devices_list[serial_number] = AmazonDevice(
                 account_name=devices_node["accountName"],
                 capabilities=devices_node["capabilities"],
@@ -920,6 +956,7 @@ class AmazonEchoApi:
                 entity_id=identifier_node.get("entityId"),
                 appliance_id=identifier_node.get("applianceId"),
                 sensors=sensors,
+                notifications=final_notifications,
             )
 
         self._list_for_clusters.update(
