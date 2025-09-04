@@ -57,9 +57,9 @@ The script accept command line arguments or a library_test.json config file:
   "single_device_name": "Echo Dot Livingroom",
   "cluster_device_name": "Everywhere",
   "login_data_file": "out/login_data.json",
+  "music_provider": "Amazon",
   "save_raw_data": true,
-  "test": true,
-  "music_provider": "Amazon"
+  "test": true
 }
 ```
 
