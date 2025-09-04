@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.1.1 (2025-09-04)
+
+### Bug fixes
+
+- Standardise locale ([`c5cbb67`](https://github.com/chemelli74/aioamazondevices/commit/c5cbb67e17314470899bbbe24579f1090840a297))
+
+
 ## v6.1.0 (2025-09-04)
 
 ### Features
