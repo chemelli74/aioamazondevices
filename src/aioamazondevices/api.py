@@ -112,23 +112,6 @@ class AmazonSequenceType(StrEnum):
     Music = "Alexa.Music.PlaySearchPhrase"
     TextCommand = "Alexa.TextCommand"
     LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
-    CalendarToday = "Alexa.Calendar.PlayToday"
-    CalendarTomorrow = "Alexa.Calendar.PlayTomorrow"
-    CalendarNext = "Alexa.Calendar.PlayNext"
-    SayDate = "Alexa.Date.Play"
-    SayTime = "Alexa.Time.Play"
-    NationalNews = "Alexa.News.NationalNews"
-    FlashBriefing = "Alexa.FlashBriefing.Play"
-    Traffic = "Alexa.Traffic.Play"
-    Weather = "Alexa.Weather.Play"
-    SayCleanUp = "Alexa.CleanUp.Play"
-    SayGoodMorning = "Alexa.GoodMorning.Play"
-    SingASong = "Alexa.SingASong.Play"
-    TellFunFact = "Alexa.FunFact.Play"
-    TellJoke = "Alexa.Joke.Play"
-    TellStory = "Alexa.TellStory.Play"
-    SayWelcomeHome = "Alexa.ImHome.Play"
-    SayGoodNight = "Alexa.GoodNight.Play"
 
 
 class AmazonMusicSource(StrEnum):
