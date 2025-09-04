@@ -208,6 +208,9 @@ async def main() -> None:
 
     save_to_file(f"{SAVE_PATH}/output-devices.json", devices)
 
+    print("Getting AVS directives...")
+    await api.get_avs_directives()
+
     if not args.test:
         print("!!! No testing requested, exiting !!!")
         await client_session.close()
@@ -289,6 +292,7 @@ def set_logging() -> None:
     logging.getLogger("asyncio").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     logging.getLogger("aiohttp").setLevel(logging.WARNING)
+    logging.getLogger("hpack.hpack").setLevel(logging.WARNING)
     logging.getLogger("charset_normalizer").setLevel(logging.WARNING)
     fmt = (
         "%(asctime)s.%(msecs)03d %(levelname)s (%(threadName)s) [%(name)s] %(message)s"

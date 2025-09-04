@@ -5,6 +5,7 @@ import base64
 import hashlib
 import mimetypes
 import secrets
+import ssl
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -15,6 +16,8 @@ from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
+import certifi
+import httpx
 import orjson
 from aiohttp import (
     ClientConnectorError,
@@ -45,6 +48,7 @@ from .const import (
     DEVICE_TO_IGNORE,
     DEVICE_TYPE_TO_MODEL,
     HTML_EXTENSION,
+    HTTP2_SITE,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
     JSON_EXTENSION,
@@ -138,6 +142,7 @@ class AmazonEchoApi:
         self._list_for_clusters: dict[str, str] = {}
 
         self._session = client_session
+        self._http2_client: httpx.AsyncClient
         self._devices: dict[str, Any] = {}
         self._sensors_available: bool = True
 
@@ -1137,3 +1142,82 @@ class AmazonEchoApi:
 
         _LOGGER.debug("Unexpected refresh data response")
         return False, {}
+
+    async def get_avs_directives(self) -> None:
+        """Get AVS directives."""
+        await self._http2_init_client()
+
+        if not self._login_stored_data:
+            _LOGGER.warning("No login data available, cannot get directives")
+            return
+
+        refreshed_token, _ = await self._refresh_data(REFRESH_ACCESS_TOKEN)
+        if not refreshed_token:
+            _LOGGER.warning("Failed to refresh access token, cannot get directives")
+            return
+
+        try:
+            async with self._http2_client.stream(
+                "GET",
+                f"{await self._http2_site()}/directives",
+                headers={
+                    "Authorization": f"Bearer {self._login_stored_data['access_token']}",  # noqa: E501
+                    "Accept": "text/event-stream",
+                    "Accept-Encoding": "gzip",
+                },
+            ) as response:
+                _LOGGER.debug(
+                    "AVS Directives response status: %s [%s]",
+                    response.status_code,
+                    response.http_version,
+                )
+                async for chunk in response.aiter_text():
+                    _LOGGER.debug("AVS Directives chunk: %s", chunk)
+                    if chunk.startswith("-----"):
+                        _LOGGER.debug("Pinging...")
+                        await self._ping()
+            _LOGGER.debug("AVS Directives stream closed")
+        except httpx.RemoteProtocolError as excp:
+            _LOGGER.warning("Disconnect detected: %s", excp)
+
+    async def _http2_init_client(self) -> None:
+        """Create HTTP2 client session."""
+        self._http2_client = httpx.AsyncClient(
+            http2=True,
+            verify=ssl.create_default_context(
+                purpose=ssl.Purpose.SERVER_AUTH, cafile=certifi.where()
+            ),
+            timeout=httpx.Timeout(None),
+        )
+
+    async def _http2_site(self) -> str:
+        """Get HTTP2 site."""
+        if not self._login_stored_data:
+            _LOGGER.debug("No login data available, cannot get HTTP2 site")
+            return ""
+
+        region = self._login_stored_data["customer_info"]["home_region"]
+        return HTTP2_SITE.replace("{region}", region)
+
+    async def _ping(self) -> None:
+        """Ping."""
+        if not self._login_stored_data:
+            _LOGGER.warning("No login data available, cannot get directives")
+            return
+
+        response = await self._http2_client.post(
+            f"{await self._http2_site()}/ping",
+            headers={
+                "Authorization": f"Bearer {self._login_stored_data['access_token']}",
+            },
+        )
+        _LOGGER.debug(
+            "Received response: %s:%s",
+            response.status_code,
+            response.text,
+        )
+        if response.status_code in [403]:
+            _LOGGER.debug("Detected ping 403")
+            raise ValueError(
+                "Detected ping 403, please check your credentials and region"
+            )
