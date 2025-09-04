@@ -1,6 +1,11 @@
 # Changelog
 
-## v6.1.0-rc.1 (2025-09-01)
+## v6.1.0 (2025-09-04)
+
+### Features
+
+- Reimplement sensors ([`6c6775e`](https://github.com/chemelli74/aioamazondevices/commit/6c6775e1ff4544d2deb6e6305954732895097d41))
+
 
 ## v6.0.0 (2025-08-31)
 
@@ -14,24 +19,6 @@
 ### Bug fixes
 
 - More models ([`07836f0`](https://github.com/chemelli74/aioamazondevices/commit/07836f096b5ebb8efb01642b8926d79840a270ff))
-- Handle empty properties ([`555a882`](https://github.com/chemelli74/aioamazondevices/commit/555a882769b5c59146df53cf68a1c503a0ed79c4))
-- Avoid invalid dnd values ([`152234a`](https://github.com/chemelli74/aioamazondevices/commit/152234a07b1a8f1d540f194cd207aa45669af997))
-- Only check retrievable sensors ([`8bd7c11`](https://github.com/chemelli74/aioamazondevices/commit/8bd7c1170ff5b29e9b852177c43e99dbf5382ecb))
-- Key for motion sensor ([`6c49efe`](https://github.com/chemelli74/aioamazondevices/commit/6c49efed270709df01cc54f0e7ca9c1a3ead9f06))
-- Temperature sensor scale ([`6b83e23`](https://github.com/chemelli74/aioamazondevices/commit/6b83e2391ebdafe8717e06e0aba2616eb8b43de1))
-- Motion sensor logic ([`5258f6f`](https://github.com/chemelli74/aioamazondevices/commit/5258f6f940edeb47d04f1702b645e11e5b96ebef))
-
-
-### Refactoring
-
-- Previous sensors + volume ([`1fcf298`](https://github.com/chemelli74/aioamazondevices/commit/1fcf29834e8387934e9bd288fcb2d12fe0e86da0))
-- Move graphql query to own file ([`d299c8a`](https://github.com/chemelli74/aioamazondevices/commit/d299c8a80a28f6554ff9848e69ee6359aba758d8))
-- Move dnd to graphql ([`21ed55d`](https://github.com/chemelli74/aioamazondevices/commit/21ed55d2800aba19345d6db74e65f2ff143b7e90))
-
-
-### Features
-
-- Replace sensor endpoint with graphql ([`2329737`](https://github.com/chemelli74/aioamazondevices/commit/2329737ceed8c71f0533d672a622a0528b405cd5))
 
 
 ### Documentation
