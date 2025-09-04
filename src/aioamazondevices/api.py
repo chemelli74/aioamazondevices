@@ -22,7 +22,7 @@ from aiohttp import (
     ClientSession,
 )
 from bs4 import BeautifulSoup, Tag
-from langcodes import Language
+from langcodes import Language, standardize_tag
 from multidict import MultiDictProxy
 from yarl import URL
 
@@ -163,7 +163,8 @@ class AmazonEchoApi:
         lang_maximized = lang_object.maximize()
 
         self._domain: str = domain
-        self._language = f"{lang_maximized.language}-{lang_maximized.region}"
+        language = f"{lang_maximized.language}-{lang_maximized.territory}"
+        self._language = standardize_tag(language)
 
         # Reset CSRF cookie when changing country
         self._csrf_cookie: str | None = None
