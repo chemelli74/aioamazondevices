@@ -1,5 +1,17 @@
 # Changelog
 
+## v6.2.0-rc.1 (2025-09-04)
+
+### Features
+
+- Add server-sent-events via http2 ([`c248ce3`](https://github.com/chemelli74/aioamazondevices/commit/c248ce312ba9ba29b956a4baf81047a5e0c4576f))
+
+
+### Build system
+
+- Bump actions/setup-python from 5 to 6 ([`20d207e`](https://github.com/chemelli74/aioamazondevices/commit/20d207ec2014d993318d8cb0b7ad597978ed1c89))
+
+
 ## v6.1.1 (2025-09-04)
 
 ### Bug fixes
