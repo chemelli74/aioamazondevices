@@ -283,7 +283,7 @@ async def main() -> None:
     await wait_action_complete(15)
 
     music = "taylor swift"
-    source = AmazonMusicSource.AmazonMusic
+    source = _music_provider
     print(f"Playing {music} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, music, source)
 
