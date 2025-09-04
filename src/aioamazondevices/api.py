@@ -528,15 +528,15 @@ class AmazonEchoApi:
         }
 
         register_url = "https://api.amazon.com/auth/register"
-        _, resp = await self._session_request(
+        _, raw_resp = await self._session_request(
             method=HTTPMethod.POST,
             url=register_url,
             input_data=body,
             json_data=True,
         )
-        resp_json = await resp.json()
+        resp_json = await raw_resp.json()
 
-        if resp.status != HTTPStatus.OK:
+        if raw_resp.status != HTTPStatus.OK:
             msg = resp_json["response"]["error"]["message"]
             _LOGGER.error(
                 "Cannot register device for %s: %s",
@@ -544,7 +544,7 @@ class AmazonEchoApi:
                 msg,
             )
             raise CannotRegisterDevice(
-                f"{await self._http_phrase_error(resp.status)}: {msg}"
+                f"{await self._http_phrase_error(raw_resp.status)}: {msg}"
             )
 
         success_response = resp_json["response"]["success"]
@@ -1106,21 +1106,21 @@ class AmazonEchoApi:
             "domain": f"www.amazon.{self._domain}",
         }
 
-        response = await self._session.post(
+        raw_resp = await self._session.post(
             "https://api.amazon.com/auth/token",
             data=data,
         )
         _LOGGER.debug(
             "Refresh data response %s with payload %s",
-            response.status,
+            raw_resp.status,
             orjson.dumps(data),
         )
 
-        if response.status != HTTPStatus.OK:
+        if raw_resp.status != HTTPStatus.OK:
             _LOGGER.debug("Failed to refresh data")
             return False, {}
 
-        json_response = await response.json()
+        json_response = await raw_resp.json()
         _LOGGER.debug("Refresh data json:\n%s ", json_response)
 
         if data_type == REFRESH_ACCESS_TOKEN and (
