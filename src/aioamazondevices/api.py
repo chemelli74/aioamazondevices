@@ -658,18 +658,8 @@ class AmazonEchoApi:
 
     async def _response_to_json(self, raw_resp: ClientResponse) -> dict[str, Any]:
         """Convert response to JSON, if possible."""
-        # If Content-Length header is missing, try reading a small chunk
-        if (raw_resp.content_length == 0) or (
-            chunk := await raw_resp.content.readany()
-        ) == b"":
-            _LOGGER.debug("Response is empty")
-            return {}
-
-        # Push the data back so it is still available for later .json()
-        raw_resp.content.unread_data(chunk)
-
         try:
-            return cast("dict[str, Any]", await raw_resp.json())
+            return cast("dict[str, Any]", await raw_resp.json()) or {}
         except ContentTypeError as exc:
             raise ValueError("Response not in JSON format") from exc
 
