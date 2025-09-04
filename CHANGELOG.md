@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.1.2-rc.1 (2025-09-04)
+
+### Bug fixes
+
+- Manage json exception ([`fc29a48`](https://github.com/chemelli74/aioamazondevices/commit/fc29a48a645a6e4bf8f297360c93b4b72846b994))
+
+
 ## v6.1.1 (2025-09-04)
 
 ### Bug fixes
