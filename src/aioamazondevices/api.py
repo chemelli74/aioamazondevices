@@ -29,6 +29,7 @@ from yarl import URL
 from . import __version__
 from .const import (
     _LOGGER,
+    ALEXA_INFO_SKILLS,
     AMAZON_APP_BUNDLE_ID,
     AMAZON_APP_ID,
     AMAZON_APP_NAME,
@@ -985,6 +986,10 @@ class AmazonEchoApi:
                     "uri": "connection://AMAZON.Launch/" + message_body,
                 },
             }
+        elif message_type in ALEXA_INFO_SKILLS:
+            payload = {
+                **base_payload,
+            }
         else:
             raise ValueError(f"Message type <{message_type}> is not recognised")
 
@@ -1074,6 +1079,14 @@ class AmazonEchoApi:
         return await self._send_message(
             device, AmazonSequenceType.LaunchSkill, message_body
         )
+
+    async def call_alexa_info_skill(
+        self,
+        device: AmazonDevice,
+        message_type: str,
+    ) -> None:
+        """Call Info skill.  See ALEXA_INFO_SKILLS . const."""
+        return await self._send_message(device, message_type, "")
 
     async def set_do_not_disturb(self, device: AmazonDevice, state: bool) -> None:
         """Set do_not_disturb flag."""
