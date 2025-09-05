@@ -659,7 +659,11 @@ class AmazonEchoApi:
     async def _response_to_json(self, raw_resp: ClientResponse) -> dict[str, Any]:
         """Convert response to JSON, if possible."""
         try:
-            return cast("dict[str, Any]", await raw_resp.json(loads=orjson.loads)) or {}
+            data = await raw_resp.json(loads=orjson.loads)
+            if not data:
+                _LOGGER.warning("Empty JSON data received")
+                data = {}
+            return cast("dict[str, Any]", data)
         except ContentTypeError as exc:
             raise ValueError("Response not in JSON format") from exc
         except orjson.JSONDecodeError as exc:
