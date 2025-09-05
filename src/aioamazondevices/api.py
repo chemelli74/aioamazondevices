@@ -659,9 +659,11 @@ class AmazonEchoApi:
     async def _response_to_json(self, raw_resp: ClientResponse) -> dict[str, Any]:
         """Convert response to JSON, if possible."""
         try:
-            return cast("dict[str, Any]", await raw_resp.json()) or {}
+            return cast("dict[str, Any]", await raw_resp.json(loads=orjson.loads)) or {}
         except ContentTypeError as exc:
             raise ValueError("Response not in JSON format") from exc
+        except orjson.JSONDecodeError as exc:
+            raise ValueError("Response with corrupted JSON format") from exc
 
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
