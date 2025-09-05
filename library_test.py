@@ -165,8 +165,10 @@ async def main() -> None:
             if login_data_stored:
                 login_data = await api.login_mode_stored_data()
             else:
-                login_data = await api.login_mode_interactive(
-                    args.otp_code or input("OTP Code: ")
+                login_soup = await api.login_mode_interactive_oauth()
+                otp_code = args.otp_code or input("OTP Code: ")
+                login_data = await api.login_mode_interactive_with_otp(
+                    login_soup, otp_code
                 )
         except CannotAuthenticate:
             print(f"Cannot authenticate with {args.email} credentials")
