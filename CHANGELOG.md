@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.1.2-rc.1 (2025-09-05)
+
+### Bug fixes
+
+- Check auth status at startup ([`d1275f6`](https://github.com/chemelli74/aioamazondevices/commit/d1275f6b0eb2ee7c7c30dc290622b35c4b40eeb6))
+
+
 ## v6.1.1 (2025-09-04)
 
 ### Bug fixes
@@ -11,7 +18,7 @@
 
 ### Features
 
-- Reimplement sensors ([`6c6775e`](https://github.com/chemelli74/aioamazondevices/commit/6c6775e1ff4544d2deb6e6305954732895097d41))
+- Reimplement sensors ([`6c6775e`](https://github.com/chemelli74/aioamazondevices/commit/6c6775e1ff4544d2deb6e6305954732895097d
 
 
 ## v6.0.0 (2025-08-31)
