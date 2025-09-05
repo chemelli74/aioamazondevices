@@ -1,10 +1,22 @@
 # Changelog
 
-## v6.1.2-rc.1 (2025-09-04)
+## v6.1.3-rc.1 (2025-09-05)
 
 ### Bug fixes
 
 - Manage json exception ([`fc29a48`](https://github.com/chemelli74/aioamazondevices/commit/fc29a48a645a6e4bf8f297360c93b4b72846b994))
+
+
+## v6.1.2 (2025-09-05)
+
+### Bug fixes
+
+- Check auth status at startup ([`80ce741`](https://github.com/chemelli74/aioamazondevices/commit/80ce741ab9f533be2af3011340c4ead60ae76ed2))
+
+
+### Build system
+
+- Bump actions/setup-python from 5 to 6 ([`20d207e`](https://github.com/chemelli74/aioamazondevices/commit/20d207ec2014d993318d8cb0b7ad597978ed1c89))
 
 
 ## v6.1.1 (2025-09-04)
