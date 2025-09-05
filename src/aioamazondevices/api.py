@@ -704,7 +704,7 @@ class AmazonEchoApi:
             _LOGGER.debug(
                 'Cannot find "auth-mfa-otpcode" in html source [%s]', login_url
             )
-            raise CannotAuthenticate("Missing MFA OTP code in login page")
+            raise CannotAuthenticate("MFA OTP code not found on login page")
 
         login_method, login_url = self._get_request_from_soup(login_soup)
 
