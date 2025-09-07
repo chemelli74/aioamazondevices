@@ -48,6 +48,7 @@ from .const import (
     DEVICE_TO_IGNORE,
     DEVICE_TYPE_TO_MODEL,
     HTML_EXTENSION,
+    HTTP2_DIRECTIVES_VERSION,
     HTTP2_SITE,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
@@ -1159,7 +1160,7 @@ class AmazonEchoApi:
         try:
             async with self._http2_client.stream(
                 "GET",
-                f"{await self._http2_site()}/directives",
+                f"{await self._http2_site()}/{HTTP2_DIRECTIVES_VERSION}/directives",
                 headers={
                     "Authorization": f"Bearer {self._login_stored_data['access_token']}",  # noqa: E501
                     "Accept": "text/event-stream",
