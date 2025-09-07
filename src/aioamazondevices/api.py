@@ -636,10 +636,8 @@ class AmazonEchoApi:
             )
         for feature in endpoint.get("features", {}):
             first_property = (feature.get("properties") or [None])[0] or {}
-            if (
-                first_property.get("type") != "RETRIEVABLE"
-                or (sensor := SENSORS.get(feature["name"])) is None
-            ):
+            if (sensor := SENSORS.get(feature["name"])) is None:
+                # Skip sensors that are not in the predefined list
                 continue
 
             if not (name := sensor["name"]):
