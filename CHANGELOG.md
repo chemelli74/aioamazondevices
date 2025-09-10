@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.2.0 (2025-09-10)
+
+### Features
+
+- Alexa info skills ([`011a28b`](https://github.com/chemelli74/aioamazondevices/commit/011a28b943eb73f91ff6f95f48a2d60f8e9988b6))
+
+
 ## v6.1.3 (2025-09-10)
 
 ### Bug fixes
