@@ -1,5 +1,45 @@
 # Changelog
 
+## v6.2.1-rc.1 (2025-09-11)
+
+### Bug fixes
+
+- Correct raised exceptions ([`d15d12b`](https://github.com/chemelli74/aioamazondevices/commit/d15d12b45a034009bd5f64974c6a6b5db268e83f))
+
+
+## v6.2.0 (2025-09-10)
+
+### Features
+
+- Alexa info skills ([`011a28b`](https://github.com/chemelli74/aioamazondevices/commit/011a28b943eb73f91ff6f95f48a2d60f8e9988b6))
+
+
+## v6.1.3 (2025-09-10)
+
+### Bug fixes
+
+- Manage json exception ([`7a09052`](https://github.com/chemelli74/aioamazondevices/commit/7a090528654837a858040cb55962b6809a395b9d))
+
+
+### Build system
+
+- Bump pytest from 8.4.1 to 8.4.2 ([`a327a60`](https://github.com/chemelli74/aioamazondevices/commit/a327a6089308794259698b193bc3d019998b219b))
+- Bump pytest-cov from 6.2.1 to 6.3.0 ([`acff310`](https://github.com/chemelli74/aioamazondevices/commit/acff310f876d8d2124f430d1d7d480ccf7b28b21))
+- Bump python-semantic-release/python-semantic-release from 10.3.1 to 10.4.0 ([`5738a93`](https://github.com/chemelli74/aioamazondevices/commit/5738a932a64f39c2807ca7032f84010fcd666111))
+
+
+## v6.1.2 (2025-09-05)
+
+### Bug fixes
+
+- Check auth status at startup ([`80ce741`](https://github.com/chemelli74/aioamazondevices/commit/80ce741ab9f533be2af3011340c4ead60ae76ed2))
+
+
+### Build system
+
+- Bump actions/setup-python from 5 to 6 ([`20d207e`](https://github.com/chemelli74/aioamazondevices/commit/20d207ec2014d993318d8cb0b7ad597978ed1c89))
+
+
 ## v6.1.1 (2025-09-04)
 
 ### Bug fixes
