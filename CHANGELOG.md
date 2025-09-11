@@ -1,10 +1,10 @@
 # Changelog
 
-## v6.2.1-rc.1 (2025-09-11)
+## v6.2.1 (2025-09-11)
 
 ### Bug fixes
 
-- Correct raised exceptions ([`d15d12b`](https://github.com/chemelli74/aioamazondevices/commit/d15d12b45a034009bd5f64974c6a6b5db268e83f))
+- Correct raised exceptions ([`19976fa`](https://github.com/chemelli74/aioamazondevices/commit/19976fad6b81b57296432bc1f958d974da83be02))
 
 
 ## v6.2.0 (2025-09-10)
