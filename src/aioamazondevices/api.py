@@ -278,7 +278,7 @@ class AmazonEchoApi:
         form = soup.find("form", {"name": "signIn"}) or soup.find("form")
 
         if not isinstance(form, Tag):
-            raise TypeError("Unable to find form in login response")
+            raise CannotAuthenticate("Unable to find form in login response")
 
         inputs = {}
         for field in form.find_all("input"):
@@ -296,7 +296,7 @@ class AmazonEchoApi:
             url = form.get("action")
             if isinstance(method, str) and isinstance(url, str):
                 return method, url
-        raise TypeError("Unable to extract form data from response")
+        raise CannotAuthenticate("Unable to extract form data from response")
 
     def _extract_code_from_url(self, url: URL) -> str:
         """Extract the access token from url query after login."""
@@ -307,7 +307,9 @@ class AmazonEchoApi:
             for key, value in url.query.items():
                 parsed_url[key] = [value]
         else:
-            raise TypeError(f"Unable to extract authorization code from url: {url}")
+            raise CannotAuthenticate(
+                f"Unable to extract authorization code from url: {url}"
+            )
         return parsed_url["openid.oa2.authorization_code"][0]
 
     async def _ignore_ap_signin_error(self, response: ClientResponse) -> bool:
@@ -643,7 +645,7 @@ class AmazonEchoApi:
                 continue
 
             if not (name := sensor["name"]):
-                raise TypeError("Unable to read sensor template")
+                raise CannotRetrieveData("Unable to read sensor template")
 
             value = first_property[sensor["key"]]
             scale = value["scale"] if sensor["scale"] else None
