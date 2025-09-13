@@ -1,5 +1,13 @@
 # Changelog
 
+## v6.2.2-rc.1 (2025-09-13)
+
+### Bug fixes
+
+- Update motion sensor property name ([`8c78405`](https://github.com/chemelli74/aioamazondevices/commit/8c78405c147fae960037d5f9eba9c345115041c5))
+- Check feature name for sensors ([`005d2df`](https://github.com/chemelli74/aioamazondevices/commit/005d2dfce48c65dcde1dae398f2bcb8bd522ca9d))
+
+
 ## v6.2.1 (2025-09-11)
 
 ### Bug fixes
