@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.2.2 (2025-09-13)
+
+### Bug fixes
+
+- Consider errors from sensors ([`54df175`](https://github.com/chemelli74/aioamazondevices/commit/54df175717d1dc28e025dce3178643cb36b9ba82))
+
+
 ## v6.2.1 (2025-09-11)
 
 ### Bug fixes
