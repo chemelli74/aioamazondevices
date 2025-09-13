@@ -113,6 +113,7 @@ class AmazonMusicSource(StrEnum):
 
     Radio = "TUNEIN"
     AmazonMusic = "AMAZON_MUSIC"
+    Spotify = "SPOTIFY"
 
 
 class AmazonEchoApi:
