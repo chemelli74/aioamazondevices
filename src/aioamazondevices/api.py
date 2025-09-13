@@ -639,7 +639,7 @@ class AmazonEchoApi:
                 scale=None,
             )
         for feature in endpoint.get("features", {}):
-            first_property = (feature.get("properties") or [None])[0] or {}
+            feature_property = (feature.get("properties") or [{}])[0]
             if (sensor := SENSORS.get(feature["name"])) is None:
                 # Skip sensors that are not in the predefined list
                 continue
@@ -647,17 +647,21 @@ class AmazonEchoApi:
             if not (name := sensor["name"]):
                 raise CannotRetrieveData("Unable to read sensor template")
 
-            value = first_property[sensor["key"]]
-            scale = value["scale"] if sensor["scale"] else None
-            error = bool(sensor.get("error"))
-            if subkey := sensor["subkey"]:
-                value = value[subkey]
-            device_sensors[name] = AmazonDeviceSensor(
-                name,
-                value,
-                error,
-                scale,
-            )
+            for feature_property in feature.get("properties"):
+                if sensor["name"] != feature_property.get("name"):
+                    continue
+
+                value = feature_property[sensor["key"]]
+                scale = value["scale"] if sensor["scale"] else None
+                error = bool(sensor.get("error"))
+                if subkey := sensor["subkey"]:
+                    value = value[subkey]
+                device_sensors[name] = AmazonDeviceSensor(
+                    name,
+                    value,
+                    error,
+                    scale,
+                )
 
         return device_sensors
 

@@ -77,7 +77,7 @@ SENSORS: dict[str, dict[str, str | None]] = {
         "scale": "scale",
     },
     "motionSensor": {
-        "name": "motion",
+        "name": "detectionState",
         "key": "detectionStateValue",
         "subkey": None,
         "scale": None,
