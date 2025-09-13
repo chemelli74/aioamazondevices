@@ -75,6 +75,7 @@ class AmazonDeviceSensor:
 
     name: str
     value: str | int | float
+    error: bool
     scale: str | None
 
 
@@ -630,18 +631,17 @@ class AmazonEchoApi:
         self, endpoint: dict[str, Any]
     ) -> dict[str, AmazonDeviceSensor]:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
-        if (
-            endpoint_dnd := endpoint.get("settings", {}).get("doNotDisturb")
-        ) and not endpoint_dnd["error"]:
+        if endpoint_dnd := endpoint.get("settings", {}).get("doNotDisturb"):
             device_sensors["dnd"] = AmazonDeviceSensor(
-                "dnd", endpoint_dnd.get("toggleValue"), None
+                name="dnd",
+                value=endpoint_dnd.get("toggleValue"),
+                error=bool(endpoint_dnd.get("error")),
+                scale=None,
             )
         for feature in endpoint.get("features", {}):
             first_property = (feature.get("properties") or [None])[0] or {}
-            if (
-                first_property.get("type") != "RETRIEVABLE"
-                or (sensor := SENSORS.get(feature["name"])) is None
-            ):
+            if (sensor := SENSORS.get(feature["name"])) is None:
+                # Skip sensors that are not in the predefined list
                 continue
 
             if not (name := sensor["name"]):
@@ -653,11 +653,13 @@ class AmazonEchoApi:
 
                 value = feature_property[sensor["key"]]
                 scale = value["scale"] if sensor["scale"] else None
+                error = bool(sensor.get("error"))
                 if subkey := sensor["subkey"]:
                     value = value[subkey]
                 device_sensors[name] = AmazonDeviceSensor(
                     name,
                     value,
+                    error,
                     scale,
                 )
 
