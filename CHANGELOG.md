@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.2.4-rc.1 (2025-09-13)
+
+### Bug fixes
+
+- Remove redundant code ([`d25e745`](https://github.com/chemelli74/aioamazondevices/commit/d25e745ee6cf9f68a890fbd105a3bdaab01d937d))
+
+
 ## v6.2.3 (2025-09-13)
 
 ### Bug fixes
