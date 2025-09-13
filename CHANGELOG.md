@@ -1,21 +1,17 @@
 # Changelog
 
-## v6.2.3-rc.1 (2025-09-13)
+## v6.2.3 (2025-09-13)
+
+### Bug fixes
+
+- Align sensor logic to new amazon query output ([`fe6d6cd`](https://github.com/chemelli74/aioamazondevices/commit/fe6d6cded8139c03d7577de78ed4cf91aa1e8eca))
+
 
 ## v6.2.2 (2025-09-13)
 
 ### Bug fixes
 
 - Consider errors from sensors ([`54df175`](https://github.com/chemelli74/aioamazondevices/commit/54df175717d1dc28e025dce3178643cb36b9ba82))
-- Consider errors from sensors ([`bdd3981`](https://github.com/chemelli74/aioamazondevices/commit/bdd3981e689f917d6287641aecd28e7c24e12913))
-
-
-## v6.2.2-rc.1 (2025-09-13)
-
-### Bug fixes
-
-- Update motion sensor property name ([`8c78405`](https://github.com/chemelli74/aioamazondevices/commit/8c78405c147fae960037d5f9eba9c345115041c5))
-- Check feature name for sensors ([`005d2df`](https://github.com/chemelli74/aioamazondevices/commit/005d2dfce48c65dcde1dae398f2bcb8bd522ca9d))
 
 
 ## v6.2.1 (2025-09-11)
