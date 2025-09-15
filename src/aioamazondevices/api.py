@@ -639,7 +639,6 @@ class AmazonEchoApi:
                 scale=None,
             )
         for feature in endpoint.get("features", {}):
-            feature_property = (feature.get("properties") or [{}])[0]
             if (sensor := SENSORS.get(feature["name"])) is None:
                 # Skip sensors that are not in the predefined list
                 continue
