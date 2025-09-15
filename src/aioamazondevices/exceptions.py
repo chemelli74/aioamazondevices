@@ -12,7 +12,7 @@ class CannotConnect(AmazonError):
 
 
 class CannotAuthenticate(AmazonError):
-    """Exception raised when credentials are incorrect."""
+    """Exception raised when authentication fails."""
 
 
 class CannotRetrieveData(AmazonError):

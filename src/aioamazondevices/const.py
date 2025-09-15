@@ -77,7 +77,7 @@ SENSORS: dict[str, dict[str, str | None]] = {
         "scale": "scale",
     },
     "motionSensor": {
-        "name": "motion",
+        "name": "detectionState",
         "key": "detectionStateValue",
         "subkey": None,
         "scale": None,
@@ -432,3 +432,23 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": "Gen2",
     },
 }
+
+ALEXA_INFO_SKILLS = [
+    "Alexa.Calendar.PlayToday",
+    "Alexa.Calendar.PlayTomorrow",
+    "Alexa.Calendar.PlayNext",
+    "Alexa.Date.Play",
+    "Alexa.Time.Play",
+    "Alexa.News.NationalNews",
+    "Alexa.FlashBriefing.Play",
+    "Alexa.Traffic.Play",
+    "Alexa.Weather.Play",
+    "Alexa.CleanUp.Play",
+    "Alexa.GoodMorning.Play",
+    "Alexa.SingASong.Play",
+    "Alexa.FunFact.Play",
+    "Alexa.Joke.Play",
+    "Alexa.TellStory.Play",
+    "Alexa.ImHome.Play",
+    "Alexa.GoodNight.Play",
+]
