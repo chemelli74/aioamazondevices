@@ -20,14 +20,14 @@ repos:
       - id: check-yaml
       - id: detect-private-key
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.12
+    rev: v0.13.0
     hooks:
       - id: ruff
         args:
           - --fix
       - id: ruff-format
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.8.4
+    rev: v4.9.1
     hooks:
       - id: commitizen
         stages: [commit-msg]
@@ -37,7 +37,7 @@ repos:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/python-poetry/poetry
-    rev: 2.1.3
+    rev: 2.2.0
     hooks:
       - id: poetry-check
         args: ["--lock"]
@@ -60,7 +60,7 @@ repos:
             "--skip=src/aioamazondevices/sounds.py, scripts/sounds_strings.json, scripts/sounds_services.yaml",
           ]
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.17.1
+    rev: v1.18.1
     hooks:
       - id: mypy
         additional_dependencies: []
