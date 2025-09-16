@@ -658,7 +658,7 @@ class AmazonEchoApi:
                         value_raw = feature_property[sensor["key"]]
                         if not value_raw:
                             _LOGGER.warning(
-                                "Ignoring sensor %s due to empty value",
+                                "Sensor %s ignored due to empty value",
                                 name,
                             )
                             continue
@@ -668,15 +668,9 @@ class AmazonEchoApi:
                                 value = value_raw[subkey]
                         else:
                             value = value_raw
-                    except KeyError as exc:
+                    except (KeyError, ValueError) as exc:
                         _LOGGER.warning(
-                            "Ignoring sensor %s due to key error: %s",
-                            name,
-                            repr(exc),
-                        )
-                    except TypeError as exc:
-                        _LOGGER.warning(
-                            "Ignoring sensor %s due to type error: %s",
+                            "Sensor %s ignored due to the following error: %s",
                             name,
                             repr(exc),
                         )
