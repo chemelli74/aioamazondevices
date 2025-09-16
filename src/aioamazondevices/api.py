@@ -650,11 +650,30 @@ class AmazonEchoApi:
                 if sensor["name"] != feature_property.get("name"):
                     continue
 
-                value = feature_property[sensor["key"]]
-                scale = value["scale"] if sensor["scale"] else None
+                value: str | int | float = "n/a"
+                scale: str | None = None
                 error = bool(sensor.get("error"))
-                if subkey := sensor["subkey"]:
-                    value = value[subkey]
+                if not error:
+                    try:
+                        value_raw = feature_property[sensor["key"]]
+                        if isinstance(value_raw, dict):
+                            scale = value_raw["scale"] if sensor["scale"] else None
+                            if subkey := sensor["subkey"]:
+                                value = value_raw[subkey]
+                        else:
+                            value = value_raw
+                    except KeyError as exc:
+                        _LOGGER.warning(
+                            "Ignoring sensor %s due to key error: %s",
+                            name,
+                            repr(exc),
+                        )
+                    except TypeError as exc:
+                        _LOGGER.warning(
+                            "Ignoring sensor %s due to type error: %s",
+                            name,
+                            repr(exc),
+                        )
                 device_sensors[name] = AmazonDeviceSensor(
                     name,
                     value,
