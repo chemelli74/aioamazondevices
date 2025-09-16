@@ -656,6 +656,12 @@ class AmazonEchoApi:
                 if not error:
                     try:
                         value_raw = feature_property[sensor["key"]]
+                        if not value_raw:
+                            _LOGGER.warning(
+                                "Ignoring sensor %s due to empty value",
+                                name,
+                            )
+                            continue
                         if isinstance(value_raw, dict):
                             scale = value_raw["scale"] if sensor["scale"] else None
                             if subkey := sensor["subkey"]:
