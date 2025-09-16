@@ -140,7 +140,7 @@ async def wait_action_complete(sleep: int = 4) -> None:
 
 async def main() -> None:
     """Run main."""
-    parser, args = get_arguments()
+    _, args = get_arguments()
 
     login_data_stored = read_from_file(args.login_data_file)
 
