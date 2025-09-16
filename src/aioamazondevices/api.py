@@ -622,13 +622,15 @@ class AmazonEchoApi:
                 else None
             )
             if serial_number in self._devices:
-                devices_sensors[serial_number] = self._get_device_sensor_state(endpoint)
+                devices_sensors[serial_number] = self._get_device_sensor_state(
+                    endpoint, serial_number
+                )
                 devices_endpoints[serial_number] = endpoint
 
         return devices_endpoints, devices_sensors
 
     def _get_device_sensor_state(
-        self, endpoint: dict[str, Any]
+        self, endpoint: dict[str, Any], serial_number: str
     ) -> dict[str, AmazonDeviceSensor]:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
         if endpoint_dnd := endpoint.get("settings", {}).get("doNotDisturb"):
@@ -670,8 +672,10 @@ class AmazonEchoApi:
                             value = value_raw
                     except (KeyError, ValueError) as exc:
                         _LOGGER.warning(
-                            "Sensor %s ignored due to the following error: %s",
+                            "Sensor %s [device %s] ignored due to errors in feature %s: %s",  # noqa: E501
                             name,
+                            serial_number,
+                            feature_property,
                             repr(exc),
                         )
                 device_sensors[name] = AmazonDeviceSensor(
