@@ -1,5 +1,7 @@
 # Changelog
 
+## v6.3.0-rc.1 (2025-09-15)
+
 ## v6.2.3 (2025-09-13)
 
 ### Bug fixes
@@ -33,6 +35,11 @@
 ### Bug fixes
 
 - Manage json exception ([`7a09052`](https://github.com/chemelli74/aioamazondevices/commit/7a090528654837a858040cb55962b6809a395b9d))
+
+
+### Features
+
+- Add times,reminders,alarms data ([`30a2d75`](https://github.com/chemelli74/aioamazondevices/commit/30a2d75b93973f53e97d633949d709b375b2a573))
 
 
 ### Build system
