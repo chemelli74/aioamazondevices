@@ -142,7 +142,6 @@ class AmazonEchoApi:
 
         self._session = client_session
         self._devices: dict[str, Any] = {}
-        self._sensors_available: bool = True
 
         _LOGGER.debug("Initialize library v%s", __version__)
 
