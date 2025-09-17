@@ -664,12 +664,13 @@ class AmazonEchoApi:
                                 name,
                             )
                             continue
-                        if isinstance(value_raw, dict):
-                            scale = value_raw["scale"] if sensor["scale"] else None
-                            if subkey := sensor["subkey"]:
-                                value = value_raw[subkey]
-                        else:
-                            value = value_raw
+                        scale = value_raw["scale"] if sensor["scale"] else None
+                        value = (
+                            value_raw[sensor["subkey"]]
+                            if sensor["subkey"]
+                            else value_raw
+                        )
+
                     except (KeyError, ValueError) as exc:
                         _LOGGER.warning(
                             "Sensor %s [device %s] ignored due to errors in feature %s: %s",  # noqa: E501
