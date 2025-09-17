@@ -641,33 +641,37 @@ class AmazonEchoApi:
                 scale=None,
             )
         for feature in endpoint.get("features", {}):
-            if (sensor := SENSORS.get(feature["name"])) is None:
+            if (sensor_template := SENSORS.get(feature["name"])) is None:
                 # Skip sensors that are not in the predefined list
                 continue
 
-            if not (name := sensor["name"]):
+            if not (name := sensor_template["name"]):
                 raise CannotRetrieveData("Unable to read sensor template")
 
             for feature_property in feature.get("properties"):
-                if sensor["name"] != feature_property.get("name"):
+                if sensor_template["name"] != feature_property.get("name"):
                     continue
 
                 value: str | int | float = "n/a"
                 scale: str | None = None
-                error = bool(sensor.get("error"))
+                error = bool(sensor_template.get("error"))
                 if not error:
                     try:
-                        value_raw = feature_property[sensor["key"]]
+                        value_raw = feature_property[sensor_template["key"]]
                         if not value_raw:
                             _LOGGER.warning(
                                 "Sensor %s ignored due to empty value",
                                 name,
                             )
                             continue
-                        scale = value_raw[sensor["scale"]] if sensor["scale"] else None
+                        scale = (
+                            value_raw[sensor_template["scale"]]
+                            if sensor_template["scale"]
+                            else None
+                        )
                         value = (
-                            value_raw[sensor["subkey"]]
-                            if sensor["subkey"]
+                            value_raw[sensor_template["subkey"]]
+                            if sensor_template["subkey"]
                             else value_raw
                         )
 
