@@ -664,7 +664,7 @@ class AmazonEchoApi:
                                 name,
                             )
                             continue
-                        scale = value_raw["scale"] if sensor["scale"] else None
+                        scale = value_raw[sensor["scale"]] if sensor["scale"] else None
                         value = (
                             value_raw[sensor["subkey"]]
                             if sensor["subkey"]
