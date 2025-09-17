@@ -19,6 +19,7 @@ from .const.http import (
     DEFAULT_SITE,
     REQUEST_AGENT,
     URI_DEVICES,
+    URI_MUSIC_PROVIDERS,
     URI_NEXUS_GRAPHQL,
 )
 from .const.metadata import ALEXA_INFO_SKILLS, AQM_RANGE_SENSORS, SENSORS
@@ -583,12 +584,14 @@ class AmazonEchoApi:
     async def call_alexa_music(
         self,
         device: AmazonDevice,
-        search_phrase: str,
-        music_source: AmazonMusicSource,
+        message_body: str,
+        provider_id: str,
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
-        await self._sequence_handler.send_message(
-            device, AmazonSequenceType.Music, search_phrase, music_source
+        if not (self._music_providers.get(provider_id)):
+            raise ValueError("%s is not available as a music provider", provider_id)
+        return await self._send_message(
+            device, AmazonSequenceType.Music, message_body, provider_id
         )
 
     async def call_alexa_text_command(
@@ -653,3 +656,19 @@ class AmazonEchoApi:
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
+
+    async def update_music_providers(self) -> None:
+        """Get a list of available music providers for user."""
+        url = f"https://alexa.amazon.{self._domain}{URI_MUSIC_PROVIDERS}"
+        _, resp = await self._session_request(method=HTTPMethod.GET, url=url)
+        provider_json = await self._response_to_json(resp, "application/octet-stream")
+        self._music_providers = {
+            provider.get("id"): AmazonMusicProvider(
+                provider_id=provider.get("id"),
+                provider_name=provider.get("displayName"),
+                availability=provider.get("availability"),
+                default_provider=provider["providerData"].get("isDefaultMusicProvider"),
+            )
+            for provider in cast("list", provider_json)
+            if AmazonSequenceType.Music in provider["supportedProperties"]
+        }
