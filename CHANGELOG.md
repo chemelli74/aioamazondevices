@@ -1,5 +1,17 @@
 # Changelog
 
+## v6.2.5 (2025-09-17)
+
+### Bug fixes
+
+- Sensors sporadic errors ([`61fca02`](https://github.com/chemelli74/aioamazondevices/commit/61fca028e32c09338f29b22c875428d99451ab34))
+
+
+### Refactoring
+
+- Remove redundant code ([`ae4a2e5`](https://github.com/chemelli74/aioamazondevices/commit/ae4a2e583a4efe4385dedb70983e8260e14f1844))
+
+
 ## v6.2.4 (2025-09-17)
 
 ### Bug fixes
