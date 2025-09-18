@@ -113,6 +113,11 @@ DEVICE_TO_IGNORE: list[str] = [
     "A3KOTUS4DKHU1W",  # Samsung Fridge - issue #429
     "AN630UQPG2CA4",  # Insignia TV - issue #430
     "A3SSG6GR8UU7SN",  # Amazon Echo Sub - issue #437
+    "A2Y04QPFCANLPQ",  # Bose QuietComfort 35 II - issue #476
+    "AYHO3NTIQQ04G",  # Nextbase 622GW Dash Cam - issue #477
+    "AHL4H6CKH3AUP",  # BMW Car System - issue #478
+    "A3BW5ZVFHRCQPO",  # BMW Mini Car System - issue #479
+    "A1M0A9L9HDBID3",  # Sony Soundbar Sony HT-A5000 - issue #486
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
@@ -431,6 +436,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "G2A0V704840708AP": {
         "model": "Echo Plus",
         "hw_version": "Gen2",
+    },
+    "A1M0A9L9HDBID3": {
+        "manufacturer": "First Alert",
+        "model": "Onelink Smoke + Carbon Monoxide Alarm",
+        "hw_version": None,
     },
 }
 

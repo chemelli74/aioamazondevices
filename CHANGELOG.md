@@ -1,5 +1,35 @@
 # Changelog
 
+## v6.2.5 (2025-09-17)
+
+### Bug fixes
+
+- Sensors sporadic errors ([`61fca02`](https://github.com/chemelli74/aioamazondevices/commit/61fca028e32c09338f29b22c875428d99451ab34))
+
+
+### Refactoring
+
+- Remove redundant code ([`ae4a2e5`](https://github.com/chemelli74/aioamazondevices/commit/ae4a2e583a4efe4385dedb70983e8260e14f1844))
+
+
+## v6.2.4 (2025-09-17)
+
+### Bug fixes
+
+- List/filter more models ([`9bf477d`](https://github.com/chemelli74/aioamazondevices/commit/9bf477de21d28a087d819809261123e1ea6767f0))
+
+
+### Build system
+
+- Bump python-semantic-release/python-semantic-release from 10.4.0 to 10.4.1 ([`fad04e7`](https://github.com/chemelli74/aioamazondevices/commit/fad04e74f0ac27f4385b267a6d8cf2ca102bc061))
+- Bump pytest-cov from 6.3.0 to 7.0.0 ([`2a7db6c`](https://github.com/chemelli74/aioamazondevices/commit/2a7db6cd85898ec037b9c6f850c0e247ea5fc1eb))
+
+
+### Refactoring
+
+- Remove redundant code ([`6d4013e`](https://github.com/chemelli74/aioamazondevices/commit/6d4013ed020b9963dfa8a8be46d202fea02613c1))
+
+
 ## v6.2.3 (2025-09-13)
 
 ### Bug fixes

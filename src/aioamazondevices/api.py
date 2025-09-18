@@ -146,7 +146,6 @@ class AmazonEchoApi:
 
         self._session = client_session
         self._devices: dict[str, Any] = {}
-        self._sensors_available: bool = True
 
         self._music_providers: dict[str, AmazonMusicProvider] = {}
 
@@ -633,13 +632,15 @@ class AmazonEchoApi:
                 else None
             )
             if serial_number in self._devices:
-                devices_sensors[serial_number] = self._get_device_sensor_state(endpoint)
+                devices_sensors[serial_number] = self._get_device_sensor_state(
+                    endpoint, serial_number
+                )
                 devices_endpoints[serial_number] = endpoint
 
         return devices_endpoints, devices_sensors
 
     def _get_device_sensor_state(
-        self, endpoint: dict[str, Any]
+        self, endpoint: dict[str, Any], serial_number: str
     ) -> dict[str, AmazonDeviceSensor]:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
         if endpoint_dnd := endpoint.get("settings", {}).get("doNotDisturb"):
@@ -650,22 +651,49 @@ class AmazonEchoApi:
                 scale=None,
             )
         for feature in endpoint.get("features", {}):
-            if (sensor := SENSORS.get(feature["name"])) is None:
+            if (sensor_template := SENSORS.get(feature["name"])) is None:
                 # Skip sensors that are not in the predefined list
                 continue
 
-            if not (name := sensor["name"]):
+            if not (name := sensor_template["name"]):
                 raise CannotRetrieveData("Unable to read sensor template")
 
             for feature_property in feature.get("properties"):
-                if sensor["name"] != feature_property.get("name"):
+                if sensor_template["name"] != feature_property.get("name"):
                     continue
 
-                value = feature_property[sensor["key"]]
-                scale = value["scale"] if sensor["scale"] else None
-                error = bool(sensor.get("error"))
-                if subkey := sensor["subkey"]:
-                    value = value[subkey]
+                value: str | int | float = "n/a"
+                scale: str | None = None
+                error = bool(sensor_template.get("error"))
+                if not error:
+                    try:
+                        value_raw = feature_property[sensor_template["key"]]
+                        if not value_raw:
+                            _LOGGER.warning(
+                                "Sensor %s [device %s] ignored due to empty value",
+                                name,
+                                serial_number,
+                            )
+                            continue
+                        scale = (
+                            value_raw[scale_template]
+                            if (scale_template := sensor_template["scale"])
+                            else None
+                        )
+                        value = (
+                            value_raw[subkey_template]
+                            if (subkey_template := sensor_template["subkey"])
+                            else value_raw
+                        )
+
+                    except (KeyError, ValueError) as exc:
+                        _LOGGER.warning(
+                            "Sensor %s [device %s] ignored due to errors in feature %s: %s",  # noqa: E501
+                            name,
+                            serial_number,
+                            feature_property,
+                            repr(exc),
+                        )
                 device_sensors[name] = AmazonDeviceSensor(
                     name,
                     value,
