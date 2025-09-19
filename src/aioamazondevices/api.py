@@ -653,7 +653,7 @@ class AmazonEchoApi:
 
                 value: str | int | float = "n/a"
                 scale: str | None = None
-                error = bool(sensor_template.get("error"))
+                error = bool(feature_property.get("error"))
                 if not error:
                     try:
                         value_raw = feature_property[sensor_template["key"]]

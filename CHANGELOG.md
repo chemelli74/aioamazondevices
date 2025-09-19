@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.2.6-rc.1 (2025-09-18)
+
+### Bug fixes
+
+- Correct source of sensor error flag ([`be471f6`](https://github.com/chemelli74/aioamazondevices/commit/be471f68d8c5a7da59c77b2850139a0548431a85))
+
+
 ## v6.2.5 (2025-09-17)
 
 ### Bug fixes
