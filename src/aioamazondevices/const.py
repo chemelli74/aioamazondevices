@@ -57,6 +57,7 @@ REFRESH_AUTH_COOKIES = "auth_cookies"
 URI_DEVICES = "/api/devices-v2/device"
 URI_SIGNIN = "/ap/signin"
 URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
+URI_MUSIC_PROVIDERS = "/api/behaviors/entities?skillId=amzn1.ask.1p.music"
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
