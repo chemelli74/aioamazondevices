@@ -4,8 +4,6 @@ import logging
 
 _LOGGER = logging.getLogger(__package__)
 
-DEFAULT_ASSOC_HANDLE = "amzn_dp_project_dee_ios"
-
 HTTP_ERROR_199 = 199
 HTTP_ERROR_299 = 299
 
