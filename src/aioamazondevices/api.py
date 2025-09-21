@@ -40,7 +40,6 @@ from .const import (
     AMAZON_DEVICE_TYPE,
     BIN_EXTENSION,
     CSRF_COOKIE,
-    DEFAULT_AGENT,
     DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
     DEFAULT_SITE,
@@ -339,7 +338,6 @@ class AmazonEchoApi:
         url: str,
         input_data: dict[str, Any] | None = None,
         json_data: bool = False,
-        amazon_user_agent: bool = True,
     ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
@@ -352,9 +350,7 @@ class AmazonEchoApi:
 
         headers = DEFAULT_HEADERS.copy()
         headers.update({"Accept-Language": self._language})
-        if not amazon_user_agent:
-            _LOGGER.debug("Changing User-Agent to %s", DEFAULT_AGENT)
-            headers.update({"User-Agent": DEFAULT_AGENT})
+
         if self._csrf_cookie:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
             _LOGGER.debug("Adding to headers: %s", csrf)
@@ -369,14 +365,6 @@ class AmazonEchoApi:
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
         self._session.cookie_jar.update_cookies(_cookies, URL(f"amazon.{self._domain}"))
-
-        if url.endswith("/auth/token"):
-            headers.update(
-                {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "x-amzn-identity-auth-domain": "api.amazon.com",
-                }
-            )
 
         resp: ClientResponse | None = None
         for delay in [0, 1, 2, 5, 8, 12, 21]:
@@ -1171,9 +1159,11 @@ class AmazonEchoApi:
             "domain": f"www.amazon.{self._domain}",
         }
 
-        raw_resp = await self._session.post(
+        _, raw_resp = await self._session_request(
+            HTTPMethod.POST,
             "https://api.amazon.com/auth/token",
-            data=data,
+            input_data=data,
+            json_data=False,
         )
         _LOGGER.debug(
             "Refresh data response %s with payload %s",
