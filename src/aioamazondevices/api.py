@@ -78,6 +78,19 @@ class AmazonDeviceSensor:
 
 
 @dataclass
+class AmazonSchedule:
+    """Amazon schedule class."""
+
+    type: str
+    status: str
+    label: str  # alarmLabel, reminderLabel, timerLabel
+    original_date: str
+    original_time: str
+    recurring_pattern: str
+    remaining_time: int
+
+
+@dataclass
 class AmazonDevice:
     """Amazon device class."""
 
@@ -93,6 +106,7 @@ class AmazonDevice:
     entity_id: str | None
     endpoint_id: str | None
     sensors: dict[str, AmazonDeviceSensor]
+    notifications: list[AmazonSchedule]
 
 
 class AmazonSequenceType(StrEnum):
@@ -692,6 +706,34 @@ class AmazonEchoApi:
         except orjson.JSONDecodeError as exc:
             raise ValueError("Response with corrupted JSON format") from exc
 
+    async def _get_notifications(self) -> dict[str, list[AmazonSchedule]]:
+        final_notifications: dict[str, list[AmazonSchedule]] = {}
+
+        _, rawp_resp = await self._session_request(
+            HTTPMethod.GET, url=f"https://alexa.amazon.{self._domain}/api/notifications"
+        )
+        notifications = await rawp_resp.json()
+        for schedule in notifications["notifications"]:
+            _type: str = schedule["type"]
+            _serial = schedule["deviceSerialNumber"]
+            label_desc = _type.lower() + "Label"
+            if schedule["status"] == "ON":
+                new_notification = AmazonSchedule(
+                    type=_type,
+                    status=schedule["status"],
+                    label=schedule[label_desc],
+                    original_date=schedule["originalDate"],
+                    original_time=schedule["originalTime"],
+                    recurring_pattern=schedule["recurringPattern"],
+                    remaining_time=schedule["remainingTime"],
+                )
+                _notification_list = final_notifications.get(_serial, [])
+                final_notifications.update(
+                    {_serial: [*_notification_list, new_notification]}
+                )
+
+        return final_notifications
+
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
         _LOGGER.debug(
@@ -848,6 +890,9 @@ class AmazonEchoApi:
             self._devices[dev_serial] = data
 
         devices_endpoints, devices_sensors = await self._get_sensors_states()
+        devices_notifications: dict[
+            str, list[AmazonSchedule]
+        ] = await self._get_notifications()
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():
@@ -877,6 +922,7 @@ class AmazonEchoApi:
                 else None,
                 endpoint_id=device_endpoint["endpointId"] if device_endpoint else None,
                 sensors=sensors,
+                notifications=devices_notifications.get(serial_number, []),
             )
 
         self._list_for_clusters.update(
