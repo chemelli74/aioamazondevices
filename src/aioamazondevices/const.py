@@ -4,8 +4,6 @@ import logging
 
 _LOGGER = logging.getLogger(__package__)
 
-DEFAULT_ASSOC_HANDLE = "amzn_dp_project_dee_ios"
-
 HTTP_ERROR_199 = 199
 HTTP_ERROR_299 = 299
 
@@ -48,7 +46,6 @@ DEFAULT_HEADERS = {
     "Accept-Encoding": "gzip",
     "Connection": "keep-alive",
 }
-DEFAULT_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"  # noqa: E501
 CSRF_COOKIE = "csrf"
 
 REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
