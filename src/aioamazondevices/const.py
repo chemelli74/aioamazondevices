@@ -4,8 +4,6 @@ import logging
 
 _LOGGER = logging.getLogger(__package__)
 
-DEFAULT_ASSOC_HANDLE = "amzn_dp_project_dee_ios"
-
 HTTP_ERROR_199 = 199
 HTTP_ERROR_299 = 299
 
@@ -48,47 +46,15 @@ DEFAULT_HEADERS = {
     "Accept-Encoding": "gzip",
     "Connection": "keep-alive",
 }
-DEFAULT_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"  # noqa: E501
 CSRF_COOKIE = "csrf"
 
 REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
 REFRESH_AUTH_COOKIES = "auth_cookies"
 
-NODE_DEVICES = "devices"
-NODE_DO_NOT_DISTURB = "doNotDisturbDeviceStatusList"
-NODE_PREFERENCES = "devicePreferences"
-NODE_BLUETOOTH = "bluetoothStates"
-NODE_IDENTIFIER = "identifier"
-NODE_SENSORS = "sensors"
-
-URI_QUERIES = {
-    NODE_DEVICES: "/api/devices-v2/device",
-    NODE_DO_NOT_DISTURB: "/api/dnd/device-status-list",
-    NODE_PREFERENCES: "/api/device-preferences",
-    NODE_BLUETOOTH: "/api/bluetooth",
-    # "/api/ping"
-    # "/api/np/command"
-    # "/api/np/player"
-    # "/api/device-wifi-details"
-    # "/api/activities"
-    # "/api/behaviors/v2/automations"
-    # "/api/notifications"
-}
-
+URI_DEVICES = "/api/devices-v2/device"
 URI_SIGNIN = "/ap/signin"
-URI_IDS = "/api/phoenix"
-URI_SENSORS = "/api/phoenix/state"
+URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 
-SENSORS = [
-    "babyCryDetectionState",
-    "beepingApplianceDetectionState",
-    "coughDetectionState",
-    "dogBarkDetectionState",
-    "humanPresenceDetectionState",
-    "illuminance",
-    "temperature",
-    "waterSoundsDetectionState",
-]
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
 # File extensions
@@ -100,6 +66,32 @@ BIN_EXTENSION = ".bin"
 SPEAKER_GROUP_FAMILY = "WHA"
 SPEAKER_GROUP_MODEL = "Speaker Group"
 
+SENSORS: dict[str, dict[str, str | None]] = {
+    "temperatureSensor": {
+        "name": "temperature",
+        "key": "value",
+        "subkey": "value",
+        "scale": "scale",
+    },
+    "motionSensor": {
+        "name": "detectionState",
+        "key": "detectionStateValue",
+        "subkey": None,
+        "scale": None,
+    },
+    "lightSensor": {
+        "name": "illuminance",
+        "key": "illuminanceValue",
+        "subkey": "value",
+        "scale": None,
+    },
+    "speaker": {
+        "name": "volume",
+        "key": "value",
+        "subkey": "volValue",
+        "scale": None,
+    },
+}
 DEVICE_TO_IGNORE: list[str] = [
     AMAZON_DEVICE_TYPE,  # Alexa App for iOS
     "A2TF17PFR55MTB",  # Alexa App for Android
@@ -117,6 +109,11 @@ DEVICE_TO_IGNORE: list[str] = [
     "A3KOTUS4DKHU1W",  # Samsung Fridge - issue #429
     "AN630UQPG2CA4",  # Insignia TV - issue #430
     "A3SSG6GR8UU7SN",  # Amazon Echo Sub - issue #437
+    "A2Y04QPFCANLPQ",  # Bose QuietComfort 35 II - issue #476
+    "AYHO3NTIQQ04G",  # Nextbase 622GW Dash Cam - issue #477
+    "AHL4H6CKH3AUP",  # BMW Car System - issue #478
+    "A3BW5ZVFHRCQPO",  # BMW Mini Car System - issue #479
+    "A1M0A9L9HDBID3",  # Sony Soundbar Sony HT-A5000 - issue #486
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
@@ -180,6 +177,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A1WZKXFLI43K86": {
         "model": "FireTV 4k MAX",
         "hw_version": "Gen2",
+    },
+    "A1X92YQU8MWAPD": {
+        "manufacturer": "Devialet",
+        "model": "Freebox Delta",
+        "hw_version": None,
     },
     "A1XWJRHALS1REP": {
         "model": "Echo Show 5",
@@ -332,7 +334,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": None,
     },
     "A3RMGO6LYLH7YN": {
-        "model": "Echo Dot",
+        "model": "Echo",
         "hw_version": "Gen4",
     },
     "A3S5BH2HU6VAYF": {
@@ -363,6 +365,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "AB72C64C86AW2": {
         "model": "Echo",
         "hw_version": "Gen2",
+    },
+    "ADMKNMEVNL158": {
+        "model": "Echo Hub",
+        "hw_version": "Gen1",
     },
     "ADOUDFQX2QVX0": {
         "model": "Fire TV Omni QLED",
@@ -427,4 +433,29 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Plus",
         "hw_version": "Gen2",
     },
+    "A1M0A9L9HDBID3": {
+        "manufacturer": "First Alert",
+        "model": "Onelink Smoke + Carbon Monoxide Alarm",
+        "hw_version": None,
+    },
 }
+
+ALEXA_INFO_SKILLS = [
+    "Alexa.Calendar.PlayToday",
+    "Alexa.Calendar.PlayTomorrow",
+    "Alexa.Calendar.PlayNext",
+    "Alexa.Date.Play",
+    "Alexa.Time.Play",
+    "Alexa.News.NationalNews",
+    "Alexa.FlashBriefing.Play",
+    "Alexa.Traffic.Play",
+    "Alexa.Weather.Play",
+    "Alexa.CleanUp.Play",
+    "Alexa.GoodMorning.Play",
+    "Alexa.SingASong.Play",
+    "Alexa.FunFact.Play",
+    "Alexa.Joke.Play",
+    "Alexa.TellStory.Play",
+    "Alexa.ImHome.Play",
+    "Alexa.GoodNight.Play",
+]

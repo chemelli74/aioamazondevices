@@ -20,15 +20,17 @@ from aiohttp import (
     ClientConnectorError,
     ClientResponse,
     ClientSession,
+    ContentTypeError,
 )
 from bs4 import BeautifulSoup, Tag
-from langcodes import Language
+from langcodes import Language, standardize_tag
 from multidict import MultiDictProxy
 from yarl import URL
 
 from . import __version__
 from .const import (
     _LOGGER,
+    ALEXA_INFO_SKILLS,
     AMAZON_APP_BUNDLE_ID,
     AMAZON_APP_ID,
     AMAZON_APP_NAME,
@@ -38,8 +40,6 @@ from .const import (
     AMAZON_DEVICE_TYPE,
     BIN_EXTENSION,
     CSRF_COOKIE,
-    DEFAULT_AGENT,
-    DEFAULT_ASSOC_HANDLE,
     DEFAULT_HEADERS,
     DEFAULT_SITE,
     DEVICE_TO_IGNORE,
@@ -48,18 +48,12 @@ from .const import (
     HTTP_ERROR_199,
     HTTP_ERROR_299,
     JSON_EXTENSION,
-    NODE_BLUETOOTH,
-    NODE_DEVICES,
-    NODE_DO_NOT_DISTURB,
-    NODE_IDENTIFIER,
-    NODE_PREFERENCES,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     SAVE_PATH,
     SENSORS,
-    URI_IDS,
-    URI_QUERIES,
-    URI_SENSORS,
+    URI_DEVICES,
+    URI_NEXUS_GRAPHQL,
     URI_SIGNIN,
 )
 from .exceptions import (
@@ -69,6 +63,7 @@ from .exceptions import (
     CannotRetrieveData,
     WrongMethod,
 )
+from .query import QUERY_DEVICE_STATE
 from .utils import obfuscate_email, scrub_fields
 
 
@@ -78,6 +73,7 @@ class AmazonDeviceSensor:
 
     name: str
     value: str | int | float
+    error: bool
     scale: str | None
 
 
@@ -91,15 +87,11 @@ class AmazonDevice:
     device_type: str
     device_owner_customer_id: str
     device_cluster_members: list[str]
-    device_locale: str
     online: bool
     serial_number: str
     software_version: str
-    do_not_disturb: bool
-    response_style: str | None
-    bluetooth_state: bool
-    entity_id: str
-    appliance_id: str
+    entity_id: str | None
+    endpoint_id: str | None
     sensors: dict[str, AmazonDeviceSensor]
 
 
@@ -148,7 +140,6 @@ class AmazonEchoApi:
 
         self._session = client_session
         self._devices: dict[str, Any] = {}
-        self._sensors_available: bool = True
 
         _LOGGER.debug("Initialize library v%s", __version__)
 
@@ -172,7 +163,8 @@ class AmazonEchoApi:
         lang_maximized = lang_object.maximize()
 
         self._domain: str = domain
-        self._language = f"{lang_maximized.language}-{lang_maximized.region}"
+        language = f"{lang_maximized.language}-{lang_maximized.territory}"
+        self._language = standardize_tag(language)
 
         # Reset CSRF cookie when changing country
         self._csrf_cookie: str | None = None
@@ -260,9 +252,9 @@ class AmazonEchoApi:
         oauth_params = {
             "openid.return_to": "https://www.amazon.com/ap/maplanding",
             "openid.oa2.code_challenge_method": "S256",
-            "openid.assoc_handle": DEFAULT_ASSOC_HANDLE,
+            "openid.assoc_handle": "amzn_dp_project_dee_ios",
             "openid.identity": "http://specs.openid.net/auth/2.0/identifier_select",
-            "pageId": DEFAULT_ASSOC_HANDLE,
+            "pageId": "amzn_dp_project_dee_ios",
             "accountStatusPolicy": "P1",
             "openid.claimed_id": "http://specs.openid.net/auth/2.0/identifier_select",
             "openid.mode": "checkid_setup",
@@ -284,7 +276,7 @@ class AmazonEchoApi:
         form = soup.find("form", {"name": "signIn"}) or soup.find("form")
 
         if not isinstance(form, Tag):
-            raise TypeError("Unable to find form in login response")
+            raise CannotAuthenticate("Unable to find form in login response")
 
         inputs = {}
         for field in form.find_all("input"):
@@ -302,7 +294,7 @@ class AmazonEchoApi:
             url = form.get("action")
             if isinstance(method, str) and isinstance(url, str):
                 return method, url
-        raise TypeError("Unable to extract form data from response")
+        raise CannotAuthenticate("Unable to extract form data from response")
 
     def _extract_code_from_url(self, url: URL) -> str:
         """Extract the access token from url query after login."""
@@ -313,7 +305,9 @@ class AmazonEchoApi:
             for key, value in url.query.items():
                 parsed_url[key] = [value]
         else:
-            raise TypeError(f"Unable to extract authorization code from url: {url}")
+            raise CannotAuthenticate(
+                f"Unable to extract authorization code from url: {url}"
+            )
         return parsed_url["openid.oa2.authorization_code"][0]
 
     async def _ignore_ap_signin_error(self, response: ClientResponse) -> bool:
@@ -326,14 +320,6 @@ class AmazonEchoApi:
                 and URI_SIGNIN in history[0].request_info.url.path
             )
         return False
-
-    async def _ignore_phoenix_error(self, response: ClientResponse) -> bool:
-        """Return true if error is due to phoenix endpoint."""
-        # Endpoint URI_IDS replies with error 199 or 299
-        # during maintenance
-        return response.status in [HTTP_ERROR_199, HTTP_ERROR_299] and (
-            URI_IDS in response.url.path
-        )
 
     async def _http_phrase_error(self, error: int) -> str:
         """Convert numeric error in human phrase."""
@@ -351,7 +337,6 @@ class AmazonEchoApi:
         url: str,
         input_data: dict[str, Any] | None = None,
         json_data: bool = False,
-        amazon_user_agent: bool = True,
     ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
@@ -364,9 +349,7 @@ class AmazonEchoApi:
 
         headers = DEFAULT_HEADERS.copy()
         headers.update({"Accept-Language": self._language})
-        if not amazon_user_agent:
-            _LOGGER.debug("Changing User-Agent to %s", DEFAULT_AGENT)
-            headers.update({"User-Agent": DEFAULT_AGENT})
+
         if self._csrf_cookie:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
             _LOGGER.debug("Adding to headers: %s", csrf)
@@ -381,14 +364,6 @@ class AmazonEchoApi:
             self._load_website_cookies() if self._login_stored_data else self._cookies
         )
         self._session.cookie_jar.update_cookies(_cookies, URL(f"amazon.{self._domain}"))
-
-        if url.endswith("/auth/token"):
-            headers.update(
-                {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "x-amzn-identity-auth-domain": "api.amazon.com",
-                }
-            )
 
         resp: ClientResponse | None = None
         for delay in [0, 1, 2, 5, 8, 12, 21]:
@@ -431,9 +406,10 @@ class AmazonEchoApi:
 
         content_type: str = resp.headers.get("Content-Type", "")
         _LOGGER.debug(
-            "Response %s for url %s with content type: %s",
-            resp.status,
+            "Response for url %s :\nstatus      : %s \
+                                  \ncontent type: %s ",
             url,
+            resp.status,
             content_type,
         )
 
@@ -444,9 +420,7 @@ class AmazonEchoApi:
                 HTTPStatus.UNAUTHORIZED,
             ]:
                 raise CannotAuthenticate(await self._http_phrase_error(resp.status))
-            if not await self._ignore_ap_signin_error(
-                resp
-            ) and not await self._ignore_phoenix_error(resp):
+            if not await self._ignore_ap_signin_error(resp):
                 raise CannotRetrieveData(
                     f"Request failed: {await self._http_phrase_error(resp.status)}"
                 )
@@ -545,15 +519,15 @@ class AmazonEchoApi:
         }
 
         register_url = "https://api.amazon.com/auth/register"
-        _, resp = await self._session_request(
+        _, raw_resp = await self._session_request(
             method=HTTPMethod.POST,
             url=register_url,
             input_data=body,
             json_data=True,
         )
-        resp_json = await resp.json()
+        resp_json = await self._response_to_json(raw_resp)
 
-        if resp.status != HTTPStatus.OK:
+        if raw_resp.status != HTTPStatus.OK:
             msg = resp_json["response"]["error"]["message"]
             _LOGGER.error(
                 "Cannot register device for %s: %s",
@@ -561,7 +535,7 @@ class AmazonEchoApi:
                 msg,
             )
             raise CannotRegisterDevice(
-                f"{await self._http_phrase_error(resp.status)}: {msg}"
+                f"{await self._http_phrase_error(raw_resp.status)}: {msg}"
             )
 
         success_response = resp_json["response"]["success"]
@@ -597,127 +571,126 @@ class AmazonEchoApi:
         _LOGGER.info("Register device: %s", scrub_fields(login_data))
         return login_data
 
-    async def _get_devices_ids(self) -> list[dict[str, str]]:
-        """Retrieve devices entityId and applianceId."""
+    async def _get_devices_state(
+        self,
+    ) -> dict[str, Any]:
+        """Get Device State."""
+        payload = {
+            "operationName": "getDevicesState",
+            "variables": {
+                "latencyTolerance": "LOW",
+            },
+            "query": QUERY_DEVICE_STATE,
+        }
+
         _, raw_resp = await self._session_request(
-            "GET",
-            url=f"https://alexa.amazon.{self._domain}{URI_IDS}",
-            amazon_user_agent=False,
-        )
-
-        # Sensors data not available
-        if raw_resp.status != HTTPStatus.OK:
-            _LOGGER.warning(
-                "Sensors data not available [%s error '%s'], skipping",
-                URI_IDS,
-                await self._http_phrase_error(raw_resp.status),
-            )
-            self._sensors_available = False
-            return []
-
-        json_data = await raw_resp.json()
-
-        network_detail = orjson.loads(json_data["networkDetail"])
-        # Navigate through the nested structure step by step
-        location_details = network_detail["locationDetails"]["locationDetails"]
-        default_location = location_details["Default_Location"]
-        amazon_bridge = default_location["amazonBridgeDetails"]["amazonBridgeDetails"]
-
-        # New devices are based on LambdaBridge_AAA structure
-        lambda_bridge_aaa = amazon_bridge.get("LambdaBridge_AAA/SonarCloudService")
-        appliance_details_aaa = (
-            lambda_bridge_aaa["applianceDetails"]["applianceDetails"]
-            if lambda_bridge_aaa
-            else {}
-        )
-
-        entity_ids_list: list[dict[str, str]] = await self._get_entities_ids(
-            appliance_details_aaa, "AAA_SonarCloudService"
-        )
-
-        # Old devices are based on LambdaBridge_AlexaBridge structure
-        for bridge_key, bridge_value in amazon_bridge.items():
-            if "LambdaBridge_AlexaBridge/" in bridge_key:
-                # Value key:    "LambdaBridge_AlexaBridge/XXXXXXXXXXXXXX@XXXXXXXXXXXXXX"
-                # Value subkey: "AlexaBridge_XXXXXXXXXXXXXX@XXXXXXXXXXXXXX_XXXXXXXXXXXX"
-                subkey = bridge_key.split("_")[1].replace("/", "_")
-
-                appliance_details_alexa = bridge_value["applianceDetails"][
-                    "applianceDetails"
-                ]
-                entity_ids_list.extend(
-                    await self._get_entities_ids(appliance_details_alexa, subkey)
-                )
-
-        return entity_ids_list
-
-    async def _get_entities_ids(
-        self, appliance_details: dict[str, Any], searchkey: str
-    ) -> list[dict[str, str]]:
-        """Extract entityId and applianceId."""
-        entity_ids_list: list[dict[str, str]] = []
-        # Process each appliance that starts with "searchkey"
-        for appliance_key, appliance_data in appliance_details.items():
-            if not appliance_key.startswith(searchkey):
-                continue
-
-            entity_id = appliance_data["entityId"]
-            appliance_id = appliance_data["applianceId"]
-
-            # Create identifier object for this appliance
-            identifier = {
-                "entityId": entity_id,
-                "applianceId": appliance_id,
-            }
-
-            # Update device information for each device in the identifier list
-            for device_identifier in appliance_data["alexaDeviceIdentifierList"]:
-                serial_number = device_identifier["dmsDeviceSerialNumber"]
-
-                # Add identifier information to the device
-                # but only if the device was previously found
-                if serial_number in self._devices:
-                    self._devices[serial_number] |= {NODE_IDENTIFIER: identifier}
-
-            # Add to entity IDs list for sensor retrieval
-            entity_ids_list.append({"entityId": entity_id, "entityType": "ENTITY"})
-
-        return entity_ids_list
-
-    async def _get_sensors_states(
-        self, entity_ids_list: list[dict[str, str]]
-    ) -> dict[str, dict[str, AmazonDeviceSensor]]:
-        """Retrieve devices sensors states."""
-        _data = {"stateRequests": entity_ids_list}
-        _, raw_resp = await self._session_request(
-            "POST",
-            url=f"https://alexa.amazon.{self._domain}{URI_SENSORS}",
-            input_data=_data,
+            method=HTTPMethod.POST,
+            url=f"https://alexa.amazon.{self._domain}{URI_NEXUS_GRAPHQL}",
+            input_data=payload,
             json_data=True,
         )
-        json_data = await raw_resp.json()
 
-        final_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
-        for sensors in json_data["deviceStates"]:
-            _id = sensors["entity"]["entityId"]
-            dict_sensors: dict[str, AmazonDeviceSensor] = {}
-            for sensor in sensors["capabilityStates"]:
-                sensor_json = orjson.loads(sensor)
-                if sensor_json["name"] in SENSORS:
-                    _value = sensor_json["value"]
-                    _value_dict = isinstance(_value, dict)
-                    _name = sensor_json["name"]
-                    dict_sensors.update(
-                        {
-                            _name: AmazonDeviceSensor(
-                                name=_name,
-                                value=(_value["value"] if _value_dict else _value),
-                                scale=_value.get("scale") if _value_dict else None,
+        return await self._response_to_json(raw_resp)
+
+    async def _get_sensors_states(
+        self,
+    ) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, AmazonDeviceSensor]]]:
+        """Retrieve devices sensors states."""
+        devices_state = await self._get_devices_state()
+        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
+        devices_endpoints: dict[str, dict[str, Any]] = {}
+
+        endpoints = devices_state["data"]["listEndpoints"]
+        for endpoint in endpoints.get("endpoints"):
+            serial_number = (
+                endpoint["serialNumber"]["value"]["text"]
+                if endpoint["serialNumber"]
+                else None
+            )
+            if serial_number in self._devices:
+                devices_sensors[serial_number] = self._get_device_sensor_state(
+                    endpoint, serial_number
+                )
+                devices_endpoints[serial_number] = endpoint
+
+        return devices_endpoints, devices_sensors
+
+    def _get_device_sensor_state(
+        self, endpoint: dict[str, Any], serial_number: str
+    ) -> dict[str, AmazonDeviceSensor]:
+        device_sensors: dict[str, AmazonDeviceSensor] = {}
+        if endpoint_dnd := endpoint.get("settings", {}).get("doNotDisturb"):
+            device_sensors["dnd"] = AmazonDeviceSensor(
+                name="dnd",
+                value=endpoint_dnd.get("toggleValue"),
+                error=bool(endpoint_dnd.get("error")),
+                scale=None,
+            )
+        for feature in endpoint.get("features", {}):
+            if (sensor_template := SENSORS.get(feature["name"])) is None:
+                # Skip sensors that are not in the predefined list
+                continue
+
+            if not (name := sensor_template["name"]):
+                raise CannotRetrieveData("Unable to read sensor template")
+
+            for feature_property in feature.get("properties"):
+                if sensor_template["name"] != feature_property.get("name"):
+                    continue
+
+                value: str | int | float = "n/a"
+                scale: str | None = None
+                error = bool(feature_property.get("error"))
+                if not error:
+                    try:
+                        value_raw = feature_property[sensor_template["key"]]
+                        if not value_raw:
+                            _LOGGER.warning(
+                                "Sensor %s [device %s] ignored due to empty value",
+                                name,
+                                serial_number,
                             )
-                        }
-                    )
-            final_sensors.update({_id: dict_sensors})
-        return final_sensors
+                            continue
+                        scale = (
+                            value_raw[scale_template]
+                            if (scale_template := sensor_template["scale"])
+                            else None
+                        )
+                        value = (
+                            value_raw[subkey_template]
+                            if (subkey_template := sensor_template["subkey"])
+                            else value_raw
+                        )
+
+                    except (KeyError, ValueError) as exc:
+                        _LOGGER.warning(
+                            "Sensor %s [device %s] ignored due to errors in feature %s: %s",  # noqa: E501
+                            name,
+                            serial_number,
+                            feature_property,
+                            repr(exc),
+                        )
+                device_sensors[name] = AmazonDeviceSensor(
+                    name,
+                    value,
+                    error,
+                    scale,
+                )
+
+        return device_sensors
+
+    async def _response_to_json(self, raw_resp: ClientResponse) -> dict[str, Any]:
+        """Convert response to JSON, if possible."""
+        try:
+            data = await raw_resp.json(loads=orjson.loads)
+            if not data:
+                _LOGGER.warning("Empty JSON data received")
+                data = {}
+            return cast("dict[str, Any]", data)
+        except ContentTypeError as exc:
+            raise ValueError("Response not in JSON format") from exc
+        except orjson.JSONDecodeError as exc:
+            raise ValueError("Response with corrupted JSON format") from exc
 
     async def login_mode_interactive_oauth(self) -> BeautifulSoup:
         """Login interactive via oauth URL."""
@@ -746,7 +719,7 @@ class AmazonEchoApi:
             _LOGGER.debug(
                 'Cannot find "auth-mfa-otpcode" in html source [%s]', login_url
             )
-            raise CannotAuthenticate
+            raise CannotAuthenticate("MFA OTP code not found on login page")
 
         return login_soup
 
@@ -801,6 +774,10 @@ class AmazonEchoApi:
             obfuscate_email(self._login_email),
         )
 
+        # Check if session is still authenticated
+        if not await self.auth_check_status():
+            raise CannotAuthenticate("Session no longer authenticated")
+
         return self._login_stored_data
 
     async def _get_alexa_domain(self) -> str:
@@ -810,7 +787,7 @@ class AmazonEchoApi:
             method=HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._domain}/api/welcome",
         )
-        json_data = await raw_resp.json()
+        json_data = await self._response_to_json(raw_resp)
         return cast(
             "str", json_data.get("alexaHostName", f"alexa.amazon.{self._domain}")
         )
@@ -851,72 +828,48 @@ class AmazonEchoApi:
     ) -> dict[str, AmazonDevice]:
         """Get Amazon devices data."""
         self._devices = {}
-        for key in URI_QUERIES:
-            _, raw_resp = await self._session_request(
-                method=HTTPMethod.GET,
-                url=f"https://alexa.amazon.{self._domain}{URI_QUERIES[key]}",
-            )
-            _LOGGER.debug("Response URL: %s", raw_resp.url)
-            response_code = raw_resp.status
-            _LOGGER.debug("Response code: |%s|", response_code)
+        _, raw_resp = await self._session_request(
+            method=HTTPMethod.GET,
+            url=f"https://alexa.amazon.{self._domain}{URI_DEVICES}",
+        )
 
-            response_data = await raw_resp.text()
-            json_data = {} if len(response_data) == 0 else await raw_resp.json()
+        json_data = await self._response_to_json(raw_resp)
 
-            _LOGGER.debug("JSON data: |%s|", scrub_fields(json_data))
+        _LOGGER.debug("JSON devices data: %s", scrub_fields(json_data))
 
-            for data in json_data[key]:
-                dev_serial = data.get("serialNumber") or data.get("deviceSerialNumber")
-                if previous_data := self._devices.get(dev_serial):
-                    self._devices[dev_serial] = previous_data | {key: data}
-                else:
-                    self._devices[dev_serial] = {key: data}
+        for data in json_data["devices"]:
+            dev_serial = data.get("serialNumber")
+            self._devices[dev_serial] = data
 
-        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
-
-        if self._sensors_available and (
-            entity_ids_list := await self._get_devices_ids()
-        ):
-            devices_sensors = await self._get_sensors_states(entity_ids_list)
+        devices_endpoints, devices_sensors = await self._get_sensors_states()
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():
             # Remove stale, orphaned and virtual devices
-            devices_node = device.get(NODE_DEVICES)
-            if not devices_node or (devices_node.get("deviceType") in DEVICE_TO_IGNORE):
+            if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
                 continue
 
-            preferences_node = device.get(NODE_PREFERENCES, {})
-            do_not_disturb_node = device[NODE_DO_NOT_DISTURB]
-            bluetooth_node = device[NODE_BLUETOOTH]
-            identifier_node = device.get(NODE_IDENTIFIER, {})
-
+            serial_number: str = device["serialNumber"]
             # Add sensors
-            sensors = {}
-            if identifier_node:
-                for _device_id, _device_sensors in devices_sensors.items():
-                    if _device_id == identifier_node["entityId"]:
-                        sensors = _device_sensors
+            sensors = devices_sensors.get(serial_number, {})
+            device_endpoint = devices_endpoints.get(serial_number, {})
 
-            serial_number: str = devices_node["serialNumber"]
             final_devices_list[serial_number] = AmazonDevice(
-                account_name=devices_node["accountName"],
-                capabilities=devices_node["capabilities"],
-                device_family=devices_node["deviceFamily"],
-                device_type=devices_node["deviceType"],
-                device_owner_customer_id=devices_node["deviceOwnerCustomerId"],
-                device_cluster_members=(
-                    devices_node["clusterMembers"] or [serial_number]
-                ),
-                device_locale=preferences_node.get("locale", self._language),
-                online=devices_node["online"],
+                account_name=device["accountName"],
+                capabilities=device["capabilities"],
+                device_family=device["deviceFamily"],
+                device_type=device["deviceType"],
+                device_owner_customer_id=device["deviceOwnerCustomerId"],
+                device_cluster_members=(device["clusterMembers"] or [serial_number]),
+                online=device["online"],
                 serial_number=serial_number,
-                software_version=devices_node["softwareVersion"],
-                do_not_disturb=do_not_disturb_node["enabled"],
-                response_style=preferences_node.get("responseStyle"),
-                bluetooth_state=bluetooth_node["online"],
-                entity_id=identifier_node.get("entityId"),
-                appliance_id=identifier_node.get("applianceId"),
+                software_version=device["softwareVersion"],
+                entity_id=device_endpoint["legacyIdentifiers"]["chrsIdentifier"][
+                    "entityId"
+                ]
+                if device_endpoint
+                else None,
+                endpoint_id=device_endpoint["endpointId"] if device_endpoint else None,
                 sensors=sensors,
             )
 
@@ -942,7 +895,7 @@ class AmazonEchoApi:
             )
             return False
 
-        resp_json = await raw_resp.json()
+        resp_json = await self._response_to_json(raw_resp)
         if not (authentication := resp_json.get("authentication")):
             _LOGGER.debug('Session not authenticated: reply missing "authentication"')
             return False
@@ -980,7 +933,7 @@ class AmazonEchoApi:
         base_payload = {
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
-            "locale": device.device_locale,
+            "locale": self._language,
             "customerId": device.device_owner_customer_id,
         }
 
@@ -1015,7 +968,7 @@ class AmazonEchoApi:
                 "expireAfter": "PT5S",
                 "content": [
                     {
-                        "locale": device.device_locale,
+                        "locale": self._language,
                         "display": {
                             "title": "Home Assistant",
                             "body": message_body,
@@ -1061,6 +1014,10 @@ class AmazonEchoApi:
                 "connectionRequest": {
                     "uri": "connection://AMAZON.Launch/" + message_body,
                 },
+            }
+        elif message_type in ALEXA_INFO_SKILLS:
+            payload = {
+                **base_payload,
             }
         else:
             raise ValueError(f"Message type <{message_type}> is not recognised")
@@ -1152,6 +1109,14 @@ class AmazonEchoApi:
             device, AmazonSequenceType.LaunchSkill, message_body
         )
 
+    async def call_alexa_info_skill(
+        self,
+        device: AmazonDevice,
+        message_type: str,
+    ) -> None:
+        """Call Info skill.  See ALEXA_INFO_SKILLS . const."""
+        return await self._send_message(device, message_type, "")
+
     async def set_do_not_disturb(self, device: AmazonDevice, state: bool) -> None:
         """Set do_not_disturb flag."""
         payload = {
@@ -1187,21 +1152,23 @@ class AmazonEchoApi:
             "domain": f"www.amazon.{self._domain}",
         }
 
-        response = await self._session.post(
+        _, raw_resp = await self._session_request(
+            HTTPMethod.POST,
             "https://api.amazon.com/auth/token",
-            data=data,
+            input_data=data,
+            json_data=False,
         )
         _LOGGER.debug(
             "Refresh data response %s with payload %s",
-            response.status,
+            raw_resp.status,
             orjson.dumps(data),
         )
 
-        if response.status != HTTPStatus.OK:
+        if raw_resp.status != HTTPStatus.OK:
             _LOGGER.debug("Failed to refresh data")
             return False, {}
 
-        json_response = await response.json()
+        json_response = await self._response_to_json(raw_resp)
         _LOGGER.debug("Refresh data json:\n%s ", json_response)
 
         if data_type == REFRESH_ACCESS_TOKEN and (
@@ -1209,7 +1176,7 @@ class AmazonEchoApi:
         ):
             self._login_stored_data[REFRESH_ACCESS_TOKEN] = new_token
             self.expires_in = datetime.now(tz=UTC).timestamp() + int(
-                json_response.get("expires_in")
+                json_response.get("expires_in", 0)
             )
             return True, json_response
 

@@ -140,7 +140,7 @@ async def wait_action_complete(sleep: int = 4) -> None:
 
 async def main() -> None:
     """Run main."""
-    parser, args = get_arguments()
+    _, args = get_arguments()
 
     login_data_stored = read_from_file(args.login_data_file)
 
@@ -237,6 +237,9 @@ async def main() -> None:
         sys.exit(4)
     print("Session authenticated!")
 
+    for sensor in device_single.sensors:
+        print(f"Sensor {device_single.sensors[sensor]}")
+
     print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
     await api.call_alexa_speak(device_single, "Test Speak message from new library")
 
@@ -253,6 +256,11 @@ async def main() -> None:
     await api.call_alexa_sound(device_single, "amzn_sfx_doorbell_chime_01")
 
     await wait_action_complete()
+
+    print("Sending message via 'Alexa.Date.Play' to:", device_single.account_name)
+    await api.call_alexa_info_skill(device_single, "Alexa.Date.Play")
+
+    await wait_action_complete(5)
 
     radio = "BBC one"
     source = AmazonMusicSource.Radio

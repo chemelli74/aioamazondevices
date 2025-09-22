@@ -1,5 +1,129 @@
 # Changelog
 
+## v6.2.6 (2025-09-19)
+
+### Bug fixes
+
+- Correct source of sensor error flag ([`115eaf6`](https://github.com/chemelli74/aioamazondevices/commit/115eaf65c0c907804c1261b280c406852dc768ab))
+
+
+## v6.2.5 (2025-09-17)
+
+### Bug fixes
+
+- Sensors sporadic errors ([`61fca02`](https://github.com/chemelli74/aioamazondevices/commit/61fca028e32c09338f29b22c875428d99451ab34))
+
+
+### Refactoring
+
+- Remove redundant code ([`ae4a2e5`](https://github.com/chemelli74/aioamazondevices/commit/ae4a2e583a4efe4385dedb70983e8260e14f1844))
+
+
+## v6.2.4 (2025-09-17)
+
+### Bug fixes
+
+- List/filter more models ([`9bf477d`](https://github.com/chemelli74/aioamazondevices/commit/9bf477de21d28a087d819809261123e1ea6767f0))
+
+
+### Build system
+
+- Bump python-semantic-release/python-semantic-release from 10.4.0 to 10.4.1 ([`fad04e7`](https://github.com/chemelli74/aioamazondevices/commit/fad04e74f0ac27f4385b267a6d8cf2ca102bc061))
+- Bump pytest-cov from 6.3.0 to 7.0.0 ([`2a7db6c`](https://github.com/chemelli74/aioamazondevices/commit/2a7db6cd85898ec037b9c6f850c0e247ea5fc1eb))
+
+
+### Refactoring
+
+- Remove redundant code ([`6d4013e`](https://github.com/chemelli74/aioamazondevices/commit/6d4013ed020b9963dfa8a8be46d202fea02613c1))
+
+
+## v6.2.3 (2025-09-13)
+
+### Bug fixes
+
+- Align sensor logic to new amazon query output ([`fe6d6cd`](https://github.com/chemelli74/aioamazondevices/commit/fe6d6cded8139c03d7577de78ed4cf91aa1e8eca))
+
+
+## v6.2.2 (2025-09-13)
+
+### Bug fixes
+
+- Consider errors from sensors ([`54df175`](https://github.com/chemelli74/aioamazondevices/commit/54df175717d1dc28e025dce3178643cb36b9ba82))
+
+
+## v6.2.1 (2025-09-11)
+
+### Bug fixes
+
+- Correct raised exceptions ([`19976fa`](https://github.com/chemelli74/aioamazondevices/commit/19976fad6b81b57296432bc1f958d974da83be02))
+
+
+## v6.2.0 (2025-09-10)
+
+### Features
+
+- Alexa info skills ([`011a28b`](https://github.com/chemelli74/aioamazondevices/commit/011a28b943eb73f91ff6f95f48a2d60f8e9988b6))
+
+
+## v6.1.3 (2025-09-10)
+
+### Bug fixes
+
+- Manage json exception ([`7a09052`](https://github.com/chemelli74/aioamazondevices/commit/7a090528654837a858040cb55962b6809a395b9d))
+
+
+### Build system
+
+- Bump pytest from 8.4.1 to 8.4.2 ([`a327a60`](https://github.com/chemelli74/aioamazondevices/commit/a327a6089308794259698b193bc3d019998b219b))
+- Bump pytest-cov from 6.2.1 to 6.3.0 ([`acff310`](https://github.com/chemelli74/aioamazondevices/commit/acff310f876d8d2124f430d1d7d480ccf7b28b21))
+- Bump python-semantic-release/python-semantic-release from 10.3.1 to 10.4.0 ([`5738a93`](https://github.com/chemelli74/aioamazondevices/commit/5738a932a64f39c2807ca7032f84010fcd666111))
+
+
+## v6.1.2 (2025-09-05)
+
+### Bug fixes
+
+- Check auth status at startup ([`80ce741`](https://github.com/chemelli74/aioamazondevices/commit/80ce741ab9f533be2af3011340c4ead60ae76ed2))
+
+
+### Build system
+
+- Bump actions/setup-python from 5 to 6 ([`20d207e`](https://github.com/chemelli74/aioamazondevices/commit/20d207ec2014d993318d8cb0b7ad597978ed1c89))
+
+
+## v6.1.1 (2025-09-04)
+
+### Bug fixes
+
+- Standardise locale ([`c5cbb67`](https://github.com/chemelli74/aioamazondevices/commit/c5cbb67e17314470899bbbe24579f1090840a297))
+
+
+## v6.1.0 (2025-09-04)
+
+### Features
+
+- Reimplement sensors ([`6c6775e`](https://github.com/chemelli74/aioamazondevices/commit/6c6775e1ff4544d2deb6e6305954732895097d41))
+
+
+## v6.0.0 (2025-08-31)
+
+### Bug fixes
+
+- Switch url for sounds list ([`3dae0b6`](https://github.com/chemelli74/aioamazondevices/commit/3dae0b6164a30b165473d42dbe9c9e71dc78500a))
+
+
+## v5.0.1 (2025-08-27)
+
+### Bug fixes
+
+- More models ([`07836f0`](https://github.com/chemelli74/aioamazondevices/commit/07836f096b5ebb8efb01642b8926d79840a270ff))
+
+
+### Documentation
+
+- Small update ([`3432096`](https://github.com/chemelli74/aioamazondevices/commit/34320962633b5c856b05213f09782bc76f61a4f0))
+
+
 ## v5.0.0 (2025-08-21)
 
 ### Features
