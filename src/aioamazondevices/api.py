@@ -145,7 +145,6 @@ class AmazonEchoApi:
 
         self._session = client_session
         self._devices: dict[str, Any] = {}
-        self._home_group_id: str | None = None
 
         _LOGGER.debug("Initialize library v%s", __version__)
 
@@ -696,22 +695,18 @@ class AmazonEchoApi:
 
         return device_sensors
 
-    async def _get_communication_preferences(self) -> dict[str, dict[str, str]]:
-        if not self._home_group_id:
-            user_id = self._login_stored_data["customer_info"]["user_id"]
-            url = f"https://{COMM_SITE}//users/amzn1.comms.id.person.amzn1~{user_id}/identities"
-            _, resp = await self._session_request(method=HTTPMethod.GET, url=url)
-            resp_json = await self._response_to_json(resp)
-            self._home_group_id = resp_json.get("homeGroupId")
-
-        url = f"https://{COMM_SITE}/homegroups/{self._home_group_id}/devices"
+    async def _get_device_communication_preferences(
+        self, device: dict[str, Any]
+    ) -> dict[str, str]:
+        url = f"https://{COMM_SITE}/devicesTypes/{device['deviceType']}/deviceId/{device['serialNumber']}/preferences?devicePreferences=communications&devicePreferences=calling&devicePreferences=messaging&devicePreferences=dropin&devicePreferences=announcements"
         _, resp = await self._session_request(method=HTTPMethod.GET, url=url)
         resp_json = await self._response_to_json(resp)
 
         comms_preferences = {}
-        for device in resp_json.get("devices", {}):
-            serial_number = device["deviceSerialNumber"]
-            comms_preferences[serial_number] = device["deviceStatus"]
+        for device_prefs in resp_json.get("devicePermissionsPreferences", {}):
+            comms_preferences[device_prefs.get("devicePreference")] = device_prefs.get(
+                "state", "n/a"
+            )
 
         return comms_preferences
 
@@ -884,7 +879,6 @@ class AmazonEchoApi:
             self._devices[dev_serial] = data
 
         devices_endpoints, devices_sensors = await self._get_sensors_states()
-        devices_comms_prefs = await self._get_communication_preferences()
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():
@@ -896,7 +890,9 @@ class AmazonEchoApi:
             # Add sensors
             sensors = devices_sensors.get(serial_number, {})
             device_endpoint = devices_endpoints.get(serial_number, {})
-            device_comms_prefs = devices_comms_prefs.get(serial_number, {})
+            device_comms_prefs = await self._get_device_communication_preferences(
+                device
+            )
 
             final_devices_list[serial_number] = AmazonDevice(
                 account_name=device["accountName"],
@@ -915,10 +911,8 @@ class AmazonEchoApi:
                 else None,
                 endpoint_id=device_endpoint["endpointId"] if device_endpoint else None,
                 sensors=sensors,
-                comms_enabled=device_comms_prefs.get("deviceCommsAvailability", "n/a"),
-                announcements_enabled=device_comms_prefs.get(
-                    "announcementAvailability", "n/a"
-                ),
+                comms_enabled=device_comms_prefs.get("communications", "n/a"),
+                announcements_enabled=device_comms_prefs.get("announcements", "n/a"),
             )
 
         self._list_for_clusters.update(
