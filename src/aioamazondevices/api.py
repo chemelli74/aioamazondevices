@@ -23,6 +23,8 @@ from aiohttp import (
     ContentTypeError,
 )
 from bs4 import BeautifulSoup, Tag
+from dateutil.parser import parse
+from dateutil.rrule import rrulestr
 from langcodes import Language, standardize_tag
 from multidict import MultiDictProxy
 from yarl import URL
@@ -84,9 +86,7 @@ class AmazonSchedule:
     type: str
     status: str
     label: str  # alarmLabel, reminderLabel, timerLabel
-    original_date: str
-    original_time: str
-    recurring_pattern: str
+    next_occurrence: datetime
     remaining_time: int
 
 
@@ -717,14 +717,18 @@ class AmazonEchoApi:
             _type: str = schedule["type"]
             _serial = schedule["deviceSerialNumber"]
             label_desc = _type.lower() + "Label"
-            if schedule["status"] == "ON":
+            if schedule["status"] == "ON" and (
+                next_occurence := await self._parse_next_occurence(
+                    schedule["recurringPattern"],
+                    schedule["originalDate"],
+                    schedule["originalTime"],
+                )
+            ):
                 new_notification = AmazonSchedule(
                     type=_type,
                     status=schedule["status"],
                     label=schedule[label_desc],
-                    original_date=schedule["originalDate"],
-                    original_time=schedule["originalTime"],
-                    recurring_pattern=schedule["recurringPattern"],
+                    next_occurrence=next_occurence,
                     remaining_time=schedule["remainingTime"],
                 )
                 _notification_list = final_notifications.get(_serial, [])
@@ -733,6 +737,35 @@ class AmazonEchoApi:
                 )
 
         return final_notifications
+
+    async def _parse_next_occurence(
+        self,
+        recurring_rules: list[str] | None,
+        original_date: str,
+        original_time: str,
+    ) -> datetime | None:
+        """Parse RFC5545 rule set for next iteration."""
+        actual_time = datetime.now(tz=UTC)
+        # Reference start date
+        today_midnight = actual_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        # Reference time (1 minute ago to avoid edge cases)
+        now_reference = actual_time - timedelta(minutes=1)
+
+        if not recurring_rules:
+            next_date = parse(f"{original_date} {original_time}").replace(tzinfo=UTC)
+            if next_date < now_reference:
+                return None
+            return next_date
+
+        next_dates = [
+            rrulestr(rule.removesuffix(";"), dtstart=today_midnight).after(
+                now_reference, True
+            )
+            for rule in recurring_rules
+        ]
+
+        # Return the earliest next date
+        return cast("datetime", min(next_dates))
 
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
