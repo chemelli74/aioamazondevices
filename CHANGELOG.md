@@ -1,5 +1,17 @@
 # Changelog
 
+## v6.2.7-rc.1 (2025-09-23)
+
+### Bug fixes
+
+- Filter family shared devices ([`9463437`](https://github.com/chemelli74/aioamazondevices/commit/9463437334fe265e75db6257b9bcfaecf42fd396))
+
+
+### Refactoring
+
+- Cleanup and optimize ([`1ab907d`](https://github.com/chemelli74/aioamazondevices/commit/1ab907d12c68a13c18bdcb7ed2ed218ba3dceb57))
+
+
 ## v6.2.6 (2025-09-19)
 
 ### Bug fixes
