@@ -843,8 +843,16 @@ class AmazonEchoApi:
 
         _LOGGER.debug("JSON devices data: %s", scrub_fields(json_data))
 
+        registered_device_owner: str = ""
         for data in json_data["devices"]:
             dev_serial = data.get("serialNumber")
+            if data.get("deviceType") == AMAZON_DEVICE_TYPE:
+                # Check all registered devices for this type
+                for dev in data.get("appDeviceList", data):
+                    if dev.get("serialNumber") == self._serial:
+                        # Get owner ID from the virtual registered device
+                        registered_device_owner = data.get("deviceOwnerCustomerId")
+                        break
             self._devices[dev_serial] = data
 
         devices_endpoints, devices_sensors = await self._get_sensors_states()
@@ -853,6 +861,11 @@ class AmazonEchoApi:
         for device in self._devices.values():
             # Remove stale, orphaned and virtual devices
             if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
+                continue
+
+            device_owner: str = device["deviceOwnerCustomerId"]
+            if device_owner != registered_device_owner:
+                # Filter shared devices
                 continue
 
             serial_number: str = device["serialNumber"]
@@ -865,7 +878,7 @@ class AmazonEchoApi:
                 capabilities=device["capabilities"],
                 device_family=device["deviceFamily"],
                 device_type=device["deviceType"],
-                device_owner_customer_id=device["deviceOwnerCustomerId"],
+                device_owner_customer_id=device_owner,
                 device_cluster_members=(device["clusterMembers"] or [serial_number]),
                 online=device["online"],
                 serial_number=serial_number,
