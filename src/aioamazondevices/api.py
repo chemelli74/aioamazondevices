@@ -88,7 +88,6 @@ class AmazonSchedule:
     status: str
     label: str
     next_occurrence: datetime
-    remaining_time: int
 
 
 @dataclass
@@ -719,18 +718,13 @@ class AmazonEchoApi:
             _serial = schedule["deviceSerialNumber"]
             label_desc = _type.lower() + "Label"
             if schedule["status"] == "ON" and (
-                next_occurence := await self._parse_next_occurence(
-                    schedule["recurringPattern"],
-                    schedule["originalDate"],
-                    schedule["originalTime"],
-                )
+                next_occurence := await self._parse_next_occurence(schedule)
             ):
                 new_notification = AmazonSchedule(
                     type=_type,
                     status=schedule["status"],
                     label=schedule[label_desc],
                     next_occurrence=next_occurence,
-                    remaining_time=schedule["remainingTime"],
                 )
                 _notification_list = final_notifications.get(_serial, [])
                 final_notifications.update(
@@ -741,9 +735,7 @@ class AmazonEchoApi:
 
     async def _parse_next_occurence(
         self,
-        recurring_rule: str | None,
-        original_date: str,
-        original_time: str,
+        schedule: dict[str, Any],
     ) -> datetime | None:
         """Parse RFC5545 rule set for next iteration."""
         actual_time = datetime.now(tz=UTC)
@@ -752,12 +744,20 @@ class AmazonEchoApi:
         # Reference time (1 minute ago to avoid edge cases)
         now_reference = actual_time - timedelta(minutes=1)
 
-        if not recurring_rule:
-            next_date = parse(f"{original_date} {original_time}").replace(tzinfo=UTC)
-            if next_date < now_reference:
-                return None
-            return next_date
+        # Schedule data
+        recurring_rule = schedule.get("recurringRule")
+        original_date = schedule.get("originalDate")
+        original_time = schedule.get("originalTime")
 
+        # Timers
+        if not original_time or not original_date:
+            return datetime.fromtimestamp(schedule["triggerTime"] / 1000, tz=UTC)
+
+        # Single event
+        if not recurring_rule:
+            return parse(f"{original_date} {original_time}").replace(tzinfo=UTC)
+
+        # Unknown recurring rule
         if recurring_rule not in RECURRING_PATTERNS:
             _LOGGER.warning("Unknown recurring rule: %s", scrub_fields(recurring_rule))
             return None
