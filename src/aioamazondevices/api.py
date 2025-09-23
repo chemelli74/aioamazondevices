@@ -41,6 +41,7 @@ from .const import (
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
     BIN_EXTENSION,
+    COUNTRY_GROUPS,
     CSRF_COOKIE,
     DEFAULT_HEADERS,
     DEFAULT_SITE,
@@ -58,6 +59,7 @@ from .const import (
     URI_DEVICES,
     URI_NEXUS_GRAPHQL,
     URI_SIGNIN,
+    WEEKEND_EXCEPTIONS,
 )
 from .exceptions import (
     CannotAuthenticate,
@@ -176,6 +178,7 @@ class AmazonEchoApi:
         lang_object = Language.make(territory=country_code.upper())
         lang_maximized = lang_object.maximize()
 
+        self._country_code: str = country_code
         self._domain: str = domain
         language = f"{lang_maximized.language}-{lang_maximized.territory}"
         self._language = standardize_tag(language)
@@ -762,10 +765,16 @@ class AmazonEchoApi:
             _LOGGER.warning("Unknown recurring rule: %s", scrub_fields(recurring_rule))
             return None
 
+        recurring_pattern = RECURRING_PATTERNS.copy()
+        for group, countries in COUNTRY_GROUPS.items():
+            if self._country_code in countries:
+                recurring_pattern |= WEEKEND_EXCEPTIONS[group]
+                break
+
         # Return the earliest next date
         return cast(
             "datetime",
-            rrulestr(RECURRING_PATTERNS[recurring_rule], dtstart=today_midnight).after(
+            rrulestr(recurring_pattern[recurring_rule], dtstart=today_midnight).after(
                 now_reference, True
             ),
         )
