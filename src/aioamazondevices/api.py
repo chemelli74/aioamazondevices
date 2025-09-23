@@ -866,6 +866,10 @@ class AmazonEchoApi:
             device_owner: str = device["deviceOwnerCustomerId"]
             if device_owner != registered_device_owner:
                 # Filter shared devices
+                _LOGGER.debug(
+                    "Ignoring device %s as it's owned by another user",
+                    device["accountName"],
+                )
                 continue
 
             serial_number: str = device["serialNumber"]
