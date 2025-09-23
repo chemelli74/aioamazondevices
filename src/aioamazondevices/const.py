@@ -459,3 +459,55 @@ ALEXA_INFO_SKILLS = [
     "Alexa.ImHome.Play",
     "Alexa.GoodNight.Play",
 ]
+
+
+RECURRING_PATTERNS: dict[str, str] = {
+    "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR",
+    "XXXX-WE": "FREQ=WEEKLY;BYDAY=SA,SU",
+    "XXXX-WXX-1": "FREQ=WEEKLY;BYDAY=MO",
+    "XXXX-WXX-2": "FREQ=WEEKLY;BYDAY=TU",
+    "XXXX-WXX-3": "FREQ=WEEKLY;BYDAY=WE",
+    "XXXX-WXX-4": "FREQ=WEEKLY;BYDAY=TH",
+    "XXXX-WXX-5": "FREQ=WEEKLY;BYDAY=FR",
+    "XXXX-WXX-6": "FREQ=WEEKLY;BYDAY=SA",
+    "XXXX-WXX-7": "FREQ=WEEKLY;BYDAY=SU",
+}
+WEEKEND_EXCEPTIONS = {
+    "TH-FR": {
+        "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,SA,SU",
+        "XXXX-WE": "FREQ=WEEKLY;BYDAY=TH,FR",
+    },
+    "FR-SA": {
+        "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,SU",
+        "XXXX-WE": "FREQ=WEEKLY;BYDAY=FR,SA",
+    },
+    "FR": {
+        "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,SA,SU",
+        "XXXX-WE": "FREQ=WEEKLY;BYDAY=FR",
+    },
+}
+# Countries grouped by their weekend type
+COUNTRY_GROUPS = {
+    "FR": ["AF"],
+    "TH-FR": ["IR"],
+    "FR-SA": [
+        "DZ",
+        "BH",
+        "BD",
+        "EG",
+        "IL",
+        "IQ",
+        "JO",
+        "KW",
+        "LY",
+        "MY",
+        "MV",
+        "OM",
+        "PS",
+        "QA",
+        "SA",
+        "SD",
+        "SY",
+        "YE",
+    ],
+}
