@@ -50,6 +50,7 @@ from .const import (
     HTTP_ERROR_199,
     HTTP_ERROR_299,
     JSON_EXTENSION,
+    RECURRING_PATTERNS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     SAVE_PATH,
@@ -83,9 +84,9 @@ class AmazonDeviceSensor:
 class AmazonSchedule:
     """Amazon schedule class."""
 
-    type: str
+    type: str  # alarm, reminder, timer
     status: str
-    label: str  # alarmLabel, reminderLabel, timerLabel
+    label: str
     next_occurrence: datetime
     remaining_time: int
 
@@ -740,7 +741,7 @@ class AmazonEchoApi:
 
     async def _parse_next_occurence(
         self,
-        recurring_rules: list[str] | None,
+        recurring_rule: str | None,
         original_date: str,
         original_time: str,
     ) -> datetime | None:
@@ -751,21 +752,23 @@ class AmazonEchoApi:
         # Reference time (1 minute ago to avoid edge cases)
         now_reference = actual_time - timedelta(minutes=1)
 
-        if not recurring_rules:
+        if not recurring_rule:
             next_date = parse(f"{original_date} {original_time}").replace(tzinfo=UTC)
             if next_date < now_reference:
                 return None
             return next_date
 
-        next_dates = [
-            rrulestr(rule.removesuffix(";"), dtstart=today_midnight).after(
-                now_reference, True
-            )
-            for rule in recurring_rules
-        ]
+        if recurring_rule not in RECURRING_PATTERNS:
+            _LOGGER.warning("Unknown recurring rule: %s", scrub_fields(recurring_rule))
+            return None
 
         # Return the earliest next date
-        return cast("datetime", min(next_dates))
+        return cast(
+            "datetime",
+            rrulestr(RECURRING_PATTERNS[recurring_rule], dtstart=today_midnight).after(
+                now_reference, True
+            ),
+        )
 
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
