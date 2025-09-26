@@ -39,6 +39,7 @@ from .const import (
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
     BIN_EXTENSION,
+    COMM_SITE,
     CSRF_COOKIE,
     DEFAULT_HEADERS,
     DEFAULT_SITE,
@@ -93,6 +94,8 @@ class AmazonDevice:
     entity_id: str | None
     endpoint_id: str | None
     sensors: dict[str, AmazonDeviceSensor]
+    comms_enabled: str
+    announcements_enabled: str
 
 
 class AmazonSequenceType(StrEnum):
@@ -679,6 +682,21 @@ class AmazonEchoApi:
 
         return device_sensors
 
+    async def _get_device_communication_preferences(
+        self, device: dict[str, Any]
+    ) -> dict[str, str]:
+        url = f"https://{COMM_SITE}/devicesTypes/{device['deviceType']}/deviceId/{device['serialNumber']}/preferences?devicePreferences=communications&devicePreferences=calling&devicePreferences=messaging&devicePreferences=dropin&devicePreferences=announcements"
+        _, resp = await self._session_request(method=HTTPMethod.GET, url=url)
+        resp_json = await self._response_to_json(resp)
+
+        comms_preferences = {}
+        for device_prefs in resp_json.get("devicePermissionsPreferences", {}):
+            comms_preferences[device_prefs.get("devicePreference")] = device_prefs.get(
+                "state", "n/a"
+            )
+
+        return comms_preferences
+
     async def _response_to_json(self, raw_resp: ClientResponse) -> dict[str, Any]:
         """Convert response to JSON, if possible."""
         try:
@@ -859,6 +877,9 @@ class AmazonEchoApi:
             # Add sensors
             sensors = devices_sensors.get(serial_number, {})
             device_endpoint = devices_endpoints.get(serial_number, {})
+            device_comms_prefs = await self._get_device_communication_preferences(
+                device
+            )
 
             final_devices_list[serial_number] = AmazonDevice(
                 account_name=device["accountName"],
@@ -877,6 +898,8 @@ class AmazonEchoApi:
                 else None,
                 endpoint_id=device_endpoint["endpointId"] if device_endpoint else None,
                 sensors=sensors,
+                comms_enabled=device_comms_prefs.get("communications", "n/a"),
+                announcements_enabled=device_comms_prefs.get("announcements", "n/a"),
             )
 
         self._list_for_clusters.update(
@@ -1133,6 +1156,26 @@ class AmazonEchoApi:
         url = f"https://alexa.amazon.{self._domain}/api/dnd/status"
         await self._session_request(
             method="PUT", url=url, input_data=payload, json_data=True
+        )
+
+    async def set_communications_enablement(
+        self, device: AmazonDevice, state: bool
+    ) -> None:
+        """Enable / disable communications for device."""
+        payload = {"state": "ON" if state else "OFF"}
+        url = f"https://{COMM_SITE}/devicesTypes/{device.device_type}/deviceId/{device.serial_number}/preferences/communications"
+        await self._session_request(
+            method=HTTPMethod.PATCH, url=url, input_data=payload, json_data=True
+        )
+
+    async def set_announcements_enablement(
+        self, device: AmazonDevice, state: bool
+    ) -> None:
+        """Enable / disable announcements for device."""
+        payload = {"state": "ON" if state else "OFF"}
+        url = f"https://{COMM_SITE}/devicesTypes/{device.device_type}/deviceId/{device.serial_number}/preferences/announcements"
+        await self._session_request(
+            method=HTTPMethod.PATCH, url=url, input_data=payload, json_data=True
         )
 
     async def _refresh_data(self, data_type: str) -> tuple[bool, dict]:
