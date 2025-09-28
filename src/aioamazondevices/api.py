@@ -431,7 +431,7 @@ class AmazonEchoApi:
             mimetypes.guess_extension(content_type.split(";")[0]) or ".raw",
         )
 
-        return BeautifulSoup(await resp.read(), "html.parser"), resp
+        return BeautifulSoup(await resp.read() or "", "html.parser"), resp
 
     async def _save_to_file(
         self,
