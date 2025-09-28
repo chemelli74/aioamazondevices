@@ -86,6 +86,7 @@ class AmazonDevice:
     device_family: str
     device_type: str
     device_owner_customer_id: str
+    household_device: bool
     device_cluster_members: list[str]
     online: bool
     serial_number: str
@@ -136,6 +137,7 @@ class AmazonEchoApi:
         self._save_raw_data = False
         self._login_stored_data = login_data or {}
         self._serial = self._serial_number()
+        self._account_owner_customer_id: str | None = None
         self._list_for_clusters: dict[str, str] = {}
 
         self._session = client_session
@@ -846,6 +848,11 @@ class AmazonEchoApi:
         for data in json_data["devices"]:
             dev_serial = data.get("serialNumber")
             self._devices[dev_serial] = data
+            if (
+                dev_serial
+                == self._login_stored_data["device_info"]["device_serial_number"]
+            ):
+                self._account_owner_customer_id = data["deviceOwnerCustomerId"]
 
         devices_endpoints, devices_sensors = await self._get_sensors_states()
 
@@ -866,6 +873,8 @@ class AmazonEchoApi:
                 device_family=device["deviceFamily"],
                 device_type=device["deviceType"],
                 device_owner_customer_id=device["deviceOwnerCustomerId"],
+                household_device=device["deviceOwnerCustomerId"]
+                == self._account_owner_customer_id,
                 device_cluster_members=(device["clusterMembers"] or [serial_number]),
                 online=device["online"],
                 serial_number=serial_number,
@@ -940,7 +949,7 @@ class AmazonEchoApi:
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
             "locale": self._language,
-            "customerId": device.device_owner_customer_id,
+            "customerId": self._account_owner_customer_id,
         }
 
         payload: dict[str, Any]
@@ -949,7 +958,7 @@ class AmazonEchoApi:
                 **base_payload,
                 "textToSpeak": message_body,
                 "target": {
-                    "customerId": device.device_owner_customer_id,
+                    "customerId": self._account_owner_customer_id,
                     "devices": [
                         {
                             "deviceSerialNumber": device.serial_number,
@@ -986,7 +995,7 @@ class AmazonEchoApi:
                     }
                 ],
                 "target": {
-                    "customerId": device.device_owner_customer_id,
+                    "customerId": self._account_owner_customer_id,
                     "devices": playback_devices,
                 },
                 "skillId": "amzn1.ask.1p.routines.messaging",
