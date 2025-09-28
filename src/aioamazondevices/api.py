@@ -1173,18 +1173,29 @@ class AmazonEchoApi:
         self, device: AmazonDevice, state: bool
     ) -> None:
         """Enable / disable communications for device."""
-        await self._set_communications_state("communications", device, state)
+        await self._set_communications_state(
+            "communications", device, "ON" if state else "OFF"
+        )
 
     async def set_announcements_enablement(
         self, device: AmazonDevice, state: bool
     ) -> None:
         """Enable / disable announcements for device."""
+        await self._set_communications_state(
+            "announcements", device, "ON" if state else "OFF"
+        )
+
+    async def set_dropin_enablement(self, device: AmazonDevice, state: str) -> None:
+        """Set allowed dropin state for device.
+
+        State values are All, Home and Off
+        """
         await self._set_communications_state("announcements", device, state)
 
     async def _set_communications_state(
-        self, preference: str, device: AmazonDevice, state: bool
+        self, preference: str, device: AmazonDevice, state: str
     ) -> None:
-        payload = {"state": "ON" if state else "OFF"}
+        payload = {"state": state}
         url = f"https://{COMM_SITE}/devicesTypes/{device.device_type}/deviceId/{device.serial_number}/preferences/${preference}"
         await self._session_request(
             method=HTTPMethod.PATCH, url=url, input_data=payload, json_data=True
