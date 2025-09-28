@@ -845,13 +845,13 @@ class AmazonEchoApi:
 
         _LOGGER.debug("JSON devices data: %s", scrub_fields(json_data))
 
+        this_device_serial = self._login_stored_data["device_info"][
+            "device_serial_number"
+        ]
         for data in json_data["devices"]:
             dev_serial = data.get("serialNumber")
             self._devices[dev_serial] = data
-            if (
-                dev_serial
-                == self._login_stored_data["device_info"]["device_serial_number"]
-            ):
+            if dev_serial == this_device_serial:
                 self._account_owner_customer_id = data["deviceOwnerCustomerId"]
 
         devices_endpoints, devices_sensors = await self._get_sensors_states()
