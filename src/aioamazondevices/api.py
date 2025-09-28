@@ -96,8 +96,7 @@ class AmazonDevice:
     entity_id: str | None
     endpoint_id: str | None
     sensors: dict[str, AmazonDeviceSensor]
-    comms_enabled: str
-    announcements_enabled: str
+    communication_settings: dict[str, str]
 
 
 class AmazonSequenceType(StrEnum):
@@ -911,8 +910,7 @@ class AmazonEchoApi:
                 else None,
                 endpoint_id=device_endpoint["endpointId"] if device_endpoint else None,
                 sensors=sensors,
-                comms_enabled=device_comms_prefs.get("communications", "n/a"),
-                announcements_enabled=device_comms_prefs.get("announcements", "n/a"),
+                communication_settings=device_comms_prefs,
             )
 
         self._list_for_clusters.update(
@@ -1175,18 +1173,19 @@ class AmazonEchoApi:
         self, device: AmazonDevice, state: bool
     ) -> None:
         """Enable / disable communications for device."""
-        payload = {"state": "ON" if state else "OFF"}
-        url = f"https://{COMM_SITE}/devicesTypes/{device.device_type}/deviceId/{device.serial_number}/preferences/communications"
-        await self._session_request(
-            method=HTTPMethod.PATCH, url=url, input_data=payload, json_data=True
-        )
+        await self._set_communications_state("communications", device, state)
 
     async def set_announcements_enablement(
         self, device: AmazonDevice, state: bool
     ) -> None:
         """Enable / disable announcements for device."""
+        await self._set_communications_state("announcements", device, state)
+
+    async def _set_communications_state(
+        self, preference: str, device: AmazonDevice, state: bool
+    ) -> None:
         payload = {"state": "ON" if state else "OFF"}
-        url = f"https://{COMM_SITE}/devicesTypes/{device.device_type}/deviceId/{device.serial_number}/preferences/announcements"
+        url = f"https://{COMM_SITE}/devicesTypes/{device.device_type}/deviceId/{device.serial_number}/preferences/${preference}"
         await self._session_request(
             method=HTTPMethod.PATCH, url=url, input_data=payload, json_data=True
         )
