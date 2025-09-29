@@ -20,7 +20,7 @@ repos:
       - id: check-yaml
       - id: detect-private-key
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.13.0
+    rev: v0.13.1
     hooks:
       - id: ruff
         args:
@@ -37,7 +37,7 @@ repos:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/python-poetry/poetry
-    rev: 2.2.0
+    rev: 2.2.1
     hooks:
       - id: poetry-check
         args: ["--lock"]
@@ -60,7 +60,7 @@ repos:
             "--skip=src/aioamazondevices/sounds.py, scripts/sounds_strings.json, scripts/sounds_services.yaml",
           ]
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.18.1
+    rev: v1.18.2
     hooks:
       - id: mypy
         additional_dependencies: []

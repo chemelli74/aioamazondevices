@@ -2,7 +2,7 @@
 
 QUERY_DEVICE_STATE = """
 query getDevicesState ($latencyTolerance: LatencyToleranceValue) {
-  listEndpoints(listEndpointsInput: {}) {
+  listEndpoints(listEndpointsInput: { includeHouseholdDevices: true }) {
     endpoints {
       endpointId: id
       friendlyNameObject { value { text } }
