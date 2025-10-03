@@ -481,27 +481,23 @@ WEEKEND_EXCEPTIONS = {
         "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,SU",
         "XXXX-WE": "FREQ=WEEKLY;BYDAY=FR,SA",
     },
-    "FR": {
-        "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,SA,SU",
-        "XXXX-WE": "FREQ=WEEKLY;BYDAY=FR",
-    },
 }
 # Countries grouped by their weekend type
 COUNTRY_GROUPS = {
-    "FR": ["AF"],
     "TH-FR": ["IR"],
     "FR-SA": [
-        "DZ",
-        "BH",
+        "AF",
         "BD",
+        "BH",
+        "DZ",
         "EG",
         "IL",
         "IQ",
         "JO",
         "KW",
         "LY",
-        "MY",
         "MV",
+        "MY",
         "OM",
         "PS",
         "QA",

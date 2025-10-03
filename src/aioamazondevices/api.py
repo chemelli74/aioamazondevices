@@ -792,7 +792,11 @@ class AmazonEchoApi:
 
         # Single event
         if not recurring_rule:
-            timestamp = parse(f"{original_date} {original_time}").replace(tzinfo=UTC)
+            timestamp = (
+                parse(f"{original_date} {original_time}")
+                .replace(tzinfo=datetime.now().astimezone().tzinfo)
+                .astimezone(UTC)
+            )
             if timestamp > now_reference:
                 return timestamp
             return None
