@@ -608,6 +608,10 @@ class AmazonEchoApi:
             _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
             return {}, {}
 
+        if not (data := devices_state.get("data")) or not data.get("listEndpoints"):
+            _LOGGER.error("No devices state data received")
+            return {}, {}
+
         endpoints = devices_state["data"]["listEndpoints"]
         for endpoint in endpoints.get("endpoints"):
             serial_number = (
