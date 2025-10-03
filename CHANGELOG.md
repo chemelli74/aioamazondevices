@@ -1,5 +1,17 @@
 # Changelog
 
+## v6.2.7 (2025-09-29)
+
+### Bug fixes
+
+- Household devices ([`91c9988`](https://github.com/chemelli74/aioamazondevices/commit/91c99889b14482435c73253f3c74bded62a871ca))
+
+
+### Refactoring
+
+- Cleanup and optimize ([`1ab907d`](https://github.com/chemelli74/aioamazondevices/commit/1ab907d12c68a13c18bdcb7ed2ed218ba3dceb57))
+
+
 ## v6.2.6 (2025-09-19)
 
 ### Bug fixes
