@@ -737,17 +737,20 @@ class AmazonEchoApi:
             if schedule["status"] == "ON" and (
                 next_occurence := await self._parse_next_occurence(schedule)
             ):
-                if _notification_list := final_notifications.get(_serial, {}):
-                    for _notification in _notification_list.values():
-                        if (
-                            _notification
-                            and _notification.type == _type
-                            and _notification.next_occurrence is not None
-                            and _notification.next_occurrence <= next_occurence
-                        ):
-                            # Skip notification if already present
-                            # with same type and earlier occurrence
-                            continue
+                _notification_list = final_notifications.get(_serial, {})
+                _notification_by_type = _notification_list.get(_type)
+                if (
+                    next_occurence
+                    and _notification_by_type
+                    and _notification_by_type.next_occurrence
+                    and next_occurence < _notification_by_type.next_occurrence
+                ):
+                    _notification_list[_type] = AmazonSchedule(
+                        type=_type,
+                        status=schedule["status"],
+                        label=schedule[label_desc],
+                        next_occurrence=next_occurence,
+                    )
 
                 final_notifications.update(
                     {
@@ -772,7 +775,10 @@ class AmazonEchoApi:
         schedule: dict[str, Any],
     ) -> datetime | None:
         """Parse RFC5545 rule set for next iteration."""
-        actual_time = datetime.now(tz=UTC)
+        # Timezone
+        tzinfo = datetime.now().astimezone().tzinfo
+        # Current time
+        actual_time = datetime.now(tz=tzinfo)
         # Reference start date
         today_midnight = actual_time.replace(hour=0, minute=0, second=0, microsecond=0)
         # Reference time (1 minute ago to avoid edge cases)
@@ -785,18 +791,16 @@ class AmazonEchoApi:
 
         # Timers
         if not original_time or not original_date:
-            timestamp = datetime.fromtimestamp(schedule["triggerTime"] / 1000, tz=UTC)
+            timestamp = datetime.fromtimestamp(
+                schedule["triggerTime"] / 1000, tz=tzinfo
+            )
             if timestamp > now_reference:
                 return timestamp
             return None
 
         # Single event
         if not recurring_rule:
-            timestamp = (
-                parse(f"{original_date} {original_time}")
-                .replace(tzinfo=datetime.now().astimezone().tzinfo)
-                .astimezone(UTC)
-            )
+            timestamp = parse(f"{original_date} {original_time}").replace(tzinfo=tzinfo)
             if timestamp > now_reference:
                 return timestamp
             return None
