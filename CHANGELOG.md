@@ -1,5 +1,18 @@
 # Changelog
 
+## v6.2.8-rc.1 (2025-10-03)
+
+### Bug fixes
+
+- Improve sensor error handling ([`8182104`](https://github.com/chemelli74/aioamazondevices/commit/8182104ea204de8c3eacc263f957624a029b30c2))
+
+
+### Build system
+
+- Bump browniebroke/hacktoberfest-labeler-action from 2.3.0 to 2.4.0 ([`eb49c3e`](https://github.com/chemelli74/aioamazondevices/commit/eb49c3e615e24ad1a03b406ad9cdff5b2ce1e53b))
+- Bump tiangolo/issue-manager from 0.5.1 to 0.6.0 ([`90ef8b9`](https://github.com/chemelli74/aioamazondevices/commit/90ef8b948544c0fb7267917789cfccfbe8b51493))
+
+
 ## v6.2.7 (2025-09-29)
 
 ### Bug fixes
