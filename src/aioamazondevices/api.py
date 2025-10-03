@@ -602,7 +602,19 @@ class AmazonEchoApi:
         devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
         devices_endpoints: dict[str, dict[str, Any]] = {}
 
-        endpoints = devices_state["data"]["listEndpoints"]
+        if error := devices_state.get("errors"):
+            if isinstance(error, list):
+                error = error[0]
+            msg = error.get("message", "Unknown error")
+            path = error.get("path", "Unknown path")
+            _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
+            return {}, {}
+
+        if not (data := devices_state.get("data")) or not data.get("listEndpoints"):
+            _LOGGER.error("Malformed devices state data received: %s", devices_state)
+            return {}, {}
+
+        endpoints = data["listEndpoints"]
         for endpoint in endpoints.get("endpoints"):
             serial_number = (
                 endpoint["serialNumber"]["value"]["text"]
