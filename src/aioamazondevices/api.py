@@ -602,6 +602,12 @@ class AmazonEchoApi:
         devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
         devices_endpoints: dict[str, dict[str, Any]] = {}
 
+        if error := devices_state.get("errors"):
+            msg = error[0]["message"]
+            path = error[0]["path"]
+            _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
+            return {}, {}
+
         endpoints = devices_state["data"]["listEndpoints"]
         for endpoint in endpoints.get("endpoints"):
             serial_number = (
