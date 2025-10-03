@@ -603,8 +603,10 @@ class AmazonEchoApi:
         devices_endpoints: dict[str, dict[str, Any]] = {}
 
         if error := devices_state.get("errors"):
-            msg = error[0]["message"]
-            path = error[0]["path"]
+            if isinstance(error, list):
+                error = error[0]
+            msg = error.get("message", "Unknown error")
+            path = error.get("path", "Unknown path")
             _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
             return {}, {}
 
