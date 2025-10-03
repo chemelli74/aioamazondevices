@@ -57,6 +57,9 @@ URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
+MIN_VOLUME = 0
+MAX_VOLUME = 100
+
 # File extensions
 SAVE_PATH = "out"
 HTML_EXTENSION = ".html"
