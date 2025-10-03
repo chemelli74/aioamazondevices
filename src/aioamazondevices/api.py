@@ -714,10 +714,10 @@ class AmazonEchoApi:
     async def _get_notifications(self) -> dict[str, list[AmazonSchedule]]:
         final_notifications: dict[str, list[AmazonSchedule]] = {}
 
-        _, rawp_resp = await self._session_request(
+        _, raw_resp = await self._session_request(
             HTTPMethod.GET, url=f"https://alexa.amazon.{self._domain}/api/notifications"
         )
-        notifications = await rawp_resp.json()
+        notifications = await raw_resp.json()
         for schedule in notifications["notifications"]:
             _type: str = schedule["type"]
             _serial = schedule["deviceSerialNumber"]
@@ -725,15 +725,27 @@ class AmazonEchoApi:
             if schedule["status"] == "ON" and (
                 next_occurence := await self._parse_next_occurence(schedule)
             ):
-                new_notification = AmazonSchedule(
-                    type=_type,
-                    status=schedule["status"],
-                    label=schedule[label_desc],
-                    next_occurrence=next_occurence,
-                )
-                _notification_list = final_notifications.get(_serial, [])
+                if _notification_list := final_notifications.get(_serial, []):
+                    for _notification in _notification_list:
+                        if (
+                            _notification.type == _type
+                            and _notification.next_occurrence <= next_occurence
+                        ):
+                            # Skip notification if already present
+                            # with same type and earlier occurrence
+                            continue
                 final_notifications.update(
-                    {_serial: [*_notification_list, new_notification]}
+                    {
+                        _serial: [
+                            *_notification_list,
+                            AmazonSchedule(
+                                type=_type,
+                                status=schedule["status"],
+                                label=schedule[label_desc],
+                                next_occurrence=next_occurence,
+                            ),
+                        ]
+                    }
                 )
 
         return final_notifications
