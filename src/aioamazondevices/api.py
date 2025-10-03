@@ -611,7 +611,7 @@ class AmazonEchoApi:
             return {}, {}
 
         if not (data := devices_state.get("data")) or not data.get("listEndpoints"):
-            _LOGGER.error("No devices state data received")
+            _LOGGER.error("Malformed devices state data received: %s", devices_state)
             return {}, {}
 
         endpoints = data["listEndpoints"]
