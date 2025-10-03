@@ -89,7 +89,7 @@ class AmazonSchedule:
     type: str  # alarm, reminder, timer
     status: str
     label: str
-    next_occurrence: datetime
+    next_occurrence: datetime | None
 
 
 @dataclass
@@ -109,7 +109,7 @@ class AmazonDevice:
     entity_id: str | None
     endpoint_id: str | None
     sensors: dict[str, AmazonDeviceSensor]
-    notifications: list[AmazonSchedule]
+    notifications: dict[str, AmazonSchedule]
 
 
 class AmazonSequenceType(StrEnum):
@@ -711,8 +711,8 @@ class AmazonEchoApi:
         except orjson.JSONDecodeError as exc:
             raise ValueError("Response with corrupted JSON format") from exc
 
-    async def _get_notifications(self) -> dict[str, list[AmazonSchedule]]:
-        final_notifications: dict[str, list[AmazonSchedule]] = {}
+    async def _get_notifications(self) -> dict[str, dict[str, AmazonSchedule]]:
+        final_notifications: dict[str, dict[str, AmazonSchedule]] = {}
 
         _, raw_resp = await self._session_request(
             HTTPMethod.GET, url=f"https://alexa.amazon.{self._domain}/api/notifications"
@@ -725,26 +725,31 @@ class AmazonEchoApi:
             if schedule["status"] == "ON" and (
                 next_occurence := await self._parse_next_occurence(schedule)
             ):
-                if _notification_list := final_notifications.get(_serial, []):
-                    for _notification in _notification_list:
+                if _notification_list := final_notifications.get(_serial, {}):
+                    for _notification in _notification_list.values():
                         if (
-                            _notification.type == _type
+                            _notification
+                            and _notification.type == _type
+                            and _notification.next_occurrence is not None
                             and _notification.next_occurrence <= next_occurence
                         ):
                             # Skip notification if already present
                             # with same type and earlier occurrence
                             continue
+
                 final_notifications.update(
                     {
-                        _serial: [
-                            *_notification_list,
-                            AmazonSchedule(
-                                type=_type,
-                                status=schedule["status"],
-                                label=schedule[label_desc],
-                                next_occurrence=next_occurence,
-                            ),
-                        ]
+                        _serial: {
+                            **_notification_list
+                            | {
+                                _type: AmazonSchedule(
+                                    type=_type,
+                                    status=schedule["status"],
+                                    label=schedule[label_desc],
+                                    next_occurrence=next_occurence,
+                                ),
+                            }
+                        }
                     }
                 )
 
@@ -955,7 +960,7 @@ class AmazonEchoApi:
 
         devices_endpoints, devices_sensors = await self._get_sensors_states()
         devices_notifications: dict[
-            str, list[AmazonSchedule]
+            str, dict[str, AmazonSchedule]
         ] = await self._get_notifications()
 
         final_devices_list: dict[str, AmazonDevice] = {}
@@ -988,7 +993,7 @@ class AmazonEchoApi:
                 else None,
                 endpoint_id=device_endpoint["endpointId"] if device_endpoint else None,
                 sensors=sensors,
-                notifications=devices_notifications.get(serial_number, []),
+                notifications=devices_notifications.get(serial_number, {}),
             )
 
         self._list_for_clusters.update(
