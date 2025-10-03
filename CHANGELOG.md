@@ -1,10 +1,10 @@
 # Changelog
 
-## v6.2.8-rc.1 (2025-10-03)
+## v6.2.8 (2025-10-03)
 
 ### Bug fixes
 
-- Improve sensor error handling ([`8182104`](https://github.com/chemelli74/aioamazondevices/commit/8182104ea204de8c3eacc263f957624a029b30c2))
+- Improve sensor error handling ([`b4cef6a`](https://github.com/chemelli74/aioamazondevices/commit/b4cef6ae30b3dc5672b9a72ecf7b6eb9f155bd10))
 
 
 ### Build system
