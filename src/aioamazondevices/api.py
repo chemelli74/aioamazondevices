@@ -773,11 +773,17 @@ class AmazonEchoApi:
 
         # Timers
         if not original_time or not original_date:
-            return datetime.fromtimestamp(schedule["triggerTime"] / 1000, tz=UTC)
+            timestamp = datetime.fromtimestamp(schedule["triggerTime"] / 1000, tz=UTC)
+            if timestamp > now_reference:
+                return timestamp
+            return None
 
         # Single event
         if not recurring_rule:
-            return parse(f"{original_date} {original_time}").replace(tzinfo=UTC)
+            timestamp = parse(f"{original_date} {original_time}").replace(tzinfo=UTC)
+            if timestamp > now_reference:
+                return timestamp
+            return None
 
         # Unknown recurring rule
         if recurring_rule not in RECURRING_PATTERNS:
