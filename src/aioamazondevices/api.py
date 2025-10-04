@@ -946,7 +946,12 @@ class AmazonEchoApi:
         devices_sensors = await self._get_sensors_states()
         for device in self._final_devices.values():
             # Update sensors
-            device.sensors = devices_sensors.get(device.serial_number, {})
+            sensors = devices_sensors.get(device.serial_number)
+            if sensors:
+                device.sensors = sensors
+            else:
+                for device_sensor in device.sensors.values():
+                    device_sensor.error = True
 
         return self._final_devices
 
