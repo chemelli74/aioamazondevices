@@ -507,3 +507,7 @@ COUNTRY_GROUPS = {
         "YE",
     ],
 }
+
+NOTIFICATION_ALARM = "Alarm"
+NOTIFICATION_REMINDER = "Reminder"
+NOTIFICATION_TIMER = "Timer"

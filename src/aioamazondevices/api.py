@@ -51,6 +51,9 @@ from .const import (
     HTTP_ERROR_199,
     HTTP_ERROR_299,
     JSON_EXTENSION,
+    NOTIFICATION_ALARM,
+    NOTIFICATION_REMINDER,
+    NOTIFICATION_TIMER,
     RECURRING_PATTERNS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
@@ -739,34 +742,28 @@ class AmazonEchoApi:
             ):
                 _notification_list = final_notifications.get(_serial, {})
                 _notification_by_type = _notification_list.get(_type)
-                if (
-                    next_occurence
-                    and _notification_by_type
-                    and _notification_by_type.next_occurrence
+
+                # Only add if no existing notification of this type
+                # or if this one is earlier
+                if not _notification_by_type or (
+                    _notification_by_type.next_occurrence
                     and next_occurence < _notification_by_type.next_occurrence
                 ):
-                    _notification_list[_type] = AmazonSchedule(
-                        type=_type,
-                        status=schedule["status"],
-                        label=schedule[label_desc],
-                        next_occurrence=next_occurence,
-                    )
-
-                final_notifications.update(
-                    {
-                        _serial: {
-                            **_notification_list
-                            | {
-                                _type: AmazonSchedule(
-                                    type=_type,
-                                    status=schedule["status"],
-                                    label=schedule[label_desc],
-                                    next_occurrence=next_occurence,
-                                ),
+                    final_notifications.update(
+                        {
+                            _serial: {
+                                **_notification_list
+                                | {
+                                    _type: AmazonSchedule(
+                                        type=_type,
+                                        status=schedule["status"],
+                                        label=schedule[label_desc],
+                                        next_occurrence=next_occurence,
+                                    ),
+                                }
                             }
                         }
-                    }
-                )
+                    )
 
         return final_notifications
 
@@ -785,44 +782,65 @@ class AmazonEchoApi:
         now_reference = actual_time - timedelta(minutes=1)
 
         # Schedule data
-        recurring_rule = schedule.get("recurringRule")
         original_date = schedule.get("originalDate")
         original_time = schedule.get("originalTime")
 
-        # Timers
-        if not original_time or not original_date:
+        recurring_rule: str | None = schedule.get("recurringRule")
+        if "rRuleData" in schedule:
+            recurring_rule = schedule["rRuleData"]["recurrenceRules"][0]
+
+        # Recurring events
+        if recurring_rule:
+            # Already in RFC5545 format
+            if "FREQ=" in recurring_rule:
+                return cast(
+                    "datetime",
+                    rrulestr(
+                        recurring_rule.removesuffix(";"), dtstart=today_midnight
+                    ).after(now_reference, True),
+                )
+
+            if recurring_rule not in RECURRING_PATTERNS:
+                _LOGGER.warning(
+                    "Unknown recurring rule: %s", scrub_fields(recurring_rule)
+                )
+                return None
+
+            # Adjust recurring rules for country specific weekend exceptions
+            recurring_pattern = RECURRING_PATTERNS.copy()
+            for group, countries in COUNTRY_GROUPS.items():
+                if self._country_code in countries:
+                    recurring_pattern |= WEEKEND_EXCEPTIONS[group]
+                    break
+
+            # Return the earliest next date
+            return cast(
+                "datetime",
+                rrulestr(
+                    recurring_pattern[recurring_rule], dtstart=today_midnight
+                ).after(now_reference, True),
+            )
+
+        # Single events
+
+        if schedule["type"] == NOTIFICATION_ALARM:
+            timestamp = parse(f"{original_date} {original_time}").replace(tzinfo=tzinfo)
+
+        elif schedule["type"] == NOTIFICATION_TIMER:
             timestamp = datetime.fromtimestamp(
                 schedule["triggerTime"] / 1000, tz=tzinfo
             )
-            if timestamp > now_reference:
-                return timestamp
-            return None
 
-        # Single event
-        if not recurring_rule:
-            timestamp = parse(f"{original_date} {original_time}").replace(tzinfo=tzinfo)
-            if timestamp > now_reference:
-                return timestamp
-            return None
+        elif schedule["type"] == NOTIFICATION_REMINDER:
+            timestamp = datetime.fromtimestamp(schedule["alarmTime"] / 1000, tz=tzinfo)
 
-        # Unknown recurring rule
-        if recurring_rule not in RECURRING_PATTERNS:
-            _LOGGER.warning("Unknown recurring rule: %s", scrub_fields(recurring_rule))
-            return None
+        else:
+            timestamp = now_reference
 
-        recurring_pattern = RECURRING_PATTERNS.copy()
-        for group, countries in COUNTRY_GROUPS.items():
-            if self._country_code in countries:
-                recurring_pattern |= WEEKEND_EXCEPTIONS[group]
-                break
+        if timestamp > now_reference:
+            return timestamp
 
-        # Return the earliest next date
-        return cast(
-            "datetime",
-            rrulestr(recurring_pattern[recurring_rule], dtstart=today_midnight).after(
-                now_reference, True
-            ),
-        )
+        return None
 
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
