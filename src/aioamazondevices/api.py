@@ -141,7 +141,6 @@ class AmazonEchoApi:
         self._list_for_clusters: dict[str, str] = {}
 
         self._session = client_session
-        self._devices: dict[str, Any] = {}
         self._final_devices: dict[str, AmazonDevice] = {}
         self._last_devices_refresh: datetime = datetime.now(UTC) - timedelta(
             days=2
@@ -624,7 +623,7 @@ class AmazonEchoApi:
         for endpoint in endpoints.get("endpoints"):
             serial_number = self._endpoint_to_serial(endpoint["endpointId"])
 
-            if serial_number in self._devices:
+            if serial_number in self._final_devices:
                 devices_sensors[serial_number] = self._get_device_sensor_state(
                     endpoint, serial_number
                 )
@@ -893,15 +892,13 @@ class AmazonEchoApi:
                 "device_serial_number"
             ]
             for data in json_data["devices"]:
-                dev_serial = data.get("serialNumber")
-                self._devices[dev_serial] = data
-                if dev_serial == this_device_serial:
+                if data.get("serialNumber") == this_device_serial:
                     self._account_owner_customer_id = data["deviceOwnerCustomerId"]
 
             devices_endpoints = await self._get_devices_base_data()
 
             final_devices_list: dict[str, AmazonDevice] = {}
-            for device in self._devices.values():
+            for device in json_data["devices"]:
                 # Remove stale, orphaned and virtual devices
                 if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
                     continue
