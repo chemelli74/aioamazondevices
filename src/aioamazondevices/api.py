@@ -877,7 +877,7 @@ class AmazonEchoApi:
     ) -> dict[str, AmazonDevice]:
         """Get Amazon devices data."""
         if not self._final_devices or (
-            self._last_devices_refresh - datetime.now(UTC) >= timedelta(days=1)
+            datetime.now(UTC) - self._last_devices_refresh >= timedelta(days=1)
         ):
             # Request all device data
             _, raw_resp = await self._session_request(
