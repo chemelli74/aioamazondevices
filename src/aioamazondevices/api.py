@@ -142,6 +142,10 @@ class AmazonEchoApi:
 
         self._session = client_session
         self._devices: dict[str, Any] = {}
+        self._final_devices: dict[str, AmazonDevice] = {}
+        self._last_devices_refresh: datetime = datetime.now(UTC) - timedelta(
+            days=2
+        )  # force initial refresh
 
         _LOGGER.debug("Initialize library v%s", __version__)
 
@@ -847,67 +851,87 @@ class AmazonEchoApi:
         self,
     ) -> dict[str, AmazonDevice]:
         """Get Amazon devices data."""
-        self._devices = {}
-        _, raw_resp = await self._session_request(
-            method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._domain}{URI_DEVICES}",
-        )
-
-        json_data = await self._response_to_json(raw_resp)
-
-        _LOGGER.debug("JSON devices data: %s", scrub_fields(json_data))
-
-        this_device_serial = self._login_stored_data["device_info"][
-            "device_serial_number"
-        ]
-        for data in json_data["devices"]:
-            dev_serial = data.get("serialNumber")
-            self._devices[dev_serial] = data
-            if dev_serial == this_device_serial:
-                self._account_owner_customer_id = data["deviceOwnerCustomerId"]
-
-        devices_endpoints, devices_sensors = await self._get_sensors_states()
-
-        final_devices_list: dict[str, AmazonDevice] = {}
-        for device in self._devices.values():
-            # Remove stale, orphaned and virtual devices
-            if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
-                continue
-
-            serial_number: str = device["serialNumber"]
-            # Add sensors
-            sensors = devices_sensors.get(serial_number, {})
-            device_endpoint = devices_endpoints.get(serial_number, {})
-
-            final_devices_list[serial_number] = AmazonDevice(
-                account_name=device["accountName"],
-                capabilities=device["capabilities"],
-                device_family=device["deviceFamily"],
-                device_type=device["deviceType"],
-                device_owner_customer_id=device["deviceOwnerCustomerId"],
-                household_device=device["deviceOwnerCustomerId"]
-                == self._account_owner_customer_id,
-                device_cluster_members=(device["clusterMembers"] or [serial_number]),
-                online=device["online"],
-                serial_number=serial_number,
-                software_version=device["softwareVersion"],
-                entity_id=device_endpoint["legacyIdentifiers"]["chrsIdentifier"][
-                    "entityId"
-                ]
-                if device_endpoint
-                else None,
-                endpoint_id=device_endpoint["endpointId"] if device_endpoint else None,
-                sensors=sensors,
+        if not self._final_devices or (
+            self._last_devices_refresh - datetime.now(UTC) >= timedelta(days=1)
+        ):
+            # Request all device data
+            _, raw_resp = await self._session_request(
+                method=HTTPMethod.GET,
+                url=f"https://alexa.amazon.{self._domain}{URI_DEVICES}",
             )
 
-        self._list_for_clusters.update(
-            {
-                device.serial_number: device.device_type
-                for device in final_devices_list.values()
-            }
-        )
+            json_data = await self._response_to_json(raw_resp)
 
-        return final_devices_list
+            _LOGGER.debug("JSON devices data: %s", scrub_fields(json_data))
+
+            this_device_serial = self._login_stored_data["device_info"][
+                "device_serial_number"
+            ]
+            for data in json_data["devices"]:
+                dev_serial = data.get("serialNumber")
+                self._devices[dev_serial] = data
+                if dev_serial == this_device_serial:
+                    self._account_owner_customer_id = data["deviceOwnerCustomerId"]
+
+            final_devices_list: dict[str, AmazonDevice] = {}
+            for device in self._devices.values():
+                # Remove stale, orphaned and virtual devices
+                if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
+                    continue
+
+                serial_number: str = device["serialNumber"]
+                devices_endpoints, devices_sensors = await self._get_sensors_states()
+                # Add sensors
+                sensors = devices_sensors.get(serial_number, {})
+                device_endpoint = devices_endpoints.get(serial_number, {})
+
+                final_devices_list[serial_number] = AmazonDevice(
+                    account_name=device["accountName"],
+                    capabilities=device["capabilities"],
+                    device_family=device["deviceFamily"],
+                    device_type=device["deviceType"],
+                    device_owner_customer_id=device["deviceOwnerCustomerId"],
+                    household_device=device["deviceOwnerCustomerId"]
+                    == self._account_owner_customer_id,
+                    device_cluster_members=(
+                        device["clusterMembers"] or [serial_number]
+                    ),
+                    online=device["online"],
+                    serial_number=serial_number,
+                    software_version=device["softwareVersion"],
+                    entity_id=device_endpoint["legacyIdentifiers"]["chrsIdentifier"][
+                        "entityId"
+                    ]
+                    if device_endpoint
+                    else None,
+                    endpoint_id=device_endpoint["endpointId"]
+                    if device_endpoint
+                    else None,
+                    sensors=sensors,
+                )
+
+            self._list_for_clusters.update(
+                {
+                    device.serial_number: device.device_type
+                    for device in final_devices_list.values()
+                }
+            )
+
+            self._final_devices = final_devices_list
+            self._last_devices_refresh = datetime.now(UTC)
+
+        else:
+            # Refresh sensors only
+            for device in self._final_devices.values():
+                devices_endpoints, devices_sensors = await self._get_sensors_states()
+                # Add sensors
+                sensors = devices_sensors.get(device.serial_number, {})
+                device_endpoint = devices_endpoints.get(device.serial_number, {})
+
+                # TODO(chemelli74): update only changed sensors
+                # and move common code above to a separate method
+
+        return self._final_devices
 
     async def auth_check_status(self) -> bool:
         """Check AUTH status."""
