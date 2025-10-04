@@ -23,6 +23,8 @@ from aiohttp import (
     ContentTypeError,
 )
 from bs4 import BeautifulSoup, Tag
+from dateutil.parser import parse
+from dateutil.rrule import rrulestr
 from langcodes import Language, standardize_tag
 from multidict import MultiDictProxy
 from yarl import URL
@@ -39,6 +41,7 @@ from .const import (
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
     BIN_EXTENSION,
+    COUNTRY_GROUPS,
     CSRF_COOKIE,
     DEFAULT_HEADERS,
     DEFAULT_SITE,
@@ -48,6 +51,10 @@ from .const import (
     HTTP_ERROR_199,
     HTTP_ERROR_299,
     JSON_EXTENSION,
+    NOTIFICATION_ALARM,
+    NOTIFICATION_REMINDER,
+    NOTIFICATION_TIMER,
+    RECURRING_PATTERNS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     SAVE_PATH,
@@ -55,6 +62,7 @@ from .const import (
     URI_DEVICES,
     URI_NEXUS_GRAPHQL,
     URI_SIGNIN,
+    WEEKEND_EXCEPTIONS,
 )
 from .exceptions import (
     CannotAuthenticate,
@@ -78,6 +86,16 @@ class AmazonDeviceSensor:
 
 
 @dataclass
+class AmazonSchedule:
+    """Amazon schedule class."""
+
+    type: str  # alarm, reminder, timer
+    status: str
+    label: str
+    next_occurrence: datetime | None
+
+
+@dataclass
 class AmazonDevice:
     """Amazon device class."""
 
@@ -94,6 +112,7 @@ class AmazonDevice:
     entity_id: str | None
     endpoint_id: str | None
     sensors: dict[str, AmazonDeviceSensor]
+    notifications: dict[str, AmazonSchedule]
 
 
 class AmazonSequenceType(StrEnum):
@@ -164,6 +183,7 @@ class AmazonEchoApi:
         lang_object = Language.make(territory=country_code.upper())
         lang_maximized = lang_object.maximize()
 
+        self._country_code: str = country_code
         self._domain: str = domain
         language = f"{lang_maximized.language}-{lang_maximized.territory}"
         self._language = standardize_tag(language)
@@ -706,6 +726,122 @@ class AmazonEchoApi:
         except orjson.JSONDecodeError as exc:
             raise ValueError("Response with corrupted JSON format") from exc
 
+    async def _get_notifications(self) -> dict[str, dict[str, AmazonSchedule]]:
+        final_notifications: dict[str, dict[str, AmazonSchedule]] = {}
+
+        _, raw_resp = await self._session_request(
+            HTTPMethod.GET, url=f"https://alexa.amazon.{self._domain}/api/notifications"
+        )
+        notifications = await raw_resp.json()
+        for schedule in notifications["notifications"]:
+            _type: str = schedule["type"]
+            _serial = schedule["deviceSerialNumber"]
+            label_desc = _type.lower() + "Label"
+            if schedule["status"] == "ON" and (
+                next_occurence := await self._parse_next_occurence(schedule)
+            ):
+                _notification_list = final_notifications.get(_serial, {})
+                _notification_by_type = _notification_list.get(_type)
+
+                # Only add if no existing notification of this type
+                # or if this one is earlier
+                if not _notification_by_type or (
+                    _notification_by_type.next_occurrence
+                    and next_occurence < _notification_by_type.next_occurrence
+                ):
+                    final_notifications.update(
+                        {
+                            _serial: {
+                                **_notification_list
+                                | {
+                                    _type: AmazonSchedule(
+                                        type=_type,
+                                        status=schedule["status"],
+                                        label=schedule[label_desc],
+                                        next_occurrence=next_occurence,
+                                    ),
+                                }
+                            }
+                        }
+                    )
+
+        return final_notifications
+
+    async def _parse_next_occurence(
+        self,
+        schedule: dict[str, Any],
+    ) -> datetime | None:
+        """Parse RFC5545 rule set for next iteration."""
+        # Timezone
+        tzinfo = datetime.now().astimezone().tzinfo
+        # Current time
+        actual_time = datetime.now(tz=tzinfo)
+        # Reference start date
+        today_midnight = actual_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        # Reference time (1 minute ago to avoid edge cases)
+        now_reference = actual_time - timedelta(minutes=1)
+
+        # Schedule data
+        original_date = schedule.get("originalDate")
+        original_time = schedule.get("originalTime")
+
+        recurring_rule: str | None = schedule.get("recurringRule")
+        if "rRuleData" in schedule:
+            recurring_rule = schedule["rRuleData"]["recurrenceRules"][0]
+
+        # Recurring events
+        if recurring_rule:
+            # Already in RFC5545 format
+            if "FREQ=" in recurring_rule:
+                return cast(
+                    "datetime",
+                    rrulestr(
+                        recurring_rule.removesuffix(";"), dtstart=today_midnight
+                    ).after(now_reference, True),
+                )
+
+            if recurring_rule not in RECURRING_PATTERNS:
+                _LOGGER.warning(
+                    "Unknown recurring rule: %s", scrub_fields(recurring_rule)
+                )
+                return None
+
+            # Adjust recurring rules for country specific weekend exceptions
+            recurring_pattern = RECURRING_PATTERNS.copy()
+            for group, countries in COUNTRY_GROUPS.items():
+                if self._country_code in countries:
+                    recurring_pattern |= WEEKEND_EXCEPTIONS[group]
+                    break
+
+            # Return the earliest next date
+            return cast(
+                "datetime",
+                rrulestr(
+                    recurring_pattern[recurring_rule], dtstart=today_midnight
+                ).after(now_reference, True),
+            )
+
+        # Single events
+
+        if schedule["type"] == NOTIFICATION_ALARM:
+            timestamp = parse(f"{original_date} {original_time}").replace(tzinfo=tzinfo)
+
+        elif schedule["type"] == NOTIFICATION_TIMER:
+            timestamp = datetime.fromtimestamp(
+                schedule["triggerTime"] / 1000, tz=tzinfo
+            )
+
+        elif schedule["type"] == NOTIFICATION_REMINDER:
+            timestamp = datetime.fromtimestamp(schedule["alarmTime"] / 1000, tz=tzinfo)
+
+        else:
+            timestamp = now_reference
+
+        if timestamp > now_reference:
+            return timestamp
+
+        return None
+
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
         _LOGGER.debug(
@@ -867,6 +1003,9 @@ class AmazonEchoApi:
                 self._account_owner_customer_id = data["deviceOwnerCustomerId"]
 
         devices_endpoints, devices_sensors = await self._get_sensors_states()
+        devices_notifications: dict[
+            str, dict[str, AmazonSchedule]
+        ] = await self._get_notifications()
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in self._devices.values():
@@ -898,6 +1037,7 @@ class AmazonEchoApi:
                 else None,
                 endpoint_id=device_endpoint["endpointId"] if device_endpoint else None,
                 sensors=sensors,
+                notifications=devices_notifications.get(serial_number, {}),
             )
 
         self._list_for_clusters.update(
