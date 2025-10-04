@@ -717,8 +717,9 @@ class AmazonEchoApi:
         endpoints = data["listEndpoints"]
         devices_endpoints: dict[str, dict[str, Any]] = {}
         for endpoint in endpoints.get("endpoints"):
-            serial_number = endpoint["serialNumber"]["value"]["text"]
-            devices_endpoints[serial_number] = endpoint
+            if endpoint.get("serialNumber"):
+                serial_number = endpoint["serialNumber"]["value"]["text"]
+                devices_endpoints[serial_number] = endpoint
         return devices_endpoints
 
     async def _response_to_json(self, raw_resp: ClientResponse) -> dict[str, Any]:
