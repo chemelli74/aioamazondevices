@@ -63,7 +63,7 @@ from .exceptions import (
     CannotRetrieveData,
     WrongMethod,
 )
-from .query import QUERY_DEVICE_STATE
+from .query import QUERY_DEVICE_STATE, QUERY_SENSOR_STATE
 from .utils import obfuscate_email, scrub_fields
 
 
@@ -577,16 +577,14 @@ class AmazonEchoApi:
         _LOGGER.info("Register device: %s", scrub_fields(login_data))
         return login_data
 
-    async def _get_devices_state(
-        self,
-    ) -> dict[str, Any]:
+    async def _get_devices_state(self, sensor_only_query: bool) -> dict[str, Any]:
         """Get Device State."""
         payload = {
             "operationName": "getDevicesState",
             "variables": {
                 "latencyTolerance": "LOW",
             },
-            "query": QUERY_DEVICE_STATE,
+            "query": QUERY_SENSOR_STATE if sensor_only_query else QUERY_DEVICE_STATE,
         }
 
         _, raw_resp = await self._session_request(
@@ -598,11 +596,18 @@ class AmazonEchoApi:
 
         return await self._response_to_json(raw_resp)
 
+    def _endpoint_to_serial(self, endpoint_id: str) -> str | None:
+        """Lookup endpoint ID and return serial number."""
+        for device in self._final_devices.values():
+            if device.endpoint_id == endpoint_id:
+                return device.serial_number
+        return None
+
     async def _get_sensors_states(
-        self,
+        self, sensor_only_query: bool
     ) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, AmazonDeviceSensor]]]:
         """Retrieve devices sensors states."""
-        devices_state = await self._get_devices_state()
+        devices_state = await self._get_devices_state(sensor_only_query)
         devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
         devices_endpoints: dict[str, dict[str, Any]] = {}
 
@@ -620,11 +625,14 @@ class AmazonEchoApi:
 
         endpoints = data["listEndpoints"]
         for endpoint in endpoints.get("endpoints"):
-            serial_number = (
-                endpoint["serialNumber"]["value"]["text"]
-                if endpoint["serialNumber"]
-                else None
-            )
+            if sensor_only_query:
+                serial_number = self._endpoint_to_serial(endpoint["endpointId"])
+            else:
+                serial_number = (
+                    endpoint["serialNumber"]["value"]["text"]
+                    if endpoint["serialNumber"]
+                    else None
+                )
             if serial_number in self._devices:
                 devices_sensors[serial_number] = self._get_device_sensor_state(
                     endpoint, serial_number
@@ -880,7 +888,9 @@ class AmazonEchoApi:
                     continue
 
                 serial_number: str = device["serialNumber"]
-                devices_endpoints, devices_sensors = await self._get_sensors_states()
+                devices_endpoints, devices_sensors = await self._get_sensors_states(
+                    False
+                )
                 # Add sensors
                 sensors = devices_sensors.get(serial_number, {})
                 device_endpoint = devices_endpoints.get(serial_number, {})
@@ -922,14 +932,10 @@ class AmazonEchoApi:
 
         else:
             # Refresh sensors only
+            devices_endpoints, devices_sensors = await self._get_sensors_states(True)
             for device in self._final_devices.values():
-                devices_endpoints, devices_sensors = await self._get_sensors_states()
-                # Add sensors
-                sensors = devices_sensors.get(device.serial_number, {})
-                device_endpoint = devices_endpoints.get(device.serial_number, {})
-
-                # TODO(chemelli74): update only changed sensors
-                # and move common code above to a separate method
+                # Update sensors
+                device.sensors = devices_sensors.get(device.serial_number, {})
 
         return self._final_devices
 
