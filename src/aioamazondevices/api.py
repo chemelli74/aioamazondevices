@@ -74,6 +74,8 @@ class AmazonDeviceSensor:
     name: str
     value: str | int | float
     error: bool
+    error_type: str | None
+    error_msg: str | None
     scale: str | None
 
 
@@ -639,6 +641,12 @@ class AmazonEchoApi:
                 name="dnd",
                 value=endpoint_dnd.get("toggleValue"),
                 error=bool(endpoint_dnd.get("error")),
+                error_type=endpoint_dnd.get("error", {}).get("type")
+                if endpoint_dnd.get("error")
+                else None,
+                error_msg=endpoint_dnd.get("error", {}).get("message")
+                if endpoint_dnd.get("error")
+                else None,
                 scale=None,
             )
         for feature in endpoint.get("features", {}):
@@ -656,6 +664,16 @@ class AmazonEchoApi:
                 value: str | int | float = "n/a"
                 scale: str | None = None
                 error = bool(feature_property.get("error"))
+                error_type = (
+                    feature_property.get("error", {}).get("type")
+                    if feature_property.get("error")
+                    else None
+                )
+                error_msg = (
+                    feature_property.get("error", {}).get("message")
+                    if feature_property.get("error")
+                    else None
+                )
                 if not error:
                     try:
                         value_raw = feature_property[sensor_template["key"]]
@@ -685,10 +703,16 @@ class AmazonEchoApi:
                             feature_property,
                             repr(exc),
                         )
+                if error:
+                    _LOGGER.error(
+                        "error in sensor %s - %s - %s", name, error_type, error_msg
+                    )
                 device_sensors[name] = AmazonDeviceSensor(
                     name,
                     value,
                     error,
+                    error_type,
+                    error_msg,
                     scale,
                 )
 
