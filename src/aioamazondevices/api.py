@@ -881,6 +881,8 @@ class AmazonEchoApi:
                 if dev_serial == this_device_serial:
                     self._account_owner_customer_id = data["deviceOwnerCustomerId"]
 
+            devices_endpoints, devices_sensors = await self._get_sensors_states(False)
+
             final_devices_list: dict[str, AmazonDevice] = {}
             for device in self._devices.values():
                 # Remove stale, orphaned and virtual devices
@@ -888,9 +890,6 @@ class AmazonEchoApi:
                     continue
 
                 serial_number: str = device["serialNumber"]
-                devices_endpoints, devices_sensors = await self._get_sensors_states(
-                    False
-                )
                 # Add sensors
                 sensors = devices_sensors.get(serial_number, {})
                 device_endpoint = devices_endpoints.get(serial_number, {})
