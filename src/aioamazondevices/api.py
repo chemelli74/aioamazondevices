@@ -147,6 +147,7 @@ class AmazonEchoApi:
         self._last_devices_refresh: datetime = datetime.now(UTC) - timedelta(
             days=2
         )  # force initial refresh
+        self._endpoints: dict[str, str] = {}
 
         _LOGGER.debug("Initialize library v%s", __version__)
 
@@ -578,57 +579,68 @@ class AmazonEchoApi:
         _LOGGER.info("Register device: %s", scrub_fields(login_data))
         return login_data
 
-    async def _get_devices_state(self) -> dict[str, Any]:
-        """Get Device State."""
-        payload = {
-            "operationName": "getDevicesState",
-            "variables": {
-                "latencyTolerance": "LOW",
-            },
-            "query": QUERY_SENSOR_STATE,
-        }
+    async def _get_sensors_state(
+        self, endpoint_id_list: list[str]
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """Get sensor State."""
+        payload = [
+            {
+                "operationName": "getEndpointState",
+                "variables": {
+                    "endpointId": endpoint_id,
+                    "latencyTolerance": "LOW",
+                },
+                "query": QUERY_SENSOR_STATE,
+            }
+            for endpoint_id in endpoint_id_list
+        ]
 
         _, raw_resp = await self._session_request(
             method=HTTPMethod.POST,
             url=f"https://alexa.amazon.{self._domain}{URI_NEXUS_GRAPHQL}",
-            input_data=payload,
+            input_data=payload,  # type: ignore[arg-type]
             json_data=True,
         )
 
         return await self._response_to_json(raw_resp)
 
-    def _endpoint_to_serial(self, endpoint_id: str) -> str | None:
-        """Lookup endpoint ID and return serial number."""
-        for device in self._final_devices.values():
-            if device.endpoint_id == endpoint_id:
-                return device.serial_number
-        return None
-
     async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
         """Retrieve devices sensors states."""
-        devices_state = await self._get_devices_state()
         devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
 
-        if error := devices_state.get("errors"):
-            if isinstance(error, list):
-                error = error[0]
-            msg = error.get("message", "Unknown error")
-            path = error.get("path", "Unknown path")
-            _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
-            return {}
+        endpoint_ids = list(self._endpoints.keys())
+        batches = [endpoint_ids[i : i + 3] for i in range(0, len(endpoint_ids), 3)]
+        for endpoint_id_batch in batches:
+            sensors_state = await self._get_sensors_state(endpoint_id_batch)
 
-        if not (data := devices_state.get("data")) or not data.get("listEndpoints"):
-            _LOGGER.error("Malformed devices state data received: %s", devices_state)
-            return {}
-
-        endpoints = data["listEndpoints"]
-        for endpoint in endpoints.get("endpoints"):
-            serial_number = self._endpoint_to_serial(endpoint["endpointId"])
-
-            if serial_number in self._final_devices:
-                devices_sensors[serial_number] = self._get_device_sensor_state(
-                    endpoint, serial_number
+            if not isinstance(sensors_state, list) and (
+                error := sensors_state.get("errors")
+            ):
+                if isinstance(error, list):
+                    error = error[0]
+                msg = error.get("message", "Unknown error")
+                path = error.get("path", "Unknown path")
+                _LOGGER.error(
+                    "Error retrieving devices state: %s for path %s", msg, path
                 )
+                return {}
+
+            for endpoint_data in sensors_state:
+                if (
+                    not isinstance(endpoint_data, dict)
+                    or not (data := endpoint_data.get("data"))
+                    or not (endpoint := data.get("endpoint"))
+                ):
+                    _LOGGER.error(
+                        "Malformed devices state data received: %s", endpoint_data
+                    )
+                    return {}
+                serial_number = self._endpoints[endpoint.get("endpointId")]
+
+                if serial_number in self._final_devices:
+                    devices_sensors[serial_number] = self._get_device_sensor_state(
+                        endpoint, serial_number
+                    )
 
         return devices_sensors
 
@@ -744,6 +756,7 @@ class AmazonEchoApi:
             if endpoint.get("serialNumber"):
                 serial_number = endpoint["serialNumber"]["value"]["text"]
                 devices_endpoints[serial_number] = endpoint
+                self._endpoints[endpoint["endpointId"]] = serial_number
         return devices_endpoints
 
     async def _response_to_json(self, raw_resp: ClientResponse) -> dict[str, Any]:
