@@ -843,6 +843,36 @@ class AmazonEchoApi:
             self._country_specific_data(user_domain)
             await self._refresh_auth_cookies()
 
+    async def _get_account_owner_customer_id(
+        self, json_data: dict[str, Any]
+    ) -> str | None:
+        """Get account owner customer ID."""
+        this_device_serial = self._login_stored_data["device_info"][
+            "device_serial_number"
+        ]
+
+        account_owner_customer_id: str | None = None
+
+        for data in json_data["devices"]:
+            dev_serial = data.get("serialNumber")
+            self._devices[dev_serial] = data
+            if data["deviceType"] == AMAZON_DEVICE_TYPE:
+                for subdevice in data["appDeviceList"]:
+                    if subdevice["serialNumber"] == this_device_serial:
+                        account_owner_customer_id = data["deviceOwnerCustomerId"]
+                        _LOGGER.debug(
+                            "Setting account owner: %s",
+                            account_owner_customer_id,
+                        )
+                        break
+                if account_owner_customer_id:
+                    break
+
+        if not account_owner_customer_id:
+            raise CannotRetrieveData("Cannot find account owner customer ID")
+
+        return account_owner_customer_id
+
     async def get_devices_data(
         self,
     ) -> dict[str, AmazonDevice]:
@@ -857,14 +887,10 @@ class AmazonEchoApi:
 
         _LOGGER.debug("JSON devices data: %s", scrub_fields(json_data))
 
-        this_device_serial = self._login_stored_data["device_info"][
-            "device_serial_number"
-        ]
-        for data in json_data["devices"]:
-            dev_serial = data.get("serialNumber")
-            self._devices[dev_serial] = data
-            if dev_serial == this_device_serial:
-                self._account_owner_customer_id = data["deviceOwnerCustomerId"]
+        if not self._account_owner_customer_id:
+            self._account_owner_customer_id = await self._get_account_owner_customer_id(
+                json_data
+            )
 
         devices_endpoints, devices_sensors = await self._get_sensors_states()
 
