@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.2.9-rc.1 (2025-10-05)
+
+### Bug fixes
+
+- Improve owner id retrieval logic ([`8beb8b7`](https://github.com/chemelli74/aioamazondevices/commit/8beb8b77758b9c11ef3ed7082224b675056d95d5))
+
+
 ## v6.2.8 (2025-10-03)
 
 ### Bug fixes
