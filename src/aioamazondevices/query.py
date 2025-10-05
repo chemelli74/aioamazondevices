@@ -159,9 +159,6 @@ query getEndpointState($endpointId: String!, $latencyTolerance: LatencyTolerance
             timeOfSample
             timeOfLastChange
         }
-        ... on Volume {
-            value { volValue: value }
-        }
         ... on TemperatureSensor {
             name
             value {

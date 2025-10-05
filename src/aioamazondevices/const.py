@@ -85,12 +85,6 @@ SENSORS: dict[str, dict[str, str | None]] = {
         "subkey": "value",
         "scale": None,
     },
-    "speaker": {
-        "name": "volume",
-        "key": "value",
-        "subkey": "volValue",
-        "scale": None,
-    },
 }
 DEVICE_TO_IGNORE: list[str] = [
     AMAZON_DEVICE_TYPE,  # Alexa App for iOS
