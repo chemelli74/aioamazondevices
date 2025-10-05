@@ -734,31 +734,36 @@ class AmazonEchoApi:
         )
         notifications = await raw_resp.json()
         for schedule in notifications["notifications"]:
-            _type: str = schedule["type"]
-            _serial = schedule["deviceSerialNumber"]
-            label_desc = _type.lower() + "Label"
-            if schedule["status"] == "ON" and (
-                next_occurence := await self._parse_next_occurence(schedule)
+            schedule_type: str = schedule["type"]
+            schedule_device_serial = schedule["deviceSerialNumber"]
+            label_desc = schedule_type.lower() + "Label"
+            if (schedule_status := schedule["status"]) == "ON" and (
+                next_occurrence := await self._parse_next_occurence(schedule)
             ):
-                _notification_list = final_notifications.get(_serial, {})
-                _notification_by_type = _notification_list.get(_type)
-
-                # Only add if no existing notification of this type
-                # or if this one is earlier
-                if not _notification_by_type or (
-                    _notification_by_type.next_occurrence
-                    and next_occurence < _notification_by_type.next_occurrence
+                schedule_notification_list = final_notifications.get(
+                    schedule_device_serial, {}
+                )
+                schedule_notification_by_type = schedule_notification_list.get(
+                    schedule_type
+                )
+                # Replace if no existing notification
+                # or if existing.next_occurrence is None
+                # or if new next_occurrence is earlier
+                if (
+                    not schedule_notification_by_type
+                    or schedule_notification_by_type.next_occurrence is None
+                    or next_occurrence < schedule_notification_by_type.next_occurrence
                 ):
                     final_notifications.update(
                         {
-                            _serial: {
-                                **_notification_list
+                            schedule_device_serial: {
+                                **schedule_notification_list
                                 | {
-                                    _type: AmazonSchedule(
-                                        type=_type,
-                                        status=schedule["status"],
+                                    schedule_type: AmazonSchedule(
+                                        type=schedule_type,
+                                        status=schedule_status,
                                         label=schedule[label_desc],
-                                        next_occurrence=next_occurence,
+                                        next_occurrence=next_occurrence,
                                     ),
                                 }
                             }
@@ -772,7 +777,7 @@ class AmazonEchoApi:
         schedule: dict[str, Any],
     ) -> datetime | None:
         """Parse RFC5545 rule set for next iteration."""
-        # Timezone
+        # Local timezone
         tzinfo = datetime.now().astimezone().tzinfo
         # Current time
         actual_time = datetime.now(tz=tzinfo)
@@ -827,11 +832,13 @@ class AmazonEchoApi:
             timestamp = parse(f"{original_date} {original_time}").replace(tzinfo=tzinfo)
 
         elif schedule["type"] == NOTIFICATION_TIMER:
+            # API returns triggerTime in milliseconds since epoch
             timestamp = datetime.fromtimestamp(
                 schedule["triggerTime"] / 1000, tz=tzinfo
             )
 
         elif schedule["type"] == NOTIFICATION_REMINDER:
+            # API returns alarmTime in milliseconds since epoch
             timestamp = datetime.fromtimestamp(schedule["alarmTime"] / 1000, tz=tzinfo)
 
         else:
