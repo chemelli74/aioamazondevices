@@ -141,7 +141,6 @@ class AmazonEchoApi:
         self._list_for_clusters: dict[str, str] = {}
 
         self._session = client_session
-        self._devices: dict[str, Any] = {}
 
         _LOGGER.debug("Initialize library v%s", __version__)
 
@@ -595,7 +594,7 @@ class AmazonEchoApi:
         return await self._response_to_json(raw_resp)
 
     async def _get_sensors_states(
-        self,
+        self, devices: dict[str, Any]
     ) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, AmazonDeviceSensor]]]:
         """Retrieve devices sensors states."""
         devices_state = await self._get_devices_state()
@@ -621,7 +620,7 @@ class AmazonEchoApi:
                 if endpoint["serialNumber"]
                 else None
             )
-            if serial_number in self._devices:
+            if serial_number in devices:
                 devices_sensors[serial_number] = self._get_device_sensor_state(
                     endpoint, serial_number
                 )
@@ -843,33 +842,25 @@ class AmazonEchoApi:
             self._country_specific_data(user_domain)
             await self._refresh_auth_cookies()
 
-    async def _get_account_owner_customer_id(
-        self, json_data: dict[str, Any]
-    ) -> str | None:
+    async def _get_account_owner_customer_id(self, data: dict[str, Any]) -> str | None:
         """Get account owner customer ID."""
+        if data["deviceType"] != AMAZON_DEVICE_TYPE:
+            return None
+
+        account_owner_customer_id: str | None = None
+
         this_device_serial = self._login_stored_data["device_info"][
             "device_serial_number"
         ]
 
-        account_owner_customer_id: str | None = None
-
-        for data in json_data["devices"]:
-            dev_serial = data.get("serialNumber")
-            self._devices[dev_serial] = data
-            if data["deviceType"] == AMAZON_DEVICE_TYPE:
-                for subdevice in data["appDeviceList"]:
-                    if subdevice["serialNumber"] == this_device_serial:
-                        account_owner_customer_id = data["deviceOwnerCustomerId"]
-                        _LOGGER.debug(
-                            "Setting account owner: %s",
-                            account_owner_customer_id,
-                        )
-                        break
-                if account_owner_customer_id:
-                    break
-
-        if not account_owner_customer_id:
-            raise CannotRetrieveData("Cannot find account owner customer ID")
+        for subdevice in data["appDeviceList"]:
+            if subdevice["serialNumber"] == this_device_serial:
+                account_owner_customer_id = data["deviceOwnerCustomerId"]
+                _LOGGER.debug(
+                    "Setting account owner: %s",
+                    account_owner_customer_id,
+                )
+                break
 
         return account_owner_customer_id
 
@@ -877,7 +868,7 @@ class AmazonEchoApi:
         self,
     ) -> dict[str, AmazonDevice]:
         """Get Amazon devices data."""
-        self._devices = {}
+        devices = {}
         _, raw_resp = await self._session_request(
             method=HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._domain}{URI_DEVICES}",
@@ -887,15 +878,21 @@ class AmazonEchoApi:
 
         _LOGGER.debug("JSON devices data: %s", scrub_fields(json_data))
 
-        if not self._account_owner_customer_id:
-            self._account_owner_customer_id = await self._get_account_owner_customer_id(
-                json_data
-            )
+        for data in json_data["devices"]:
+            dev_serial = data.get("serialNumber")
+            devices[dev_serial] = data
+            if not self._account_owner_customer_id:
+                self._account_owner_customer_id = (
+                    await self._get_account_owner_customer_id(data)
+                )
 
-        devices_endpoints, devices_sensors = await self._get_sensors_states()
+        if not self._account_owner_customer_id:
+            raise CannotRetrieveData("Cannot find account owner customer ID")
+
+        devices_endpoints, devices_sensors = await self._get_sensors_states(devices)
 
         final_devices_list: dict[str, AmazonDevice] = {}
-        for device in self._devices.values():
+        for device in devices.values():
             # Remove stale, orphaned and virtual devices
             if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
                 continue
