@@ -880,6 +880,11 @@ class AmazonEchoApi:
 
         for data in json_data["devices"]:
             dev_serial = data.get("serialNumber")
+            if not dev_serial:
+                _LOGGER.warning(
+                    "Skipping device without serial number: %s", data["accountName"]
+                )
+                continue
             devices[dev_serial] = data
             if not self._account_owner_customer_id:
                 self._account_owner_customer_id = (
