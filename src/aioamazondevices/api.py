@@ -344,7 +344,7 @@ class AmazonEchoApi:
         self,
         method: str,
         url: str,
-        input_data: dict[str, Any] | None = None,
+        input_data: dict[str, Any] | list[dict[str, Any]] | None = None,
         json_data: bool = False,
     ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
@@ -599,7 +599,7 @@ class AmazonEchoApi:
         _, raw_resp = await self._session_request(
             method=HTTPMethod.POST,
             url=f"https://alexa.amazon.{self._domain}{URI_NEXUS_GRAPHQL}",
-            input_data=payload,  # type: ignore[arg-type]
+            input_data=payload,
             json_data=True,
         )
 
