@@ -52,6 +52,7 @@ REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
 REFRESH_AUTH_COOKIES = "auth_cookies"
 
 URI_DEVICES = "/api/devices-v2/device"
+URI_DND = "/api/dnd/device-status-list"
 URI_SIGNIN = "/ap/signin"
 URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 

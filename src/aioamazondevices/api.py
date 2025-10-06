@@ -53,6 +53,7 @@ from .const import (
     SAVE_PATH,
     SENSORS,
     URI_DEVICES,
+    URI_DND,
     URI_NEXUS_GRAPHQL,
     URI_SIGNIN,
 )
@@ -648,19 +649,6 @@ class AmazonEchoApi:
         self, endpoint: dict[str, Any], serial_number: str
     ) -> dict[str, AmazonDeviceSensor]:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
-        if endpoint_dnd := endpoint.get("settings", {}).get("doNotDisturb"):
-            device_sensors["dnd"] = AmazonDeviceSensor(
-                name="dnd",
-                value=endpoint_dnd.get("toggleValue"),
-                error=bool(endpoint_dnd.get("error")),
-                error_type=endpoint_dnd.get("error", {}).get("type")
-                if endpoint_dnd.get("error")
-                else None,
-                error_msg=endpoint_dnd.get("error", {}).get("message")
-                if endpoint_dnd.get("error")
-                else None,
-                scale=None,
-            )
         for feature in endpoint.get("features", {}):
             if (sensor_template := SENSORS.get(feature["name"])) is None:
                 # Skip sensors that are not in the predefined list
@@ -1011,14 +999,17 @@ class AmazonEchoApi:
             self._last_devices_refresh = datetime.now(UTC)
 
         devices_sensors = await self._get_sensors_states()
+        dnd_sensors = await self._get_dnd_status()
         for device in self._final_devices.values():
             # Update sensors
-            sensors = devices_sensors.get(device.serial_number)
+            sensors = devices_sensors.get(device.serial_number, {})
             if sensors:
                 device.sensors = sensors
             else:
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
+            if device_dnd := dnd_sensors.get(device.serial_number):
+                sensors["dnd"] = device_dnd
 
         return self._final_devices
 
@@ -1325,3 +1316,22 @@ class AmazonEchoApi:
 
         _LOGGER.debug("Unexpected refresh data response")
         return False, {}
+
+    async def _get_dnd_status(self) -> dict[str, AmazonDeviceSensor]:
+        dnd_status: dict[str, AmazonDeviceSensor] = {}
+        _, raw_resp = await self._session_request(
+            method=HTTPMethod.GET,
+            url=f"https://alexa.amazon.{self._domain}{URI_DND}",
+        )
+
+        dnd_data = await self._response_to_json(raw_resp)
+        for dnd in dnd_data.get("doNotDisturbDeviceStatusList", {}):
+            dnd_status[dnd.get("deviceSerialNumber")] = AmazonDeviceSensor(
+                name="dnd",
+                value=dnd.get("enabled"),
+                error=False,
+                error_type=None,
+                error_msg=None,
+                scale=None,
+            )
+        return dnd_status
