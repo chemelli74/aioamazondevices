@@ -715,7 +715,7 @@ class AmazonEchoApi:
                             feature_property,
                             repr(exc),
                         )
-                if error:
+                if error and not (name == "illuminance" and error_type == "NOT_FOUND"):
                     _LOGGER.error(
                         "error in sensor %s - %s - %s", name, error_type, error_msg
                     )
