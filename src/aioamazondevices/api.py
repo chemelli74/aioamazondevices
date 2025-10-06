@@ -1017,7 +1017,7 @@ class AmazonEchoApi:
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
             if device_dnd := dnd_sensors.get(device.serial_number):
-                sensors["dnd"] = device_dnd
+                device.sensors["dnd"] = device_dnd
 
         return self._final_devices
 
