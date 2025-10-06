@@ -140,6 +140,18 @@ QUERY_SENSOR_STATE = """
 query getEndpointState($endpointId: String!, $latencyTolerance: LatencyToleranceValue) {
   endpoint(id: $endpointId) {
     endpointId: id
+    settings {
+      doNotDisturb {
+        id
+        endpointId
+        name
+        toggleValue
+        error {
+          type
+          message
+        }
+      }
+    }
     features(latencyToleranceValue: $latencyTolerance) {
       name
       instance
@@ -154,19 +166,24 @@ query getEndpointState($endpointId: String!, $latencyTolerance: LatencyTolerance
           timeOfSample
           timeOfLastChange
         }
+        ... on Reachability {
+          reachabilityStatusValue
+          timeOfSample
+          timeOfLastChange
+        }
         ... on DetectionState {
-            detectionStateValue
-            timeOfSample
-            timeOfLastChange
+          detectionStateValue
+          timeOfSample
+          timeOfLastChange
         }
         ... on TemperatureSensor {
-            name
-            value {
-              value
-              scale
-            }
-            timeOfSample
-            timeOfLastChange
+          name
+          value {
+            value
+            scale
+          }
+          timeOfSample
+          timeOfLastChange
         }
       }
     }
