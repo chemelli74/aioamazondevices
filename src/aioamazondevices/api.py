@@ -148,7 +148,7 @@ class AmazonEchoApi:
         self._last_devices_refresh: datetime = datetime.now(UTC) - timedelta(
             days=2
         )  # force initial refresh
-        self._endpoints: dict[str, str] = {}
+        self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
 
         _LOGGER.debug("Initialize library v%s", __version__)
 
@@ -609,6 +609,7 @@ class AmazonEchoApi:
         """Retrieve devices sensors states."""
         devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
 
+        # batch endpoints into groups of 3 to reduce number of requests
         endpoint_ids = list(self._endpoints.keys())
         batches = [endpoint_ids[i : i + 3] for i in range(0, len(endpoint_ids), 3)]
         for endpoint_id_batch in batches:
@@ -633,7 +634,7 @@ class AmazonEchoApi:
                     or not (endpoint := data.get("endpoint"))
                 ):
                     _LOGGER.error(
-                        "Malformed devices state data received: %s", endpoint_data
+                        "Malformed sensor state data received: %s", endpoint_data
                     )
                     return {}
                 serial_number = self._endpoints[endpoint.get("endpointId")]
@@ -664,16 +665,8 @@ class AmazonEchoApi:
                 value: str | int | float = "n/a"
                 scale: str | None = None
                 error = bool(feature_property.get("error"))
-                error_type = (
-                    feature_property.get("error", {}).get("type")
-                    if feature_property.get("error")
-                    else None
-                )
-                error_msg = (
-                    feature_property.get("error", {}).get("message")
-                    if feature_property.get("error")
-                    else None
-                )
+                error_type = feature_property.get("error", {}).get("type")
+                error_msg = feature_property.get("error", {}).get("message")
                 if not error:
                     try:
                         value_raw = feature_property[sensor_template["key"]]
@@ -703,8 +696,8 @@ class AmazonEchoApi:
                             feature_property,
                             repr(exc),
                         )
-                if error and not (name == "illuminance" and error_type == "NOT_FOUND"):
-                    _LOGGER.error(
+                if error:
+                    _LOGGER.debug(
                         "error in sensor %s - %s - %s", name, error_type, error_msg
                     )
                 device_sensors[name] = AmazonDeviceSensor(
