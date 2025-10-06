@@ -731,7 +731,7 @@ class AmazonEchoApi:
         _, raw_resp = await self._session_request(
             HTTPMethod.GET, url=f"https://alexa.amazon.{self._domain}/api/notifications"
         )
-        notifications = await raw_resp.json()
+        notifications = await self._response_to_json(raw_resp)
         for schedule in notifications["notifications"]:
             schedule_type: str = schedule["type"]
             schedule_device_serial = schedule["deviceSerialNumber"]
