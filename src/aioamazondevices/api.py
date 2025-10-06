@@ -743,6 +743,10 @@ class AmazonEchoApi:
         endpoints = data["listEndpoints"]
         devices_endpoints: dict[str, dict[str, Any]] = {}
         for endpoint in endpoints.get("endpoints"):
+            # save looking up sensor data on apps
+            if endpoint.get("alexaEnabledMetadata", {}).get("category") == "APP":
+                continue
+
             if endpoint.get("serialNumber"):
                 serial_number = endpoint["serialNumber"]["value"]["text"]
                 devices_endpoints[serial_number] = endpoint
