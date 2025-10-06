@@ -614,6 +614,7 @@ class AmazonEchoApi:
         batches = [endpoint_ids[i : i + 3] for i in range(0, len(endpoint_ids), 3)]
         for endpoint_id_batch in batches:
             sensors_state = await self._get_sensors_state(endpoint_id_batch)
+            _LOGGER.debug("Sensor data - %s", sensors_state)
 
             if not isinstance(sensors_state, list) and (
                 error := sensors_state.get("errors")
