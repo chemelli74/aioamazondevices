@@ -665,8 +665,16 @@ class AmazonEchoApi:
                 value: str | int | float = "n/a"
                 scale: str | None = None
                 error = bool(feature_property.get("error"))
-                error_type = feature_property.get("error", {}).get("type")
-                error_msg = feature_property.get("error", {}).get("message")
+                error_type = (
+                    feature_property.get("error", {}).get("type")
+                    if feature_property.get("error")
+                    else None
+                )
+                error_msg = (
+                    feature_property.get("error", {}).get("message")
+                    if feature_property.get("error")
+                    else None
+                )
                 if not error:
                     try:
                         value_raw = feature_property[sensor_template["key"]]
