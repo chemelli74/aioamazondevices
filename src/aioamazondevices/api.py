@@ -923,8 +923,10 @@ class AmazonEchoApi:
         self,
     ) -> dict[str, AmazonDevice]:
         """Get Amazon devices data."""
-        if not self._final_devices or (
-            datetime.now(UTC) - self._last_devices_refresh >= timedelta(days=1)
+        if (
+            not self._final_devices
+            or not self._endpoints
+            or (datetime.now(UTC) - self._last_devices_refresh >= timedelta(days=1))
         ):
             # Request all device data
             _, raw_resp = await self._session_request(
@@ -1325,6 +1327,8 @@ class AmazonEchoApi:
         )
 
         dnd_data = await self._response_to_json(raw_resp)
+        _LOGGER.debug("DND data: %s", dnd_data)
+
         for dnd in dnd_data.get("doNotDisturbDeviceStatusList", {}):
             dnd_status[dnd.get("deviceSerialNumber")] = AmazonDeviceSensor(
                 name="dnd",
