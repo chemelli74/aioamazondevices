@@ -53,6 +53,7 @@ from .const import (
     SAVE_PATH,
     SENSORS,
     URI_DEVICES,
+    URI_MUSIC_PROVIDERS,
     URI_NEXUS_GRAPHQL,
     URI_SIGNIN,
 )
@@ -96,6 +97,16 @@ class AmazonDevice:
     sensors: dict[str, AmazonDeviceSensor]
 
 
+@dataclass
+class AmazonMusicProvider:
+    """Music Provider class."""
+
+    provider_id: str
+    provider_name: str
+    availability: str
+    default_provider: bool
+
+
 class AmazonSequenceType(StrEnum):
     """Amazon sequence types."""
 
@@ -105,13 +116,6 @@ class AmazonSequenceType(StrEnum):
     Music = "Alexa.Music.PlaySearchPhrase"
     TextCommand = "Alexa.TextCommand"
     LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
-
-
-class AmazonMusicSource(StrEnum):
-    """Amazon music sources."""
-
-    Radio = "TUNEIN"
-    AmazonMusic = "AMAZON_MUSIC"
 
 
 class AmazonEchoApi:
@@ -142,12 +146,19 @@ class AmazonEchoApi:
 
         self._session = client_session
 
+        self._music_providers: dict[str, AmazonMusicProvider] = {}
+
         _LOGGER.debug("Initialize library v%s", __version__)
 
     @property
     def domain(self) -> str:
         """Return current Amazon domain."""
         return self._domain
+
+    @property
+    def music_providers(self) -> dict[str, AmazonMusicProvider]:
+        """Return supported music providers."""
+        return self._music_providers
 
     def save_raw_data(self) -> None:
         """Save raw data to disk."""
@@ -692,10 +703,14 @@ class AmazonEchoApi:
 
         return device_sensors
 
-    async def _response_to_json(self, raw_resp: ClientResponse) -> dict[str, Any]:
+    async def _response_to_json(
+        self, raw_resp: ClientResponse, override_content_type: str | None = None
+    ) -> dict[str, Any]:
         """Convert response to JSON, if possible."""
         try:
-            data = await raw_resp.json(loads=orjson.loads)
+            data = await raw_resp.json(
+                loads=orjson.loads, content_type=override_content_type
+            )
             if not data:
                 _LOGGER.warning("Empty JSON data received")
                 data = {}
@@ -978,7 +993,7 @@ class AmazonEchoApi:
         device: AmazonDevice,
         message_type: str,
         message_body: str,
-        message_source: AmazonMusicSource | None = None,
+        message_source: str | None = None,
     ) -> None:
         """Send message to specific device."""
         if not self._login_stored_data:
@@ -1137,11 +1152,13 @@ class AmazonEchoApi:
         self,
         device: AmazonDevice,
         message_body: str,
-        message_source: AmazonMusicSource,
+        provider_id: str,
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
+        if not (self._music_providers.get(provider_id)):
+            raise ValueError("%s is not available as a music provider", provider_id)
         return await self._send_message(
-            device, AmazonSequenceType.Music, message_body, message_source
+            device, AmazonSequenceType.Music, message_body, provider_id
         )
 
     async def call_alexa_text_command(
@@ -1240,3 +1257,19 @@ class AmazonEchoApi:
 
         _LOGGER.debug("Unexpected refresh data response")
         return False, {}
+
+    async def update_music_providers(self) -> None:
+        """Get a list of available music providers for user."""
+        url = f"https://alexa.amazon.{self._domain}{URI_MUSIC_PROVIDERS}"
+        _, resp = await self._session_request(method=HTTPMethod.GET, url=url)
+        provider_json = await self._response_to_json(resp, "application/octet-stream")
+        self._music_providers = {
+            provider.get("id"): AmazonMusicProvider(
+                provider_id=provider.get("id"),
+                provider_name=provider.get("displayName"),
+                availability=provider.get("availability"),
+                default_provider=provider["providerData"].get("isDefaultMusicProvider"),
+            )
+            for provider in cast("list", provider_json)
+            if AmazonSequenceType.Music in provider["supportedProperties"]
+        }
