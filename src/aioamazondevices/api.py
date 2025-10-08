@@ -732,7 +732,7 @@ class AmazonEchoApi:
         endpoint_data = await self._response_to_json(raw_resp)
 
         if not (data := endpoint_data.get("data")) or not data.get("listEndpoints"):
-            _LOGGER.error("Malformed devices state data received: %s", endpoint_data)
+            _LOGGER.error("Malformed devices base data received: %s", endpoint_data)
             return {}
 
         endpoints = data["listEndpoints"]
