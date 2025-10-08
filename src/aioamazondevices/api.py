@@ -149,6 +149,9 @@ class AmazonEchoApi:
             days=2
         )  # force initial refresh
         self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
+        self._last_endpoint_check: datetime = datetime.now(UTC) - timedelta(
+            days=2
+        )  # force initial refresh
 
         _LOGGER.debug("Initialize library v%s", __version__)
 
@@ -929,83 +932,22 @@ class AmazonEchoApi:
         self,
     ) -> dict[str, AmazonDevice]:
         """Get Amazon devices data."""
-        if (
-            not self._final_devices
-            or not self._endpoints
-            or (datetime.now(UTC) - self._last_devices_refresh >= timedelta(days=1))
+        if not self._final_devices or (
+            datetime.now(UTC) - self._last_devices_refresh >= timedelta(days=1)
         ):
             # Request all device data
-            _, raw_resp = await self._session_request(
-                method=HTTPMethod.GET,
-                url=f"https://alexa.amazon.{self._domain}{URI_DEVICES}",
-            )
+            await self._get_base_devices()
 
-            json_data = await self._response_to_json(raw_resp)
+        if not self._endpoints and (
+            datetime.now(UTC) - self._last_endpoint_check >= timedelta(minutes=30)
+        ):
+            await self._get_device_endpoint_data()
 
-            _LOGGER.debug("JSON devices data: %s", scrub_fields(json_data))
+        await self._get_sensor_data()
 
-            for data in json_data["devices"]:
-                dev_serial = data.get("serialNumber")
-                if not dev_serial:
-                    _LOGGER.warning(
-                        "Skipping device without serial number: %s", data["accountName"]
-                    )
-                    continue
-                if not self._account_owner_customer_id:
-                    self._account_owner_customer_id = (
-                        await self._get_account_owner_customer_id(data)
-                    )
+        return self._final_devices
 
-            if not self._account_owner_customer_id:
-                raise CannotRetrieveData("Cannot find account owner customer ID")
-
-            devices_endpoints = await self._get_devices_base_data()
-
-            final_devices_list: dict[str, AmazonDevice] = {}
-            for device in json_data["devices"]:
-                # Remove stale, orphaned and virtual devices
-                if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
-                    continue
-
-                serial_number: str = device["serialNumber"]
-
-                device_endpoint = devices_endpoints.get(serial_number, {})
-
-                final_devices_list[serial_number] = AmazonDevice(
-                    account_name=device["accountName"],
-                    capabilities=device["capabilities"],
-                    device_family=device["deviceFamily"],
-                    device_type=device["deviceType"],
-                    device_owner_customer_id=device["deviceOwnerCustomerId"],
-                    household_device=device["deviceOwnerCustomerId"]
-                    == self._account_owner_customer_id,
-                    device_cluster_members=(
-                        device["clusterMembers"] or [serial_number]
-                    ),
-                    online=device["online"],
-                    serial_number=serial_number,
-                    software_version=device["softwareVersion"],
-                    entity_id=device_endpoint["legacyIdentifiers"]["chrsIdentifier"][
-                        "entityId"
-                    ]
-                    if device_endpoint
-                    else None,
-                    endpoint_id=device_endpoint["endpointId"]
-                    if device_endpoint
-                    else None,
-                    sensors={},
-                )
-
-            self._list_for_clusters.update(
-                {
-                    device.serial_number: device.device_type
-                    for device in final_devices_list.values()
-                }
-            )
-
-            self._final_devices = final_devices_list
-            self._last_devices_refresh = datetime.now(UTC)
-
+    async def _get_sensor_data(self) -> None:
         devices_sensors = await self._get_sensors_states()
         dnd_sensors = await self._get_dnd_status()
         for device in self._final_devices.values():
@@ -1019,7 +961,80 @@ class AmazonEchoApi:
             if device_dnd := dnd_sensors.get(device.serial_number):
                 device.sensors["dnd"] = device_dnd
 
-        return self._final_devices
+    async def _get_device_endpoint_data(self) -> None:
+        devices_endpoints = await self._get_devices_base_data()
+        self._last_endpoint_check = datetime.now(UTC)
+        for serial_number in self._final_devices:
+            device_endpoint = devices_endpoints.get(serial_number, {})
+            endpoint_device = self._final_devices[serial_number]
+            endpoint_device.entity_id = (
+                device_endpoint["legacyIdentifiers"]["chrsIdentifier"]["entityId"]
+                if device_endpoint
+                else None
+            )
+            endpoint_device.endpoint_id = (
+                device_endpoint["endpointId"] if device_endpoint else None
+            )
+
+    async def _get_base_devices(self) -> None:
+        _, raw_resp = await self._session_request(
+            method=HTTPMethod.GET,
+            url=f"https://alexa.amazon.{self._domain}{URI_DEVICES}",
+        )
+
+        json_data = await self._response_to_json(raw_resp)
+
+        _LOGGER.debug("JSON devices data: %s", scrub_fields(json_data))
+
+        for data in json_data["devices"]:
+            dev_serial = data.get("serialNumber")
+            if not dev_serial:
+                _LOGGER.warning(
+                    "Skipping device without serial number: %s", data["accountName"]
+                )
+                continue
+            if not self._account_owner_customer_id:
+                self._account_owner_customer_id = (
+                    await self._get_account_owner_customer_id(data)
+                )
+
+        if not self._account_owner_customer_id:
+            raise CannotRetrieveData("Cannot find account owner customer ID")
+
+        final_devices_list: dict[str, AmazonDevice] = {}
+        for device in json_data["devices"]:
+            # Remove stale, orphaned and virtual devices
+            if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
+                continue
+
+            serial_number: str = device["serialNumber"]
+
+            final_devices_list[serial_number] = AmazonDevice(
+                account_name=device["accountName"],
+                capabilities=device["capabilities"],
+                device_family=device["deviceFamily"],
+                device_type=device["deviceType"],
+                device_owner_customer_id=device["deviceOwnerCustomerId"],
+                household_device=device["deviceOwnerCustomerId"]
+                == self._account_owner_customer_id,
+                device_cluster_members=(device["clusterMembers"] or [serial_number]),
+                online=device["online"],
+                serial_number=serial_number,
+                software_version=device["softwareVersion"],
+                entity_id=None,
+                endpoint_id=None,
+                sensors={},
+            )
+
+        self._list_for_clusters.update(
+            {
+                device.serial_number: device.device_type
+                for device in final_devices_list.values()
+            }
+        )
+
+        self._final_devices = final_devices_list
+        self._last_devices_refresh = datetime.now(UTC)
 
     async def auth_check_status(self) -> bool:
         """Check AUTH status."""
