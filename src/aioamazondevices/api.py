@@ -715,8 +715,8 @@ class AmazonEchoApi:
 
         return device_sensors
 
-    async def _get_devices_base_data(self) -> dict[str, dict[str, Any]]:
-        """Get Device base data."""
+    async def _get_devices_endpoint_data(self) -> dict[str, dict[str, Any]]:
+        """Get Devices endpoint data."""
         payload = {
             "operationName": "getDevicesBaseData",
             "query": QUERY_DEVICE_DATA,
@@ -932,11 +932,11 @@ class AmazonEchoApi:
             # Request base device data
             await self._get_base_devices()
 
-        if not self._endpoints and (
+        if not self._endpoints or (
             datetime.now(UTC) - self._last_endpoint_refresh >= timedelta(minutes=30)
         ):
-            # Request sensor data
-            await self._get_device_endpoint_data()
+            # Set device endpoint data
+            await self._set_device_endpoints_data()
 
         await self._get_sensor_data()
 
@@ -956,8 +956,8 @@ class AmazonEchoApi:
             if device_dnd := dnd_sensors.get(device.serial_number):
                 device.sensors["dnd"] = device_dnd
 
-    async def _get_device_endpoint_data(self) -> None:
-        devices_endpoints = await self._get_devices_base_data()
+    async def _set_device_endpoints_data(self) -> None:
+        devices_endpoints = await self._get_devices_endpoint_data()
         for serial_number in self._final_devices:
             device_endpoint = devices_endpoints.get(serial_number, {})
             endpoint_device = self._final_devices[serial_number]
