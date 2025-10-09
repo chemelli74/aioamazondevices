@@ -1,5 +1,24 @@
 # Changelog
 
+## v6.4.0-rc.1 (2025-10-09)
+
+### Features
+
+- Bump version ([`d3c9d2d`](https://github.com/chemelli74/aioamazondevices/commit/d3c9d2d460720975e049d57cc7fddc868e416fd5))
+
+
+## v6.3.0 (2025-10-09)
+
+### Refactoring
+
+- Update only dynamic data ([`26d1ebc`](https://github.com/chemelli74/aioamazondevices/commit/26d1ebcb9c33592c5200a12a3bc4c1abd591e965))
+
+
+### Build system
+
+- Bump browniebroke/hacktoberfest-labeler-action from 2.4.0 to 2.4.2 ([`b14db2c`](https://github.com/chemelli74/aioamazondevices/commit/b14db2c43b394135933dc03c83f4dfd230dd0e7f))
+
+
 ## v6.2.9 (2025-10-05)
 
 ### Bug fixes
