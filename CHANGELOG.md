@@ -1,10 +1,10 @@
 # Changelog
 
-## v6.4.0-rc.1 (2025-10-09)
+## v6.4.0 (2025-10-09)
 
 ### Features
 
-- Bump version ([`d3c9d2d`](https://github.com/chemelli74/aioamazondevices/commit/d3c9d2d460720975e049d57cc7fddc868e416fd5))
+- Bump version ([`d4eeb51`](https://github.com/chemelli74/aioamazondevices/commit/d4eeb5126094d73138db810a7114bff9a4a0f9a1))
 
 
 ## v6.3.0 (2025-10-09)
