@@ -146,12 +146,10 @@ class AmazonEchoApi:
         self._session = client_session
         self._final_devices: dict[str, AmazonDevice] = {}
         self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
-        self._last_devices_refresh: datetime = datetime.now(UTC) - timedelta(
-            days=2
-        )  # force initial refresh
-        self._last_endpoint_refresh: datetime = datetime.now(UTC) - timedelta(
-            days=2
-        )  # force initial refresh
+
+        initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
+        self._last_devices_refresh: datetime = initial_time
+        self._last_endpoint_refresh: datetime = initial_time
 
         _LOGGER.debug("Initialize library v%s", __version__)
 
