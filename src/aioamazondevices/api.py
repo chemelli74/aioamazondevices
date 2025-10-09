@@ -145,11 +145,11 @@ class AmazonEchoApi:
 
         self._session = client_session
         self._final_devices: dict[str, AmazonDevice] = {}
+        self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
         self._last_devices_refresh: datetime = datetime.now(UTC) - timedelta(
             days=2
         )  # force initial refresh
-        self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
-        self._last_endpoint_check: datetime = datetime.now(UTC) - timedelta(
+        self._last_endpoint_refresh: datetime = datetime.now(UTC) - timedelta(
             days=2
         )  # force initial refresh
 
@@ -668,9 +668,11 @@ class AmazonEchoApi:
 
                 value: str | int | float = "n/a"
                 scale: str | None = None
-                error = bool(feature_property.get("error"))
-                error_type = feature_property.get("error", {}).get("type")
-                error_msg = feature_property.get("error", {}).get("message")
+
+                api_error = feature_property.get("error", {})
+                error = bool(api_error)
+                error_type = api_error.get("type")
+                error_msg = api_error.get("message")
                 if not error:
                     try:
                         value_raw = feature_property[sensor_template["key"]]
@@ -732,7 +734,7 @@ class AmazonEchoApi:
         endpoint_data = await self._response_to_json(raw_resp)
 
         if not (data := endpoint_data.get("data")) or not data.get("listEndpoints"):
-            _LOGGER.error("Malformed devices base data received: %s", endpoint_data)
+            _LOGGER.error("Malformed endpoint data received: %s", endpoint_data)
             return {}
 
         endpoints = data["listEndpoints"]
@@ -746,6 +748,8 @@ class AmazonEchoApi:
                 serial_number = endpoint["serialNumber"]["value"]["text"]
                 devices_endpoints[serial_number] = endpoint
                 self._endpoints[endpoint["endpointId"]] = serial_number
+
+        self._last_endpoint_refresh = datetime.now(UTC)
         return devices_endpoints
 
     async def _response_to_json(self, raw_resp: ClientResponse) -> dict[str, Any]:
@@ -927,12 +931,13 @@ class AmazonEchoApi:
         if not self._final_devices or (
             datetime.now(UTC) - self._last_devices_refresh >= timedelta(days=1)
         ):
-            # Request all device data
+            # Request base device data
             await self._get_base_devices()
 
         if not self._endpoints and (
-            datetime.now(UTC) - self._last_endpoint_check >= timedelta(minutes=30)
+            datetime.now(UTC) - self._last_endpoint_refresh >= timedelta(minutes=30)
         ):
+            # Request sensor data
             await self._get_device_endpoint_data()
 
         await self._get_sensor_data()
@@ -955,7 +960,6 @@ class AmazonEchoApi:
 
     async def _get_device_endpoint_data(self) -> None:
         devices_endpoints = await self._get_devices_base_data()
-        self._last_endpoint_check = datetime.now(UTC)
         for serial_number in self._final_devices:
             device_endpoint = devices_endpoints.get(serial_number, {})
             endpoint_device = self._final_devices[serial_number]
