@@ -24,15 +24,13 @@ dependencies = [
 "beautifulsoup4",
 "colorlog",
 "langcodes",
-"orjson",
-"yarl",
+"orjson"
 ]
 
 [project.urls]
 "Homepage" = "https://github.com/chemelli74/aioamazondevices"
 "Bug Tracker" = "https://github.com/chemelli74/aioamazondevices/issues"
 "Changelog" = "https://github.com/chemelli74/aioamazondevices/blob/main/CHANGELOG.md"
-
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4"
