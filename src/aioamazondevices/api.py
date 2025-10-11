@@ -929,7 +929,7 @@ class AmazonEchoApi:
         if delta_devices >= timedelta(days=1):
             _LOGGER.warning(
                 "Refreshing devices data after %s",
-                str(timedelta(minutes=delta_devices.total_seconds() / 60)),
+                str(timedelta(minutes=round(delta_devices.total_seconds() / 60))),
             )
             # Request base device data
             await self._get_base_devices()
@@ -939,7 +939,7 @@ class AmazonEchoApi:
         if delta_endpoints >= timedelta(minutes=30):
             _LOGGER.warning(
                 "Refreshing endpoint data after %s",
-                str(timedelta(minutes=delta_endpoints.total_seconds() / 60)),
+                str(timedelta(minutes=round(delta_endpoints.total_seconds() / 60))),
             )
             # Set device endpoint data
             await self._set_device_endpoints_data()
