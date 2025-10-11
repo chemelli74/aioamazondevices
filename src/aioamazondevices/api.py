@@ -927,7 +927,7 @@ class AmazonEchoApi:
         """Get Amazon devices data."""
         delta_devices = datetime.now(UTC) - self._last_devices_refresh
         if delta_devices >= timedelta(days=1):
-            _LOGGER.warning(
+            _LOGGER.debug(
                 "Refreshing devices data after %s",
                 str(timedelta(minutes=round(delta_devices.total_seconds() / 60))),
             )
@@ -937,7 +937,7 @@ class AmazonEchoApi:
 
         delta_endpoints = datetime.now(UTC) - self._last_endpoint_refresh
         if delta_endpoints >= timedelta(minutes=30):
-            _LOGGER.warning(
+            _LOGGER.debug(
                 "Refreshing endpoint data after %s",
                 str(timedelta(minutes=round(delta_endpoints.total_seconds() / 60))),
             )
