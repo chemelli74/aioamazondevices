@@ -926,15 +926,11 @@ class AmazonEchoApi:
         self,
     ) -> dict[str, AmazonDevice]:
         """Get Amazon devices data."""
-        if not self._final_devices or (
-            datetime.now(UTC) - self._last_devices_refresh >= timedelta(days=1)
-        ):
+        if datetime.now(UTC) - self._last_devices_refresh >= timedelta(days=1):
             # Request base device data
             await self._get_base_devices()
 
-        if not self._endpoints or (
-            datetime.now(UTC) - self._last_endpoint_refresh >= timedelta(minutes=30)
-        ):
+        if datetime.now(UTC) - self._last_endpoint_refresh >= timedelta(minutes=30):
             # Set device endpoint data
             await self._set_device_endpoints_data()
 
