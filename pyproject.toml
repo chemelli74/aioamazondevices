@@ -24,7 +24,7 @@ dependencies = [
 "beautifulsoup4",
 "colorlog",
 "langcodes",
-"orjson"
+"orjson (>=3.10,<4)",
 ]
 
 [project.urls]
