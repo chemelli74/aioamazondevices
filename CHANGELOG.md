@@ -1,13 +1,30 @@
 # Changelog
 
+## v6.4.1 (2025-10-11)
+
+### Bug fixes
+
+- Refresh device and endpoints data ([`8dfe29c`](https://github.com/chemelli74/aioamazondevices/commit/8dfe29cbd9c50350a02507fc4e4e2b4d4fc28451))
+
+
+### Refactoring
+
+- File format ([`7774623`](https://github.com/chemelli74/aioamazondevices/commit/77746237d10e788db97f22d2f6b24f1c199227e7))
+- Small cleanup ([`62782af`](https://github.com/chemelli74/aioamazondevices/commit/62782affad8ae6d59040748c88357060dbfeadbd))
+
+
+### Build system
+
+- Fix semantic-release verbosity ([`24fc859`](https://github.com/chemelli74/aioamazondevices/commit/24fc8590f8f2b8917d2148216f1520f5c8846d6c))
+- Update syntax for semantic-release v10 ([`bb19533`](https://github.com/chemelli74/aioamazondevices/commit/bb195337d30691512a5d2cec9012224d13359611))
+
+
 ## v6.4.0 (2025-10-09)
 
 ### Features
 
 - Bump version ([`d4eeb51`](https://github.com/chemelli74/aioamazondevices/commit/d4eeb5126094d73138db810a7114bff9a4a0f9a1))
 
-
-## v6.3.0 (2025-10-09)
 
 ### Refactoring
 
