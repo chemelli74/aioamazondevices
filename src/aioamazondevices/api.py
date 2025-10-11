@@ -747,7 +747,6 @@ class AmazonEchoApi:
                 devices_endpoints[serial_number] = endpoint
                 self._endpoints[endpoint["endpointId"]] = serial_number
 
-        self._last_endpoint_refresh = datetime.now(UTC)
         return devices_endpoints
 
     async def _response_to_json(self, raw_resp: ClientResponse) -> dict[str, Any]:
@@ -926,13 +925,19 @@ class AmazonEchoApi:
         self,
     ) -> dict[str, AmazonDevice]:
         """Get Amazon devices data."""
-        if datetime.now(UTC) - self._last_devices_refresh >= timedelta(days=1):
+        delta_devices = datetime.now(UTC) - self._last_devices_refresh
+        if delta_devices >= timedelta(days=1):
+            _LOGGER.warning("Refreshing devices data after %s", str(delta_devices))
             # Request base device data
             await self._get_base_devices()
+            self._last_devices_refresh = datetime.now(UTC)
 
-        if datetime.now(UTC) - self._last_endpoint_refresh >= timedelta(minutes=30):
+        delta_endpoints = datetime.now(UTC) - self._last_endpoint_refresh
+        if delta_endpoints >= timedelta(minutes=30):
+            _LOGGER.warning("Refreshing endpoint data after %s", str(delta_endpoints))
             # Set device endpoint data
             await self._set_device_endpoints_data()
+            self._last_endpoint_refresh = datetime.now(UTC)
 
         await self._get_sensor_data()
 
@@ -1024,7 +1029,6 @@ class AmazonEchoApi:
         )
 
         self._final_devices = final_devices_list
-        self._last_devices_refresh = datetime.now(UTC)
 
     async def auth_check_status(self) -> bool:
         """Check AUTH status."""
