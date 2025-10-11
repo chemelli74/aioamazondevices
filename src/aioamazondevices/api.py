@@ -927,14 +927,20 @@ class AmazonEchoApi:
         """Get Amazon devices data."""
         delta_devices = datetime.now(UTC) - self._last_devices_refresh
         if delta_devices >= timedelta(days=1):
-            _LOGGER.warning("Refreshing devices data after %s", str(delta_devices))
+            _LOGGER.warning(
+                "Refreshing devices data after %s",
+                str(timedelta(minutes=delta_devices.total_seconds() / 60)),
+            )
             # Request base device data
             await self._get_base_devices()
             self._last_devices_refresh = datetime.now(UTC)
 
         delta_endpoints = datetime.now(UTC) - self._last_endpoint_refresh
         if delta_endpoints >= timedelta(minutes=30):
-            _LOGGER.warning("Refreshing endpoint data after %s", str(delta_endpoints))
+            _LOGGER.warning(
+                "Refreshing endpoint data after %s",
+                str(timedelta(minutes=delta_endpoints.total_seconds() / 60)),
+            )
             # Set device endpoint data
             await self._set_device_endpoints_data()
             self._last_endpoint_refresh = datetime.now(UTC)
