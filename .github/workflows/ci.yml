@@ -101,7 +101,7 @@ jobs:
         id: release
         if: github.ref_name == 'main'
         with:
-          verbosity: "vv"
+          verbosity: 2 # equivalent to "-vv"
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish package distributions to PyPI
