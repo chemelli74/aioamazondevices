@@ -459,4 +459,9 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Life P66970",
         "hw_version": "A16",
     },
+    "AU3ZY84EWI70R": {
+        "manufacturer": "Medion",
+        "model": "Life P61142",
+        "hw_version": "A16",
+    },
 }
