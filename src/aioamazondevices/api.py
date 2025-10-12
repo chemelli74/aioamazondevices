@@ -667,7 +667,8 @@ class AmazonEchoApi:
                 value: str | int | float = "n/a"
                 scale: str | None = None
 
-                api_error = feature_property.get("error", {})
+                # "error" can be None, missing, or a dict
+                api_error = feature_property.get("error") or {}
                 error = bool(api_error)
                 error_type = api_error.get("type")
                 error_msg = api_error.get("message")
