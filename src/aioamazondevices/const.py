@@ -87,6 +87,27 @@ SENSORS: dict[str, dict[str, str | None]] = {
         "scale": None,
     },
 }
+
+ALEXA_INFO_SKILLS = [
+    "Alexa.Calendar.PlayToday",
+    "Alexa.Calendar.PlayTomorrow",
+    "Alexa.Calendar.PlayNext",
+    "Alexa.Date.Play",
+    "Alexa.Time.Play",
+    "Alexa.News.NationalNews",
+    "Alexa.FlashBriefing.Play",
+    "Alexa.Traffic.Play",
+    "Alexa.Weather.Play",
+    "Alexa.CleanUp.Play",
+    "Alexa.GoodMorning.Play",
+    "Alexa.SingASong.Play",
+    "Alexa.FunFact.Play",
+    "Alexa.Joke.Play",
+    "Alexa.TellStory.Play",
+    "Alexa.ImHome.Play",
+    "Alexa.GoodNight.Play",
+]
+
 DEVICE_TO_IGNORE: list[str] = [
     AMAZON_DEVICE_TYPE,  # Alexa App for iOS
     "A2TF17PFR55MTB",  # Alexa App for Android
@@ -433,24 +454,9 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Onelink Smoke + Carbon Monoxide Alarm",
         "hw_version": None,
     },
+    "A1ZOM3H3U20BL8": {
+        "manufacturer": "Medion",
+        "model": "Life P66970",
+        "hw_version": "A16",
+    },
 }
-
-ALEXA_INFO_SKILLS = [
-    "Alexa.Calendar.PlayToday",
-    "Alexa.Calendar.PlayTomorrow",
-    "Alexa.Calendar.PlayNext",
-    "Alexa.Date.Play",
-    "Alexa.Time.Play",
-    "Alexa.News.NationalNews",
-    "Alexa.FlashBriefing.Play",
-    "Alexa.Traffic.Play",
-    "Alexa.Weather.Play",
-    "Alexa.CleanUp.Play",
-    "Alexa.GoodMorning.Play",
-    "Alexa.SingASong.Play",
-    "Alexa.FunFact.Play",
-    "Alexa.Joke.Play",
-    "Alexa.TellStory.Play",
-    "Alexa.ImHome.Play",
-    "Alexa.GoodNight.Play",
-]
