@@ -129,7 +129,7 @@ DEVICE_TO_IGNORE: list[str] = [
     "AYHO3NTIQQ04G",  # Nextbase 622GW Dash Cam - issue #477
     "AHL4H6CKH3AUP",  # BMW Car System - issue #478
     "A3BW5ZVFHRCQPO",  # BMW Mini Car System - issue #479
-    "A1M0A9L9HDBID3",  # Sony Soundbar Sony HT-A5000 - issue #486
+    "A133UZ2CB0IB8",  # Sony Soundbar Sony HT-A5000 - issue #486
     "A2M9HB23M9MSSM",  # Smartwatch Amazfit Bip U Pro - issue #507
     "A1P7E7V3FCZKU6",  # Toshiba Corporation TV 32LF221U19 - issue #531
 ]
