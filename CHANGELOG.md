@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.4.2 (2025-10-12)
+
+### Bug fixes
+
+- Sporadic error nonetype ([`0451aff`](https://github.com/chemelli74/aioamazondevices/commit/0451aff758eb0fdcdf38a6f46307d936eef29541))
+
+
 ## v6.4.1 (2025-10-11)
 
 ### Bug fixes
