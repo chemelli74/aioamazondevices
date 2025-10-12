@@ -87,6 +87,27 @@ SENSORS: dict[str, dict[str, str | None]] = {
         "scale": None,
     },
 }
+
+ALEXA_INFO_SKILLS = [
+    "Alexa.Calendar.PlayToday",
+    "Alexa.Calendar.PlayTomorrow",
+    "Alexa.Calendar.PlayNext",
+    "Alexa.Date.Play",
+    "Alexa.Time.Play",
+    "Alexa.News.NationalNews",
+    "Alexa.FlashBriefing.Play",
+    "Alexa.Traffic.Play",
+    "Alexa.Weather.Play",
+    "Alexa.CleanUp.Play",
+    "Alexa.GoodMorning.Play",
+    "Alexa.SingASong.Play",
+    "Alexa.FunFact.Play",
+    "Alexa.Joke.Play",
+    "Alexa.TellStory.Play",
+    "Alexa.ImHome.Play",
+    "Alexa.GoodNight.Play",
+]
+
 DEVICE_TO_IGNORE: list[str] = [
     AMAZON_DEVICE_TYPE,  # Alexa App for iOS
     "A2TF17PFR55MTB",  # Alexa App for Android
@@ -108,7 +129,9 @@ DEVICE_TO_IGNORE: list[str] = [
     "AYHO3NTIQQ04G",  # Nextbase 622GW Dash Cam - issue #477
     "AHL4H6CKH3AUP",  # BMW Car System - issue #478
     "A3BW5ZVFHRCQPO",  # BMW Mini Car System - issue #479
-    "A1M0A9L9HDBID3",  # Sony Soundbar Sony HT-A5000 - issue #486
+    "A133UZ2CB0IB8",  # Sony Soundbar Sony HT-A5000 - issue #486
+    "A2M9HB23M9MSSM",  # Smartwatch Amazfit Bip U Pro - issue #507
+    "A1P7E7V3FCZKU6",  # Toshiba Corporation TV 32LF221U19 - issue #531
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
@@ -139,6 +162,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A1EIANJ7PNB0Q7": {
         "model": "Echo Show 15",
         "hw_version": "Gen1",
+    },
+    "A1M0A9L9HDBID3": {
+        "manufacturer": "First Alert",
+        "model": "Onelink Smoke + Carbon Monoxide Alarm",
+        "hw_version": None,
     },
     "A1NL4BVLQ4L3N3": {
         "model": "Echo Show",
@@ -185,6 +213,15 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "A1Z88NGR2BK6A2": {
         "model": "Echo Show 8",
         "hw_version": "Gen1",
+    },
+    "A1ZOM3H3U20BL8": {
+        "manufacturer": "Medion",
+        "model": "Life P66970",
+        "hw_version": "A16",
+    },
+    "A25521KS9QCAMD": {
+        "model": "Fire Tablet HD 7",
+        "hw_version": "Gen4",
     },
     "A265XOI9586NML": {
         "model": "Fire TV Stick with Alexa Voice Remote",
@@ -361,6 +398,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo",
         "hw_version": "Gen2",
     },
+    "AD2YUJTRVBNOF": {
+        "manufacturer": "Sony Group Corporation",
+        "model": "HT-Z9F",
+        "hw_version": None,
+    },
     "ADMKNMEVNL158": {
         "model": "Echo Hub",
         "hw_version": "Gen1",
@@ -406,6 +448,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Fire Tablet HD 10",
         "hw_version": "Gen11",
     },
+    "AU3ZY84EWI70R": {
+        "manufacturer": "Medion",
+        "model": "Life P61142",
+        "hw_version": "A16",
+    },
     "AUPUQSVCVHXP0": {
         "manufacturer": "ecobee Inc.",
         "model": "ecobee Switch+",
@@ -428,29 +475,4 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Plus",
         "hw_version": "Gen2",
     },
-    "A1M0A9L9HDBID3": {
-        "manufacturer": "First Alert",
-        "model": "Onelink Smoke + Carbon Monoxide Alarm",
-        "hw_version": None,
-    },
 }
-
-ALEXA_INFO_SKILLS = [
-    "Alexa.Calendar.PlayToday",
-    "Alexa.Calendar.PlayTomorrow",
-    "Alexa.Calendar.PlayNext",
-    "Alexa.Date.Play",
-    "Alexa.Time.Play",
-    "Alexa.News.NationalNews",
-    "Alexa.FlashBriefing.Play",
-    "Alexa.Traffic.Play",
-    "Alexa.Weather.Play",
-    "Alexa.CleanUp.Play",
-    "Alexa.GoodMorning.Play",
-    "Alexa.SingASong.Play",
-    "Alexa.FunFact.Play",
-    "Alexa.Joke.Play",
-    "Alexa.TellStory.Play",
-    "Alexa.ImHome.Play",
-    "Alexa.GoodNight.Play",
-]
