@@ -25,6 +25,7 @@ dependencies = [
 "colorlog",
 "langcodes",
 "orjson (>=3.10,<4)",
+"python-dateutil",
 ]
 
 [project.urls]
