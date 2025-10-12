@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.4.3 (2025-10-12)
+
+### Bug fixes
+
+- Add more models ([`973eebe`](https://github.com/chemelli74/aioamazondevices/commit/973eebeb44191c81724fafde6962751ad393ad97))
+
+
 ## v6.4.2 (2025-10-12)
 
 ### Bug fixes
