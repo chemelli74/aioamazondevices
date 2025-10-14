@@ -763,29 +763,7 @@ class AmazonEchoApi:
         except orjson.JSONDecodeError as exc:
             raise ValueError("Response with corrupted JSON format") from exc
 
-    async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
-        """Login to Amazon interactively via OTP."""
-        _LOGGER.debug(
-            "Logging-in for %s [otp code: %s]",
-            obfuscate_email(self._login_email),
-            bool(otp_code),
-        )
-
-        device_login_data = await self._login_mode_interactive_oauth(otp_code)
-
-        login_data = await self._register_device(device_login_data)
-        self._login_stored_data = login_data
-
-        await self._domain_refresh_auth_cookies()
-
-        self._login_stored_data.update({"site": f"https://www.amazon.{self._domain}"})
-        await self._save_to_file(self._login_stored_data, "login_data", JSON_EXTENSION)
-
-        return self._login_stored_data
-
-    async def _login_mode_interactive_oauth(
-        self, otp_code: str
-    ) -> dict[str, str | bytes]:
+    async def login_mode_interactive_oauth(self) -> BeautifulSoup:
         """Login interactive via oauth URL."""
         code_verifier = self._create_code_verifier()
         client_id = self._build_client_id()
@@ -814,6 +792,13 @@ class AmazonEchoApi:
             )
             raise CannotAuthenticate("MFA OTP code not found on login page")
 
+        return login_soup
+
+    async def login_mode_interactive_with_otp(
+        self, login_soup: BeautifulSoup, otp_code: str
+    ) -> dict[str, Any]:
+        """Login to Amazon interactively with OTP code."""
+        code_verifier = self._create_code_verifier()
         login_method, login_url = self._get_request_from_soup(login_soup)
 
         login_inputs = self._get_inputs_from_soup(login_soup)
@@ -831,11 +816,20 @@ class AmazonEchoApi:
         authcode = self._extract_code_from_url(login_resp.url)
         _LOGGER.debug("Login extracted authcode: %s", authcode)
 
-        return {
-            "authorization_code": authcode,
-            "code_verifier": code_verifier,
-            "domain": self._domain,
-        }
+        self._login_stored_data = await self._register_device(
+            {
+                "authorization_code": authcode,
+                "code_verifier": code_verifier,
+                "domain": self._domain,
+            }
+        )
+
+        await self._domain_refresh_auth_cookies()
+
+        self._login_stored_data.update({"site": f"https://www.amazon.{self._domain}"})
+        await self._save_to_file(self._login_stored_data, "login_data", JSON_EXTENSION)
+
+        return self._login_stored_data
 
     async def login_mode_stored_data(self) -> dict[str, Any]:
         """Login to Amazon using previously stored data."""
