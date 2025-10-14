@@ -781,6 +781,10 @@ class AmazonEchoApi:
         self._login_stored_data.update({"site": f"https://www.amazon.{self._domain}"})
         await self._save_to_file(self._login_stored_data, "login_data", JSON_EXTENSION)
 
+        # Can take a little while to register device but we need it
+        # to be able to pickout account customer ID
+        await asyncio.sleep(2)
+
         return self._login_stored_data
 
     async def _login_mode_interactive_oauth(
