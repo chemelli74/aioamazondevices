@@ -8,15 +8,7 @@
       "program": "library_test.py",
       "args": ["-cf", "library_test.json"],
       "console": "integratedTerminal",
-      "justMyCode": false
-    },
-    {
-      "name": "Python: Current file",
-      "type": "debugpy",
-      "request": "launch",
-      "program": "${file}",
-      "console": "integratedTerminal",
-      "justMyCode": false
+      "justMyCode": true
     }
   ]
 }
