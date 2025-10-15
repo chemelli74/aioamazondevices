@@ -1,5 +1,18 @@
 # Changelog
 
+## v6.4.4 (2025-10-15)
+
+### Bug fixes
+
+- Account owner customer id not detected ([`ff73ce0`](https://github.com/chemelli74/aioamazondevices/commit/ff73ce006196d24d23cc75a1ea5342dd2737fcca))
+
+
+### Build system
+
+- Bump browniebroke/hacktoberfest-labeler-action from 2.4.2 to 2.6.0 ([`de41cb9`](https://github.com/chemelli74/aioamazondevices/commit/de41cb9c64993053b422859049807fbbd430d886))
+- Fix checkout for pr from forks ([`9384068`](https://github.com/chemelli74/aioamazondevices/commit/938406867727e8a7a997856e84b20170b070097c))
+
+
 ## v6.4.3 (2025-10-12)
 
 ### Bug fixes
