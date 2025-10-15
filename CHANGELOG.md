@@ -1,5 +1,107 @@
 # Changelog
 
+## v6.4.4 (2025-10-15)
+
+### Bug fixes
+
+- Account owner customer id not detected ([`ff73ce0`](https://github.com/chemelli74/aioamazondevices/commit/ff73ce006196d24d23cc75a1ea5342dd2737fcca))
+
+
+### Build system
+
+- Bump browniebroke/hacktoberfest-labeler-action from 2.4.2 to 2.6.0 ([`de41cb9`](https://github.com/chemelli74/aioamazondevices/commit/de41cb9c64993053b422859049807fbbd430d886))
+- Fix checkout for pr from forks ([`9384068`](https://github.com/chemelli74/aioamazondevices/commit/938406867727e8a7a997856e84b20170b070097c))
+
+
+## v6.4.3 (2025-10-12)
+
+### Bug fixes
+
+- Add more models ([`973eebe`](https://github.com/chemelli74/aioamazondevices/commit/973eebeb44191c81724fafde6962751ad393ad97))
+
+
+## v6.4.2 (2025-10-12)
+
+### Bug fixes
+
+- Sporadic error nonetype ([`0451aff`](https://github.com/chemelli74/aioamazondevices/commit/0451aff758eb0fdcdf38a6f46307d936eef29541))
+
+
+## v6.4.1 (2025-10-11)
+
+### Bug fixes
+
+- Refresh device and endpoints data ([`8dfe29c`](https://github.com/chemelli74/aioamazondevices/commit/8dfe29cbd9c50350a02507fc4e4e2b4d4fc28451))
+
+
+### Refactoring
+
+- File format ([`7774623`](https://github.com/chemelli74/aioamazondevices/commit/77746237d10e788db97f22d2f6b24f1c199227e7))
+- Small cleanup ([`62782af`](https://github.com/chemelli74/aioamazondevices/commit/62782affad8ae6d59040748c88357060dbfeadbd))
+
+
+### Build system
+
+- Fix semantic-release verbosity ([`24fc859`](https://github.com/chemelli74/aioamazondevices/commit/24fc8590f8f2b8917d2148216f1520f5c8846d6c))
+- Update syntax for semantic-release v10 ([`bb19533`](https://github.com/chemelli74/aioamazondevices/commit/bb195337d30691512a5d2cec9012224d13359611))
+
+
+## v6.4.0 (2025-10-09)
+
+### Features
+
+- Bump version ([`d4eeb51`](https://github.com/chemelli74/aioamazondevices/commit/d4eeb5126094d73138db810a7114bff9a4a0f9a1))
+
+
+### Refactoring
+
+- Update only dynamic data ([`26d1ebc`](https://github.com/chemelli74/aioamazondevices/commit/26d1ebcb9c33592c5200a12a3bc4c1abd591e965))
+
+
+### Build system
+
+- Bump browniebroke/hacktoberfest-labeler-action from 2.4.0 to 2.4.2 ([`b14db2c`](https://github.com/chemelli74/aioamazondevices/commit/b14db2c43b394135933dc03c83f4dfd230dd0e7f))
+
+
+## v6.2.9 (2025-10-05)
+
+### Bug fixes
+
+- Improve owner id retrieval logic ([`d1a5e42`](https://github.com/chemelli74/aioamazondevices/commit/d1a5e4281d33eb15d500b7d57a4ccc0b480eef82))
+
+
+## v6.2.8 (2025-10-03)
+
+### Bug fixes
+
+- Improve sensor error handling ([`b4cef6a`](https://github.com/chemelli74/aioamazondevices/commit/b4cef6ae30b3dc5672b9a72ecf7b6eb9f155bd10))
+
+
+### Build system
+
+- Bump browniebroke/hacktoberfest-labeler-action from 2.3.0 to 2.4.0 ([`eb49c3e`](https://github.com/chemelli74/aioamazondevices/commit/eb49c3e615e24ad1a03b406ad9cdff5b2ce1e53b))
+- Bump tiangolo/issue-manager from 0.5.1 to 0.6.0 ([`90ef8b9`](https://github.com/chemelli74/aioamazondevices/commit/90ef8b948544c0fb7267917789cfccfbe8b51493))
+
+
+## v6.2.7 (2025-09-29)
+
+### Bug fixes
+
+- Household devices ([`91c9988`](https://github.com/chemelli74/aioamazondevices/commit/91c99889b14482435c73253f3c74bded62a871ca))
+
+
+### Refactoring
+
+- Cleanup and optimize ([`1ab907d`](https://github.com/chemelli74/aioamazondevices/commit/1ab907d12c68a13c18bdcb7ed2ed218ba3dceb57))
+
+
+## v6.2.6 (2025-09-19)
+
+### Bug fixes
+
+- Correct source of sensor error flag ([`115eaf6`](https://github.com/chemelli74/aioamazondevices/commit/115eaf65c0c907804c1261b280c406852dc768ab))
+
+
 ## v6.2.5 (2025-09-17)
 
 ### Bug fixes
