@@ -274,6 +274,24 @@ async def main() -> None:
 
     await wait_action_complete(15)
 
+    print(f"Pausing track on {device_single.account_name}")
+    await api.media_pause(device_single)
+    await wait_action_complete(8)
+
+    print(f"Play track on {device_single.account_name}")
+    await api.media_play(device_single)
+    await wait_action_complete()
+
+    print(f"Skipping to next track on {device_single.account_name}")
+    await api.media_next(device_single)
+    await wait_action_complete(15)
+
+    await wait_action_complete()
+
+    music = "taylor swift"
+    print(f"Playing {music} from {source} on {device_single.account_name}")
+    await api.call_alexa_music(device_single, music, source)
+
     print(f"Text command on {device_single.account_name}")
     await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
 
