@@ -793,7 +793,11 @@ class AmazonEchoApi:
         for schedule in notifications["notifications"]:
             schedule_type: str = schedule["type"]
             schedule_device_serial = schedule["deviceSerialNumber"]
-            label_desc = schedule_type.lower() + "Label"
+            if schedule_type in NOTIFICATION_ALARM:
+                label_desc = "alarmLabel"
+                schedule_type = "Alarm"
+            else:
+                label_desc = schedule_type.lower() + "Label"
             if (schedule_status := schedule["status"]) == "ON" and (
                 next_occurrence := await self._parse_next_occurence(schedule)
             ):
@@ -848,7 +852,7 @@ class AmazonEchoApi:
         original_time = schedule.get("originalTime")
 
         recurring_rule: str | None = schedule.get("recurringRule")
-        if "rRuleData" in schedule:
+        if schedule.get("rRuleData"):
             recurring_rule = schedule["rRuleData"]["recurrenceRules"][0]
 
         # Recurring events
@@ -884,7 +888,7 @@ class AmazonEchoApi:
             )
 
         # Single events
-        if schedule["type"] == NOTIFICATION_ALARM:
+        if schedule["type"] in NOTIFICATION_ALARM:
             timestamp = parse(f"{original_date} {original_time}").replace(tzinfo=tzinfo)
 
         elif schedule["type"] == NOTIFICATION_TIMER:
