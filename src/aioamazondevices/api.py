@@ -23,7 +23,7 @@ from aiohttp import (
     ContentTypeError,
 )
 from bs4 import BeautifulSoup, Tag
-from dateutil.parser import parse
+from dateutil.parser import ParserError, parse
 from dateutil.rrule import rrulestr
 from langcodes import Language, standardize_tag
 from multidict import MultiDictProxy
@@ -851,26 +851,18 @@ class AmazonEchoApi:
         original_date = schedule.get("originalDate")
         original_time = schedule.get("originalTime")
 
-        recurring_rule: str | None = schedule.get("recurringRule")
+        recurring_rules: list[str] = []
+        recurring_rule = schedule.get("recurringRule")
+        if recurring_rule and isinstance(recurring_rule, str):
+            recurring_rules.append(recurring_rule)
         if schedule.get("rRuleData"):
-            recurring_rule = schedule["rRuleData"]["recurrenceRules"][0]
+            recurring_rules.extend(
+                list(schedule["rRuleData"].get("recurrenceRules", []))
+            )
 
         # Recurring events
-        if recurring_rule:
-            # Already in RFC5545 format
-            if "FREQ=" in recurring_rule:
-                return cast(
-                    "datetime",
-                    rrulestr(
-                        recurring_rule.removesuffix(";"), dtstart=today_midnight
-                    ).after(now_reference, True),
-                )
-
-            if recurring_rule not in RECURRING_PATTERNS:
-                _LOGGER.warning(
-                    "Unknown recurring rule: %s", scrub_fields(recurring_rule)
-                )
-                return None
+        if recurring_rules:
+            next_candidates: list[datetime] = []
 
             # Adjust recurring rules for country specific weekend exceptions
             recurring_pattern = RECURRING_PATTERNS.copy()
@@ -879,13 +871,41 @@ class AmazonEchoApi:
                     recurring_pattern |= WEEKEND_EXCEPTIONS[group]
                     break
 
-            # Return the earliest next date
-            return cast(
-                "datetime",
-                rrulestr(
+            for recurring_rule in recurring_rules:
+                # Already in RFC5545 format
+                if "FREQ=" in recurring_rule:
+                    try:
+                        dtstart = parse(f"{original_date} {original_time}").replace(
+                            tzinfo=tzinfo
+                        )
+                    except ParserError:
+                        # Fallback for missing values or parse errors
+                        dtstart = today_midnight
+
+                    occ = rrulestr(
+                        recurring_rule.removesuffix(";"),
+                        dtstart=dtstart,
+                    ).after(now_reference, True)
+                    next_candidates.append(occ)
+                    continue
+
+                if recurring_rule not in recurring_pattern:
+                    _LOGGER.warning(
+                        "Unknown recurring rule: %s", scrub_fields(recurring_rule)
+                    )
+                    continue
+
+                occ = rrulestr(
                     recurring_pattern[recurring_rule], dtstart=today_midnight
-                ).after(now_reference, True),
-            )
+                ).after(now_reference, True)
+                if occ is not None:
+                    next_candidates.append(occ)
+
+            if not next_candidates:
+                return None
+
+            # Return the earliest next date
+            return min(next_candidates)
 
         # Single events
         if schedule["type"] in NOTIFICATION_ALARM:
