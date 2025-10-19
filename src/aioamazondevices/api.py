@@ -64,6 +64,7 @@ from .const import (
     URI_DEVICES,
     URI_DND,
     URI_NEXUS_GRAPHQL,
+    URI_NOTIFICATIONS,
     URI_SIGNIN,
     WEEKEND_EXCEPTIONS,
 )
@@ -791,7 +792,8 @@ class AmazonEchoApi:
         final_notifications: dict[str, dict[str, AmazonSchedule]] = {}
 
         _, raw_resp = await self._session_request(
-            HTTPMethod.GET, url=f"https://alexa.amazon.{self._domain}/api/notifications"
+            HTTPMethod.GET,
+            url=f"https://alexa.amazon.{self._domain}{URI_NOTIFICATIONS}",
         )
         notifications = await self._response_to_json(raw_resp)
         for schedule in notifications["notifications"]:
