@@ -52,6 +52,7 @@ from .const import (
     HTTP_ERROR_299,
     JSON_EXTENSION,
     NOTIFICATION_ALARM,
+    NOTIFICATION_MUSIC_ALARM,
     NOTIFICATION_REMINDER,
     NOTIFICATION_TIMER,
     RECURRING_PATTERNS,
@@ -793,6 +794,9 @@ class AmazonEchoApi:
         for schedule in notifications["notifications"]:
             schedule_type: str = schedule["type"]
             schedule_device_serial = schedule["deviceSerialNumber"]
+            if schedule_type == NOTIFICATION_MUSIC_ALARM:
+                # Structure is the same as standard Alarm
+                schedule_type = NOTIFICATION_ALARM
             label_desc = schedule_type.lower() + "Label"
             if (schedule_status := schedule["status"]) == "ON" and (
                 next_occurrence := await self._parse_next_occurence(schedule)
@@ -847,41 +851,55 @@ class AmazonEchoApi:
         original_date = schedule.get("originalDate")
         original_time = schedule.get("originalTime")
 
-        recurring_rule: str | None = schedule.get("recurringRule")
+        recurring_rules: list | None = [schedule.get("recurringRule")]
         if "rRuleData" in schedule:
-            recurring_rule = schedule["rRuleData"]["recurrenceRules"][0]
+            recurring_rules = schedule["rRuleData"]["recurrenceRules"]
 
         # Recurring events
-        if recurring_rule:
-            # Already in RFC5545 format
-            if "FREQ=" in recurring_rule:
-                return cast(
-                    "datetime",
+        if recurring_rules:
+            next_candidates: list[datetime] = []
+            for recurring_rule in recurring_rules:
+                # Already in RFC5545 format
+                if "FREQ=" in recurring_rule:
+                    rule = recurring_rule
+
+                    if original_time:
+                        # Add missing BYHOUR, BYMINUTE if needed (Alarms only)
+                        if "BYHOUR=" not in recurring_rule:
+                            hour = int(original_time.split(":")[0])
+                            rule += f";BYHOUR={hour}"
+                        if "BYMINUTE=" not in recurring_rule:
+                            minute = int(original_time.split(":")[1])
+                            rule += f";BYMINUTE={minute}"
+
+                    return cast(
+                        "datetime",
+                        rrulestr(rule.removesuffix(";"), dtstart=today_midnight).after(
+                            now_reference, True
+                        ),
+                    )
+
+                if recurring_rule not in RECURRING_PATTERNS:
+                    _LOGGER.warning(
+                        "Unknown recurring rule: %s", scrub_fields(recurring_rule)
+                    )
+                    return None
+
+                # Adjust recurring rules for country specific weekend exceptions
+                recurring_pattern = RECURRING_PATTERNS.copy()
+                for group, countries in COUNTRY_GROUPS.items():
+                    if self._country_code in countries:
+                        recurring_pattern |= WEEKEND_EXCEPTIONS[group]
+                        break
+
+                # Add date to candidates list
+                next_candidates.append(
                     rrulestr(
-                        recurring_rule.removesuffix(";"), dtstart=today_midnight
+                        recurring_pattern[recurring_rule], dtstart=today_midnight
                     ).after(now_reference, True),
                 )
 
-            if recurring_rule not in RECURRING_PATTERNS:
-                _LOGGER.warning(
-                    "Unknown recurring rule: %s", scrub_fields(recurring_rule)
-                )
-                return None
-
-            # Adjust recurring rules for country specific weekend exceptions
-            recurring_pattern = RECURRING_PATTERNS.copy()
-            for group, countries in COUNTRY_GROUPS.items():
-                if self._country_code in countries:
-                    recurring_pattern |= WEEKEND_EXCEPTIONS[group]
-                    break
-
-            # Return the earliest next date
-            return cast(
-                "datetime",
-                rrulestr(
-                    recurring_pattern[recurring_rule], dtstart=today_midnight
-                ).after(now_reference, True),
-            )
+            return min(next_candidates) if next_candidates else None
 
         # Single events
         if schedule["type"] == NOTIFICATION_ALARM:
