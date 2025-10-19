@@ -1113,6 +1113,7 @@ class AmazonEchoApi:
     async def _get_sensor_data(self) -> None:
         devices_sensors = await self._get_sensors_states()
         dnd_sensors = await self._get_dnd_status()
+        notifications = await self._get_notifications()
         for device in self._final_devices.values():
             # Update sensors
             sensors = devices_sensors.get(device.serial_number, {})
@@ -1123,6 +1124,7 @@ class AmazonEchoApi:
                     device_sensor.error = True
             if device_dnd := dnd_sensors.get(device.serial_number):
                 device.sensors["dnd"] = device_dnd
+            device.notifications = notifications.get(device.serial_number, {})
 
     async def _set_device_endpoints_data(self) -> None:
         devices_endpoints = await self._get_devices_endpoint_data()
@@ -1162,9 +1164,6 @@ class AmazonEchoApi:
 
         if not self._account_owner_customer_id:
             raise CannotRetrieveData("Cannot find account owner customer ID")
-        devices_notifications: dict[
-            str, dict[str, AmazonSchedule]
-        ] = await self._get_notifications()
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in json_data["devices"]:
@@ -1189,7 +1188,7 @@ class AmazonEchoApi:
                 entity_id=None,
                 endpoint_id=None,
                 sensors={},
-                notifications=devices_notifications.get(serial_number, {}),
+                notifications={},
             )
 
         self._list_for_clusters.update(
