@@ -852,7 +852,7 @@ class AmazonEchoApi:
         original_date = schedule.get("originalDate")
         original_time = schedule.get("originalTime")
 
-        recurring_rules: list[Any] = [schedule.get("recurringRule")]
+        recurring_rules: list[str] = []
         if schedule.get("rRuleData"):
             recurring_rules = schedule["rRuleData"]["recurrenceRules"]
 
