@@ -23,7 +23,7 @@ from aiohttp import (
     ContentTypeError,
 )
 from bs4 import BeautifulSoup, Tag
-from dateutil.parser import ParserError, parse
+from dateutil.parser import parse
 from dateutil.rrule import rrulestr
 from langcodes import Language, standardize_tag
 from multidict import MultiDictProxy
@@ -793,11 +793,10 @@ class AmazonEchoApi:
         for schedule in notifications["notifications"]:
             schedule_type: str = schedule["type"]
             schedule_device_serial = schedule["deviceSerialNumber"]
-            if schedule_type in NOTIFICATION_ALARM:
-                label_desc = "alarmLabel"
+            if schedule_type == "MusicAlarm":
+                # Force Alarm type
                 schedule_type = "Alarm"
-            else:
-                label_desc = schedule_type.lower() + "Label"
+            label_desc = schedule_type.lower() + "Label"
             if (schedule_status := schedule["status"]) == "ON" and (
                 next_occurrence := await self._parse_next_occurence(schedule)
             ):
@@ -849,16 +848,13 @@ class AmazonEchoApi:
 
         # Schedule data
         original_date = schedule.get("originalDate")
-        original_time = schedule.get("originalTime")
+        original_time = schedule.get("originalTime") or "00:00"
 
         recurring_rules: list[str] = []
-        recurring_rule = schedule.get("recurringRule")
-        if recurring_rule and isinstance(recurring_rule, str):
-            recurring_rules.append(recurring_rule)
-        if schedule.get("rRuleData"):
-            recurring_rules.extend(
-                list(schedule["rRuleData"].get("recurrenceRules", []))
-            )
+        if (rr := schedule.get("recurringRule")) and isinstance(rr, str):
+            recurring_rules.append(rr)
+        rrule_data = schedule.get("rRuleData") or {}
+        recurring_rules.extend(rrule_data.get("recurrenceRules", []) or [])
 
         # Recurring events
         if recurring_rules:
@@ -874,17 +870,17 @@ class AmazonEchoApi:
             for recurring_rule in recurring_rules:
                 # Already in RFC5545 format
                 if "FREQ=" in recurring_rule:
-                    try:
-                        dtstart = parse(f"{original_date} {original_time}").replace(
-                            tzinfo=tzinfo
+                    if "BYHOUR" not in recurring_rule:
+                        # Add hour/minute from original time
+                        hour_minute = original_time.split(":")
+                        rule = (
+                            recurring_rule
+                            + f";BYHOUR={hour_minute[0]}"
+                            + f";BYMINUTE={hour_minute[1]}"
                         )
-                    except ParserError:
-                        # Fallback for missing values or parse errors
-                        dtstart = today_midnight
-
                     occ = rrulestr(
-                        recurring_rule.removesuffix(";"),
-                        dtstart=dtstart,
+                        rule.removesuffix(";"),
+                        dtstart=today_midnight,
                     ).after(now_reference, True)
                     next_candidates.append(occ)
                     continue
@@ -908,7 +904,7 @@ class AmazonEchoApi:
             return min(next_candidates)
 
         # Single events
-        if schedule["type"] in NOTIFICATION_ALARM:
+        if schedule["type"] == NOTIFICATION_ALARM:
             timestamp = parse(f"{original_date} {original_time}").replace(tzinfo=tzinfo)
 
         elif schedule["type"] == NOTIFICATION_TIMER:
