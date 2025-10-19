@@ -797,6 +797,7 @@ class AmazonEchoApi:
             if schedule_type == NOTIFICATION_MUSIC_ALARM:
                 # Structure is the same as standard Alarm
                 schedule_type = NOTIFICATION_ALARM
+                schedule["type"] = NOTIFICATION_ALARM
             label_desc = schedule_type.lower() + "Label"
             if (schedule_status := schedule["status"]) == "ON" and (
                 next_occurrence := await self._parse_next_occurence(schedule)
@@ -872,12 +873,13 @@ class AmazonEchoApi:
                             minute = int(original_time.split(":")[1])
                             rule += f";BYMINUTE={minute}"
 
-                    return cast(
-                        "datetime",
+                    # Add date to candidates list
+                    next_candidates.append(
                         rrulestr(rule.removesuffix(";"), dtstart=today_midnight).after(
                             now_reference, True
                         ),
                     )
+                    continue
 
                 if recurring_rule not in RECURRING_PATTERNS:
                     _LOGGER.warning(
