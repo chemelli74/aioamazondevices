@@ -969,7 +969,7 @@ class AmazonEchoApi:
             if device_dnd := dnd_sensors.get(device.serial_number):
                 device.sensors["dnd"] = device_dnd
 
-    async def _set_device_endpoints_data(self) -> bool:
+    async def _set_device_endpoints_data(self) -> None:
         """Set device endpoint data."""
         devices_endpoints = await self._get_devices_endpoint_data()
         for serial_number in self._final_devices:
@@ -983,7 +983,6 @@ class AmazonEchoApi:
             endpoint_device.endpoint_id = (
                 device_endpoint["endpointId"] if device_endpoint else None
             )
-        return True
 
     async def _get_base_devices(self) -> None:
         _, raw_resp = await self._session_request(
