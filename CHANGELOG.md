@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.4.6 (2025-10-20)
+
+### Bug fixes
+
+- Refresh endpoints only if missing ([`aed8630`](https://github.com/chemelli74/aioamazondevices/commit/aed86307a31e30094bd2b54adc5b563ad7f09e9b))
+
+
 ## v6.4.5 (2025-10-20)
 
 ### Bug fixes
