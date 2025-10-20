@@ -1281,7 +1281,7 @@ class AmazonEchoApi:
         device: AmazonDevice,
         message_body: str,
     ) -> None:
-        """Call Alexa.Sound to play sound."""
+        """Call Alexa.TextCommand to issue command."""
         await self._queue_sequence(device, AmazonSequenceType.TextCommand, message_body)
 
     async def call_alexa_skill(
