@@ -943,8 +943,13 @@ class AmazonEchoApi:
             await self._get_base_devices()
             self._last_devices_refresh = datetime.now(UTC)
 
+        # Only refresh endpoint data if we have no endpoints yet
         delta_endpoints = datetime.now(UTC) - self._last_endpoint_refresh
-        if delta_endpoints >= timedelta(minutes=30):
+        endpoint_refresh_needed = delta_endpoints >= timedelta(days=1)
+        endpoints_recently_checked = delta_endpoints < timedelta(minutes=30)
+        if (
+            not self._endpoints and not endpoints_recently_checked
+        ) or endpoint_refresh_needed:
             _LOGGER.debug(
                 "Refreshing endpoint data after %s",
                 str(timedelta(minutes=round(delta_endpoints.total_seconds() / 60))),
@@ -972,6 +977,7 @@ class AmazonEchoApi:
                 device.sensors["dnd"] = device_dnd
 
     async def _set_device_endpoints_data(self) -> None:
+        """Set device endpoint data."""
         devices_endpoints = await self._get_devices_endpoint_data()
         for serial_number in self._final_devices:
             device_endpoint = devices_endpoints.get(serial_number, {})
