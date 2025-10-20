@@ -50,6 +50,7 @@ from .const import (
     JSON_EXTENSION,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
+    REQUEST_AGENT,
     SAVE_PATH,
     SENSORS,
     URI_DEVICES,
@@ -347,6 +348,7 @@ class AmazonEchoApi:
         url: str,
         input_data: dict[str, Any] | list[dict[str, Any]] | None = None,
         json_data: bool = False,
+        agent: str = "Amazon",
     ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
@@ -358,6 +360,7 @@ class AmazonEchoApi:
         )
 
         headers = DEFAULT_HEADERS.copy()
+        headers.update({"User-Agent": REQUEST_AGENT[agent]})
         headers.update({"Accept-Language": self._language})
 
         if self._csrf_cookie:
@@ -1046,6 +1049,7 @@ class AmazonEchoApi:
         _, raw_resp = await self._session_request(
             method=HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._domain}/api/bootstrap?version=0",
+            agent="Browser",
         )
         if raw_resp.status != HTTPStatus.OK:
             _LOGGER.debug(
