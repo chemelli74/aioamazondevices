@@ -942,7 +942,11 @@ class AmazonEchoApi:
 
         # Only refresh endpoint data if we have no endpoints yet
         delta_endpoints = datetime.now(UTC) - self._last_endpoint_refresh
-        if not self._endpoints and delta_endpoints >= timedelta(minutes=30):
+        endpoint_refresh_needed = delta_endpoints >= timedelta(days=1)
+        endpoints_recently_checked = delta_endpoints < timedelta(minutes=30)
+        if (
+            not self._endpoints and not endpoints_recently_checked
+        ) or endpoint_refresh_needed:
             _LOGGER.debug(
                 "Refreshing endpoint data after %s",
                 str(timedelta(minutes=round(delta_endpoints.total_seconds() / 60))),
