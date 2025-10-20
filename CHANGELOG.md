@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.4.5 (2025-10-20)
+
+### Bug fixes
+
+- Allow specific user-agent ([`0e2ab63`](https://github.com/chemelli74/aioamazondevices/commit/0e2ab633750c0e6d48074f6abd32b2094ee1778e))
+
+
 ## v6.4.4 (2025-10-15)
 
 ### Bug fixes
