@@ -1253,7 +1253,7 @@ class AmazonEchoApi:
         device: AmazonDevice,
         message_body: str,
     ) -> None:
-        """Call Alexa.Sound to play sound."""
+        """Call Alexa.TextCommand to issue command."""
         return await self._send_message(
             device, AmazonSequenceType.TextCommand, message_body
         )
