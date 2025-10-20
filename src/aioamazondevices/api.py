@@ -58,6 +58,7 @@ from .const import (
     RECURRING_PATTERNS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
+    REQUEST_AGENT,
     SAVE_PATH,
     SENSORS,
     URI_DEVICES,
@@ -368,6 +369,7 @@ class AmazonEchoApi:
         url: str,
         input_data: dict[str, Any] | list[dict[str, Any]] | None = None,
         json_data: bool = False,
+        agent: str = "Amazon",
     ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
@@ -379,6 +381,7 @@ class AmazonEchoApi:
         )
 
         headers = DEFAULT_HEADERS.copy()
+        headers.update({"User-Agent": REQUEST_AGENT[agent]})
         headers.update({"Accept-Language": self._language})
 
         if self._csrf_cookie:
@@ -943,6 +946,10 @@ class AmazonEchoApi:
         self._login_stored_data.update({"site": f"https://www.amazon.{self._domain}"})
         await self._save_to_file(self._login_stored_data, "login_data", JSON_EXTENSION)
 
+        # Can take a little while to register device but we need it
+        # to be able to pickout account customer ID
+        await asyncio.sleep(2)
+
         return self._login_stored_data
 
     async def _login_mode_interactive_oauth(
@@ -1098,8 +1105,13 @@ class AmazonEchoApi:
             await self._get_base_devices()
             self._last_devices_refresh = datetime.now(UTC)
 
+        # Only refresh endpoint data if we have no endpoints yet
         delta_endpoints = datetime.now(UTC) - self._last_endpoint_refresh
-        if delta_endpoints >= timedelta(minutes=30):
+        endpoint_refresh_needed = delta_endpoints >= timedelta(days=1)
+        endpoints_recently_checked = delta_endpoints < timedelta(minutes=30)
+        if (
+            not self._endpoints and not endpoints_recently_checked
+        ) or endpoint_refresh_needed:
             _LOGGER.debug(
                 "Refreshing endpoint data after %s",
                 str(timedelta(minutes=round(delta_endpoints.total_seconds() / 60))),
@@ -1129,6 +1141,7 @@ class AmazonEchoApi:
             device.notifications = notifications.get(device.serial_number, {})
 
     async def _set_device_endpoints_data(self) -> None:
+        """Set device endpoint data."""
         devices_endpoints = await self._get_devices_endpoint_data()
         for serial_number in self._final_devices:
             device_endpoint = devices_endpoints.get(serial_number, {})
@@ -1207,6 +1220,7 @@ class AmazonEchoApi:
         _, raw_resp = await self._session_request(
             method=HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._domain}/api/bootstrap?version=0",
+            agent="Browser",
         )
         if raw_resp.status != HTTPStatus.OK:
             _LOGGER.debug(
@@ -1414,7 +1428,7 @@ class AmazonEchoApi:
         device: AmazonDevice,
         message_body: str,
     ) -> None:
-        """Call Alexa.Sound to play sound."""
+        """Call Alexa.TextCommand to issue command."""
         return await self._send_message(
             device, AmazonSequenceType.TextCommand, message_body
         )

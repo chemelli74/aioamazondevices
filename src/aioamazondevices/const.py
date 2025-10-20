@@ -39,14 +39,15 @@ AMAZON_CLIENT_OS = "18.5"
 
 DEFAULT_SITE = "https://www.amazon.com"
 DEFAULT_HEADERS = {
-    "User-Agent": (
-        f"AmazonWebView/AmazonAlexa/{AMAZON_APP_VERSION}/iOS/{AMAZON_CLIENT_OS}/iPhone"
-    ),
     "Accept-Charset": "utf-8",
     "Accept-Encoding": "gzip",
     "Connection": "keep-alive",
 }
 CSRF_COOKIE = "csrf"
+REQUEST_AGENT = {
+    "Amazon": f"AmazonWebView/AmazonAlexa/{AMAZON_APP_VERSION}/iOS/{AMAZON_CLIENT_OS}/iPhone",  # noqa: E501
+    "Browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0",  # noqa: E501
+}
 
 REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
 REFRESH_AUTH_COOKIES = "auth_cookies"
@@ -184,7 +185,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot",
         "hw_version": "Gen3",
     },
-    "A1TD5Z1R8IWBHA ": {
+    "A1TD5Z1R8IWBHA": {
         "model": "Fire Tablet HD 8",
         "hw_version": "Gen12",
     },
@@ -235,7 +236,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot Clock",
         "hw_version": "Gen5",
     },
-    "A2E0SNTXJVT7WK ": {
+    "A2E0SNTXJVT7WK": {
         "model": "Fire TV Stick",
         "hw_version": "Gen2",
     },
@@ -319,7 +320,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot",
         "hw_version": "Gen3",
     },
-    "A33S43L213VSHQ ": {
+    "A33S43L213VSHQ": {
         "model": "Smart TV 4K",
         "hw_version": "4 Series",
     },
