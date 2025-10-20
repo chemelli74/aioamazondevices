@@ -51,12 +51,16 @@ CSRF_COOKIE = "csrf"
 REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
 REFRESH_AUTH_COOKIES = "auth_cookies"
 
+URI_CAPABILITIES = "/v1/devices/@self/capabilities"
 URI_DEVICES = "/api/devices-v2/device"
 URI_DND = "/api/dnd/device-status-list"
 URI_SIGNIN = "/ap/signin"
 URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
+
+HTTP2_SITE = "https://alexa.{region}.gateway.devices.a2z.com"
+HTTP2_DIRECTIVES_VERSION = "20160207"
 
 # File extensions
 SAVE_PATH = "out"

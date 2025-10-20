@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
+import httpx
 import orjson
 from aiohttp import (
     ClientConnectorError,
@@ -28,6 +29,7 @@ from multidict import MultiDictProxy
 from yarl import URL
 
 from . import __version__
+from .capabilities import DEVICE_CAPABILITIES, DEVICE_CAPABILITIES_REGISTERED
 from .const import (
     _LOGGER,
     ALEXA_INFO_SKILLS,
@@ -45,6 +47,8 @@ from .const import (
     DEVICE_TO_IGNORE,
     DEVICE_TYPE_TO_MODEL,
     HTML_EXTENSION,
+    HTTP2_DIRECTIVES_VERSION,
+    HTTP2_SITE,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
     JSON_EXTENSION,
@@ -52,6 +56,7 @@ from .const import (
     REFRESH_AUTH_COOKIES,
     SAVE_PATH,
     SENSORS,
+    URI_CAPABILITIES,
     URI_DEVICES,
     URI_DND,
     URI_NEXUS_GRAPHQL,
@@ -117,6 +122,27 @@ class AmazonMusicSource(StrEnum):
     AmazonMusic = "AMAZON_MUSIC"
 
 
+class AmazonPushMessage(StrEnum):
+    """Amazon push message types."""
+
+    # Generic
+    GenericActivity = "PUSH_ACTIVITY"
+    ConnectionStatus = "PUSH_DOPPLER_CONNECTION_CHANGE"
+    BluetoothStatus = "PUSH_BLUETOOTH_STATE_CHANGE"
+    MicrophoneStatus = "PUSH_MICROPHONE_STATE"
+
+    # Media
+    AudioPlayerState = "PUSH_AUDIO_PLAYER_STATE"
+    EqualizerStateChange = "PUSH_EQUALIZER_STATE_CHANGE"
+    MediaQueueChange = "PUSH_MEDIA_QUEUE_CHANGE"
+    MediaChange = "PUSH_MEDIA_CHANGE"
+    MediaProgressChange = "PUSH_MEDIA_PROGRESS_CHANGE"
+    VolumeChange = "PUSH_VOLUME_CHANGE"
+
+    # Lists
+    ItemChange = "PUSH_LIST_ITEM_CHANGE"
+
+
 class AmazonEchoApi:
     """Queries Amazon for Echo devices."""
 
@@ -144,6 +170,7 @@ class AmazonEchoApi:
         self._list_for_clusters: dict[str, str] = {}
 
         self._session = client_session
+        self._http2_client: httpx.AsyncClient
         self._final_devices: dict[str, AmazonDevice] = {}
         self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
 
@@ -331,6 +358,14 @@ class AmazonEchoApi:
             )
         return False
 
+    async def _ignore_capabilities_error(self, response: ClientResponse) -> bool:
+        """Return true if error is due to capabilities endpoint."""
+        # Endpoint SELF Capabilities replies with error 204
+        return (
+            URI_CAPABILITIES in response.url.path
+            and response.status == HTTPStatus.NO_CONTENT
+        )
+
     async def _http_phrase_error(self, error: int) -> str:
         """Convert numeric error in human phrase."""
         if error == HTTP_ERROR_199:
@@ -347,6 +382,7 @@ class AmazonEchoApi:
         url: str,
         input_data: dict[str, Any] | list[dict[str, Any]] | None = None,
         json_data: bool = False,
+        extended_headers: dict[str, str] | None = None,
     ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
@@ -369,6 +405,10 @@ class AmazonEchoApi:
             json_header = {"Content-Type": "application/json; charset=utf-8"}
             _LOGGER.debug("Adding to headers: %s", json_header)
             headers.update(json_header)
+
+        if extended_headers:
+            _LOGGER.debug("Adding to headers: %s", extended_headers)
+            headers.update(extended_headers)
 
         _cookies = (
             self._load_website_cookies() if self._login_stored_data else self._cookies
@@ -430,7 +470,9 @@ class AmazonEchoApi:
                 HTTPStatus.UNAUTHORIZED,
             ]:
                 raise CannotAuthenticate(await self._http_phrase_error(resp.status))
-            if not await self._ignore_ap_signin_error(resp):
+            if not await self._ignore_ap_signin_error(
+                resp
+            ) and not await self._ignore_capabilities_error(resp):
                 raise CannotRetrieveData(
                     f"Request failed: {await self._http_phrase_error(resp.status)}"
                 )
@@ -580,6 +622,25 @@ class AmazonEchoApi:
         }
         _LOGGER.info("Register device: %s", scrub_fields(login_data))
         return login_data
+
+    async def _register_device_capabilities(self) -> None:
+        """Register device capabilities."""
+        _, raw_resp = await self._session_request(
+            method=HTTPMethod.PUT,
+            url=f"https://api.amazonalexa.com/{URI_CAPABILITIES}",
+            input_data=DEVICE_CAPABILITIES,
+            json_data=True,
+            extended_headers={
+                "Authorization": f"Bearer {self._login_stored_data['access_token']}"
+            },
+        )
+
+        if raw_resp.status != HTTPStatus.NO_CONTENT:
+            raise CannotRegisterDevice(
+                f"Register capabilities returned {raw_resp.status} (expected 204)"
+            )
+
+        self._login_stored_data[DEVICE_CAPABILITIES_REGISTERED] = True
 
     async def _get_sensors_state(
         self, endpoint_id_list: list[str]
@@ -1317,6 +1378,7 @@ class AmazonEchoApi:
             input_data=data,
             json_data=False,
         )
+
         _LOGGER.debug(
             "Refresh data response %s with payload %s",
             raw_resp.status,
@@ -1365,3 +1427,135 @@ class AmazonEchoApi:
                 scale=None,
             )
         return dnd_status
+
+    async def get_avs_directives(self) -> None:
+        """Get AVS directives."""
+        if not self._login_stored_data:
+            _LOGGER.warning("No login data available, cannot get directives")
+            return
+
+        refreshed_token, _ = await self._refresh_data(REFRESH_ACCESS_TOKEN)
+        if not refreshed_token:
+            _LOGGER.warning("Failed to refresh access token, cannot get directives")
+            return
+
+        if not self._login_stored_data.get(DEVICE_CAPABILITIES_REGISTERED, False):
+            _LOGGER.warning("Device capabilities not set, registering now.")
+            await self._register_device_capabilities()
+
+        await self._http2_init_client()
+
+        try:
+            async with self._http2_client.stream(
+                "GET",
+                f"{await self._http2_site()}/v{HTTP2_DIRECTIVES_VERSION}/directives",
+                headers={
+                    "Authorization": f"Bearer {self._login_stored_data['access_token']}",  # noqa: E501
+                    "Accept": "text/event-stream",
+                    "Accept-Encoding": "gzip",
+                },
+            ) as response:
+                _LOGGER.debug(
+                    "AVS Directives response status: %s [%s]",
+                    response.status_code,
+                    response.http_version,
+                )
+                async for chunk in response.aiter_text():
+                    _LOGGER.debug("AVS Directives chunk: %s", chunk)
+                    if chunk.startswith("-----"):
+                        _LOGGER.debug("Pinging...")
+                        await self._ping()
+                        continue
+
+                    chunk_json = await self._extract_json_from_chunk(chunk)
+                    updates_node = chunk_json["directive"]["payload"][
+                        "renderingUpdates"
+                    ][0]
+                    chunk_type = updates_node["resourceId"]
+                    chunk_device = (
+                        updates_node["resourceMetadata"]["payload"]
+                        .get("dopplerId", {})
+                        .get("deviceSerialNumber")
+                    )
+
+                    if chunk_type in AmazonPushMessage.__members__.values():
+                        _LOGGER.debug(
+                            "Detected push type <%s> on device <%s>",
+                            chunk_type,
+                            chunk_device,
+                        )
+
+            _LOGGER.debug("AVS Directives stream closed")
+        except httpx.RemoteProtocolError as excp:
+            _LOGGER.warning("Disconnect detected: %s", excp)
+
+    async def _string_recursive_parse(
+        self, obj: dict | str | list
+    ) -> dict | list | str:
+        """Recursively parse strings inside dicts/lists if they are valid JSON."""
+        if isinstance(obj, dict):
+            return {k: await self._string_recursive_parse(v) for k, v in obj.items()}
+
+        if isinstance(obj, list):
+            return [await self._string_recursive_parse(i) for i in obj]
+
+        try:
+            parsed = orjson.loads(obj)
+            return await self._string_recursive_parse(parsed)
+        except orjson.JSONDecodeError:
+            return obj
+
+    async def _extract_json_from_chunk(self, chunk: str) -> dict[str, Any]:
+        """Extract JSON from chunk."""
+        # split header and body
+        body = chunk.split("\r\n\r\n", 1)[1]
+
+        # remove potential boundary terminator
+        if "\r\n--------" in body:
+            body = body.split("\r\n--------", 1)[0]
+
+        # parse top-level JSON
+        top_level_json = orjson.loads(body)
+
+        # recursively parse strings inside JSON
+        json_chunk = await self._string_recursive_parse(top_level_json)
+
+        return cast("dict[str,Any]", json_chunk)
+
+    async def _http2_init_client(self) -> None:
+        """Create HTTP2 client session."""
+        self._http2_client = httpx.AsyncClient(
+            http2=True,
+            timeout=httpx.Timeout(None),
+        )
+
+    async def _http2_site(self) -> str:
+        """Get HTTP2 site."""
+        if not self._login_stored_data:
+            _LOGGER.debug("No login data available, cannot get HTTP2 site")
+            return ""
+
+        region = self._login_stored_data["customer_info"]["home_region"]
+        return HTTP2_SITE.replace("{region}", region)
+
+    async def _ping(self) -> None:
+        """Ping."""
+        if not self._login_stored_data:
+            _LOGGER.warning("No login data available, cannot get directives")
+            return
+
+        response = await self._http2_client.post(
+            f"{await self._http2_site()}/ping",
+            headers={
+                "Authorization": f"Bearer {self._login_stored_data['access_token']}",
+            },
+        )
+        _LOGGER.debug(
+            "Received response: %s:%s",
+            response.status_code,
+            response.text,
+        )
+        if response.status_code in [403]:
+            raise CannotAuthenticate(
+                "Detected ping 403, please check your credentials and region"
+            )
