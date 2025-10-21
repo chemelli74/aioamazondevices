@@ -1030,9 +1030,9 @@ class AmazonEchoApi:
             account_name: str = device["accountName"]
             capabilities: list[str] = device["capabilities"]
             # Skip devices that cannot be used with voice features
-            if "ALEXA_VOICE" not in capabilities:
+            if "MICROPHONE" not in capabilities:
                 _LOGGER.debug(
-                    "Skipping device without voice capabilities: %s", account_name
+                    "Skipping device without microphone capabilities: %s", account_name
                 )
                 continue
 
