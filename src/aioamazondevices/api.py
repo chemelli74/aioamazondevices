@@ -860,6 +860,8 @@ class AmazonEchoApi:
         recurring_rules: list[str] = []
         if schedule.get("rRuleData"):
             recurring_rules = schedule["rRuleData"]["recurrenceRules"]
+        if schedule.get("recurringPattern"):
+            recurring_rules.append(schedule["recurringPattern"])
 
         # Recurring events
         if recurring_rules:
@@ -867,16 +869,7 @@ class AmazonEchoApi:
             for recurring_rule in recurring_rules:
                 # Already in RFC5545 format
                 if "FREQ=" in recurring_rule:
-                    rule = recurring_rule
-
-                    if original_time:
-                        # Add missing BYHOUR, BYMINUTE if needed (Alarms only)
-                        if "BYHOUR=" not in recurring_rule:
-                            hour = int(original_time.split(":")[0])
-                            rule += f";BYHOUR={hour}"
-                        if "BYMINUTE=" not in recurring_rule:
-                            minute = int(original_time.split(":")[1])
-                            rule += f";BYMINUTE={minute}"
+                    rule = await self._add_hours_minutes(recurring_rule, original_time)
 
                     # Add date to candidates list
                     next_candidates.append(
@@ -899,11 +892,13 @@ class AmazonEchoApi:
                         recurring_pattern |= WEEKEND_EXCEPTIONS[group]
                         break
 
+                rule = await self._add_hours_minutes(
+                    recurring_pattern[recurring_rule], original_time
+                )
+
                 # Add date to candidates list
                 next_candidates.append(
-                    rrulestr(
-                        recurring_pattern[recurring_rule], dtstart=today_midnight
-                    ).after(now_reference, True),
+                    rrulestr(rule, dtstart=today_midnight).after(now_reference, True),
                 )
 
             return min(next_candidates) if next_candidates else None
@@ -929,6 +924,27 @@ class AmazonEchoApi:
             return timestamp
 
         return None
+
+    async def _add_hours_minutes(
+        self,
+        recurring_rule: str,
+        original_time: str | None,
+    ) -> str:
+        """Add hours and minutes to a datetime object."""
+        if not original_time:
+            return recurring_rule
+
+        rule = recurring_rule
+
+        # Add missing BYHOUR, BYMINUTE if needed (Alarms only)
+        if "BYHOUR=" not in recurring_rule:
+            hour = int(original_time.split(":")[0])
+            rule += f";BYHOUR={hour}"
+        if "BYMINUTE=" not in recurring_rule:
+            minute = int(original_time.split(":")[1])
+            rule += f";BYMINUTE={minute}"
+
+        return rule
 
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
