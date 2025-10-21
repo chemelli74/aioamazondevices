@@ -1155,7 +1155,26 @@ class AmazonEchoApi:
                     device_sensor.error = True
             if device_dnd := dnd_sensors.get(device.serial_number):
                 device.sensors["dnd"] = device_dnd
-            device.notifications = notifications.get(device.serial_number, {})
+
+            # Update notifications
+            device_notifications = notifications.get(device.serial_number, {})
+
+            # Add only supported notification types
+            for capability, notification_type in [
+                ("REMINDERS", NOTIFICATION_REMINDER),
+                ("ALARMS_AND_TIMERS", NOTIFICATION_ALARM),
+                ("ALARMS_AND_TIMERS", NOTIFICATION_TIMER),
+            ]:
+                if (
+                    capability in device.capabilities
+                    and notification_type in device_notifications
+                    and (
+                        notification_object := device_notifications.get(
+                            notification_type
+                        )
+                    )
+                ):
+                    device.notifications[notification_type] = notification_object
 
     async def _set_device_endpoints_data(self) -> None:
         """Set device endpoint data."""
