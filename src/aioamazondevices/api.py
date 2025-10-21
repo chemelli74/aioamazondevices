@@ -53,7 +53,7 @@ from .const import (
     REQUEST_AGENT,
     SAVE_PATH,
     SENSORS,
-    SPEAKER_GROUP_MODEL,
+    SPEAKER_GROUP_FAMILY,
     URI_DEVICES,
     URI_DND,
     URI_NEXUS_GRAPHQL,
@@ -976,7 +976,7 @@ class AmazonEchoApi:
                     device_sensor.error = True
             if (
                 device_dnd := dnd_sensors.get(device.serial_number)
-            ) and device.device_type != SPEAKER_GROUP_MODEL:
+            ) and device.device_family != SPEAKER_GROUP_FAMILY:
                 device.sensors["dnd"] = device_dnd
 
     async def _set_device_endpoints_data(self) -> None:
