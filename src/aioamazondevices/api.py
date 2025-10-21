@@ -880,9 +880,7 @@ class AmazonEchoApi:
                     continue
 
                 if recurring_rule not in RECURRING_PATTERNS:
-                    _LOGGER.warning(
-                        "Unknown recurring rule: %s", scrub_fields(recurring_rule)
-                    )
+                    _LOGGER.warning("Unknown recurring rule: %s", recurring_rule)
                     return None
 
                 # Adjust recurring rules for country specific weekend exceptions
@@ -918,7 +916,8 @@ class AmazonEchoApi:
             timestamp = datetime.fromtimestamp(schedule["alarmTime"] / 1000, tz=tzinfo)
 
         else:
-            timestamp = now_reference
+            _LOGGER.warning(("Unknown schedule type: %s"), schedule["type"])
+            return None
 
         if timestamp > now_reference:
             return timestamp
