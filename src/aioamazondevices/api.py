@@ -873,7 +873,7 @@ class AmazonEchoApi:
 
                     # Add date to candidates list
                     next_candidates.append(
-                        rrulestr(rule.removesuffix(";"), dtstart=today_midnight).after(
+                        rrulestr(rule, dtstart=today_midnight).after(
                             now_reference, True
                         ),
                     )
@@ -931,10 +931,10 @@ class AmazonEchoApi:
         original_time: str | None,
     ) -> str:
         """Add hours and minutes to a RFC5545 string."""
-        if not original_time:
-            return recurring_rule
+        rule = recurring_rule.removesuffix(";")
 
-        rule = recurring_rule
+        if not original_time:
+            return rule
 
         # Add missing BYHOUR, BYMINUTE if needed (Alarms only)
         if "BYHOUR=" not in recurring_rule:
