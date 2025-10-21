@@ -968,7 +968,7 @@ class AmazonEchoApi:
         dnd_sensors = await self._get_dnd_status()
         for device in self._final_devices.values():
             # Avoid adding sensors to speaker groups
-            if device.device_type in SPEAKER_GROUP_MODEL:
+            if device.device_type == SPEAKER_GROUP_MODEL:
                 continue
 
             # Update sensors
