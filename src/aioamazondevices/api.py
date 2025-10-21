@@ -967,10 +967,6 @@ class AmazonEchoApi:
         devices_sensors = await self._get_sensors_states()
         dnd_sensors = await self._get_dnd_status()
         for device in self._final_devices.values():
-            # Avoid adding sensors to speaker groups
-            if device.device_type == SPEAKER_GROUP_MODEL:
-                continue
-
             # Update sensors
             sensors = devices_sensors.get(device.serial_number, {})
             if sensors:
@@ -978,7 +974,9 @@ class AmazonEchoApi:
             else:
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
-            if device_dnd := dnd_sensors.get(device.serial_number):
+            if (
+                device_dnd := dnd_sensors.get(device.serial_number)
+            ) and device.device_type != SPEAKER_GROUP_MODEL:
                 device.sensors["dnd"] = device_dnd
 
     async def _set_device_endpoints_data(self) -> None:
