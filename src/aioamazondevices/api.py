@@ -53,6 +53,7 @@ from .const import (
     REQUEST_AGENT,
     SAVE_PATH,
     SENSORS,
+    SPEAKER_GROUP_MODEL,
     URI_DEVICES,
     URI_DND,
     URI_NEXUS_GRAPHQL,
@@ -966,6 +967,10 @@ class AmazonEchoApi:
         devices_sensors = await self._get_sensors_states()
         dnd_sensors = await self._get_dnd_status()
         for device in self._final_devices.values():
+            # Avoid adding sensors to speaker groups
+            if device.device_type in SPEAKER_GROUP_MODEL:
+                continue
+
             # Update sensors
             sensors = devices_sensors.get(device.serial_number, {})
             if sensors:
@@ -1022,11 +1027,20 @@ class AmazonEchoApi:
             if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
                 continue
 
+            account_name: str = device["accountName"]
+            capabilities: list[str] = device["capabilities"]
+            # Skip devices that cannot be used with voice features
+            if "ALEXA_VOICE" not in capabilities:
+                _LOGGER.debug(
+                    "Skipping device without voice capabilities: %s", account_name
+                )
+                continue
+
             serial_number: str = device["serialNumber"]
 
             final_devices_list[serial_number] = AmazonDevice(
-                account_name=device["accountName"],
-                capabilities=device["capabilities"],
+                account_name=account_name,
+                capabilities=capabilities,
                 device_family=device["deviceFamily"],
                 device_type=device["deviceType"],
                 device_owner_customer_id=device["deviceOwnerCustomerId"],
