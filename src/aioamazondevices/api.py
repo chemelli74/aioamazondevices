@@ -930,7 +930,7 @@ class AmazonEchoApi:
         recurring_rule: str,
         original_time: str | None,
     ) -> str:
-        """Add hours and minutes to a datetime object."""
+        """Add hours and minutes to a RFC5545 string."""
         if not original_time:
             return recurring_rule
 
