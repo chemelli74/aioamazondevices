@@ -1162,8 +1162,8 @@ class AmazonEchoApi:
             # Add only supported notification types
             for capability, notification_type in [
                 ("REMINDERS", NOTIFICATION_REMINDER),
-                ("ALARMS_AND_TIMERS", NOTIFICATION_ALARM),
-                ("ALARMS_AND_TIMERS", NOTIFICATION_TIMER),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_TIMER),
             ]:
                 if (
                     capability in device.capabilities
