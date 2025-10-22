@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.5.0 (2025-10-22)
+
+### Features
+
+- Add times,reminders,alarms data ([`63e94c9`](https://github.com/chemelli74/aioamazondevices/commit/63e94c918934ad682063c7b7a297a74f45920590))
+
+
 ## v6.4.6 (2025-10-20)
 
 ### Bug fixes
