@@ -23,6 +23,8 @@ from aiohttp import (
     ContentTypeError,
 )
 from bs4 import BeautifulSoup, Tag
+from dateutil.parser import parse
+from dateutil.rrule import rrulestr
 from langcodes import Language, standardize_tag
 from multidict import MultiDictProxy
 from yarl import URL
@@ -39,6 +41,7 @@ from .const import (
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
     BIN_EXTENSION,
+    COUNTRY_GROUPS,
     CSRF_COOKIE,
     DEFAULT_HEADERS,
     DEFAULT_SITE,
@@ -48,6 +51,11 @@ from .const import (
     HTTP_ERROR_199,
     HTTP_ERROR_299,
     JSON_EXTENSION,
+    NOTIFICATION_ALARM,
+    NOTIFICATION_MUSIC_ALARM,
+    NOTIFICATION_REMINDER,
+    NOTIFICATION_TIMER,
+    RECURRING_PATTERNS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     REQUEST_AGENT,
@@ -56,7 +64,9 @@ from .const import (
     URI_DEVICES,
     URI_DND,
     URI_NEXUS_GRAPHQL,
+    URI_NOTIFICATIONS,
     URI_SIGNIN,
+    WEEKEND_EXCEPTIONS,
 )
 from .exceptions import (
     CannotAuthenticate,
@@ -82,6 +92,16 @@ class AmazonDeviceSensor:
 
 
 @dataclass
+class AmazonSchedule:
+    """Amazon schedule class."""
+
+    type: str  # alarm, reminder, timer
+    status: str
+    label: str
+    next_occurrence: datetime | None
+
+
+@dataclass
 class AmazonDevice:
     """Amazon device class."""
 
@@ -98,6 +118,7 @@ class AmazonDevice:
     entity_id: str | None
     endpoint_id: str | None
     sensors: dict[str, AmazonDeviceSensor]
+    notifications: dict[str, AmazonSchedule]
 
 
 class AmazonSequenceType(StrEnum):
@@ -173,6 +194,7 @@ class AmazonEchoApi:
         lang_object = Language.make(territory=country_code.upper())
         lang_maximized = lang_object.maximize()
 
+        self._country_code: str = country_code
         self._domain: str = domain
         language = f"{lang_maximized.language}-{lang_maximized.territory}"
         self._language = standardize_tag(language)
@@ -766,6 +788,163 @@ class AmazonEchoApi:
         except orjson.JSONDecodeError as exc:
             raise ValueError("Response with corrupted JSON format") from exc
 
+    async def _get_notifications(self) -> dict[str, dict[str, AmazonSchedule]]:
+        final_notifications: dict[str, dict[str, AmazonSchedule]] = {}
+
+        _, raw_resp = await self._session_request(
+            HTTPMethod.GET,
+            url=f"https://alexa.amazon.{self._domain}{URI_NOTIFICATIONS}",
+        )
+        notifications = await self._response_to_json(raw_resp)
+        for schedule in notifications["notifications"]:
+            schedule_type: str = schedule["type"]
+            schedule_device_serial = schedule["deviceSerialNumber"]
+            if schedule_type == NOTIFICATION_MUSIC_ALARM:
+                # Structure is the same as standard Alarm
+                schedule_type = NOTIFICATION_ALARM
+                schedule["type"] = NOTIFICATION_ALARM
+            label_desc = schedule_type.lower() + "Label"
+            if (schedule_status := schedule["status"]) == "ON" and (
+                next_occurrence := await self._parse_next_occurence(schedule)
+            ):
+                schedule_notification_list = final_notifications.get(
+                    schedule_device_serial, {}
+                )
+                schedule_notification_by_type = schedule_notification_list.get(
+                    schedule_type
+                )
+                # Replace if no existing notification
+                # or if existing.next_occurrence is None
+                # or if new next_occurrence is earlier
+                if (
+                    not schedule_notification_by_type
+                    or schedule_notification_by_type.next_occurrence is None
+                    or next_occurrence < schedule_notification_by_type.next_occurrence
+                ):
+                    final_notifications.update(
+                        {
+                            schedule_device_serial: {
+                                **schedule_notification_list
+                                | {
+                                    schedule_type: AmazonSchedule(
+                                        type=schedule_type,
+                                        status=schedule_status,
+                                        label=schedule[label_desc],
+                                        next_occurrence=next_occurrence,
+                                    ),
+                                }
+                            }
+                        }
+                    )
+
+        return final_notifications
+
+    async def _parse_next_occurence(
+        self,
+        schedule: dict[str, Any],
+    ) -> datetime | None:
+        """Parse RFC5545 rule set for next iteration."""
+        # Local timezone
+        tzinfo = datetime.now().astimezone().tzinfo
+        # Current time
+        actual_time = datetime.now(tz=tzinfo)
+        # Reference start date
+        today_midnight = actual_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        # Reference time (1 minute ago to avoid edge cases)
+        now_reference = actual_time - timedelta(minutes=1)
+
+        # Schedule data
+        original_date = schedule.get("originalDate")
+        original_time = schedule.get("originalTime")
+
+        recurring_rules: list[str] = []
+        if schedule.get("rRuleData"):
+            recurring_rules = schedule["rRuleData"]["recurrenceRules"]
+        if schedule.get("recurringPattern"):
+            recurring_rules.append(schedule["recurringPattern"])
+
+        # Recurring events
+        if recurring_rules:
+            next_candidates: list[datetime] = []
+            for recurring_rule in recurring_rules:
+                # Already in RFC5545 format
+                if "FREQ=" in recurring_rule:
+                    rule = await self._add_hours_minutes(recurring_rule, original_time)
+
+                    # Add date to candidates list
+                    next_candidates.append(
+                        rrulestr(rule, dtstart=today_midnight).after(
+                            now_reference, True
+                        ),
+                    )
+                    continue
+
+                if recurring_rule not in RECURRING_PATTERNS:
+                    _LOGGER.warning("Unknown recurring rule: %s", recurring_rule)
+                    return None
+
+                # Adjust recurring rules for country specific weekend exceptions
+                recurring_pattern = RECURRING_PATTERNS.copy()
+                for group, countries in COUNTRY_GROUPS.items():
+                    if self._country_code in countries:
+                        recurring_pattern |= WEEKEND_EXCEPTIONS[group]
+                        break
+
+                rule = await self._add_hours_minutes(
+                    recurring_pattern[recurring_rule], original_time
+                )
+
+                # Add date to candidates list
+                next_candidates.append(
+                    rrulestr(rule, dtstart=today_midnight).after(now_reference, True),
+                )
+
+            return min(next_candidates) if next_candidates else None
+
+        # Single events
+        if schedule["type"] == NOTIFICATION_ALARM:
+            timestamp = parse(f"{original_date} {original_time}").replace(tzinfo=tzinfo)
+
+        elif schedule["type"] == NOTIFICATION_TIMER:
+            # API returns triggerTime in milliseconds since epoch
+            timestamp = datetime.fromtimestamp(
+                schedule["triggerTime"] / 1000, tz=tzinfo
+            )
+
+        elif schedule["type"] == NOTIFICATION_REMINDER:
+            # API returns alarmTime in milliseconds since epoch
+            timestamp = datetime.fromtimestamp(schedule["alarmTime"] / 1000, tz=tzinfo)
+
+        else:
+            _LOGGER.warning(("Unknown schedule type: %s"), schedule["type"])
+            return None
+
+        if timestamp > now_reference:
+            return timestamp
+
+        return None
+
+    async def _add_hours_minutes(
+        self,
+        recurring_rule: str,
+        original_time: str | None,
+    ) -> str:
+        """Add hours and minutes to a RFC5545 string."""
+        rule = recurring_rule.removesuffix(";")
+
+        if not original_time:
+            return rule
+
+        # Add missing BYHOUR, BYMINUTE if needed (Alarms only)
+        if "BYHOUR=" not in recurring_rule:
+            hour = int(original_time.split(":")[0])
+            rule += f";BYHOUR={hour}"
+        if "BYMINUTE=" not in recurring_rule:
+            minute = int(original_time.split(":")[1])
+            rule += f";BYMINUTE={minute}"
+
+        return rule
+
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
         _LOGGER.debug(
@@ -965,6 +1144,7 @@ class AmazonEchoApi:
     async def _get_sensor_data(self) -> None:
         devices_sensors = await self._get_sensors_states()
         dnd_sensors = await self._get_dnd_status()
+        notifications = await self._get_notifications()
         for device in self._final_devices.values():
             # Update sensors
             sensors = devices_sensors.get(device.serial_number, {})
@@ -975,6 +1155,26 @@ class AmazonEchoApi:
                     device_sensor.error = True
             if device_dnd := dnd_sensors.get(device.serial_number):
                 device.sensors["dnd"] = device_dnd
+
+            # Update notifications
+            device_notifications = notifications.get(device.serial_number, {})
+
+            # Add only supported notification types
+            for capability, notification_type in [
+                ("REMINDERS", NOTIFICATION_REMINDER),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_TIMER),
+            ]:
+                if (
+                    capability in device.capabilities
+                    and notification_type in device_notifications
+                    and (
+                        notification_object := device_notifications.get(
+                            notification_type
+                        )
+                    )
+                ):
+                    device.notifications[notification_type] = notification_object
 
     async def _set_device_endpoints_data(self) -> None:
         """Set device endpoint data."""
@@ -1039,6 +1239,7 @@ class AmazonEchoApi:
                 entity_id=None,
                 endpoint_id=None,
                 sensors={},
+                notifications={},
             )
 
         self._list_for_clusters.update(
