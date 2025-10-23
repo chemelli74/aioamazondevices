@@ -30,7 +30,7 @@ from multidict import MultiDictProxy
 from yarl import URL
 
 from . import __version__
-from .const import (
+from .const.common import (
     _LOGGER,
     ALEXA_INFO_SKILLS,
     AMAZON_APP_BUNDLE_ID,
@@ -41,21 +41,13 @@ from .const import (
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
     BIN_EXTENSION,
-    COUNTRY_GROUPS,
     CSRF_COOKIE,
     DEFAULT_HEADERS,
     DEFAULT_SITE,
-    DEVICE_TO_IGNORE,
-    DEVICE_TYPE_TO_MODEL,
     HTML_EXTENSION,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
     JSON_EXTENSION,
-    NOTIFICATION_ALARM,
-    NOTIFICATION_MUSIC_ALARM,
-    NOTIFICATION_REMINDER,
-    NOTIFICATION_TIMER,
-    RECURRING_PATTERNS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     REQUEST_AGENT,
@@ -66,6 +58,16 @@ from .const import (
     URI_NEXUS_GRAPHQL,
     URI_NOTIFICATIONS,
     URI_SIGNIN,
+)
+from .const.devices import DEVICE_TO_IGNORE, DEVICE_TYPE_TO_MODEL
+from .const.query import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
+from .const.schedules import (
+    COUNTRY_GROUPS,
+    NOTIFICATION_ALARM,
+    NOTIFICATION_MUSIC_ALARM,
+    NOTIFICATION_REMINDER,
+    NOTIFICATION_TIMER,
+    RECURRING_PATTERNS,
     WEEKEND_EXCEPTIONS,
 )
 from .exceptions import (
@@ -75,7 +77,6 @@ from .exceptions import (
     CannotRetrieveData,
     WrongMethod,
 )
-from .query import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .utils import obfuscate_email, scrub_fields
 
 
