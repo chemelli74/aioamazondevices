@@ -1,1 +1,1 @@
-"""aioamazondevices const."""
+"""aioamazondevices const package."""
