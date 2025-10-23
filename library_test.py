@@ -10,18 +10,18 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, cast
 
-import orjson
 from aiohttp import ClientSession
 from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonDevice, AmazonEchoApi, AmazonMusicSource
-from aioamazondevices.const import SAVE_PATH
+from aioamazondevices.const import JSON_EXTENSION, SAVE_PATH
 from aioamazondevices.exceptions import (
     AmazonError,
     CannotAuthenticate,
     CannotConnect,
     CannotRegisterDevice,
 )
+from aioamazondevices.utils import save_to_file
 
 
 def get_arguments() -> tuple[ArgumentParser, Namespace]:
@@ -55,12 +55,6 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         help="Cluster device name to send message via 'AlexaAnnouncement'",
     )
     parser.add_argument(
-        "--save_raw_data",
-        "-s",
-        action="store_true",
-        help="Save HTML source on disk",
-    )
-    parser.add_argument(
         "--test",
         "-t",
         action="store_true",
@@ -85,18 +79,6 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         args.update(vars(arguments_cfg))
 
     return parser, Namespace(**args)
-
-
-def save_to_file(filename: str, data_dict: dict[str, Any]) -> None:
-    """Save data to json file."""
-    data_json = orjson.dumps(
-        data_dict,
-        option=orjson.OPT_INDENT_2,
-    ).decode("utf-8")
-    Path(filename).parent.mkdir(parents=True, exist_ok=True)
-    with Path.open(Path(filename), mode="w", encoding="utf-8") as file:
-        file.write(data_json)
-        file.write("\n")
 
 
 def read_from_file(data_file: str) -> dict[str, Any]:
@@ -151,14 +133,12 @@ async def main() -> None:
     client_session = ClientSession()
 
     api = AmazonEchoApi(
-        client_session,
-        args.email,
-        args.password,
-        login_data_stored,
+        client_session=client_session,
+        login_email=args.email,
+        login_password=args.password,
+        login_data=login_data_stored,
+        save_to_disk=True,
     )
-
-    if args.save_raw_data:
-        api.save_raw_data()
 
     try:
         try:
@@ -168,6 +148,7 @@ async def main() -> None:
                 login_data = await api.login_mode_interactive(
                     args.otp_code or input("OTP Code: ")
                 )
+                await save_to_file(login_data, "login_data", JSON_EXTENSION)
         except CannotAuthenticate:
             print(f"Cannot authenticate with {args.email} credentials")
             raise
@@ -187,7 +168,7 @@ async def main() -> None:
     print("Login data:", login_data)
     print("-" * 20)
 
-    save_to_file(f"{SAVE_PATH}/output-login-data.json", login_data)
+    await save_to_file(login_data, "output-login-data", JSON_EXTENSION)
 
     print("-" * 20)
     try:
@@ -206,7 +187,7 @@ async def main() -> None:
         await client_session.close()
         sys.exit(0)
 
-    save_to_file(f"{SAVE_PATH}/output-devices.json", devices)
+    await save_to_file(devices, "output-devices", JSON_EXTENSION)
 
     if not args.test:
         print("!!! No testing requested, exiting !!!")
