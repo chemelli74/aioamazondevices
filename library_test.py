@@ -55,12 +55,6 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         help="Cluster device name to send message via 'AlexaAnnouncement'",
     )
     parser.add_argument(
-        "--save_raw_data",
-        "-s",
-        action="store_true",
-        help="Save HTML source on disk",
-    )
-    parser.add_argument(
         "--test",
         "-t",
         action="store_true",
