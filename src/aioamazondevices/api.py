@@ -606,20 +606,19 @@ class AmazonEchoApi:
         _LOGGER.info("Register device: %s", scrub_fields(login_data))
         return login_data
 
-    async def _get_sensors_state(
-        self, endpoint_id_list: list[str]
-    ) -> dict[str, Any] | list[dict[str, Any]]:
-        """Get sensor State."""
+    async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
+        """Retrieve devices sensors states."""
+        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
+
+        endpoint_ids = list(self._endpoints.keys())
         payload = [
             {
                 "operationName": "getEndpointState",
                 "variables": {
-                    "endpointId": endpoint_id,
-                    "latencyTolerance": "LOW",
+                    "endpointIds": endpoint_ids,
                 },
                 "query": QUERY_SENSOR_STATE,
             }
-            for endpoint_id in endpoint_id_list
         ]
 
         _, raw_resp = await self._session_request(
@@ -629,47 +628,25 @@ class AmazonEchoApi:
             json_data=True,
         )
 
-        return await self._response_to_json(raw_resp)
+        sensors_state = await self._response_to_json(raw_resp)
+        _LOGGER.debug("Sensor data - %s", sensors_state)
 
-    async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
-        """Retrieve devices sensors states."""
-        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
+        if (
+            not isinstance(sensors_state, dict)
+            or not (arr := sensors_state.get("array"))
+            or not (data := arr[0].get("data"))
+            or not (endpoints_list := data.get("listEndpoints"))
+            or not (endpoints := endpoints_list.get("endpoints"))
+        ):
+            _LOGGER.error("Malformed sensor state data received: %s", sensors_state)
+            return {}
+        for endpoint in endpoints:
+            serial_number = self._endpoints[endpoint.get("endpointId")]
 
-        # batch endpoints into groups of 3 to reduce number of requests
-        endpoint_ids = list(self._endpoints.keys())
-        batches = [endpoint_ids[i : i + 3] for i in range(0, len(endpoint_ids), 3)]
-        for endpoint_id_batch in batches:
-            sensors_state = await self._get_sensors_state(endpoint_id_batch)
-            _LOGGER.debug("Sensor data - %s", sensors_state)
-
-            if not isinstance(sensors_state, list) and (
-                error := sensors_state.get("errors")
-            ):
-                if isinstance(error, list):
-                    error = error[0]
-                msg = error.get("message", "Unknown error")
-                path = error.get("path", "Unknown path")
-                _LOGGER.error(
-                    "Error retrieving devices state: %s for path %s", msg, path
+            if serial_number in self._final_devices:
+                devices_sensors[serial_number] = self._get_device_sensor_state(
+                    endpoint, serial_number
                 )
-                return {}
-
-            for endpoint_data in sensors_state:
-                if (
-                    not isinstance(endpoint_data, dict)
-                    or not (data := endpoint_data.get("data"))
-                    or not (endpoint := data.get("endpoint"))
-                ):
-                    _LOGGER.error(
-                        "Malformed sensor state data received: %s", endpoint_data
-                    )
-                    return {}
-                serial_number = self._endpoints[endpoint.get("endpointId")]
-
-                if serial_number in self._final_devices:
-                    devices_sensors[serial_number] = self._get_device_sensor_state(
-                        endpoint, serial_number
-                    )
 
         return devices_sensors
 
@@ -782,6 +759,8 @@ class AmazonEchoApi:
             if not data:
                 _LOGGER.warning("Empty JSON data received")
                 data = {}
+            if isinstance(data, list):
+                data = {"array": data}
             return cast("dict[str, Any]", data)
         except ContentTypeError as exc:
             raise ValueError("Response not in JSON format") from exc
