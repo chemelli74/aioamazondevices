@@ -1,0 +1,1 @@
+"""aioamazondevices REST package."""
