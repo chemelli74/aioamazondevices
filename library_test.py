@@ -10,18 +10,19 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, cast
 
-import orjson
 from aiohttp import ClientSession
 from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonDevice, AmazonEchoApi, AmazonMusicSource
-from aioamazondevices.const.common import SAVE_PATH
+from aioamazondevices.const.common import JSON_EXTENSION, SAVE_PATH
 from aioamazondevices.exceptions import (
     AmazonError,
     CannotAuthenticate,
     CannotConnect,
     CannotRegisterDevice,
 )
+from aioamazondevices.login import AmazonLogin
+from aioamazondevices.utils import save_to_file
 
 
 def get_arguments() -> tuple[ArgumentParser, Namespace]:
@@ -87,18 +88,6 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
     return parser, Namespace(**args)
 
 
-def save_to_file(filename: str, data_dict: dict[str, Any]) -> None:
-    """Save data to json file."""
-    data_json = orjson.dumps(
-        data_dict,
-        option=orjson.OPT_INDENT_2,
-    ).decode("utf-8")
-    Path(filename).parent.mkdir(parents=True, exist_ok=True)
-    with Path.open(Path(filename), mode="w", encoding="utf-8") as file:
-        file.write(data_json)
-        file.write("\n")
-
-
 def read_from_file(data_file: str) -> dict[str, Any]:
     """Load stored login data from file."""
     if not data_file or not (file := Path(data_file)).exists():
@@ -150,29 +139,29 @@ async def main() -> None:
 
     client_session = ClientSession()
 
-    api = AmazonEchoApi(
-        client_session,
-        args.email,
-        args.password,
-        login_data_stored,
+    api_login = AmazonLogin(
+        client_session=client_session,
+        login_email=args.email,
+        login_password=args.password,
+        login_data=login_data_stored,
+        save_to_disk=True,
     )
-
-    if args.save_raw_data:
-        api.save_raw_data()
 
     try:
         try:
             if login_data_stored:
-                login_data = await api.login_mode_stored_data()
+                login_data = await api_login.login_mode_stored_data()
             else:
-                login_data = await api.login_mode_interactive(
+                login_data = await api_login.login_mode_interactive(
                     args.otp_code or input("OTP Code: ")
                 )
+                await save_to_file(login_data, "login_data", JSON_EXTENSION)
+
         except CannotAuthenticate:
             print(f"Cannot authenticate with {args.email} credentials")
             raise
         except CannotConnect:
-            print(f"Cannot connect to {api.domain} Amazon host")
+            print(f"Cannot connect to {api_login.domain} Amazon host")
             raise
         except CannotRegisterDevice:
             print(f"Cannot register device for {args.email}")
@@ -187,11 +176,16 @@ async def main() -> None:
     print("Login data:", login_data)
     print("-" * 20)
 
-    save_to_file(f"{SAVE_PATH}/output-login-data.json", login_data)
+    await save_to_file(login_data, "output-login-data", JSON_EXTENSION)
 
+    api_data = AmazonEchoApi(
+        client_session=client_session,
+        login_data=login_data_stored,
+        save_to_disk=True,
+    )
     print("-" * 20)
     try:
-        devices = await api.get_devices_data()
+        devices = await api_data.get_devices_data()
     except (CannotAuthenticate, CannotConnect, CannotRegisterDevice) as exc:
         print(exc)
         await client_session.close()
@@ -206,7 +200,7 @@ async def main() -> None:
         await client_session.close()
         sys.exit(0)
 
-    save_to_file(f"{SAVE_PATH}/output-devices.json", devices)
+    await save_to_file(devices, "output-devices", JSON_EXTENSION)
 
     if not args.test:
         print("!!! No testing requested, exiting !!!")
@@ -229,7 +223,7 @@ async def main() -> None:
     print("- single : ", device_single)
     print("- cluster: ", device_cluster)
 
-    if not await api.auth_check_status():
+    if not await api_login.auth_check_status():
         print("!!! Error: Session not authenticated !!!")
         await client_session.close()
         sys.exit(4)
@@ -242,43 +236,45 @@ async def main() -> None:
         print(f"Notification {device_single.notifications[notification]}")
 
     print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
-    await api.call_alexa_speak(device_single, "Test Speak message from new library")
+    await api_data.call_alexa_speak(
+        device_single, "Test Speak message from new library"
+    )
 
     await wait_action_complete()
 
     print("Sending message via 'AlexaAnnouncement' to:", device_cluster.account_name)
-    await api.call_alexa_announcement(
+    await api_data.call_alexa_announcement(
         device_cluster, "Test Announcement message from new library"
     )
 
     await wait_action_complete()
 
     print("Sending sound via 'Alexa.Sound' to:", device_single.account_name)
-    await api.call_alexa_sound(device_single, "amzn_sfx_doorbell_chime_01")
+    await api_data.call_alexa_sound(device_single, "amzn_sfx_doorbell_chime_01")
 
     await wait_action_complete()
 
     print("Sending message via 'Alexa.Date.Play' to:", device_single.account_name)
-    await api.call_alexa_info_skill(device_single, "Alexa.Date.Play")
+    await api_data.call_alexa_info_skill(device_single, "Alexa.Date.Play")
 
     await wait_action_complete(5)
 
     radio = "BBC one"
     source = AmazonMusicSource.Radio
     print(f"Playing {radio} from {source} on {device_single.account_name}")
-    await api.call_alexa_music(device_single, radio, source)
+    await api_data.call_alexa_music(device_single, radio, source)
 
     await wait_action_complete(15)
 
     music = "taylor swift"
     source = AmazonMusicSource.AmazonMusic
     print(f"Playing {music} from {source} on {device_single.account_name}")
-    await api.call_alexa_music(device_single, music, source)
+    await api_data.call_alexa_music(device_single, music, source)
 
     await wait_action_complete(15)
 
     print(f"Text command on {device_single.account_name}")
-    await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
+    await api_data.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
 
     await wait_action_complete(10)
 
@@ -286,7 +282,7 @@ async def main() -> None:
         print(f"Notification {device_single.notifications[notification]}")
 
     print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)
-    await api.call_alexa_skill(
+    await api_data.call_alexa_skill(
         device_cluster, "amzn1.ask.skill.94c477e7-61c0-43f5-b7d9-36d7498a4d04"
     )
 
