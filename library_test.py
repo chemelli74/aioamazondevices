@@ -174,7 +174,7 @@ async def main() -> None:
     print("Login data:", login_data)
     print("-" * 20)
 
-    await save_to_file(login_data, "output-login-data.json", JSON_EXTENSION)
+    await save_to_file(login_data, "output-login-data", JSON_EXTENSION)
 
     print("-" * 20)
     try:
@@ -193,7 +193,7 @@ async def main() -> None:
         await client_session.close()
         sys.exit(0)
 
-    await save_to_file(devices, "output-devices.json", JSON_EXTENSION)
+    await save_to_file(devices, "output-devices", JSON_EXTENSION)
 
     if not args.test:
         print("!!! No testing requested, exiting !!!")
