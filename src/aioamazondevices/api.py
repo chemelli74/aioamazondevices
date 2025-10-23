@@ -60,7 +60,7 @@ from .const.common import (
     URI_SIGNIN,
 )
 from .const.devices import DEVICE_TO_IGNORE, DEVICE_TYPE_TO_MODEL
-from .const.query import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
+from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
     COUNTRY_GROUPS,
     NOTIFICATION_ALARM,

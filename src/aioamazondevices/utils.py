@@ -3,7 +3,7 @@
 from collections.abc import Collection
 from typing import Any
 
-from .const import TO_REDACT
+from .const.common import TO_REDACT
 
 
 def obfuscate_email(email: str) -> str:
