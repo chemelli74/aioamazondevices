@@ -632,11 +632,12 @@ class AmazonEchoApi:
         sensors_state = await self._response_to_json(raw_resp)
         _LOGGER.debug("Sensor data - %s", sensors_state)
 
-        await self._format_human_error(sensors_state)
+        if await self._format_human_error(sensors_state):
+            # Explicit error in returned data
+            return {}
 
         if (
-            not isinstance(sensors_state, dict)
-            or not (arr := sensors_state.get(ARRAY_WRAPPER))
+            not (arr := sensors_state.get(ARRAY_WRAPPER))
             or not (data := arr[0].get("data"))
             or not (endpoints_list := data.get("listEndpoints"))
             or not (endpoints := endpoints_list.get("endpoints"))
@@ -1562,16 +1563,17 @@ class AmazonEchoApi:
             )
         return dnd_status
 
-    async def _format_human_error(self, sensors_state: dict) -> None:
+    async def _format_human_error(self, sensors_state: dict) -> bool:
         """Format human readable error from malformed data."""
         if sensors_state.get(ARRAY_WRAPPER):
             error = sensors_state[ARRAY_WRAPPER][0].get("errors", [])
         else:
             error = sensors_state.get("errors", [])
 
-        msg = "Unknown error"
-        path = "Unknown path"
-        if error:
-            msg = error[0].get("message", "Unknown error")
-            path = error[0].get("path", "Unknown path")
+        if not error:
+            return False
+
+        msg = error[0].get("message", "Unknown error")
+        path = error[0].get("path", "Unknown path")
         _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
+        return True
