@@ -40,6 +40,7 @@ from .const import (
     AMAZON_CLIENT_OS,
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
+    ARRAY_WRAPPER,
     BIN_EXTENSION,
     COUNTRY_GROUPS,
     CSRF_COOKIE,
@@ -631,25 +632,18 @@ class AmazonEchoApi:
         sensors_state = await self._response_to_json(raw_resp)
         _LOGGER.debug("Sensor data - %s", sensors_state)
 
-        if (arr := sensors_state.get("generatedArrayWrapper")) and (
-            error := arr.get("errors")
-        ):
-            if isinstance(error, list):
-                error = error[0]
-            msg = error.get("message", "Unknown error")
-            path = error.get("path", "Unknown path")
-            _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
-            return {}
+        await self._format_human_error(sensors_state)
 
         if (
             not isinstance(sensors_state, dict)
-            or not (arr := sensors_state.get("generatedArrayWrapper"))
+            or not (arr := sensors_state.get(ARRAY_WRAPPER))
             or not (data := arr[0].get("data"))
             or not (endpoints_list := data.get("listEndpoints"))
             or not (endpoints := endpoints_list.get("endpoints"))
         ):
             _LOGGER.error("Malformed sensor state data received: %s", sensors_state)
             return {}
+
         for endpoint in endpoints:
             serial_number = self._endpoints[endpoint.get("endpointId")]
 
@@ -745,7 +739,7 @@ class AmazonEchoApi:
         endpoint_data = await self._response_to_json(raw_resp)
 
         if not (data := endpoint_data.get("data")) or not data.get("listEndpoints"):
-            _LOGGER.error("Malformed endpoint data received: %s", endpoint_data)
+            await self._format_human_error(endpoint_data)
             return {}
 
         endpoints = data["listEndpoints"]
@@ -772,7 +766,7 @@ class AmazonEchoApi:
             if isinstance(data, list):
                 # if anonymous array is returned wrap it inside
                 # generated key to convert list to dict
-                data = {"generatedArrayWrapper": data}
+                data = {ARRAY_WRAPPER: data}
             return cast("dict[str, Any]", data)
         except ContentTypeError as exc:
             raise ValueError("Response not in JSON format") from exc
@@ -1567,3 +1561,17 @@ class AmazonEchoApi:
                 scale=None,
             )
         return dnd_status
+
+    async def _format_human_error(self, sensors_state: dict) -> None:
+        """Format human readable error from malformed data."""
+        if sensors_state.get(ARRAY_WRAPPER):
+            error = sensors_state[ARRAY_WRAPPER][0].get("errors", [])
+        else:
+            error = sensors_state.get("errors", [])
+
+        msg = "Unknown error"
+        path = "Unknown path"
+        if error:
+            msg = error[0].get("message", "Unknown error")
+            path = error[0].get("path", "Unknown path")
+        _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
