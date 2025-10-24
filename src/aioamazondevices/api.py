@@ -631,7 +631,9 @@ class AmazonEchoApi:
         sensors_state = await self._response_to_json(raw_resp)
         _LOGGER.debug("Sensor data - %s", sensors_state)
 
-        if error := sensors_state.get("errors"):
+        if (arr := sensors_state.get("generatedArrayWrapper")) and (
+            error := arr.get("errors")
+        ):
             if isinstance(error, list):
                 error = error[0]
             msg = error.get("message", "Unknown error")
