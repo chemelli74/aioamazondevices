@@ -631,9 +631,17 @@ class AmazonEchoApi:
         sensors_state = await self._response_to_json(raw_resp)
         _LOGGER.debug("Sensor data - %s", sensors_state)
 
+        if error := sensors_state.get("errors"):
+            if isinstance(error, list):
+                error = error[0]
+            msg = error.get("message", "Unknown error")
+            path = error.get("path", "Unknown path")
+            _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
+            return {}
+
         if (
             not isinstance(sensors_state, dict)
-            or not (arr := sensors_state.get("array"))
+            or not (arr := sensors_state.get("generatedArrayWrapper"))
             or not (data := arr[0].get("data"))
             or not (endpoints_list := data.get("listEndpoints"))
             or not (endpoints := endpoints_list.get("endpoints"))
@@ -760,7 +768,9 @@ class AmazonEchoApi:
                 _LOGGER.warning("Empty JSON data received")
                 data = {}
             if isinstance(data, list):
-                data = {"array": data}
+                # if anonymous array is returned wrap it inside
+                # generated key to convert list to dict
+                data = {"generatedArrayWrapper": data}
             return cast("dict[str, Any]", data)
         except ContentTypeError as exc:
             raise ValueError("Response not in JSON format") from exc
