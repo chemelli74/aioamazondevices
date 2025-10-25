@@ -44,6 +44,11 @@ QUERY_SENSOR_STATE = """
 query getEndpointState($endpointId: String!, $latencyTolerance: LatencyToleranceValue) {
   endpoint(id: $endpointId) {
     endpointId: id
+    settings {
+      doNotDisturb {
+        toggleValue
+      }
+    }
     features(latencyToleranceValue: $latencyTolerance) {
       name
       instance
