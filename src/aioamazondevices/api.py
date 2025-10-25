@@ -731,14 +731,16 @@ class AmazonEchoApi:
                     _LOGGER.debug(
                         "error in sensor %s - %s - %s", name, error_type, error_msg
                     )
-                device_sensors[name] = AmazonDeviceSensor(
-                    name,
-                    value,
-                    error,
-                    error_type,
-                    error_msg,
-                    scale,
-                )
+
+                if error_type != "NOT_FOUND":
+                    device_sensors[name] = AmazonDeviceSensor(
+                        name,
+                        value,
+                        error,
+                        error_type,
+                        error_msg,
+                        scale,
+                    )
 
         return device_sensors
 
