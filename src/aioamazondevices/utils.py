@@ -4,7 +4,7 @@ import re
 from collections.abc import Collection
 from typing import Any
 
-from .const import TO_REDACT
+from .const import SPEAKER_GROUP_MODEL, TO_REDACT
 
 
 def obfuscate_email(email: str) -> str:
@@ -61,27 +61,22 @@ def scrub_fields(
     return obj
 
 
-def normalize_device_model_name(model: str | None) -> str | None:
-    """Normalize device model name by uniforming generation notation."""
-    if model is None:
-        return None
-    # Example: "Echo Dot (4th generation)" -> "Echo Dot (4th Gen)"
-    return model.replace("generation", "Gen").strip()
+def parse_device_details(model: str | None) -> tuple[str | None, str | None]:
+    """Parse device model to extract a normalized version and its hardware revision."""
+    if model is None or model == SPEAKER_GROUP_MODEL:
+        return model, None
 
-
-def parse_device_hardware_version(model: str | None) -> str | None:
-    """Parse hardware version from model name."""
-    if model is None:
-        return None
+    # Normalize model name
+    model = model.replace("generation", "Gen").strip()
 
     # Matching example: "Echo Dot (4th Gen)" -> "4th Gen"
     match = re.search(r"\(([^)]+ Gen)[^)]*\)", model)
     if match:
-        return match.group(1).strip()
+        return model, match.group(1).strip()
 
     # Matching example: "2021 Samsung UHD TV" -> "2021"
     match = re.search(r"\b(19|20)\d{2}\b", model)
     if match:
-        return match.group(0).strip()
+        return model, match.group(0).strip()
 
-    return None
+    return model, None

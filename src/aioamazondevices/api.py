@@ -78,9 +78,8 @@ from .exceptions import (
 )
 from .query import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .utils import (
-    normalize_device_model_name,
     obfuscate_email,
-    parse_device_hardware_version,
+    parse_device_details,
     scrub_fields,
 )
 
@@ -1199,20 +1198,18 @@ class AmazonEchoApi:
             endpoint_device.endpoint_id = (
                 device_endpoint["endpointId"] if device_endpoint else None
             )
-            if endpoint_device.model is None:
-                if endpoint_device.device_type == SPEAKER_GROUP_DEVICE_TYPE:
-                    endpoint_device.model = SPEAKER_GROUP_MODEL
-                else:
-                    endpoint_device.model = (
-                        normalize_device_model_name(
-                            device_endpoint["model"]["value"]["text"]
-                        )
-                        if device_endpoint
-                        else None
-                    )
-            endpoint_device.hardware_version = parse_device_hardware_version(
-                endpoint_device.model
+            if (
+                endpoint_device.model is None
+                and endpoint_device.device_type == SPEAKER_GROUP_DEVICE_TYPE
+            ):
+                endpoint_device.model = SPEAKER_GROUP_MODEL
+            device_details = parse_device_details(
+                device_endpoint["model"]["value"]["text"]
+                if device_endpoint
+                else endpoint_device.model
             )
+            endpoint_device.model = device_details[0]
+            endpoint_device.hardware_version = device_details[1]
             endpoint_device.manufacturer = (
                 device_endpoint["manufacturer"]["value"]["text"]
                 if device_endpoint
