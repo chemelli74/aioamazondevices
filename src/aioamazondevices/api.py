@@ -62,6 +62,7 @@ from .const import (
     REQUEST_AGENT,
     SAVE_PATH,
     SENSORS,
+    SPEAKER_GROUP_FAMILY,
     URI_DEVICES,
     URI_DND,
     URI_NEXUS_GRAPHQL,
@@ -712,14 +713,16 @@ class AmazonEchoApi:
                     _LOGGER.debug(
                         "error in sensor %s - %s - %s", name, error_type, error_msg
                     )
-                device_sensors[name] = AmazonDeviceSensor(
-                    name,
-                    value,
-                    error,
-                    error_type,
-                    error_msg,
-                    scale,
-                )
+
+                if error_type != "NOT_FOUND":
+                    device_sensors[name] = AmazonDeviceSensor(
+                        name,
+                        value,
+                        error,
+                        error_type,
+                        error_msg,
+                        scale,
+                    )
 
         return device_sensors
 
@@ -1139,7 +1142,9 @@ class AmazonEchoApi:
             else:
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
-            if device_dnd := dnd_sensors.get(device.serial_number):
+            if (
+                device_dnd := dnd_sensors.get(device.serial_number)
+            ) and device.device_family != SPEAKER_GROUP_FAMILY:
                 device.sensors["dnd"] = device_dnd
 
             # Update notifications
@@ -1208,11 +1213,20 @@ class AmazonEchoApi:
             if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
                 continue
 
+            account_name: str = device["accountName"]
+            capabilities: list[str] = device["capabilities"]
+            # Skip devices that cannot be used with voice features
+            if "MICROPHONE" not in capabilities:
+                _LOGGER.debug(
+                    "Skipping device without microphone capabilities: %s", account_name
+                )
+                continue
+
             serial_number: str = device["serialNumber"]
 
             final_devices_list[serial_number] = AmazonDevice(
-                account_name=device["accountName"],
-                capabilities=device["capabilities"],
+                account_name=account_name,
+                capabilities=capabilities,
                 device_family=device["deviceFamily"],
                 device_type=device["deviceType"],
                 device_owner_customer_id=device["deviceOwnerCustomerId"],
