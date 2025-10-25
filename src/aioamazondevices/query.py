@@ -43,6 +43,11 @@ query getDevicesBaseData {
 QUERY_SENSOR_STATE = """
 fragment EndpointState on Endpoint {
   endpointId: id
+  settings {
+    doNotDisturb {
+      toggleValue
+    }
+  }
   friendlyNameObject { value { text } }
   features {
     name
