@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.5.2 (2025-10-25)
+
+### Bug fixes
+
+- Add filters by capabilities ([`ba9e003`](https://github.com/chemelli74/aioamazondevices/commit/ba9e0038f7006de419a6cbf6ac05205da9cc33ac))
+
+
 ## v6.5.1 (2025-10-24)
 
 ### Bug fixes
