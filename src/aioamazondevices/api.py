@@ -773,7 +773,7 @@ class AmazonEchoApi:
                 # generated key to convert list to dict
                 data = {ARRAY_WRAPPER: data}
             if description:
-                _LOGGER.debug("JSON '%s' data: %s", description, data)
+                _LOGGER.debug("JSON '%s' data: %s", description, scrub_fields(data))
             return cast("dict[str, Any]", data)
         except ContentTypeError as exc:
             raise ValueError("Response not in JSON format") from exc
