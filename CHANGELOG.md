@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.5.1 (2025-10-24)
+
+### Bug fixes
+
+- Switch graphql endpoint ([`5ce05b6`](https://github.com/chemelli74/aioamazondevices/commit/5ce05b6424117c3b2ccb5eba72313d0d1f2f5dcc))
+
+
 ## v6.5.0 (2025-10-22)
 
 ### Features
