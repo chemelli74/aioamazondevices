@@ -47,7 +47,6 @@ from .const import (
     DEFAULT_HEADERS,
     DEFAULT_SITE,
     DEVICE_TO_IGNORE,
-    DEVICE_TYPE_TO_MODEL,
     HTML_EXTENSION,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
@@ -62,7 +61,9 @@ from .const import (
     REQUEST_AGENT,
     SAVE_PATH,
     SENSORS,
+    SPEAKER_GROUP_DEVICE_TYPE,
     SPEAKER_GROUP_FAMILY,
+    SPEAKER_GROUP_MODEL,
     URI_DEVICES,
     URI_DND,
     URI_NEXUS_GRAPHQL,
@@ -78,7 +79,11 @@ from .exceptions import (
     WrongMethod,
 )
 from .query import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
-from .utils import obfuscate_email, scrub_fields
+from .utils import (
+    obfuscate_email,
+    parse_device_details,
+    scrub_fields,
+)
 
 
 @dataclass
@@ -116,7 +121,10 @@ class AmazonDevice:
     device_cluster_members: list[str]
     online: bool
     serial_number: str
+    manufacturer: str | None
+    model: str | None
     software_version: str
+    hardware_version: str | None
     entity_id: str | None
     endpoint_id: str | None
     sensors: dict[str, AmazonDeviceSensor]
@@ -1181,6 +1189,23 @@ class AmazonEchoApi:
             endpoint_device.endpoint_id = (
                 device_endpoint["endpointId"] if device_endpoint else None
             )
+            if (
+                endpoint_device.model is None
+                and endpoint_device.device_type == SPEAKER_GROUP_DEVICE_TYPE
+            ):
+                endpoint_device.model = SPEAKER_GROUP_MODEL
+            device_details = parse_device_details(
+                device_endpoint["model"]["value"]["text"]
+                if device_endpoint
+                else endpoint_device.model
+            )
+            endpoint_device.model = device_details[0]
+            endpoint_device.hardware_version = device_details[1]
+            endpoint_device.manufacturer = (
+                device_endpoint["manufacturer"]["value"]["text"]
+                if device_endpoint
+                else None
+            )
 
     async def _get_base_devices(self) -> None:
         _, raw_resp = await self._session_request(
@@ -1237,6 +1262,9 @@ class AmazonEchoApi:
                 serial_number=serial_number,
                 software_version=device["softwareVersion"],
                 entity_id=None,
+                model=device.get("deviceTypeFriendlyName"),
+                manufacturer=None,
+                hardware_version=None,
                 endpoint_id=None,
                 sensors={},
                 notifications={},
@@ -1273,20 +1301,6 @@ class AmazonEchoApi:
         authenticated = authentication.get("authenticated")
         _LOGGER.debug("Session authenticated: %s", authenticated)
         return bool(authenticated)
-
-    def get_model_details(self, device: AmazonDevice) -> dict[str, str | None] | None:
-        """Return model datails."""
-        model_details: dict[str, str | None] | None = DEVICE_TYPE_TO_MODEL.get(
-            device.device_type
-        )
-        if not model_details:
-            _LOGGER.warning(
-                "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices/wiki/Unknown-Device-Types",
-                device.device_type,
-                device.account_name,
-            )
-
-        return model_details
 
     async def _send_message(
         self,
