@@ -4,6 +4,8 @@ import logging
 
 _LOGGER = logging.getLogger(__package__)
 
+ARRAY_WRAPPER = "generatedArrayWrapper"
+
 HTTP_ERROR_199 = 199
 HTTP_ERROR_299 = 299
 
