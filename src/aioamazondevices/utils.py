@@ -65,6 +65,7 @@ def normalize_device_model_name(model: str | None) -> str | None:
     """Normalize device model name by uniforming generation notation."""
     if model is None:
         return None
+    # Example: "Echo Dot (4th generation)" -> "Echo Dot (4th Gen)"
     return model.replace("generation", "Gen").strip()
 
 
@@ -73,12 +74,12 @@ def parse_device_hardware_version(model: str | None) -> str | None:
     if model is None:
         return None
 
-    # Matching example: "Echo Dot (4th Gen)"
+    # Matching example: "Echo Dot (4th Gen)" -> "4th Gen"
     match = re.search(r"\(([^)]+ Gen)[^)]*\)", model)
     if match:
         return match.group(1).strip()
 
-    # Matching example: "2021 Samsung UHD TV"
+    # Matching example: "2021 Samsung UHD TV" -> "2021"
     match = re.search(r"\b(19|20)\d{2}\b", model)
     if match:
         return match.group(0).strip()
