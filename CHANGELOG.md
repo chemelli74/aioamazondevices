@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.5.4 (2025-10-26)
+
+### Bug fixes
+
+- Filter unsupported notifications ([`e92d001`](https://github.com/chemelli74/aioamazondevices/commit/e92d001e039c940dab0c26b7a2cdd27fe152d389))
+
+
 ## v6.5.3 (2025-10-26)
 
 ### Bug fixes
