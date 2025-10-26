@@ -1147,6 +1147,9 @@ class AmazonEchoApi:
             ) and device.device_family != SPEAKER_GROUP_FAMILY:
                 device.sensors["dnd"] = device_dnd
 
+            # Clear old notifications to handle cancelled ones
+            device.notifications = {}
+
             # Update notifications
             device_notifications = notifications.get(device.serial_number, {})
 
