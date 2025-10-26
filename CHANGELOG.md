@@ -1,5 +1,17 @@
 # Changelog
 
+## v6.5.3 (2025-10-26)
+
+### Bug fixes
+
+- Handle cancelled notifications ([`e4f0299`](https://github.com/chemelli74/aioamazondevices/commit/e4f02998a7334ace9bd4b977c031675b2890a4fa))
+
+
+### Refactoring
+
+- Add missing and normalize logging ([`dca1e2c`](https://github.com/chemelli74/aioamazondevices/commit/dca1e2c1de46b426301e3a3250a9f374bd9ae026))
+
+
 ## v6.5.2 (2025-10-25)
 
 ### Bug fixes
