@@ -630,7 +630,7 @@ class AmazonEchoApi:
             json_data=True,
         )
 
-        sensors_state = await self._response_to_json(raw_resp, "sensor")
+        sensors_state = await self._response_to_json(raw_resp, "sensors")
 
         if await self._format_human_error(sensors_state):
             # Explicit error in returned data
