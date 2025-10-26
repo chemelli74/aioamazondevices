@@ -630,8 +630,7 @@ class AmazonEchoApi:
             json_data=True,
         )
 
-        sensors_state = await self._response_to_json(raw_resp)
-        _LOGGER.debug("Sensor data - %s", sensors_state)
+        sensors_state = await self._response_to_json(raw_resp, "sensors")
 
         if await self._format_human_error(sensors_state):
             # Explicit error in returned data
@@ -740,7 +739,7 @@ class AmazonEchoApi:
             json_data=True,
         )
 
-        endpoint_data = await self._response_to_json(raw_resp)
+        endpoint_data = await self._response_to_json(raw_resp, "endpoint")
 
         if not (data := endpoint_data.get("data")) or not data.get("listEndpoints"):
             await self._format_human_error(endpoint_data)
@@ -760,7 +759,9 @@ class AmazonEchoApi:
 
         return devices_endpoints
 
-    async def _response_to_json(self, raw_resp: ClientResponse) -> dict[str, Any]:
+    async def _response_to_json(
+        self, raw_resp: ClientResponse, description: str | None = None
+    ) -> dict[str, Any]:
         """Convert response to JSON, if possible."""
         try:
             data = await raw_resp.json(loads=orjson.loads)
@@ -771,6 +772,8 @@ class AmazonEchoApi:
                 # if anonymous array is returned wrap it inside
                 # generated key to convert list to dict
                 data = {ARRAY_WRAPPER: data}
+            if description:
+                _LOGGER.debug("JSON '%s' data: %s", description, scrub_fields(data))
             return cast("dict[str, Any]", data)
         except ContentTypeError as exc:
             raise ValueError("Response not in JSON format") from exc
@@ -784,7 +787,9 @@ class AmazonEchoApi:
             HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._domain}{URI_NOTIFICATIONS}",
         )
-        notifications = await self._response_to_json(raw_resp)
+
+        notifications = await self._response_to_json(raw_resp, "notifications")
+
         for schedule in notifications["notifications"]:
             schedule_type: str = schedule["type"]
             schedule_device_serial = schedule["deviceSerialNumber"]
@@ -869,7 +874,11 @@ class AmazonEchoApi:
                     continue
 
                 if recurring_rule not in RECURRING_PATTERNS:
-                    _LOGGER.warning("Unknown recurring rule: %s", recurring_rule)
+                    _LOGGER.warning(
+                        "Unknown recurring rule <%s> for schedule type <%s>",
+                        recurring_rule,
+                        schedule["type"],
+                    )
                     return None
 
                 # Adjust recurring rules for country specific weekend exceptions
@@ -1191,9 +1200,7 @@ class AmazonEchoApi:
             url=f"https://alexa.amazon.{self._domain}{URI_DEVICES}",
         )
 
-        json_data = await self._response_to_json(raw_resp)
-
-        _LOGGER.debug("JSON devices data: %s", scrub_fields(json_data))
+        json_data = await self._response_to_json(raw_resp, "devices")
 
         for data in json_data["devices"]:
             dev_serial = data.get("serialNumber")
@@ -1541,8 +1548,7 @@ class AmazonEchoApi:
             _LOGGER.debug("Failed to refresh data")
             return False, {}
 
-        json_response = await self._response_to_json(raw_resp)
-        _LOGGER.debug("Refresh data json:\n%s ", json_response)
+        json_response = await self._response_to_json(raw_resp, data_type)
 
         if data_type == REFRESH_ACCESS_TOKEN and (
             new_token := json_response.get(REFRESH_ACCESS_TOKEN)
@@ -1566,8 +1572,7 @@ class AmazonEchoApi:
             url=f"https://alexa.amazon.{self._domain}{URI_DND}",
         )
 
-        dnd_data = await self._response_to_json(raw_resp)
-        _LOGGER.debug("DND data: %s", dnd_data)
+        dnd_data = await self._response_to_json(raw_resp, "dnd")
 
         for dnd in dnd_data.get("doNotDisturbDeviceStatusList", {}):
             dnd_status[dnd.get("deviceSerialNumber")] = AmazonDeviceSensor(
