@@ -1197,7 +1197,7 @@ class AmazonEchoApi:
             url=f"https://alexa.amazon.{self._domain}{URI_DEVICES}",
         )
 
-        json_data = await self._response_to_json(raw_resp, "device")
+        json_data = await self._response_to_json(raw_resp, "devices")
 
         for data in json_data["devices"]:
             dev_serial = data.get("serialNumber")
