@@ -56,6 +56,7 @@ from .const import (
     NOTIFICATION_MUSIC_ALARM,
     NOTIFICATION_REMINDER,
     NOTIFICATION_TIMER,
+    NOTIFICATIONS_SUPPORTED,
     RECURRING_PATTERNS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
@@ -793,6 +794,18 @@ class AmazonEchoApi:
         for schedule in notifications["notifications"]:
             schedule_type: str = schedule["type"]
             schedule_device_serial = schedule["deviceSerialNumber"]
+
+            if schedule_device_serial in DEVICE_TO_IGNORE:
+                continue
+
+            if schedule_type not in NOTIFICATIONS_SUPPORTED:
+                _LOGGER.debug(
+                    "Unsupported schedule type %s for device %s",
+                    schedule_type,
+                    schedule_device_serial,
+                )
+                continue
+
             if schedule_type == NOTIFICATION_MUSIC_ALARM:
                 # Structure is the same as standard Alarm
                 schedule_type = NOTIFICATION_ALARM
