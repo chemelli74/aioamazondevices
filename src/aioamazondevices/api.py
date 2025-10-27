@@ -40,6 +40,7 @@ from .const import (
     AMAZON_CLIENT_OS,
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
+    AQM_DEVICE_TYPE,
     ARRAY_WRAPPER,
     BIN_EXTENSION,
     COUNTRY_GROUPS,
@@ -660,6 +661,7 @@ class AmazonEchoApi:
         self, endpoint: dict[str, Any], serial_number: str
     ) -> dict[str, AmazonDeviceSensor]:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
+        device = self._final_devices[serial_number]
         for feature in endpoint.get("features", {}):
             if (sensor_template := SENSORS.get(feature["name"])) is None:
                 # Skip sensors that are not in the predefined list
@@ -714,19 +716,46 @@ class AmazonEchoApi:
                         "error in sensor %s - %s - %s", name, error_type, error_msg
                     )
 
-                if feature.get("instance"):
-                    name = f"{name}-{feature.get('instance')}"
-                if error_type != "NOT_FOUND":
-                    device_sensors[name] = AmazonDeviceSensor(
-                        name,
-                        value,
-                        error,
-                        error_type,
-                        error_msg,
-                        scale,
-                    )
+                if error_type == "NOT_FOUND":
+                    continue
+
+                if device.device_type == AQM_DEVICE_TYPE and feature.get("instance"):
+                    name, scale = self._get_aqm_sensor(feature.get("instance"))
+
+                device_sensors[name] = AmazonDeviceSensor(
+                    name,
+                    value,
+                    error,
+                    error_type,
+                    error_msg,
+                    scale,
+                )
 
         return device_sensors
+
+    def _get_aqm_sensor(self, instance: str) -> tuple[str, str | None]:
+        name = None
+        scale = None
+        match instance:
+            case "4":
+                name = "Humidity"
+                scale = "%"
+            case "5":
+                name = "VOC"
+            case "6":
+                name = "PM25"
+                scale = "MicroGramsPerCubicMeter"
+            case "7":
+                name = "PM10"
+                scale = "MicroGramsPerCubicMeter"
+            case "8":
+                name = "CO"
+                scale = "ppm"
+            case "9":
+                name = "Air Quality"
+            case _:
+                name = "Unknown"
+        return name, scale
 
     async def _get_devices_endpoint_data(self) -> dict[str, dict[str, Any]]:
         """Get Devices endpoint data."""
