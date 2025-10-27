@@ -613,6 +613,9 @@ class AmazonEchoApi:
         """Retrieve devices sensors states."""
         devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
 
+        if not self._endpoints:
+            return {}
+
         endpoint_ids = list(self._endpoints.keys())
         payload = [
             {
