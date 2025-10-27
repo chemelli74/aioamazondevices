@@ -797,34 +797,25 @@ class AmazonEchoApi:
                 devices_endpoints[serial_number] = aqm_endpoint
                 self._endpoints[aqm_endpoint["endpointId"]] = serial_number
 
-                device_name = (
-                    aqm_endpoint.get("friendlyNameObject", {})
-                    .get("value", {})
-                    .get("text")
-                )
-                device_type = (
-                    aqm_endpoint.get("legacyIdentifiers", {})
-                    .get("dmsIdentifier", {})
-                    .get("deviceType", {})
-                    .get("value", {})
-                    .get("text")
-                )
-                software_version = (
-                    aqm_endpoint.get("softwareVersion", {}).get("value", {}).get("text")
-                )
+                device_name = aqm_endpoint["friendlyNameObject"]["value"]["text"]
+                device_type = aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
+                    "deviceType"
+                ]["value"]["text"]
+                software_version = aqm_endpoint["softwareVersion"]["value"]["text"]
+
                 self._final_devices[serial_number] = AmazonDevice(
                     account_name=device_name,
                     capabilities=[],
                     device_family="AIR_QUALITY_MONITOR",
                     device_type=device_type,
-                    device_owner_customer_id="None",
+                    device_owner_customer_id=self._account_owner_customer_id or "None",
                     household_device=False,
                     device_cluster_members=[serial_number],
                     online=True,
                     serial_number=serial_number,
                     software_version=software_version,
                     entity_id=None,
-                    endpoint_id=None,
+                    endpoint_id=aqm_endpoint.get("endpointId"),
                     sensors={},
                     notifications={},
                 )
