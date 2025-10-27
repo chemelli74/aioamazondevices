@@ -57,6 +57,7 @@ from .const import (
     NOTIFICATION_REMINDER,
     NOTIFICATION_TIMER,
     NOTIFICATIONS_SUPPORTED,
+    NOTIFICATIONS_TO_IGNORE,
     RECURRING_PATTERNS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
@@ -796,6 +797,9 @@ class AmazonEchoApi:
             schedule_device_serial = schedule["deviceSerialNumber"]
 
             if schedule_device_serial in DEVICE_TO_IGNORE:
+                continue
+
+            if schedule_type in NOTIFICATIONS_TO_IGNORE:
                 continue
 
             if schedule_type not in NOTIFICATIONS_SUPPORTED:
