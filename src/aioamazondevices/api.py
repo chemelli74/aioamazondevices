@@ -777,9 +777,10 @@ class AmazonEchoApi:
             await self._format_human_error(endpoint_data)
             return {}
 
-        alexa_voice_endpoints = data["alexaVoiceDevices"]
         devices_endpoints: dict[str, dict[str, Any]] = {}
-        for endpoint in alexa_voice_endpoints.get("endpoints"):
+
+        alexa_voice_endpoints = data.get("alexaVoiceDevices", {})
+        for endpoint in alexa_voice_endpoints.get("endpoints", {}):
             # save looking up sensor data on apps
             if endpoint.get("alexaEnabledMetadata", {}).get("category") == "APP":
                 continue
@@ -791,7 +792,7 @@ class AmazonEchoApi:
 
         aqm_endpoints = data.get("airQualityMonitors")
         if aqm_endpoints:
-            for aqm_endpoint in aqm_endpoints.get("endpoints"):
+            for aqm_endpoint in aqm_endpoints.get("endpoints", {}):
                 serial_number = aqm_endpoint["serialNumber"]["value"]["text"]
                 devices_endpoints[serial_number] = aqm_endpoint
                 self._endpoints[aqm_endpoint["endpointId"]] = serial_number
