@@ -1,5 +1,17 @@
 # Changelog
 
+## v6.5.5 (2025-10-27)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`0a4ee2a`](https://github.com/chemelli74/aioamazondevices/commit/0a4ee2a4bb5d0d2ab5a1da59966dd0483ce513ff))
+
+
+### Bug fixes
+
+- Do not query sensors if endpoint list is empty ([`0c9a1e4`](https://github.com/chemelli74/aioamazondevices/commit/0c9a1e40c30d8de1e4a0de497ae179ac37b84cde))
+
+
 ## v6.5.4 (2025-10-26)
 
 ### Bug fixes
