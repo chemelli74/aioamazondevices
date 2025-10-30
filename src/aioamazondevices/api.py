@@ -41,6 +41,7 @@ from .const import (
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
     AQM_DEVICE_TYPE,
+    AQM_RANGE_SENSORS,
     ARRAY_WRAPPER,
     BIN_EXTENSION,
     COUNTRY_GROUPS,
@@ -719,8 +720,19 @@ class AmazonEchoApi:
                 if error_type == "NOT_FOUND":
                     continue
 
-                if device.device_type == AQM_DEVICE_TYPE and feature.get("instance"):
-                    name, scale = self._get_aqm_sensor(feature.get("instance"))
+                if device.device_type == AQM_DEVICE_TYPE and name == "rangeValue":
+                    if not (
+                        (instance := feature.get("instance"))
+                        and (aqm_sensor := AQM_RANGE_SENSORS.get(instance))
+                        and (aqm_sensor_name := aqm_sensor.get("name"))
+                    ):
+                        _LOGGER.debug(
+                            "No template for rangeValue (%s) - Skipping sensor",
+                            instance,
+                        )
+                        continue
+                    name = aqm_sensor_name
+                    scale = aqm_sensor.get("scale")
 
                 device_sensors[name] = AmazonDeviceSensor(
                     name,
@@ -732,30 +744,6 @@ class AmazonEchoApi:
                 )
 
         return device_sensors
-
-    def _get_aqm_sensor(self, instance: str) -> tuple[str, str | None]:
-        name = None
-        scale = None
-        match instance:
-            case "4":
-                name = "Humidity"
-                scale = "%"
-            case "5":
-                name = "VOC"
-            case "6":
-                name = "PM25"
-                scale = "MicroGramsPerCubicMeter"
-            case "7":
-                name = "PM10"
-                scale = "MicroGramsPerCubicMeter"
-            case "8":
-                name = "CO"
-                scale = "ppm"
-            case "9":
-                name = "Air Quality"
-            case _:
-                name = "Unknown"
-        return name, scale
 
     async def _get_devices_endpoint_data(self) -> dict[str, dict[str, Any]]:
         """Get Devices endpoint data."""
