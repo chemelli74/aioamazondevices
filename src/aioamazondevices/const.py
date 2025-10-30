@@ -6,33 +6,6 @@ _LOGGER = logging.getLogger(__package__)
 
 ARRAY_WRAPPER = "generatedArrayWrapper"
 
-AQM_RANGE_SENSORS: dict[str, dict[str, str | None]] = {
-    "4": {
-        "name": "Humidity",
-        "scale": "%",
-    },
-    "5": {
-        "name": "VOC",
-        "scale": None,
-    },
-    "6": {
-        "name": "PM25",
-        "scale": "MicroGramsPerCubicMeter",
-    },
-    "7": {
-        "name": "PM10",
-        "scale": "MicroGramsPerCubicMeter",
-    },
-    "8": {
-        "name": "CO",
-        "scale": "ppm",
-    },
-    "9": {
-        "name": "Air Quality",
-        "scale": None,
-    },
-}
-
 HTTP_ERROR_199 = 199
 HTTP_ERROR_299 = 299
 
@@ -67,6 +40,32 @@ AMAZON_DEVICE_TYPE = "A2IVLV5VM2W81"
 AMAZON_CLIENT_OS = "18.5"
 
 AQM_DEVICE_TYPE = "AEZME1X38KDRA"
+AQM_RANGE_SENSORS: dict[str, dict[str, str | None]] = {
+    "4": {
+        "name": "Humidity",
+        "scale": "%",
+    },
+    "5": {
+        "name": "VOC",
+        "scale": None,
+    },
+    "6": {
+        "name": "PM25",
+        "scale": "MicroGramsPerCubicMeter",
+    },
+    "7": {
+        "name": "PM10",
+        "scale": "MicroGramsPerCubicMeter",
+    },
+    "8": {
+        "name": "CO",
+        "scale": "ppm",
+    },
+    "9": {
+        "name": "Air Quality",
+        "scale": None,
+    },
+}
 
 DEFAULT_SITE = "https://www.amazon.com"
 DEFAULT_HEADERS = {
