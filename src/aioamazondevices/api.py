@@ -775,8 +775,9 @@ class AmazonEchoApi:
 
         devices_endpoints: dict[str, dict[str, Any]] = {}
 
-        alexa_voice_endpoints = data.get("alexaVoiceDevices", {})
-        for endpoint in alexa_voice_endpoints.get("endpoints", {}):
+        # Process Alexa Voice Enabled devices
+        # Just map endpoint ID to serial number to facilitate sensor lookup
+        for endpoint in data.get("alexaVoiceDevices", {}).get("endpoints", {}):
             # save looking up sensor data on apps
             if endpoint.get("alexaEnabledMetadata", {}).get("category") == "APP":
                 continue
@@ -786,35 +787,36 @@ class AmazonEchoApi:
                 devices_endpoints[serial_number] = endpoint
                 self._endpoints[endpoint["endpointId"]] = serial_number
 
-        aqm_endpoints = data.get("airQualityMonitors")
-        if aqm_endpoints:
-            for aqm_endpoint in aqm_endpoints.get("endpoints", {}):
-                serial_number = aqm_endpoint["serialNumber"]["value"]["text"]
-                devices_endpoints[serial_number] = aqm_endpoint
-                self._endpoints[aqm_endpoint["endpointId"]] = serial_number
+        # Process Air Quality Monitors if present
+        # map endpoint ID to serial number to facilitate sensor lookup but also
+        # create AmazonDevice as these are not present in api/devices-v2/device endpoint
+        for aqm_endpoint in data.get("airQualityMonitors", {}).get("endpoints", {}):
+            serial_number = aqm_endpoint["serialNumber"]["value"]["text"]
+            devices_endpoints[serial_number] = aqm_endpoint
+            self._endpoints[aqm_endpoint["endpointId"]] = serial_number
 
-                device_name = aqm_endpoint["friendlyNameObject"]["value"]["text"]
-                device_type = aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
-                    "deviceType"
-                ]["value"]["text"]
-                software_version = aqm_endpoint["softwareVersion"]["value"]["text"]
+            device_name = aqm_endpoint["friendlyNameObject"]["value"]["text"]
+            device_type = aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
+                "deviceType"
+            ]["value"]["text"]
+            software_version = aqm_endpoint["softwareVersion"]["value"]["text"]
 
-                self._final_devices[serial_number] = AmazonDevice(
-                    account_name=device_name,
-                    capabilities=[],
-                    device_family="AIR_QUALITY_MONITOR",
-                    device_type=device_type,
-                    device_owner_customer_id=self._account_owner_customer_id or "None",
-                    household_device=False,
-                    device_cluster_members=[serial_number],
-                    online=True,
-                    serial_number=serial_number,
-                    software_version=software_version,
-                    entity_id=None,
-                    endpoint_id=aqm_endpoint.get("endpointId"),
-                    sensors={},
-                    notifications={},
-                )
+            self._final_devices[serial_number] = AmazonDevice(
+                account_name=device_name,
+                capabilities=[],
+                device_family="AIR_QUALITY_MONITOR",
+                device_type=device_type,
+                device_owner_customer_id=self._account_owner_customer_id or "None",
+                household_device=False,
+                device_cluster_members=[serial_number],
+                online=True,
+                serial_number=serial_number,
+                software_version=software_version,
+                entity_id=None,
+                endpoint_id=aqm_endpoint.get("endpointId"),
+                sensors={},
+                notifications={},
+            )
 
         return devices_endpoints
 
