@@ -40,6 +40,8 @@ from .const import (
     AMAZON_CLIENT_OS,
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
+    AQM_DEVICE_TYPE,
+    AQM_RANGE_SENSORS,
     ARRAY_WRAPPER,
     BIN_EXTENSION,
     COUNTRY_GROUPS,
@@ -663,12 +665,13 @@ class AmazonEchoApi:
         self, endpoint: dict[str, Any], serial_number: str
     ) -> dict[str, AmazonDeviceSensor]:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
+        device = self._final_devices[serial_number]
         for feature in endpoint.get("features", {}):
             if (sensor_template := SENSORS.get(feature["name"])) is None:
                 # Skip sensors that are not in the predefined list
                 continue
 
-            if not (name := sensor_template["name"]):
+            if not (sensor_template_name_value := sensor_template["name"]):
                 raise CannotRetrieveData("Unable to read sensor template")
 
             for feature_property in feature.get("properties"):
@@ -689,7 +692,7 @@ class AmazonEchoApi:
                         if not value_raw:
                             _LOGGER.warning(
                                 "Sensor %s [device %s] ignored due to empty value",
-                                name,
+                                sensor_template_name_value,
                                 serial_number,
                             )
                             continue
@@ -707,25 +710,49 @@ class AmazonEchoApi:
                     except (KeyError, ValueError) as exc:
                         _LOGGER.warning(
                             "Sensor %s [device %s] ignored due to errors in feature %s: %s",  # noqa: E501
-                            name,
+                            sensor_template_name_value,
                             serial_number,
                             feature_property,
                             repr(exc),
                         )
                 if error:
                     _LOGGER.debug(
-                        "error in sensor %s - %s - %s", name, error_type, error_msg
-                    )
-
-                if error_type != "NOT_FOUND":
-                    device_sensors[name] = AmazonDeviceSensor(
-                        name,
-                        value,
-                        error,
+                        "error in sensor %s - %s - %s",
+                        sensor_template_name_value,
                         error_type,
                         error_msg,
-                        scale,
                     )
+
+                if error_type == "NOT_FOUND":
+                    continue
+
+                sensor_name = sensor_template_name_value
+
+                if (
+                    device.device_type == AQM_DEVICE_TYPE
+                    and sensor_template_name_value == "rangeValue"
+                ):
+                    if not (
+                        (instance := feature.get("instance"))
+                        and (aqm_sensor := AQM_RANGE_SENSORS.get(instance))
+                        and (aqm_sensor_name := aqm_sensor.get("name"))
+                    ):
+                        _LOGGER.debug(
+                            "No template for rangeValue (%s) - Skipping sensor",
+                            instance,
+                        )
+                        continue
+                    sensor_name = aqm_sensor_name
+                    scale = aqm_sensor.get("scale")
+
+                device_sensors[sensor_name] = AmazonDeviceSensor(
+                    sensor_name,
+                    value,
+                    error,
+                    error_type,
+                    error_msg,
+                    scale,
+                )
 
         return device_sensors
 
@@ -745,13 +772,15 @@ class AmazonEchoApi:
 
         endpoint_data = await self._response_to_json(raw_resp, "endpoint")
 
-        if not (data := endpoint_data.get("data")) or not data.get("listEndpoints"):
+        if not (data := endpoint_data.get("data")) or not data.get("alexaVoiceDevices"):
             await self._format_human_error(endpoint_data)
             return {}
 
-        endpoints = data["listEndpoints"]
         devices_endpoints: dict[str, dict[str, Any]] = {}
-        for endpoint in endpoints.get("endpoints"):
+
+        # Process Alexa Voice Enabled devices
+        # Just map endpoint ID to serial number to facilitate sensor lookup
+        for endpoint in data.get("alexaVoiceDevices", {}).get("endpoints", {}):
             # save looking up sensor data on apps
             if endpoint.get("alexaEnabledMetadata", {}).get("category") == "APP":
                 continue
@@ -760,6 +789,37 @@ class AmazonEchoApi:
                 serial_number = endpoint["serialNumber"]["value"]["text"]
                 devices_endpoints[serial_number] = endpoint
                 self._endpoints[endpoint["endpointId"]] = serial_number
+
+        # Process Air Quality Monitors if present
+        # map endpoint ID to serial number to facilitate sensor lookup but also
+        # create AmazonDevice as these are not present in api/devices-v2/device endpoint
+        for aqm_endpoint in data.get("airQualityMonitors", {}).get("endpoints", {}):
+            serial_number = aqm_endpoint["serialNumber"]["value"]["text"]
+            devices_endpoints[serial_number] = aqm_endpoint
+            self._endpoints[aqm_endpoint["endpointId"]] = serial_number
+
+            device_name = aqm_endpoint["friendlyNameObject"]["value"]["text"]
+            device_type = aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
+                "deviceType"
+            ]["value"]["text"]
+            software_version = aqm_endpoint["softwareVersion"]["value"]["text"]
+
+            self._final_devices[serial_number] = AmazonDevice(
+                account_name=device_name,
+                capabilities=[],
+                device_family="AIR_QUALITY_MONITOR",
+                device_type=device_type,
+                device_owner_customer_id=self._account_owner_customer_id or "n/a",
+                household_device=False,
+                device_cluster_members=[serial_number],
+                online=True,
+                serial_number=serial_number,
+                software_version=software_version,
+                entity_id=None,
+                endpoint_id=aqm_endpoint.get("endpointId"),
+                sensors={},
+                notifications={},
+            )
 
         return devices_endpoints
 

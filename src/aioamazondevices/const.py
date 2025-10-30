@@ -39,6 +39,34 @@ AMAZON_DEVICE_SOFTWARE_VERSION = "35602678"
 AMAZON_DEVICE_TYPE = "A2IVLV5VM2W81"
 AMAZON_CLIENT_OS = "18.5"
 
+AQM_DEVICE_TYPE = "AEZME1X38KDRA"
+AQM_RANGE_SENSORS: dict[str, dict[str, str | None]] = {
+    "4": {
+        "name": "Humidity",
+        "scale": "%",
+    },
+    "5": {
+        "name": "VOC",
+        "scale": None,
+    },
+    "6": {
+        "name": "PM25",
+        "scale": "MicroGramsPerCubicMeter",
+    },
+    "7": {
+        "name": "PM10",
+        "scale": "MicroGramsPerCubicMeter",
+    },
+    "8": {
+        "name": "CO",
+        "scale": "ppm",
+    },
+    "9": {
+        "name": "Air Quality",
+        "scale": None,
+    },
+}
+
 DEFAULT_SITE = "https://www.amazon.com"
 DEFAULT_HEADERS = {
     "Accept-Charset": "utf-8",
@@ -87,6 +115,12 @@ SENSORS: dict[str, dict[str, str | None]] = {
     "lightSensor": {
         "name": "illuminance",
         "key": "illuminanceValue",
+        "subkey": "value",
+        "scale": None,
+    },
+    "range": {
+        "name": "rangeValue",
+        "key": "rangeValue",
         "subkey": "value",
         "scale": None,
     },
