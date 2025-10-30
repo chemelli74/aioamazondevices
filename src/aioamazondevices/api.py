@@ -806,7 +806,7 @@ class AmazonEchoApi:
                 capabilities=[],
                 device_family="AIR_QUALITY_MONITOR",
                 device_type=device_type,
-                device_owner_customer_id=self._account_owner_customer_id or "None",
+                device_owner_customer_id=self._account_owner_customer_id or "n/a",
                 household_device=False,
                 device_cluster_members=[serial_number],
                 online=True,
