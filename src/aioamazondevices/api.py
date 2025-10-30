@@ -668,7 +668,7 @@ class AmazonEchoApi:
                 # Skip sensors that are not in the predefined list
                 continue
 
-            if not (name := sensor_template["name"]):
+            if not (sensor_template_name_value := sensor_template["name"]):
                 raise CannotRetrieveData("Unable to read sensor template")
 
             for feature_property in feature.get("properties"):
@@ -689,7 +689,7 @@ class AmazonEchoApi:
                         if not value_raw:
                             _LOGGER.warning(
                                 "Sensor %s [device %s] ignored due to empty value",
-                                name,
+                                sensor_template_name_value,
                                 serial_number,
                             )
                             continue
@@ -707,20 +707,28 @@ class AmazonEchoApi:
                     except (KeyError, ValueError) as exc:
                         _LOGGER.warning(
                             "Sensor %s [device %s] ignored due to errors in feature %s: %s",  # noqa: E501
-                            name,
+                            sensor_template_name_value,
                             serial_number,
                             feature_property,
                             repr(exc),
                         )
                 if error:
                     _LOGGER.debug(
-                        "error in sensor %s - %s - %s", name, error_type, error_msg
+                        "error in sensor %s - %s - %s",
+                        sensor_template_name_value,
+                        error_type,
+                        error_msg,
                     )
 
                 if error_type == "NOT_FOUND":
                     continue
 
-                if device.device_type == AQM_DEVICE_TYPE and name == "rangeValue":
+                sensor_name = sensor_template_name_value
+
+                if (
+                    device.device_type == AQM_DEVICE_TYPE
+                    and sensor_template_name_value == "rangeValue"
+                ):
                     if not (
                         (instance := feature.get("instance"))
                         and (aqm_sensor := AQM_RANGE_SENSORS.get(instance))
@@ -731,11 +739,11 @@ class AmazonEchoApi:
                             instance,
                         )
                         continue
-                    name = aqm_sensor_name
+                    sensor_name = aqm_sensor_name
                     scale = aqm_sensor.get("scale")
 
-                device_sensors[name] = AmazonDeviceSensor(
-                    name,
+                device_sensors[sensor_name] = AmazonDeviceSensor(
+                    sensor_name,
                     value,
                     error,
                     error_type,
