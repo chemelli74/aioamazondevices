@@ -1,5 +1,12 @@
 # Changelog
 
+## v6.5.6 (2025-10-31)
+
+### Bug fixes
+
+- Move connectivity to graphql ([`9e8a021`](https://github.com/chemelli74/aioamazondevices/commit/9e8a021982127503232fa3c7322e69cbe79e0c89))
+
+
 ## v6.5.5 (2025-10-27)
 
 ### Documentation
