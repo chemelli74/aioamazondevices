@@ -90,6 +90,12 @@ SENSORS: dict[str, dict[str, str | None]] = {
         "subkey": "value",
         "scale": None,
     },
+    "connectivity": {
+        "name": "reachability",
+        "key": "reachabilityStatusValue",
+        "subkey": None,
+        "scale": None,
+    },
 }
 
 ALEXA_INFO_SKILLS = [
