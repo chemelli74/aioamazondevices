@@ -1,5 +1,78 @@
 # Changelog
 
+## v6.5.6 (2025-10-31)
+
+### Bug fixes
+
+- Move connectivity to graphql ([`9e8a021`](https://github.com/chemelli74/aioamazondevices/commit/9e8a021982127503232fa3c7322e69cbe79e0c89))
+
+
+## v6.5.5 (2025-10-27)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`0a4ee2a`](https://github.com/chemelli74/aioamazondevices/commit/0a4ee2a4bb5d0d2ab5a1da59966dd0483ce513ff))
+
+
+### Bug fixes
+
+- Do not query sensors if endpoint list is empty ([`0c9a1e4`](https://github.com/chemelli74/aioamazondevices/commit/0c9a1e40c30d8de1e4a0de497ae179ac37b84cde))
+
+
+## v6.5.4 (2025-10-26)
+
+### Bug fixes
+
+- Filter unsupported notifications ([`e92d001`](https://github.com/chemelli74/aioamazondevices/commit/e92d001e039c940dab0c26b7a2cdd27fe152d389))
+
+
+## v6.5.3 (2025-10-26)
+
+### Bug fixes
+
+- Handle cancelled notifications ([`e4f0299`](https://github.com/chemelli74/aioamazondevices/commit/e4f02998a7334ace9bd4b977c031675b2890a4fa))
+
+
+### Refactoring
+
+- Add missing and normalize logging ([`dca1e2c`](https://github.com/chemelli74/aioamazondevices/commit/dca1e2c1de46b426301e3a3250a9f374bd9ae026))
+
+
+## v6.5.2 (2025-10-25)
+
+### Bug fixes
+
+- Add filters by capabilities ([`ba9e003`](https://github.com/chemelli74/aioamazondevices/commit/ba9e0038f7006de419a6cbf6ac05205da9cc33ac))
+
+
+## v6.5.1 (2025-10-24)
+
+### Bug fixes
+
+- Switch graphql endpoint ([`5ce05b6`](https://github.com/chemelli74/aioamazondevices/commit/5ce05b6424117c3b2ccb5eba72313d0d1f2f5dcc))
+
+
+## v6.5.0 (2025-10-22)
+
+### Features
+
+- Add times,reminders,alarms data ([`63e94c9`](https://github.com/chemelli74/aioamazondevices/commit/63e94c918934ad682063c7b7a297a74f45920590))
+
+
+## v6.4.6 (2025-10-20)
+
+### Bug fixes
+
+- Refresh endpoints only if missing ([`aed8630`](https://github.com/chemelli74/aioamazondevices/commit/aed86307a31e30094bd2b54adc5b563ad7f09e9b))
+
+
+## v6.4.5 (2025-10-20)
+
+### Bug fixes
+
+- Allow specific user-agent ([`0e2ab63`](https://github.com/chemelli74/aioamazondevices/commit/0e2ab633750c0e6d48074f6abd32b2094ee1778e))
+
+
 ## v6.4.4 (2025-10-15)
 
 ### Bug fixes
