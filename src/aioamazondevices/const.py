@@ -4,6 +4,8 @@ import logging
 
 _LOGGER = logging.getLogger(__package__)
 
+ARRAY_WRAPPER = "generatedArrayWrapper"
+
 HTTP_ERROR_199 = 199
 HTTP_ERROR_299 = 299
 
@@ -41,20 +43,22 @@ COMM_SITE = "alexa-comms-mobile-service.amazon.com"
 
 DEFAULT_SITE = "https://www.amazon.com"
 DEFAULT_HEADERS = {
-    "User-Agent": (
-        f"AmazonWebView/AmazonAlexa/{AMAZON_APP_VERSION}/iOS/{AMAZON_CLIENT_OS}/iPhone"
-    ),
     "Accept-Charset": "utf-8",
     "Accept-Encoding": "gzip",
     "Connection": "keep-alive",
 }
 CSRF_COOKIE = "csrf"
+REQUEST_AGENT = {
+    "Amazon": f"AmazonWebView/AmazonAlexa/{AMAZON_APP_VERSION}/iOS/{AMAZON_CLIENT_OS}/iPhone",  # noqa: E501
+    "Browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0",  # noqa: E501
+}
 
 REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
 REFRESH_AUTH_COOKIES = "auth_cookies"
 
 URI_DEVICES = "/api/devices-v2/device"
 URI_DND = "/api/dnd/device-status-list"
+URI_NOTIFICATIONS = "/api/notifications"
 URI_SIGNIN = "/ap/signin"
 URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 
@@ -86,6 +90,12 @@ SENSORS: dict[str, dict[str, str | None]] = {
         "name": "illuminance",
         "key": "illuminanceValue",
         "subkey": "value",
+        "scale": None,
+    },
+    "connectivity": {
+        "name": "reachability",
+        "key": "reachabilityStatusValue",
+        "subkey": None,
         "scale": None,
     },
 }
@@ -478,3 +488,63 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": "Gen2",
     },
 }
+
+RECURRING_PATTERNS: dict[str, str] = {
+    "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR",
+    "XXXX-WE": "FREQ=WEEKLY;BYDAY=SA,SU",
+    "XXXX-WXX-1": "FREQ=WEEKLY;BYDAY=MO",
+    "XXXX-WXX-2": "FREQ=WEEKLY;BYDAY=TU",
+    "XXXX-WXX-3": "FREQ=WEEKLY;BYDAY=WE",
+    "XXXX-WXX-4": "FREQ=WEEKLY;BYDAY=TH",
+    "XXXX-WXX-5": "FREQ=WEEKLY;BYDAY=FR",
+    "XXXX-WXX-6": "FREQ=WEEKLY;BYDAY=SA",
+    "XXXX-WXX-7": "FREQ=WEEKLY;BYDAY=SU",
+}
+
+WEEKEND_EXCEPTIONS = {
+    "TH-FR": {
+        "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,SA,SU",
+        "XXXX-WE": "FREQ=WEEKLY;BYDAY=TH,FR",
+    },
+    "FR-SA": {
+        "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,SU",
+        "XXXX-WE": "FREQ=WEEKLY;BYDAY=FR,SA",
+    },
+}
+
+# Countries grouped by their weekend type
+COUNTRY_GROUPS = {
+    "TH-FR": ["IR"],
+    "FR-SA": [
+        "AF",
+        "BD",
+        "BH",
+        "DZ",
+        "EG",
+        "IL",
+        "IQ",
+        "JO",
+        "KW",
+        "LY",
+        "MV",
+        "MY",
+        "OM",
+        "PS",
+        "QA",
+        "SA",
+        "SD",
+        "SY",
+        "YE",
+    ],
+}
+
+NOTIFICATION_ALARM = "Alarm"
+NOTIFICATION_MUSIC_ALARM = "MusicAlarm"
+NOTIFICATION_REMINDER = "Reminder"
+NOTIFICATION_TIMER = "Timer"
+NOTIFICATIONS_SUPPORTED = [
+    NOTIFICATION_ALARM,
+    NOTIFICATION_MUSIC_ALARM,
+    NOTIFICATION_REMINDER,
+    NOTIFICATION_TIMER,
+]
