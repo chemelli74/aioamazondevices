@@ -1,8 +1,14 @@
 """GraphQL Queries."""
 
-QUERY_DEVICE_STATE = """
-query getDevicesState ($latencyTolerance: LatencyToleranceValue) {
-  listEndpoints(listEndpointsInput: {}) {
+QUERY_DEVICE_DATA = """
+query getDevicesBaseData {
+  listEndpoints(
+    listEndpointsInput: {
+        displayCategory: "ALEXA_VOICE_ENABLED"
+        includeHouseholdDevices: true
+    }
+  )
+  {
     endpoints {
       endpointId: id
       friendlyNameObject { value { text } }
@@ -12,18 +18,6 @@ query getDevicesState ($latencyTolerance: LatencyToleranceValue) {
       softwareVersion { value { text } }
       creationTime
       enablement
-      settings {
-        doNotDisturb {
-          id
-          endpointId
-          name
-          toggleValue
-          error {
-            type
-            message
-          }
-        }
-      }
       displayCategories {
         all { value }
         primary { value }
@@ -41,50 +35,62 @@ query getDevicesState ($latencyTolerance: LatencyToleranceValue) {
         chrsIdentifier { entityId }
       }
       legacyAppliance { applianceId }
-      associatedUnits { id }
-      connections {
-          type
-          macAddress
-          bleMeshDeviceUuid
+    }
+  }
+}
+"""
+
+QUERY_SENSOR_STATE = """
+fragment EndpointState on Endpoint {
+  endpointId: id
+  friendlyNameObject { value { text } }
+  features {
+    name
+    properties {
+      name
+      type
+      accuracy
+      error { type message }
+      __typename
+      ... on Illuminance {
+        illuminanceValue { value }
+        timeOfSample
+        timeOfLastChange
       }
-      features(latencyToleranceValue: $latencyTolerance) {
+      ... on Reachability {
+        reachabilityStatusValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on DetectionState {
+        detectionStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on TemperatureSensor {
         name
-        instance
-        properties {
-          name
-          type
-          accuracy
-          error { message }
-          __typename
-          ... on Illuminance {
-            illuminanceValue { value }
-            timeOfSample
-            timeOfLastChange
-          }
-          ... on Reachability {
-              reachabilityStatusValue
-              timeOfSample
-              timeOfLastChange
-          }
-          ... on DetectionState {
-              detectionStateValue
-              timeOfSample
-              timeOfLastChange
-          }
-          ... on Volume {
-              value { volValue: value }
-          }
-          ... on TemperatureSensor {
-              name
-              value {
-                value
-                scale
-              }
-              timeOfSample
-              timeOfLastChange
-          }
+        value {
+          value
+          scale
         }
+        timeOfSample
+        timeOfLastChange
       }
+    }
+  }
+}
+
+
+query getEndpointState($endpointIds: [String]!) {
+  listEndpoints(
+    listEndpointsInput: {
+      latencyTolerance: LOW,
+      endpointIds: $endpointIds,
+      includeHouseholdDevices: true
+    }
+  ) {
+    endpoints {
+      ...EndpointState
     }
   }
 }
