@@ -389,6 +389,8 @@ class AmazonEchoApi:
         headers = DEFAULT_HEADERS.copy()
         headers.update({"User-Agent": REQUEST_AGENT[agent]})
         headers.update({"Accept-Language": self._language})
+        headers.update({"x-amzn-client": "aioamazondevices"})
+        headers.update({"x-amzn-build-version": __version__})
 
         if self._csrf_cookie:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
@@ -614,6 +616,9 @@ class AmazonEchoApi:
     async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
         """Retrieve devices sensors states."""
         devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
+
+        if not self._endpoints:
+            return {}
 
         endpoint_ids = list(self._endpoints.keys())
         payload = [

@@ -118,6 +118,12 @@ SENSORS: dict[str, dict[str, str | None]] = {
         "subkey": "value",
         "scale": None,
     },
+    "connectivity": {
+        "name": "reachability",
+        "key": "reachabilityStatusValue",
+        "subkey": None,
+        "scale": None,
+    },
     "range": {
         "name": "rangeValue",
         "key": "rangeValue",
