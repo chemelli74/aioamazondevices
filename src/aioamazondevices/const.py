@@ -4,6 +4,8 @@ import logging
 
 _LOGGER = logging.getLogger(__package__)
 
+ARRAY_WRAPPER = "generatedArrayWrapper"
+
 HTTP_ERROR_199 = 199
 HTTP_ERROR_299 = 299
 
@@ -39,19 +41,22 @@ AMAZON_CLIENT_OS = "18.5"
 
 DEFAULT_SITE = "https://www.amazon.com"
 DEFAULT_HEADERS = {
-    "User-Agent": (
-        f"AmazonWebView/AmazonAlexa/{AMAZON_APP_VERSION}/iOS/{AMAZON_CLIENT_OS}/iPhone"
-    ),
     "Accept-Charset": "utf-8",
     "Accept-Encoding": "gzip",
     "Connection": "keep-alive",
 }
 CSRF_COOKIE = "csrf"
+REQUEST_AGENT = {
+    "Amazon": f"AmazonWebView/AmazonAlexa/{AMAZON_APP_VERSION}/iOS/{AMAZON_CLIENT_OS}/iPhone",  # noqa: E501
+    "Browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0",  # noqa: E501
+}
 
 REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
 REFRESH_AUTH_COOKIES = "auth_cookies"
 
 URI_DEVICES = "/api/devices-v2/device"
+URI_DND = "/api/dnd/device-status-list"
+URI_NOTIFICATIONS = "/api/notifications"
 URI_SIGNIN = "/ap/signin"
 URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 
@@ -88,13 +93,34 @@ SENSORS: dict[str, dict[str, str | None]] = {
         "subkey": "value",
         "scale": None,
     },
-    "speaker": {
-        "name": "volume",
-        "key": "value",
-        "subkey": "volValue",
+    "connectivity": {
+        "name": "reachability",
+        "key": "reachabilityStatusValue",
+        "subkey": None,
         "scale": None,
     },
 }
+
+ALEXA_INFO_SKILLS = [
+    "Alexa.Calendar.PlayToday",
+    "Alexa.Calendar.PlayTomorrow",
+    "Alexa.Calendar.PlayNext",
+    "Alexa.Date.Play",
+    "Alexa.Time.Play",
+    "Alexa.News.NationalNews",
+    "Alexa.FlashBriefing.Play",
+    "Alexa.Traffic.Play",
+    "Alexa.Weather.Play",
+    "Alexa.CleanUp.Play",
+    "Alexa.GoodMorning.Play",
+    "Alexa.SingASong.Play",
+    "Alexa.FunFact.Play",
+    "Alexa.Joke.Play",
+    "Alexa.TellStory.Play",
+    "Alexa.ImHome.Play",
+    "Alexa.GoodNight.Play",
+]
+
 DEVICE_TO_IGNORE: list[str] = [
     AMAZON_DEVICE_TYPE,  # Alexa App for iOS
     "A2TF17PFR55MTB",  # Alexa App for Android
@@ -116,7 +142,9 @@ DEVICE_TO_IGNORE: list[str] = [
     "AYHO3NTIQQ04G",  # Nextbase 622GW Dash Cam - issue #477
     "AHL4H6CKH3AUP",  # BMW Car System - issue #478
     "A3BW5ZVFHRCQPO",  # BMW Mini Car System - issue #479
-    "A1M0A9L9HDBID3",  # Sony Soundbar Sony HT-A5000 - issue #486
+    "A133UZ2CB0IB8",  # Sony Soundbar Sony HT-A5000 - issue #486
+    "A2M9HB23M9MSSM",  # Smartwatch Amazfit Bip U Pro - issue #507
+    "A1P7E7V3FCZKU6",  # Toshiba Corporation TV 32LF221U19 - issue #531
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
@@ -148,6 +176,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Show 15",
         "hw_version": "Gen1",
     },
+    "A1M0A9L9HDBID3": {
+        "manufacturer": "First Alert",
+        "model": "Onelink Smoke + Carbon Monoxide Alarm",
+        "hw_version": None,
+    },
     "A1NL4BVLQ4L3N3": {
         "model": "Echo Show",
         "hw_version": "Gen1",
@@ -164,7 +197,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot",
         "hw_version": "Gen3",
     },
-    "A1TD5Z1R8IWBHA ": {
+    "A1TD5Z1R8IWBHA": {
         "model": "Fire Tablet HD 8",
         "hw_version": "Gen12",
     },
@@ -194,6 +227,15 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Show 8",
         "hw_version": "Gen1",
     },
+    "A1ZOM3H3U20BL8": {
+        "manufacturer": "Medion",
+        "model": "Life P66970",
+        "hw_version": "A16",
+    },
+    "A25521KS9QCAMD": {
+        "model": "Fire Tablet HD 7",
+        "hw_version": "Gen4",
+    },
     "A265XOI9586NML": {
         "model": "Fire TV Stick with Alexa Voice Remote",
         "hw_version": None,
@@ -206,7 +248,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot Clock",
         "hw_version": "Gen5",
     },
-    "A2E0SNTXJVT7WK ": {
+    "A2E0SNTXJVT7WK": {
         "model": "Fire TV Stick",
         "hw_version": "Gen2",
     },
@@ -290,7 +332,7 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Dot",
         "hw_version": "Gen3",
     },
-    "A33S43L213VSHQ ": {
+    "A33S43L213VSHQ": {
         "model": "Smart TV 4K",
         "hw_version": "4 Series",
     },
@@ -369,6 +411,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo",
         "hw_version": "Gen2",
     },
+    "AD2YUJTRVBNOF": {
+        "manufacturer": "Sony Group Corporation",
+        "model": "HT-Z9F",
+        "hw_version": None,
+    },
     "ADMKNMEVNL158": {
         "model": "Echo Hub",
         "hw_version": "Gen1",
@@ -414,6 +461,11 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Fire Tablet HD 10",
         "hw_version": "Gen11",
     },
+    "AU3ZY84EWI70R": {
+        "manufacturer": "Medion",
+        "model": "Life P61142",
+        "hw_version": "A16",
+    },
     "AUPUQSVCVHXP0": {
         "manufacturer": "ecobee Inc.",
         "model": "ecobee Switch+",
@@ -436,29 +488,64 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Plus",
         "hw_version": "Gen2",
     },
-    "A1M0A9L9HDBID3": {
-        "manufacturer": "First Alert",
-        "model": "Onelink Smoke + Carbon Monoxide Alarm",
-        "hw_version": None,
+}
+
+RECURRING_PATTERNS: dict[str, str] = {
+    "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR",
+    "XXXX-WE": "FREQ=WEEKLY;BYDAY=SA,SU",
+    "XXXX-WXX-1": "FREQ=WEEKLY;BYDAY=MO",
+    "XXXX-WXX-2": "FREQ=WEEKLY;BYDAY=TU",
+    "XXXX-WXX-3": "FREQ=WEEKLY;BYDAY=WE",
+    "XXXX-WXX-4": "FREQ=WEEKLY;BYDAY=TH",
+    "XXXX-WXX-5": "FREQ=WEEKLY;BYDAY=FR",
+    "XXXX-WXX-6": "FREQ=WEEKLY;BYDAY=SA",
+    "XXXX-WXX-7": "FREQ=WEEKLY;BYDAY=SU",
+}
+
+WEEKEND_EXCEPTIONS = {
+    "TH-FR": {
+        "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,SA,SU",
+        "XXXX-WE": "FREQ=WEEKLY;BYDAY=TH,FR",
+    },
+    "FR-SA": {
+        "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,SU",
+        "XXXX-WE": "FREQ=WEEKLY;BYDAY=FR,SA",
     },
 }
 
-ALEXA_INFO_SKILLS = [
-    "Alexa.Calendar.PlayToday",
-    "Alexa.Calendar.PlayTomorrow",
-    "Alexa.Calendar.PlayNext",
-    "Alexa.Date.Play",
-    "Alexa.Time.Play",
-    "Alexa.News.NationalNews",
-    "Alexa.FlashBriefing.Play",
-    "Alexa.Traffic.Play",
-    "Alexa.Weather.Play",
-    "Alexa.CleanUp.Play",
-    "Alexa.GoodMorning.Play",
-    "Alexa.SingASong.Play",
-    "Alexa.FunFact.Play",
-    "Alexa.Joke.Play",
-    "Alexa.TellStory.Play",
-    "Alexa.ImHome.Play",
-    "Alexa.GoodNight.Play",
+# Countries grouped by their weekend type
+COUNTRY_GROUPS = {
+    "TH-FR": ["IR"],
+    "FR-SA": [
+        "AF",
+        "BD",
+        "BH",
+        "DZ",
+        "EG",
+        "IL",
+        "IQ",
+        "JO",
+        "KW",
+        "LY",
+        "MV",
+        "MY",
+        "OM",
+        "PS",
+        "QA",
+        "SA",
+        "SD",
+        "SY",
+        "YE",
+    ],
+}
+
+NOTIFICATION_ALARM = "Alarm"
+NOTIFICATION_MUSIC_ALARM = "MusicAlarm"
+NOTIFICATION_REMINDER = "Reminder"
+NOTIFICATION_TIMER = "Timer"
+NOTIFICATIONS_SUPPORTED = [
+    NOTIFICATION_ALARM,
+    NOTIFICATION_MUSIC_ALARM,
+    NOTIFICATION_REMINDER,
+    NOTIFICATION_TIMER,
 ]

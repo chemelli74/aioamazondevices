@@ -78,27 +78,32 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v5
+      # Checkout must work for both PRs (including forks) and pushes to main
+      - name: Checkout code
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name }}
+          repository: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
 
       # Do a dry run of PSR
       - name: Test release
         uses: python-semantic-release/python-semantic-release@v10.4.1
-        if: github.ref_name != 'main'
+        if: github.event_name == 'pull_request'
         with:
-          root_options: --noop
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          no_operation_mode: true
+          vcs_release: false
+          push: false
+          tag: false
+          github_token: ${{ github.token }}
 
       # On main branch: actual PSR + upload to PyPI & GitHub
       - name: Release
         uses: python-semantic-release/python-semantic-release@v10.4.1
         id: release
-        if: github.ref_name == 'main'
+        if: github.event_name == 'push' && github.ref_name == 'main'
         with:
-          root_options: -vv
+          verbosity: 2 # equivalent to "-vv"
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish package distributions to PyPI

@@ -24,6 +24,8 @@ from aiohttp import (
     ContentTypeError,
 )
 from bs4 import BeautifulSoup, Tag
+from dateutil.parser import parse
+from dateutil.rrule import rrulestr
 from langcodes import Language, standardize_tag
 from multidict import MultiDictProxy
 from yarl import URL
@@ -39,7 +41,9 @@ from .const import (
     AMAZON_CLIENT_OS,
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
+    ARRAY_WRAPPER,
     BIN_EXTENSION,
+    COUNTRY_GROUPS,
     CSRF_COOKIE,
     DEFAULT_HEADERS,
     DEFAULT_SITE,
@@ -51,13 +55,24 @@ from .const import (
     JSON_EXTENSION,
     MAX_VOLUME,
     MIN_VOLUME,
+    NOTIFICATION_ALARM,
+    NOTIFICATION_MUSIC_ALARM,
+    NOTIFICATION_REMINDER,
+    NOTIFICATION_TIMER,
+    NOTIFICATIONS_SUPPORTED,
+    RECURRING_PATTERNS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
+    REQUEST_AGENT,
     SAVE_PATH,
     SENSORS,
+    SPEAKER_GROUP_FAMILY,
     URI_DEVICES,
+    URI_DND,
     URI_NEXUS_GRAPHQL,
+    URI_NOTIFICATIONS,
     URI_SIGNIN,
+    WEEKEND_EXCEPTIONS,
 )
 from .exceptions import (
     CannotAuthenticate,
@@ -66,7 +81,7 @@ from .exceptions import (
     CannotRetrieveData,
     WrongMethod,
 )
-from .query import QUERY_DEVICE_STATE
+from .query import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .utils import obfuscate_email, scrub_fields
 
 
@@ -77,7 +92,19 @@ class AmazonDeviceSensor:
     name: str
     value: str | int | float
     error: bool
+    error_type: str | None
+    error_msg: str | None
     scale: str | None
+
+
+@dataclass
+class AmazonSchedule:
+    """Amazon schedule class."""
+
+    type: str  # alarm, reminder, timer
+    status: str
+    label: str
+    next_occurrence: datetime | None
 
 
 @dataclass
@@ -89,6 +116,7 @@ class AmazonDevice:
     device_family: str
     device_type: str
     device_owner_customer_id: str
+    household_device: bool
     device_cluster_members: list[str]
     online: bool
     serial_number: str
@@ -96,6 +124,7 @@ class AmazonDevice:
     entity_id: str | None
     endpoint_id: str | None
     sensors: dict[str, AmazonDeviceSensor]
+    notifications: dict[str, AmazonSchedule]
 
 
 class AmazonSequenceType(StrEnum):
@@ -140,10 +169,16 @@ class AmazonEchoApi:
         self._save_raw_data = False
         self._login_stored_data = login_data or {}
         self._serial = self._serial_number()
+        self._account_owner_customer_id: str | None = None
         self._list_for_clusters: dict[str, str] = {}
 
         self._session = client_session
-        self._devices: dict[str, Any] = {}
+        self._final_devices: dict[str, AmazonDevice] = {}
+        self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
+
+        initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
+        self._last_devices_refresh: datetime = initial_time
+        self._last_endpoint_refresh: datetime = initial_time
 
         _LOGGER.debug("Initialize library v%s", __version__)
 
@@ -166,6 +201,7 @@ class AmazonEchoApi:
         lang_object = Language.make(territory=country_code.upper())
         lang_maximized = lang_object.maximize()
 
+        self._country_code: str = country_code
         self._domain: str = domain
         language = f"{lang_maximized.language}-{lang_maximized.territory}"
         self._language = standardize_tag(language)
@@ -339,8 +375,9 @@ class AmazonEchoApi:
         self,
         method: str,
         url: str,
-        input_data: dict[str, Any] | None = None,
+        input_data: dict[str, Any] | list[dict[str, Any]] | None = None,
         json_data: bool = False,
+        agent: str = "Amazon",
     ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
@@ -352,7 +389,10 @@ class AmazonEchoApi:
         )
 
         headers = DEFAULT_HEADERS.copy()
+        headers.update({"User-Agent": REQUEST_AGENT[agent]})
         headers.update({"Accept-Language": self._language})
+        headers.update({"x-amzn-client": "aioamazondevices"})
+        headers.update({"x-amzn-build-version": __version__})
 
         if self._csrf_cookie:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
@@ -435,7 +475,7 @@ class AmazonEchoApi:
             mimetypes.guess_extension(content_type.split(";")[0]) or ".raw",
         )
 
-        return BeautifulSoup(await resp.read(), "html.parser"), resp
+        return BeautifulSoup(await resp.read() or "", "html.parser"), resp
 
     async def _save_to_file(
         self,
@@ -575,17 +615,23 @@ class AmazonEchoApi:
         _LOGGER.info("Register device: %s", scrub_fields(login_data))
         return login_data
 
-    async def _get_devices_state(
-        self,
-    ) -> dict[str, Any]:
-        """Get Device State."""
-        payload = {
-            "operationName": "getDevicesState",
-            "variables": {
-                "latencyTolerance": "LOW",
-            },
-            "query": QUERY_DEVICE_STATE,
-        }
+    async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
+        """Retrieve devices sensors states."""
+        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
+
+        if not self._endpoints:
+            return {}
+
+        endpoint_ids = list(self._endpoints.keys())
+        payload = [
+            {
+                "operationName": "getEndpointState",
+                "variables": {
+                    "endpointIds": endpoint_ids,
+                },
+                "query": QUERY_SENSOR_STATE,
+            }
+        ]
 
         _, raw_resp = await self._session_request(
             method=HTTPMethod.POST,
@@ -594,42 +640,35 @@ class AmazonEchoApi:
             json_data=True,
         )
 
-        return await self._response_to_json(raw_resp)
+        sensors_state = await self._response_to_json(raw_resp, "sensors")
 
-    async def _get_sensors_states(
-        self,
-    ) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, AmazonDeviceSensor]]]:
-        """Retrieve devices sensors states."""
-        devices_state = await self._get_devices_state()
-        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
-        devices_endpoints: dict[str, dict[str, Any]] = {}
+        if await self._format_human_error(sensors_state):
+            # Explicit error in returned data
+            return {}
 
-        endpoints = devices_state["data"]["listEndpoints"]
-        for endpoint in endpoints.get("endpoints"):
-            serial_number = (
-                endpoint["serialNumber"]["value"]["text"]
-                if endpoint["serialNumber"]
-                else None
-            )
-            if serial_number in self._devices:
+        if (
+            not (arr := sensors_state.get(ARRAY_WRAPPER))
+            or not (data := arr[0].get("data"))
+            or not (endpoints_list := data.get("listEndpoints"))
+            or not (endpoints := endpoints_list.get("endpoints"))
+        ):
+            _LOGGER.error("Malformed sensor state data received: %s", sensors_state)
+            return {}
+
+        for endpoint in endpoints:
+            serial_number = self._endpoints[endpoint.get("endpointId")]
+
+            if serial_number in self._final_devices:
                 devices_sensors[serial_number] = self._get_device_sensor_state(
                     endpoint, serial_number
                 )
-                devices_endpoints[serial_number] = endpoint
 
-        return devices_endpoints, devices_sensors
+        return devices_sensors
 
     def _get_device_sensor_state(
         self, endpoint: dict[str, Any], serial_number: str
     ) -> dict[str, AmazonDeviceSensor]:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
-        if endpoint_dnd := endpoint.get("settings", {}).get("doNotDisturb"):
-            device_sensors["dnd"] = AmazonDeviceSensor(
-                name="dnd",
-                value=endpoint_dnd.get("toggleValue"),
-                error=bool(endpoint_dnd.get("error")),
-                scale=None,
-            )
         for feature in endpoint.get("features", {}):
             if (sensor_template := SENSORS.get(feature["name"])) is None:
                 # Skip sensors that are not in the predefined list
@@ -644,7 +683,12 @@ class AmazonEchoApi:
 
                 value: str | int | float = "n/a"
                 scale: str | None = None
-                error = bool(feature_property.get("error"))
+
+                # "error" can be None, missing, or a dict
+                api_error = feature_property.get("error") or {}
+                error = bool(api_error)
+                error_type = api_error.get("type")
+                error_msg = api_error.get("message")
                 if not error:
                     try:
                         value_raw = feature_property[sensor_template["key"]]
@@ -674,27 +718,252 @@ class AmazonEchoApi:
                             feature_property,
                             repr(exc),
                         )
-                device_sensors[name] = AmazonDeviceSensor(
-                    name,
-                    value,
-                    error,
-                    scale,
-                )
+                if error:
+                    _LOGGER.debug(
+                        "error in sensor %s - %s - %s", name, error_type, error_msg
+                    )
+
+                if error_type != "NOT_FOUND":
+                    device_sensors[name] = AmazonDeviceSensor(
+                        name,
+                        value,
+                        error,
+                        error_type,
+                        error_msg,
+                        scale,
+                    )
 
         return device_sensors
 
-    async def _response_to_json(self, raw_resp: ClientResponse) -> dict[str, Any]:
+    async def _get_devices_endpoint_data(self) -> dict[str, dict[str, Any]]:
+        """Get Devices endpoint data."""
+        payload = {
+            "operationName": "getDevicesBaseData",
+            "query": QUERY_DEVICE_DATA,
+        }
+
+        _, raw_resp = await self._session_request(
+            method=HTTPMethod.POST,
+            url=f"https://alexa.amazon.{self._domain}{URI_NEXUS_GRAPHQL}",
+            input_data=payload,
+            json_data=True,
+        )
+
+        endpoint_data = await self._response_to_json(raw_resp, "endpoint")
+
+        if not (data := endpoint_data.get("data")) or not data.get("listEndpoints"):
+            await self._format_human_error(endpoint_data)
+            return {}
+
+        endpoints = data["listEndpoints"]
+        devices_endpoints: dict[str, dict[str, Any]] = {}
+        for endpoint in endpoints.get("endpoints"):
+            # save looking up sensor data on apps
+            if endpoint.get("alexaEnabledMetadata", {}).get("category") == "APP":
+                continue
+
+            if endpoint.get("serialNumber"):
+                serial_number = endpoint["serialNumber"]["value"]["text"]
+                devices_endpoints[serial_number] = endpoint
+                self._endpoints[endpoint["endpointId"]] = serial_number
+
+        return devices_endpoints
+
+    async def _response_to_json(
+        self, raw_resp: ClientResponse, description: str | None = None
+    ) -> dict[str, Any]:
         """Convert response to JSON, if possible."""
         try:
             data = await raw_resp.json(loads=orjson.loads)
             if not data:
                 _LOGGER.warning("Empty JSON data received")
                 data = {}
+            if isinstance(data, list):
+                # if anonymous array is returned wrap it inside
+                # generated key to convert list to dict
+                data = {ARRAY_WRAPPER: data}
+            if description:
+                _LOGGER.debug("JSON '%s' data: %s", description, scrub_fields(data))
             return cast("dict[str, Any]", data)
         except ContentTypeError as exc:
             raise ValueError("Response not in JSON format") from exc
         except orjson.JSONDecodeError as exc:
             raise ValueError("Response with corrupted JSON format") from exc
+
+    async def _get_notifications(self) -> dict[str, dict[str, AmazonSchedule]]:
+        final_notifications: dict[str, dict[str, AmazonSchedule]] = {}
+
+        _, raw_resp = await self._session_request(
+            HTTPMethod.GET,
+            url=f"https://alexa.amazon.{self._domain}{URI_NOTIFICATIONS}",
+        )
+
+        notifications = await self._response_to_json(raw_resp, "notifications")
+
+        for schedule in notifications["notifications"]:
+            schedule_type: str = schedule["type"]
+            schedule_device_serial = schedule["deviceSerialNumber"]
+
+            if schedule_device_serial in DEVICE_TO_IGNORE:
+                continue
+
+            if schedule_type not in NOTIFICATIONS_SUPPORTED:
+                _LOGGER.debug(
+                    "Unsupported schedule type %s for device %s",
+                    schedule_type,
+                    schedule_device_serial,
+                )
+                continue
+
+            if schedule_type == NOTIFICATION_MUSIC_ALARM:
+                # Structure is the same as standard Alarm
+                schedule_type = NOTIFICATION_ALARM
+                schedule["type"] = NOTIFICATION_ALARM
+            label_desc = schedule_type.lower() + "Label"
+            if (schedule_status := schedule["status"]) == "ON" and (
+                next_occurrence := await self._parse_next_occurence(schedule)
+            ):
+                schedule_notification_list = final_notifications.get(
+                    schedule_device_serial, {}
+                )
+                schedule_notification_by_type = schedule_notification_list.get(
+                    schedule_type
+                )
+                # Replace if no existing notification
+                # or if existing.next_occurrence is None
+                # or if new next_occurrence is earlier
+                if (
+                    not schedule_notification_by_type
+                    or schedule_notification_by_type.next_occurrence is None
+                    or next_occurrence < schedule_notification_by_type.next_occurrence
+                ):
+                    final_notifications.update(
+                        {
+                            schedule_device_serial: {
+                                **schedule_notification_list
+                                | {
+                                    schedule_type: AmazonSchedule(
+                                        type=schedule_type,
+                                        status=schedule_status,
+                                        label=schedule[label_desc],
+                                        next_occurrence=next_occurrence,
+                                    ),
+                                }
+                            }
+                        }
+                    )
+
+        return final_notifications
+
+    async def _parse_next_occurence(
+        self,
+        schedule: dict[str, Any],
+    ) -> datetime | None:
+        """Parse RFC5545 rule set for next iteration."""
+        # Local timezone
+        tzinfo = datetime.now().astimezone().tzinfo
+        # Current time
+        actual_time = datetime.now(tz=tzinfo)
+        # Reference start date
+        today_midnight = actual_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        # Reference time (1 minute ago to avoid edge cases)
+        now_reference = actual_time - timedelta(minutes=1)
+
+        # Schedule data
+        original_date = schedule.get("originalDate")
+        original_time = schedule.get("originalTime")
+
+        recurring_rules: list[str] = []
+        if schedule.get("rRuleData"):
+            recurring_rules = schedule["rRuleData"]["recurrenceRules"]
+        if schedule.get("recurringPattern"):
+            recurring_rules.append(schedule["recurringPattern"])
+
+        # Recurring events
+        if recurring_rules:
+            next_candidates: list[datetime] = []
+            for recurring_rule in recurring_rules:
+                # Already in RFC5545 format
+                if "FREQ=" in recurring_rule:
+                    rule = await self._add_hours_minutes(recurring_rule, original_time)
+
+                    # Add date to candidates list
+                    next_candidates.append(
+                        rrulestr(rule, dtstart=today_midnight).after(
+                            now_reference, True
+                        ),
+                    )
+                    continue
+
+                if recurring_rule not in RECURRING_PATTERNS:
+                    _LOGGER.warning(
+                        "Unknown recurring rule <%s> for schedule type <%s>",
+                        recurring_rule,
+                        schedule["type"],
+                    )
+                    return None
+
+                # Adjust recurring rules for country specific weekend exceptions
+                recurring_pattern = RECURRING_PATTERNS.copy()
+                for group, countries in COUNTRY_GROUPS.items():
+                    if self._country_code in countries:
+                        recurring_pattern |= WEEKEND_EXCEPTIONS[group]
+                        break
+
+                rule = await self._add_hours_minutes(
+                    recurring_pattern[recurring_rule], original_time
+                )
+
+                # Add date to candidates list
+                next_candidates.append(
+                    rrulestr(rule, dtstart=today_midnight).after(now_reference, True),
+                )
+
+            return min(next_candidates) if next_candidates else None
+
+        # Single events
+        if schedule["type"] == NOTIFICATION_ALARM:
+            timestamp = parse(f"{original_date} {original_time}").replace(tzinfo=tzinfo)
+
+        elif schedule["type"] == NOTIFICATION_TIMER:
+            # API returns triggerTime in milliseconds since epoch
+            timestamp = datetime.fromtimestamp(
+                schedule["triggerTime"] / 1000, tz=tzinfo
+            )
+
+        elif schedule["type"] == NOTIFICATION_REMINDER:
+            # API returns alarmTime in milliseconds since epoch
+            timestamp = datetime.fromtimestamp(schedule["alarmTime"] / 1000, tz=tzinfo)
+
+        else:
+            _LOGGER.warning(("Unknown schedule type: %s"), schedule["type"])
+            return None
+
+        if timestamp > now_reference:
+            return timestamp
+
+        return None
+
+    async def _add_hours_minutes(
+        self,
+        recurring_rule: str,
+        original_time: str | None,
+    ) -> str:
+        """Add hours and minutes to a RFC5545 string."""
+        rule = recurring_rule.removesuffix(";")
+
+        if not original_time:
+            return rule
+
+        # Add missing BYHOUR, BYMINUTE if needed (Alarms only)
+        if "BYHOUR=" not in recurring_rule:
+            hour = int(original_time.split(":")[0])
+            rule += f";BYHOUR={hour}"
+        if "BYMINUTE=" not in recurring_rule:
+            minute = int(original_time.split(":")[1])
+            rule += f";BYMINUTE={minute}"
+
+        return rule
 
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
@@ -713,6 +982,10 @@ class AmazonEchoApi:
 
         self._login_stored_data.update({"site": f"https://www.amazon.{self._domain}"})
         await self._save_to_file(self._login_stored_data, "login_data", JSON_EXTENSION)
+
+        # Can take a little while to register device but we need it
+        # to be able to pickout account customer ID
+        await asyncio.sleep(2)
 
         return self._login_stored_data
 
@@ -833,54 +1106,172 @@ class AmazonEchoApi:
             self._country_specific_data(user_domain)
             await self._refresh_auth_cookies()
 
+    async def _get_account_owner_customer_id(self, data: dict[str, Any]) -> str | None:
+        """Get account owner customer ID."""
+        if data["deviceType"] != AMAZON_DEVICE_TYPE:
+            return None
+
+        account_owner_customer_id: str | None = None
+
+        this_device_serial = self._login_stored_data["device_info"][
+            "device_serial_number"
+        ]
+
+        for subdevice in data["appDeviceList"]:
+            if subdevice["serialNumber"] == this_device_serial:
+                account_owner_customer_id = data["deviceOwnerCustomerId"]
+                _LOGGER.debug(
+                    "Setting account owner: %s",
+                    account_owner_customer_id,
+                )
+                break
+
+        return account_owner_customer_id
+
     async def get_devices_data(
         self,
     ) -> dict[str, AmazonDevice]:
         """Get Amazon devices data."""
-        self._devices = {}
+        delta_devices = datetime.now(UTC) - self._last_devices_refresh
+        if delta_devices >= timedelta(days=1):
+            _LOGGER.debug(
+                "Refreshing devices data after %s",
+                str(timedelta(minutes=round(delta_devices.total_seconds() / 60))),
+            )
+            # Request base device data
+            await self._get_base_devices()
+            self._last_devices_refresh = datetime.now(UTC)
+
+        # Only refresh endpoint data if we have no endpoints yet
+        delta_endpoints = datetime.now(UTC) - self._last_endpoint_refresh
+        endpoint_refresh_needed = delta_endpoints >= timedelta(days=1)
+        endpoints_recently_checked = delta_endpoints < timedelta(minutes=30)
+        if (
+            not self._endpoints and not endpoints_recently_checked
+        ) or endpoint_refresh_needed:
+            _LOGGER.debug(
+                "Refreshing endpoint data after %s",
+                str(timedelta(minutes=round(delta_endpoints.total_seconds() / 60))),
+            )
+            # Set device endpoint data
+            await self._set_device_endpoints_data()
+            self._last_endpoint_refresh = datetime.now(UTC)
+
+        await self._get_sensor_data()
+
+        return self._final_devices
+
+    async def _get_sensor_data(self) -> None:
+        devices_sensors = await self._get_sensors_states()
+        dnd_sensors = await self._get_dnd_status()
+        notifications = await self._get_notifications()
+        for device in self._final_devices.values():
+            # Update sensors
+            sensors = devices_sensors.get(device.serial_number, {})
+            if sensors:
+                device.sensors = sensors
+            else:
+                for device_sensor in device.sensors.values():
+                    device_sensor.error = True
+            if (
+                device_dnd := dnd_sensors.get(device.serial_number)
+            ) and device.device_family != SPEAKER_GROUP_FAMILY:
+                device.sensors["dnd"] = device_dnd
+
+            # Clear old notifications to handle cancelled ones
+            device.notifications = {}
+
+            # Update notifications
+            device_notifications = notifications.get(device.serial_number, {})
+
+            # Add only supported notification types
+            for capability, notification_type in [
+                ("REMINDERS", NOTIFICATION_REMINDER),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_TIMER),
+            ]:
+                if (
+                    capability in device.capabilities
+                    and notification_type in device_notifications
+                    and (
+                        notification_object := device_notifications.get(
+                            notification_type
+                        )
+                    )
+                ):
+                    device.notifications[notification_type] = notification_object
+
+    async def _set_device_endpoints_data(self) -> None:
+        """Set device endpoint data."""
+        devices_endpoints = await self._get_devices_endpoint_data()
+        for serial_number in self._final_devices:
+            device_endpoint = devices_endpoints.get(serial_number, {})
+            endpoint_device = self._final_devices[serial_number]
+            endpoint_device.entity_id = (
+                device_endpoint["legacyIdentifiers"]["chrsIdentifier"]["entityId"]
+                if device_endpoint
+                else None
+            )
+            endpoint_device.endpoint_id = (
+                device_endpoint["endpointId"] if device_endpoint else None
+            )
+
+    async def _get_base_devices(self) -> None:
         _, raw_resp = await self._session_request(
             method=HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._domain}{URI_DEVICES}",
         )
 
-        json_data = await self._response_to_json(raw_resp)
-
-        _LOGGER.debug("JSON devices data: %s", scrub_fields(json_data))
+        json_data = await self._response_to_json(raw_resp, "devices")
 
         for data in json_data["devices"]:
             dev_serial = data.get("serialNumber")
-            self._devices[dev_serial] = data
+            if not dev_serial:
+                _LOGGER.warning(
+                    "Skipping device without serial number: %s", data["accountName"]
+                )
+                continue
+            if not self._account_owner_customer_id:
+                self._account_owner_customer_id = (
+                    await self._get_account_owner_customer_id(data)
+                )
 
-        devices_endpoints, devices_sensors = await self._get_sensors_states()
+        if not self._account_owner_customer_id:
+            raise CannotRetrieveData("Cannot find account owner customer ID")
 
         final_devices_list: dict[str, AmazonDevice] = {}
-        for device in self._devices.values():
+        for device in json_data["devices"]:
             # Remove stale, orphaned and virtual devices
             if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
                 continue
 
+            account_name: str = device["accountName"]
+            capabilities: list[str] = device["capabilities"]
+            # Skip devices that cannot be used with voice features
+            if "MICROPHONE" not in capabilities:
+                _LOGGER.debug(
+                    "Skipping device without microphone capabilities: %s", account_name
+                )
+                continue
+
             serial_number: str = device["serialNumber"]
-            # Add sensors
-            sensors = devices_sensors.get(serial_number, {})
-            device_endpoint = devices_endpoints.get(serial_number, {})
 
             final_devices_list[serial_number] = AmazonDevice(
-                account_name=device["accountName"],
-                capabilities=device["capabilities"],
+                account_name=account_name,
+                capabilities=capabilities,
                 device_family=device["deviceFamily"],
                 device_type=device["deviceType"],
                 device_owner_customer_id=device["deviceOwnerCustomerId"],
+                household_device=device["deviceOwnerCustomerId"]
+                == self._account_owner_customer_id,
                 device_cluster_members=(device["clusterMembers"] or [serial_number]),
                 online=device["online"],
                 serial_number=serial_number,
                 software_version=device["softwareVersion"],
-                entity_id=device_endpoint["legacyIdentifiers"]["chrsIdentifier"][
-                    "entityId"
-                ]
-                if device_endpoint
-                else None,
-                endpoint_id=device_endpoint["endpointId"] if device_endpoint else None,
-                sensors=sensors,
+                entity_id=None,
+                endpoint_id=None,
+                sensors={},
+                notifications={},
             )
 
         self._list_for_clusters.update(
@@ -890,13 +1281,14 @@ class AmazonEchoApi:
             }
         )
 
-        return final_devices_list
+        self._final_devices = final_devices_list
 
     async def auth_check_status(self) -> bool:
         """Check AUTH status."""
         _, raw_resp = await self._session_request(
             method=HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._domain}/api/bootstrap?version=0",
+            agent="Browser",
         )
         if raw_resp.status != HTTPStatus.OK:
             _LOGGER.debug(
@@ -944,7 +1336,7 @@ class AmazonEchoApi:
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
             "locale": self._language,
-            "customerId": device.device_owner_customer_id,
+            "customerId": self._account_owner_customer_id,
         }
 
         payload: dict[str, Any]
@@ -953,7 +1345,7 @@ class AmazonEchoApi:
                 **base_payload,
                 "textToSpeak": message_body,
                 "target": {
-                    "customerId": device.device_owner_customer_id,
+                    "customerId": self._account_owner_customer_id,
                     "devices": [
                         {
                             "deviceSerialNumber": device.serial_number,
@@ -990,7 +1382,7 @@ class AmazonEchoApi:
                     }
                 ],
                 "target": {
-                    "customerId": device.device_owner_customer_id,
+                    "customerId": self._account_owner_customer_id,
                     "devices": playback_devices,
                 },
                 "skillId": "amzn1.ask.1p.routines.messaging",
@@ -1106,7 +1498,7 @@ class AmazonEchoApi:
         device: AmazonDevice,
         message_body: str,
     ) -> None:
-        """Call Alexa.Sound to play sound."""
+        """Call Alexa.TextCommand to issue command."""
         return await self._send_message(
             device, AmazonSequenceType.TextCommand, message_body
         )
@@ -1198,8 +1590,7 @@ class AmazonEchoApi:
             _LOGGER.debug("Failed to refresh data")
             return False, {}
 
-        json_response = await self._response_to_json(raw_resp)
-        _LOGGER.debug("Refresh data json:\n%s ", json_response)
+        json_response = await self._response_to_json(raw_resp, data_type)
 
         if data_type == REFRESH_ACCESS_TOKEN and (
             new_token := json_response.get(REFRESH_ACCESS_TOKEN)
@@ -1215,3 +1606,38 @@ class AmazonEchoApi:
 
         _LOGGER.debug("Unexpected refresh data response")
         return False, {}
+
+    async def _get_dnd_status(self) -> dict[str, AmazonDeviceSensor]:
+        dnd_status: dict[str, AmazonDeviceSensor] = {}
+        _, raw_resp = await self._session_request(
+            method=HTTPMethod.GET,
+            url=f"https://alexa.amazon.{self._domain}{URI_DND}",
+        )
+
+        dnd_data = await self._response_to_json(raw_resp, "dnd")
+
+        for dnd in dnd_data.get("doNotDisturbDeviceStatusList", {}):
+            dnd_status[dnd.get("deviceSerialNumber")] = AmazonDeviceSensor(
+                name="dnd",
+                value=dnd.get("enabled"),
+                error=False,
+                error_type=None,
+                error_msg=None,
+                scale=None,
+            )
+        return dnd_status
+
+    async def _format_human_error(self, sensors_state: dict) -> bool:
+        """Format human readable error from malformed data."""
+        if sensors_state.get(ARRAY_WRAPPER):
+            error = sensors_state[ARRAY_WRAPPER][0].get("errors", [])
+        else:
+            error = sensors_state.get("errors", [])
+
+        if not error:
+            return False
+
+        msg = error[0].get("message", "Unknown error")
+        path = error[0].get("path", "Unknown path")
+        _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
+        return True
