@@ -42,6 +42,7 @@ from .const import (
     AMAZON_DEVICE_TYPE,
     ARRAY_WRAPPER,
     BIN_EXTENSION,
+    COMM_SITE,
     COUNTRY_GROUPS,
     CSRF_COOKIE,
     DEFAULT_HEADERS,
@@ -122,6 +123,7 @@ class AmazonDevice:
     endpoint_id: str | None
     sensors: dict[str, AmazonDeviceSensor]
     notifications: dict[str, AmazonSchedule]
+    communication_settings: dict[str, str]
 
 
 class AmazonSequenceType(StrEnum):
@@ -765,6 +767,21 @@ class AmazonEchoApi:
 
         return devices_endpoints
 
+    async def _get_device_communication_preferences(
+        self, device: dict[str, Any]
+    ) -> dict[str, str]:
+        url = f"https://{COMM_SITE}/devicesTypes/{device['deviceType']}/deviceId/{device['serialNumber']}/preferences?devicePreferences=communications&devicePreferences=calling&devicePreferences=messaging&devicePreferences=dropin&devicePreferences=announcements"
+        _, resp = await self._session_request(method=HTTPMethod.GET, url=url)
+        resp_json = await self._response_to_json(resp)
+
+        comms_preferences = {}
+        for device_prefs in resp_json.get("devicePermissionsPreferences", {}):
+            comms_preferences[device_prefs.get("devicePreference")] = device_prefs.get(
+                "state", "n/a"
+            )
+
+        return comms_preferences
+
     async def _response_to_json(
         self, raw_resp: ClientResponse, description: str | None = None
     ) -> dict[str, Any]:
@@ -1251,6 +1268,9 @@ class AmazonEchoApi:
                 continue
 
             serial_number: str = device["serialNumber"]
+            device_comms_prefs = await self._get_device_communication_preferences(
+                device
+            )
 
             final_devices_list[serial_number] = AmazonDevice(
                 account_name=account_name,
@@ -1268,6 +1288,7 @@ class AmazonEchoApi:
                 endpoint_id=None,
                 sensors={},
                 notifications={},
+                communication_settings=device_comms_prefs,
             )
 
         self._list_for_clusters.update(
@@ -1525,6 +1546,38 @@ class AmazonEchoApi:
         url = f"https://alexa.amazon.{self._domain}/api/dnd/status"
         await self._session_request(
             method="PUT", url=url, input_data=payload, json_data=True
+        )
+
+    async def set_communications_enablement(
+        self, device: AmazonDevice, state: bool
+    ) -> None:
+        """Enable / disable communications for device."""
+        await self._set_communications_state(
+            "communications", device, "ON" if state else "OFF"
+        )
+
+    async def set_announcements_enablement(
+        self, device: AmazonDevice, state: bool
+    ) -> None:
+        """Enable / disable announcements for device."""
+        await self._set_communications_state(
+            "announcements", device, "ON" if state else "OFF"
+        )
+
+    async def set_dropin_enablement(self, device: AmazonDevice, state: str) -> None:
+        """Set allowed dropin state for device.
+
+        State values are All, Home and Off
+        """
+        await self._set_communications_state("announcements", device, state)
+
+    async def _set_communications_state(
+        self, preference: str, device: AmazonDevice, state: str
+    ) -> None:
+        payload = {"state": state}
+        url = f"https://{COMM_SITE}/devicesTypes/{device.device_type}/deviceId/{device.serial_number}/preferences/${preference}"
+        await self._session_request(
+            method=HTTPMethod.PATCH, url=url, input_data=payload, json_data=True
         )
 
     async def _refresh_data(self, data_type: str) -> tuple[bool, dict]:

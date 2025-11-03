@@ -241,6 +241,14 @@ async def main() -> None:
     for notification in device_single.notifications:
         print(f"Notification {device_single.notifications[notification]}")
 
+    print("Communications Preferences")
+    print("=" * 20)
+    for comms_pref in device_single.communication_settings:
+        print(f" {comms_pref} : {device_single.communication_settings[comms_pref]}")
+    print("=" * 20)
+
+    await api.set_communications_enablement(device_single, True)
+
     print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
     await api.call_alexa_speak(device_single, "Test Speak message from new library")
 

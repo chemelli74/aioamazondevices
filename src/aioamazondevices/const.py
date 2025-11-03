@@ -39,6 +39,8 @@ AMAZON_DEVICE_SOFTWARE_VERSION = "35602678"
 AMAZON_DEVICE_TYPE = "A2IVLV5VM2W81"
 AMAZON_CLIENT_OS = "18.5"
 
+COMM_SITE = "alexa-comms-mobile-service.amazon.com"
+
 DEFAULT_SITE = "https://www.amazon.com"
 DEFAULT_HEADERS = {
     "Accept-Charset": "utf-8",
