@@ -94,7 +94,6 @@ from .exceptions import (
     CannotRetrieveData,
     WrongMethod,
 )
-from .query import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .utils import obfuscate_email, scrub_fields
 
 
