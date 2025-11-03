@@ -1,5 +1,18 @@
 # Changelog
 
+## v7.0.0 (2025-11-03)
+
+### Refactoring
+
+- Move dataclasses ([`2c9a7bc`](https://github.com/chemelli74/aioamazondevices/commit/2c9a7bce72b5995dd8ec55393e93699a0a8d7803))
+
+
+### Build system
+
+- Bump orjson from 3.11.3 to 3.11.4 ([`747ef4a`](https://github.com/chemelli74/aioamazondevices/commit/747ef4a153e89961c4ca741d31f550fdd9497b1a))
+- Bump aiohttp from 3.13.0 to 3.13.2 ([`fa53ee7`](https://github.com/chemelli74/aioamazondevices/commit/fa53ee75c179d3e67e4a87321ae235293de1fb42))
+
+
 ## v6.5.6 (2025-10-31)
 
 ### Bug fixes
