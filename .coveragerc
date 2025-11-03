@@ -5,4 +5,5 @@ omit =
     src/aioamazondevices/exceptions.py
     src/aioamazondevices/sounds.py
     src/aioamazondevices/utils.py
+    src/aioamazondevices/const/*
     library_test.py
