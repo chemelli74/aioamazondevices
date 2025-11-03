@@ -39,6 +39,8 @@ from .const import (
     AMAZON_CLIENT_OS,
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
+    ARRAY_WRAPPER,
+    BIN_EXTENSION,
     COUNTRY_GROUPS,
     CSRF_COOKIE,
     DEFAULT_HEADERS,
@@ -51,11 +53,13 @@ from .const import (
     NOTIFICATION_MUSIC_ALARM,
     NOTIFICATION_REMINDER,
     NOTIFICATION_TIMER,
+    NOTIFICATIONS_SUPPORTED,
     RECURRING_PATTERNS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     REQUEST_AGENT,
     SENSORS,
+    SPEAKER_GROUP_FAMILY,
     URI_DEVICES,
     URI_DND,
     URI_NEXUS_GRAPHQL,
@@ -375,6 +379,8 @@ class AmazonEchoApi:
         headers = DEFAULT_HEADERS.copy()
         headers.update({"User-Agent": REQUEST_AGENT[agent]})
         headers.update({"Accept-Language": self._language})
+        headers.update({"x-amzn-client": "aioamazondevices"})
+        headers.update({"x-amzn-build-version": __version__})
 
         if self._csrf_cookie:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
@@ -554,20 +560,22 @@ class AmazonEchoApi:
         _LOGGER.info("Register device: %s", scrub_fields(login_data))
         return login_data
 
-    async def _get_sensors_state(
-        self, endpoint_id_list: list[str]
-    ) -> dict[str, Any] | list[dict[str, Any]]:
-        """Get sensor State."""
+    async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
+        """Retrieve devices sensors states."""
+        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
+
+        if not self._endpoints:
+            return {}
+
+        endpoint_ids = list(self._endpoints.keys())
         payload = [
             {
                 "operationName": "getEndpointState",
                 "variables": {
-                    "endpointId": endpoint_id,
-                    "latencyTolerance": "LOW",
+                    "endpointIds": endpoint_ids,
                 },
                 "query": QUERY_SENSOR_STATE,
             }
-            for endpoint_id in endpoint_id_list
         ]
 
         _, raw_resp = await self._session_request(
@@ -577,47 +585,28 @@ class AmazonEchoApi:
             json_data=True,
         )
 
-        return await self._response_to_json(raw_resp)
+        sensors_state = await self._response_to_json(raw_resp, "sensors")
 
-    async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
-        """Retrieve devices sensors states."""
-        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
+        if await self._format_human_error(sensors_state):
+            # Explicit error in returned data
+            return {}
 
-        # batch endpoints into groups of 3 to reduce number of requests
-        endpoint_ids = list(self._endpoints.keys())
-        batches = [endpoint_ids[i : i + 3] for i in range(0, len(endpoint_ids), 3)]
-        for endpoint_id_batch in batches:
-            sensors_state = await self._get_sensors_state(endpoint_id_batch)
-            _LOGGER.debug("Sensor data - %s", sensors_state)
+        if (
+            not (arr := sensors_state.get(ARRAY_WRAPPER))
+            or not (data := arr[0].get("data"))
+            or not (endpoints_list := data.get("listEndpoints"))
+            or not (endpoints := endpoints_list.get("endpoints"))
+        ):
+            _LOGGER.error("Malformed sensor state data received: %s", sensors_state)
+            return {}
 
-            if not isinstance(sensors_state, list) and (
-                error := sensors_state.get("errors")
-            ):
-                if isinstance(error, list):
-                    error = error[0]
-                msg = error.get("message", "Unknown error")
-                path = error.get("path", "Unknown path")
-                _LOGGER.error(
-                    "Error retrieving devices state: %s for path %s", msg, path
+        for endpoint in endpoints:
+            serial_number = self._endpoints[endpoint.get("endpointId")]
+
+            if serial_number in self._final_devices:
+                devices_sensors[serial_number] = self._get_device_sensor_state(
+                    endpoint, serial_number
                 )
-                return {}
-
-            for endpoint_data in sensors_state:
-                if (
-                    not isinstance(endpoint_data, dict)
-                    or not (data := endpoint_data.get("data"))
-                    or not (endpoint := data.get("endpoint"))
-                ):
-                    _LOGGER.error(
-                        "Malformed sensor state data received: %s", endpoint_data
-                    )
-                    return {}
-                serial_number = self._endpoints[endpoint.get("endpointId")]
-
-                if serial_number in self._final_devices:
-                    devices_sensors[serial_number] = self._get_device_sensor_state(
-                        endpoint, serial_number
-                    )
 
         return devices_sensors
 
@@ -678,14 +667,16 @@ class AmazonEchoApi:
                     _LOGGER.debug(
                         "error in sensor %s - %s - %s", name, error_type, error_msg
                     )
-                device_sensors[name] = AmazonDeviceSensor(
-                    name,
-                    value,
-                    error,
-                    error_type,
-                    error_msg,
-                    scale,
-                )
+
+                if error_type != "NOT_FOUND":
+                    device_sensors[name] = AmazonDeviceSensor(
+                        name,
+                        value,
+                        error,
+                        error_type,
+                        error_msg,
+                        scale,
+                    )
 
         return device_sensors
 
@@ -703,10 +694,10 @@ class AmazonEchoApi:
             json_data=True,
         )
 
-        endpoint_data = await self._response_to_json(raw_resp)
+        endpoint_data = await self._response_to_json(raw_resp, "endpoint")
 
         if not (data := endpoint_data.get("data")) or not data.get("listEndpoints"):
-            _LOGGER.error("Malformed endpoint data received: %s", endpoint_data)
+            await self._format_human_error(endpoint_data)
             return {}
 
         endpoints = data["listEndpoints"]
@@ -723,13 +714,21 @@ class AmazonEchoApi:
 
         return devices_endpoints
 
-    async def _response_to_json(self, raw_resp: ClientResponse) -> dict[str, Any]:
+    async def _response_to_json(
+        self, raw_resp: ClientResponse, description: str | None = None
+    ) -> dict[str, Any]:
         """Convert response to JSON, if possible."""
         try:
             data = await raw_resp.json(loads=orjson.loads)
             if not data:
                 _LOGGER.warning("Empty JSON data received")
                 data = {}
+            if isinstance(data, list):
+                # if anonymous array is returned wrap it inside
+                # generated key to convert list to dict
+                data = {ARRAY_WRAPPER: data}
+            if description:
+                _LOGGER.debug("JSON '%s' data: %s", description, scrub_fields(data))
             return cast("dict[str, Any]", data)
         except ContentTypeError as exc:
             raise ValueError("Response not in JSON format") from exc
@@ -743,10 +742,24 @@ class AmazonEchoApi:
             HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._domain}{URI_NOTIFICATIONS}",
         )
-        notifications = await self._response_to_json(raw_resp)
+
+        notifications = await self._response_to_json(raw_resp, "notifications")
+
         for schedule in notifications["notifications"]:
             schedule_type: str = schedule["type"]
             schedule_device_serial = schedule["deviceSerialNumber"]
+
+            if schedule_device_serial in DEVICE_TO_IGNORE:
+                continue
+
+            if schedule_type not in NOTIFICATIONS_SUPPORTED:
+                _LOGGER.debug(
+                    "Unsupported schedule type %s for device %s",
+                    schedule_type,
+                    schedule_device_serial,
+                )
+                continue
+
             if schedule_type == NOTIFICATION_MUSIC_ALARM:
                 # Structure is the same as standard Alarm
                 schedule_type = NOTIFICATION_ALARM
@@ -828,7 +841,11 @@ class AmazonEchoApi:
                     continue
 
                 if recurring_rule not in RECURRING_PATTERNS:
-                    _LOGGER.warning("Unknown recurring rule: %s", recurring_rule)
+                    _LOGGER.warning(
+                        "Unknown recurring rule <%s> for schedule type <%s>",
+                        recurring_rule,
+                        schedule["type"],
+                    )
                     return None
 
                 # Adjust recurring rules for country specific weekend exceptions
@@ -1100,8 +1117,13 @@ class AmazonEchoApi:
             else:
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
-            if device_dnd := dnd_sensors.get(device.serial_number):
+            if (
+                device_dnd := dnd_sensors.get(device.serial_number)
+            ) and device.device_family != SPEAKER_GROUP_FAMILY:
                 device.sensors["dnd"] = device_dnd
+
+            # Clear old notifications to handle cancelled ones
+            device.notifications = {}
 
             # Update notifications
             device_notifications = notifications.get(device.serial_number, {})
@@ -1144,9 +1166,7 @@ class AmazonEchoApi:
             url=f"https://alexa.amazon.{self._domain}{URI_DEVICES}",
         )
 
-        json_data = await self._response_to_json(raw_resp)
-
-        _LOGGER.debug("JSON devices data: %s", scrub_fields(json_data))
+        json_data = await self._response_to_json(raw_resp, "devices")
 
         for data in json_data["devices"]:
             dev_serial = data.get("serialNumber")
@@ -1169,11 +1189,20 @@ class AmazonEchoApi:
             if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
                 continue
 
+            account_name: str = device["accountName"]
+            capabilities: list[str] = device["capabilities"]
+            # Skip devices that cannot be used with voice features
+            if "MICROPHONE" not in capabilities:
+                _LOGGER.debug(
+                    "Skipping device without microphone capabilities: %s", account_name
+                )
+                continue
+
             serial_number: str = device["serialNumber"]
 
             final_devices_list[serial_number] = AmazonDevice(
-                account_name=device["accountName"],
-                capabilities=device["capabilities"],
+                account_name=account_name,
+                capabilities=capabilities,
                 device_family=device["deviceFamily"],
                 device_type=device["deviceType"],
                 device_owner_customer_id=device["deviceOwnerCustomerId"],
@@ -1485,8 +1514,7 @@ class AmazonEchoApi:
             _LOGGER.debug("Failed to refresh data")
             return False, {}
 
-        json_response = await self._response_to_json(raw_resp)
-        _LOGGER.debug("Refresh data json:\n%s ", json_response)
+        json_response = await self._response_to_json(raw_resp, data_type)
 
         if data_type == REFRESH_ACCESS_TOKEN and (
             new_token := json_response.get(REFRESH_ACCESS_TOKEN)
@@ -1510,8 +1538,7 @@ class AmazonEchoApi:
             url=f"https://alexa.amazon.{self._domain}{URI_DND}",
         )
 
-        dnd_data = await self._response_to_json(raw_resp)
-        _LOGGER.debug("DND data: %s", dnd_data)
+        dnd_data = await self._response_to_json(raw_resp, "dnd")
 
         for dnd in dnd_data.get("doNotDisturbDeviceStatusList", {}):
             dnd_status[dnd.get("deviceSerialNumber")] = AmazonDeviceSensor(
@@ -1523,3 +1550,18 @@ class AmazonEchoApi:
                 scale=None,
             )
         return dnd_status
+
+    async def _format_human_error(self, sensors_state: dict) -> bool:
+        """Format human readable error from malformed data."""
+        if sensors_state.get(ARRAY_WRAPPER):
+            error = sensors_state[ARRAY_WRAPPER][0].get("errors", [])
+        else:
+            error = sensors_state.get("errors", [])
+
+        if not error:
+            return False
+
+        msg = error[0].get("message", "Unknown error")
+        path = error[0].get("path", "Unknown path")
+        _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
+        return True

@@ -41,43 +41,56 @@ query getDevicesBaseData {
 """
 
 QUERY_SENSOR_STATE = """
-query getEndpointState($endpointId: String!, $latencyTolerance: LatencyToleranceValue) {
-  endpoint(id: $endpointId) {
-    endpointId: id
-    features(latencyToleranceValue: $latencyTolerance) {
+fragment EndpointState on Endpoint {
+  endpointId: id
+  friendlyNameObject { value { text } }
+  features {
+    name
+    properties {
       name
-      instance
-      properties {
-        name
-        type
-        accuracy
-        error { type message }
-        __typename
-        ... on Illuminance {
-          illuminanceValue { value }
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on Reachability {
-          reachabilityStatusValue
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on DetectionState {
-          detectionStateValue
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on TemperatureSensor {
-          name
-          value {
-            value
-            scale
-          }
-          timeOfSample
-          timeOfLastChange
-        }
+      type
+      accuracy
+      error { type message }
+      __typename
+      ... on Illuminance {
+        illuminanceValue { value }
+        timeOfSample
+        timeOfLastChange
       }
+      ... on Reachability {
+        reachabilityStatusValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on DetectionState {
+        detectionStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on TemperatureSensor {
+        name
+        value {
+          value
+          scale
+        }
+        timeOfSample
+        timeOfLastChange
+      }
+    }
+  }
+}
+
+
+query getEndpointState($endpointIds: [String]!) {
+  listEndpoints(
+    listEndpointsInput: {
+      latencyTolerance: LOW,
+      endpointIds: $endpointIds,
+      includeHouseholdDevices: true
+    }
+  ) {
+    endpoints {
+      ...EndpointState
     }
   }
 }

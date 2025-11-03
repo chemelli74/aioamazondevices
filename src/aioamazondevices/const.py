@@ -4,6 +4,8 @@ import logging
 
 _LOGGER = logging.getLogger(__package__)
 
+ARRAY_WRAPPER = "generatedArrayWrapper"
+
 HTTP_ERROR_199 = 199
 HTTP_ERROR_299 = 299
 
@@ -86,6 +88,12 @@ SENSORS: dict[str, dict[str, str | None]] = {
         "name": "illuminance",
         "key": "illuminanceValue",
         "subkey": "value",
+        "scale": None,
+    },
+    "connectivity": {
+        "name": "reachability",
+        "key": "reachabilityStatusValue",
+        "subkey": None,
         "scale": None,
     },
 }
@@ -532,3 +540,9 @@ NOTIFICATION_ALARM = "Alarm"
 NOTIFICATION_MUSIC_ALARM = "MusicAlarm"
 NOTIFICATION_REMINDER = "Reminder"
 NOTIFICATION_TIMER = "Timer"
+NOTIFICATIONS_SUPPORTED = [
+    NOTIFICATION_ALARM,
+    NOTIFICATION_MUSIC_ALARM,
+    NOTIFICATION_REMINDER,
+    NOTIFICATION_TIMER,
+]
