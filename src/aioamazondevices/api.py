@@ -29,10 +29,7 @@ from yarl import URL
 from . import __version__
 from .const.common import (
     _LOGGER,
-    BIN_EXTENSION,
-    HTML_EXTENSION,
-    JSON_EXTENSION,
-    SAVE_PATH,
+    RAW_EXTENSION,
 )
 from .const.devices import (
     DEVICE_TO_IGNORE,
@@ -52,24 +49,11 @@ from .const.http import (
     CSRF_COOKIE,
     DEFAULT_HEADERS,
     DEFAULT_SITE,
-    DEVICE_TO_IGNORE,
-    DEVICE_TYPE_TO_MODEL,
-    HTML_EXTENSION,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
-    JSON_EXTENSION,
-    NOTIFICATION_ALARM,
-    NOTIFICATION_MUSIC_ALARM,
-    NOTIFICATION_REMINDER,
-    NOTIFICATION_TIMER,
-    NOTIFICATIONS_SUPPORTED,
-    RECURRING_PATTERNS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     REQUEST_AGENT,
-    SAVE_PATH,
-    SENSORS,
-    SPEAKER_GROUP_FAMILY,
     URI_DEVICES,
     URI_DND,
     URI_NEXUS_GRAPHQL,
@@ -93,6 +77,13 @@ from .exceptions import (
     CannotRegisterDevice,
     CannotRetrieveData,
     WrongMethod,
+)
+from .structures import (
+    AmazonDevice,
+    AmazonDeviceSensor,
+    AmazonMusicSource,
+    AmazonSchedule,
+    AmazonSequenceType,
 )
 from .utils import obfuscate_email, scrub_fields
 

@@ -1,5 +1,6 @@
 """aioamazondevices devices."""
 
+<<<<<<< HEAD
 <<<<<<< HEAD:src/aioamazondevices/const.py
 import logging
 
@@ -72,8 +73,9 @@ JSON_EXTENSION = ".json"
 BIN_EXTENSION = ".bin"
 RAW_EXTENSION = ".raw"
 =======
+=======
+>>>>>>> 8871d20 (chore: merge)
 from .http import AMAZON_DEVICE_TYPE
->>>>>>> 26cae7d (refactor!: split const by usage):src/aioamazondevices/const/devices.py
 
 >>>>>>> 1bb8c48 (refactor!: split const by usage):src/aioamazondevices/const/devices.py
 SPEAKER_GROUP_FAMILY = "WHA"
