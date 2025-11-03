@@ -52,6 +52,7 @@ from .const import (
     NOTIFICATION_REMINDER,
     NOTIFICATION_TIMER,
     NOTIFICATIONS_SUPPORTED,
+    RAW_EXTENSION,
     RECURRING_PATTERNS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
@@ -407,7 +408,7 @@ class AmazonEchoApi:
             await self._save_to_file(
                 await resp.text(),
                 url,
-                mimetypes.guess_extension(content_type.split(";")[0]) or ".raw",
+                mimetypes.guess_extension(content_type.split(";")[0]) or RAW_EXTENSION,
             )
 
         return BeautifulSoup(await resp.read() or "", "html.parser"), resp
