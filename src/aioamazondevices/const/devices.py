@@ -1,5 +1,6 @@
-"""Constants for Amazon devices."""
+"""aioamazondevices devices."""
 
+<<<<<<< HEAD:src/aioamazondevices/const.py
 import logging
 
 _LOGGER = logging.getLogger(__package__)
@@ -62,55 +63,21 @@ URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
+<<<<<<< HEAD:src/aioamazondevices/const.py
+=======
+# File extensions
+SAVE_PATH = "out"
+HTML_EXTENSION = ".html"
+JSON_EXTENSION = ".json"
+BIN_EXTENSION = ".bin"
+RAW_EXTENSION = ".raw"
+=======
+from .http import AMAZON_DEVICE_TYPE
+>>>>>>> 26cae7d (refactor!: split const by usage):src/aioamazondevices/const/devices.py
+
+>>>>>>> 1bb8c48 (refactor!: split const by usage):src/aioamazondevices/const/devices.py
 SPEAKER_GROUP_FAMILY = "WHA"
 SPEAKER_GROUP_MODEL = "Speaker Group"
-
-SENSORS: dict[str, dict[str, str | None]] = {
-    "temperatureSensor": {
-        "name": "temperature",
-        "key": "value",
-        "subkey": "value",
-        "scale": "scale",
-    },
-    "motionSensor": {
-        "name": "detectionState",
-        "key": "detectionStateValue",
-        "subkey": None,
-        "scale": None,
-    },
-    "lightSensor": {
-        "name": "illuminance",
-        "key": "illuminanceValue",
-        "subkey": "value",
-        "scale": None,
-    },
-    "connectivity": {
-        "name": "reachability",
-        "key": "reachabilityStatusValue",
-        "subkey": None,
-        "scale": None,
-    },
-}
-
-ALEXA_INFO_SKILLS = [
-    "Alexa.Calendar.PlayToday",
-    "Alexa.Calendar.PlayTomorrow",
-    "Alexa.Calendar.PlayNext",
-    "Alexa.Date.Play",
-    "Alexa.Time.Play",
-    "Alexa.News.NationalNews",
-    "Alexa.FlashBriefing.Play",
-    "Alexa.Traffic.Play",
-    "Alexa.Weather.Play",
-    "Alexa.CleanUp.Play",
-    "Alexa.GoodMorning.Play",
-    "Alexa.SingASong.Play",
-    "Alexa.FunFact.Play",
-    "Alexa.Joke.Play",
-    "Alexa.TellStory.Play",
-    "Alexa.ImHome.Play",
-    "Alexa.GoodNight.Play",
-]
 
 DEVICE_TO_IGNORE: list[str] = [
     AMAZON_DEVICE_TYPE,  # Alexa App for iOS
@@ -480,63 +447,3 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "hw_version": "Gen2",
     },
 }
-
-RECURRING_PATTERNS: dict[str, str] = {
-    "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR",
-    "XXXX-WE": "FREQ=WEEKLY;BYDAY=SA,SU",
-    "XXXX-WXX-1": "FREQ=WEEKLY;BYDAY=MO",
-    "XXXX-WXX-2": "FREQ=WEEKLY;BYDAY=TU",
-    "XXXX-WXX-3": "FREQ=WEEKLY;BYDAY=WE",
-    "XXXX-WXX-4": "FREQ=WEEKLY;BYDAY=TH",
-    "XXXX-WXX-5": "FREQ=WEEKLY;BYDAY=FR",
-    "XXXX-WXX-6": "FREQ=WEEKLY;BYDAY=SA",
-    "XXXX-WXX-7": "FREQ=WEEKLY;BYDAY=SU",
-}
-
-WEEKEND_EXCEPTIONS = {
-    "TH-FR": {
-        "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,SA,SU",
-        "XXXX-WE": "FREQ=WEEKLY;BYDAY=TH,FR",
-    },
-    "FR-SA": {
-        "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,SU",
-        "XXXX-WE": "FREQ=WEEKLY;BYDAY=FR,SA",
-    },
-}
-
-# Countries grouped by their weekend type
-COUNTRY_GROUPS = {
-    "TH-FR": ["IR"],
-    "FR-SA": [
-        "AF",
-        "BD",
-        "BH",
-        "DZ",
-        "EG",
-        "IL",
-        "IQ",
-        "JO",
-        "KW",
-        "LY",
-        "MV",
-        "MY",
-        "OM",
-        "PS",
-        "QA",
-        "SA",
-        "SD",
-        "SY",
-        "YE",
-    ],
-}
-
-NOTIFICATION_ALARM = "Alarm"
-NOTIFICATION_MUSIC_ALARM = "MusicAlarm"
-NOTIFICATION_REMINDER = "Reminder"
-NOTIFICATION_TIMER = "Timer"
-NOTIFICATIONS_SUPPORTED = [
-    NOTIFICATION_ALARM,
-    NOTIFICATION_MUSIC_ALARM,
-    NOTIFICATION_REMINDER,
-    NOTIFICATION_TIMER,
-]

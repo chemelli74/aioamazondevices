@@ -27,9 +27,20 @@ from multidict import MultiDictProxy
 from yarl import URL
 
 from . import __version__
-from .const import (
+from .const.common import (
     _LOGGER,
-    ALEXA_INFO_SKILLS,
+    BIN_EXTENSION,
+    HTML_EXTENSION,
+    JSON_EXTENSION,
+    SAVE_PATH,
+)
+from .const.devices import (
+    DEVICE_TO_IGNORE,
+    DEVICE_TYPE_TO_MODEL,
+    SPEAKER_GROUP_FAMILY,
+)
+from .const.entities_details import ALEXA_INFO_SKILLS, SENSORS
+from .const.http import (
     AMAZON_APP_BUNDLE_ID,
     AMAZON_APP_ID,
     AMAZON_APP_NAME,
@@ -38,14 +49,15 @@ from .const import (
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
     ARRAY_WRAPPER,
-    COUNTRY_GROUPS,
     CSRF_COOKIE,
     DEFAULT_HEADERS,
     DEFAULT_SITE,
     DEVICE_TO_IGNORE,
     DEVICE_TYPE_TO_MODEL,
+    HTML_EXTENSION,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
+    JSON_EXTENSION,
     NOTIFICATION_ALARM,
     NOTIFICATION_MUSIC_ALARM,
     NOTIFICATION_REMINDER,
@@ -55,6 +67,7 @@ from .const import (
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     REQUEST_AGENT,
+    SAVE_PATH,
     SENSORS,
     SPEAKER_GROUP_FAMILY,
     URI_DEVICES,
@@ -62,6 +75,16 @@ from .const import (
     URI_NEXUS_GRAPHQL,
     URI_NOTIFICATIONS,
     URI_SIGNIN,
+)
+from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
+from .const.schedules import (
+    COUNTRY_GROUPS,
+    NOTIFICATION_ALARM,
+    NOTIFICATION_MUSIC_ALARM,
+    NOTIFICATION_REMINDER,
+    NOTIFICATION_TIMER,
+    NOTIFICATIONS_SUPPORTED,
+    RECURRING_PATTERNS,
     WEEKEND_EXCEPTIONS,
 )
 from .exceptions import (
@@ -72,13 +95,6 @@ from .exceptions import (
     WrongMethod,
 )
 from .query import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
-from .structures import (
-    AmazonDevice,
-    AmazonDeviceSensor,
-    AmazonMusicSource,
-    AmazonSchedule,
-    AmazonSequenceType,
-)
 from .utils import obfuscate_email, scrub_fields
 
 
