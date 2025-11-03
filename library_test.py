@@ -14,7 +14,7 @@ import orjson
 from aiohttp import ClientSession
 from colorlog import ColoredFormatter
 
-from aioamazondevices.api import AmazonDevice, AmazonEchoApi, AmazonMusicSource
+from aioamazondevices.api import AmazonDevice, AmazonEchoApi
 from aioamazondevices.const import SAVE_PATH
 from aioamazondevices.exceptions import (
     AmazonError,
@@ -241,6 +241,13 @@ async def main() -> None:
     for notification in device_single.notifications:
         print(f"Notification {device_single.notifications[notification]}")
 
+    await api.update_music_providers()
+    _default_music_provider = next(
+        p for p in api.music_providers.values() if p.default_provider
+    )
+    print(api.music_providers)
+    print(_default_music_provider)
+
     print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
     await api.call_alexa_speak(device_single, "Test Speak message from new library")
 
@@ -264,14 +271,14 @@ async def main() -> None:
     await wait_action_complete(5)
 
     radio = "BBC one"
-    source = AmazonMusicSource.Radio
+    source = "TUNEIN"  # AmazonMusicSource.Radio
     print(f"Playing {radio} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, radio, source)
 
     await wait_action_complete(15)
 
     music = "taylor swift"
-    source = AmazonMusicSource.AmazonMusic
+    source = _default_music_provider.provider_id
     print(f"Playing {music} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, music, source)
 
