@@ -16,6 +16,12 @@ from aiohttp import ClientSession
 from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonDevice, AmazonEchoApi, AmazonMusicSource
+from aioamazondevices.const.common import (
+    BIN_EXTENSION,
+    HTML_EXTENSION,
+    JSON_EXTENSION,
+    SAVE_PATH,
+)
 from aioamazondevices.exceptions import (
     AmazonError,
     CannotAuthenticate,
