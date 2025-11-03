@@ -6,10 +6,10 @@ import hashlib
 import mimetypes
 import secrets
 import uuid
+from collections.abc import Callable, Coroutine
 from datetime import UTC, datetime, timedelta
 from http import HTTPMethod, HTTPStatus
 from http.cookies import Morsel
-from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
@@ -39,27 +39,24 @@ from .const import (
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
     ARRAY_WRAPPER,
-    BIN_EXTENSION,
     COUNTRY_GROUPS,
     CSRF_COOKIE,
     DEFAULT_HEADERS,
     DEFAULT_SITE,
     DEVICE_TO_IGNORE,
     DEVICE_TYPE_TO_MODEL,
-    HTML_EXTENSION,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
-    JSON_EXTENSION,
     NOTIFICATION_ALARM,
     NOTIFICATION_MUSIC_ALARM,
     NOTIFICATION_REMINDER,
     NOTIFICATION_TIMER,
     NOTIFICATIONS_SUPPORTED,
+    RAW_EXTENSION,
     RECURRING_PATTERNS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     REQUEST_AGENT,
-    SAVE_PATH,
     SENSORS,
     SPEAKER_GROUP_FAMILY,
     URI_DEVICES,
@@ -96,6 +93,8 @@ class AmazonEchoApi:
         login_email: str,
         login_password: str,
         login_data: dict[str, Any] | None = None,
+        save_to_file: Callable[[str | dict, str, str], Coroutine[Any, Any, None]]
+        | None = None,
     ) -> None:
         """Initialize the scanner."""
         # Check if there is a previous login, otherwise use default (US)
@@ -107,7 +106,7 @@ class AmazonEchoApi:
         self._login_password = login_password
 
         self._cookies = self._build_init_cookies()
-        self._save_raw_data = False
+        self._save_to_file = save_to_file
         self._login_stored_data = login_data or {}
         self._serial = self._serial_number()
         self._account_owner_customer_id: str | None = None
@@ -127,11 +126,6 @@ class AmazonEchoApi:
     def domain(self) -> str:
         """Return current Amazon domain."""
         return self._domain
-
-    def save_raw_data(self) -> None:
-        """Save raw data to disk."""
-        self._save_raw_data = True
-        _LOGGER.debug("Saving raw data to disk")
 
     def _country_specific_data(self, domain: str) -> None:
         """Set country specific data."""
@@ -410,57 +404,16 @@ class AmazonEchoApi:
                     f"Request failed: {await self._http_phrase_error(resp.status)}"
                 )
 
-        await self._save_to_file(
-            await resp.text(),
-            url,
-            mimetypes.guess_extension(content_type.split(";")[0]) or ".raw",
-        )
+        raw_content = await resp.read()
 
-        return BeautifulSoup(await resp.read() or "", "html.parser"), resp
+        if self._save_to_file:
+            await self._save_to_file(
+                raw_content.decode("utf-8"),
+                url,
+                mimetypes.guess_extension(content_type.split(";")[0]) or RAW_EXTENSION,
+            )
 
-    async def _save_to_file(
-        self,
-        raw_data: str | dict,
-        url: str,
-        extension: str = HTML_EXTENSION,
-        output_path: str = SAVE_PATH,
-    ) -> None:
-        """Save response data to disk."""
-        if not self._save_raw_data or not raw_data:
-            return
-
-        output_dir = Path(output_path)
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        if url.startswith("http"):
-            url_split = url.split("/")
-            base_filename = f"{url_split[3]}-{url_split[4].split('?')[0]}"
-        else:
-            base_filename = url
-        fullpath = Path(output_dir, base_filename + extension)
-
-        data: str
-        if isinstance(raw_data, dict):
-            data = orjson.dumps(raw_data, option=orjson.OPT_INDENT_2).decode("utf-8")
-        elif extension in [HTML_EXTENSION, BIN_EXTENSION]:
-            data = raw_data
-        else:
-            data = orjson.dumps(
-                orjson.loads(raw_data),
-                option=orjson.OPT_INDENT_2,
-            ).decode("utf-8")
-
-        i = 2
-        while fullpath.exists():
-            filename = f"{base_filename}_{i!s}{extension}"
-            fullpath = Path(output_dir, filename)
-            i += 1
-
-        _LOGGER.warning("Saving data to %s", fullpath)
-
-        with Path.open(fullpath, mode="w", encoding="utf-8") as file:
-            file.write(data)
-            file.write("\n")
+        return BeautifulSoup(raw_content or "", "html.parser"), resp
 
     async def _register_device(
         self,
@@ -922,7 +875,6 @@ class AmazonEchoApi:
         await self._domain_refresh_auth_cookies()
 
         self._login_stored_data.update({"site": f"https://www.amazon.{self._domain}"})
-        await self._save_to_file(self._login_stored_data, "login_data", JSON_EXTENSION)
 
         # Can take a little while to register device but we need it
         # to be able to pickout account customer ID
