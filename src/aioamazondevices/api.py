@@ -7,7 +7,6 @@ import mimetypes
 import secrets
 import uuid
 from collections.abc import Callable, Coroutine
-from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from http import HTTPMethod, HTTPStatus
 from http.cookies import Morsel
