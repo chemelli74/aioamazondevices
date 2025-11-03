@@ -103,12 +103,12 @@ async def save_to_file(
     raw_data: str | dict,
     url: str,
     extension: str = HTML_EXTENSION,
-    output_path: str = SAVE_PATH,
 ) -> None:
     """Save response data to disk."""
     if not raw_data:
         return
 
+    output_path: str = SAVE_PATH
     output_dir = Path(output_path)
     output_dir.mkdir(parents=True, exist_ok=True)
 
