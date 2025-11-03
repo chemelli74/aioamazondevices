@@ -15,7 +15,7 @@ import orjson
 from aiohttp import ClientSession
 from colorlog import ColoredFormatter
 
-from aioamazondevices.api import AmazonDevice, AmazonEchoApi, AmazonMusicSource
+from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.common import (
     BIN_EXTENSION,
     HTML_EXTENSION,
@@ -28,6 +28,7 @@ from aioamazondevices.exceptions import (
     CannotConnect,
     CannotRegisterDevice,
 )
+from aioamazondevices.structures import AmazonDevice, AmazonMusicSource
 
 SAVE_PATH = "out"
 HTML_EXTENSION = ".html"
