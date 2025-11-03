@@ -27,14 +27,6 @@ from langcodes import Language, standardize_tag
 from multidict import MultiDictProxy
 from yarl import URL
 
-from aioamazondevices.structures import (
-    AmazonDevice,
-    AmazonDeviceSensor,
-    AmazonMusicSource,
-    AmazonSchedule,
-    AmazonSequenceType,
-)
-
 from . import __version__
 from .const import (
     _LOGGER,
@@ -85,6 +77,13 @@ from .exceptions import (
     WrongMethod,
 )
 from .query import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
+from .structures import (
+    AmazonDevice,
+    AmazonDeviceSensor,
+    AmazonMusicSource,
+    AmazonSchedule,
+    AmazonSequenceType,
+)
 from .utils import obfuscate_email, scrub_fields
 
 
