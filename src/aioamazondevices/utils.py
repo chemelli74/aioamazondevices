@@ -1,12 +1,9 @@
 """Utils module for Amazon devices."""
 
 from collections.abc import Collection
-from pathlib import Path
 from typing import Any
 
-import orjson
-
-from .const import _LOGGER, BIN_EXTENSION, HTML_EXTENSION, SAVE_PATH, TO_REDACT
+from .const import TO_REDACT
 
 
 def obfuscate_email(email: str) -> str:
@@ -61,47 +58,3 @@ def scrub_fields(
         return {scrub_fields(item, field_names, replacement) for item in obj}
 
     return obj
-
-
-async def save_to_file(
-    raw_data: str | dict,
-    url: str,
-    extension: str = HTML_EXTENSION,
-    output_path: str = SAVE_PATH,
-) -> None:
-    """Save response data to disk."""
-    if not raw_data:
-        return
-
-    output_dir = Path(output_path)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    if url.startswith("http"):
-        url_split = url.split("/")
-        base_filename = f"{url_split[3]}-{url_split[4].split('?')[0]}"
-    else:
-        base_filename = url
-    fullpath = Path(output_dir, base_filename + extension)
-
-    data: str
-    if isinstance(raw_data, dict):
-        data = orjson.dumps(raw_data, option=orjson.OPT_INDENT_2).decode("utf-8")
-    elif extension in [HTML_EXTENSION, BIN_EXTENSION]:
-        data = raw_data
-    else:
-        data = orjson.dumps(
-            orjson.loads(raw_data),
-            option=orjson.OPT_INDENT_2,
-        ).decode("utf-8")
-
-    i = 2
-    while fullpath.exists():
-        filename = f"{base_filename}_{i!s}{extension}"
-        fullpath = Path(output_dir, filename)
-        i += 1
-
-    _LOGGER.warning("Saving data to %s", fullpath)
-
-    with Path.open(fullpath, mode="w", encoding="utf-8") as file:
-        file.write(data)
-        file.write("\n")

@@ -6,6 +6,7 @@ import hashlib
 import mimetypes
 import secrets
 import uuid
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
@@ -74,7 +75,7 @@ from .exceptions import (
     WrongMethod,
 )
 from .query import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
-from .utils import obfuscate_email, save_to_file, scrub_fields
+from .utils import obfuscate_email, scrub_fields
 
 
 @dataclass
@@ -146,7 +147,8 @@ class AmazonEchoApi:
         login_email: str,
         login_password: str,
         login_data: dict[str, Any] | None = None,
-        save_to_disk: bool = False,
+        save_to_file: Callable[[str | dict, str, str], Coroutine[Any, Any, None]]
+        | None = None,
     ) -> None:
         """Initialize the scanner."""
         # Check if there is a previous login, otherwise use default (US)
@@ -158,7 +160,7 @@ class AmazonEchoApi:
         self._login_password = login_password
 
         self._cookies = self._build_init_cookies()
-        self._save_to_disk = save_to_disk
+        self._save_to_file = save_to_file
         self._login_stored_data = login_data or {}
         self._serial = self._serial_number()
         self._account_owner_customer_id: str | None = None
@@ -456,8 +458,8 @@ class AmazonEchoApi:
                     f"Request failed: {await self._http_phrase_error(resp.status)}"
                 )
 
-        if self._save_to_disk:
-            await save_to_file(
+        if self._save_to_file:
+            await self._save_to_file(
                 await resp.text(),
                 url,
                 mimetypes.guess_extension(content_type.split(";")[0]) or ".raw",
