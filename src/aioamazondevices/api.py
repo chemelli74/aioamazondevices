@@ -404,14 +404,16 @@ class AmazonEchoApi:
                     f"Request failed: {await self._http_phrase_error(resp.status)}"
                 )
 
+        raw_content = await resp.read()
+
         if self._save_to_file:
             await self._save_to_file(
-                await resp.text(),
+                raw_content.decode("utf-8"),
                 url,
                 mimetypes.guess_extension(content_type.split(";")[0]) or RAW_EXTENSION,
             )
 
-        return BeautifulSoup(await resp.read() or "", "html.parser"), resp
+        return BeautifulSoup(raw_content or "", "html.parser"), resp
 
     async def _register_device(
         self,
