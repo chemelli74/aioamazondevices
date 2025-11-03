@@ -3,6 +3,7 @@
 import asyncio
 import base64
 import hashlib
+import math
 import mimetypes
 import secrets
 import uuid
@@ -52,6 +53,8 @@ from .const import (
     HTTP_ERROR_199,
     HTTP_ERROR_299,
     JSON_EXTENSION,
+    MAX_VOLUME,
+    MIN_VOLUME,
     NOTIFICATION_ALARM,
     NOTIFICATION_MUSIC_ALARM,
     NOTIFICATION_REMINDER,
@@ -133,6 +136,7 @@ class AmazonSequenceType(StrEnum):
     Music = "Alexa.Music.PlaySearchPhrase"
     TextCommand = "Alexa.TextCommand"
     LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
+    Volume = "Alexa.DeviceControls.Volume"
 
 
 class AmazonMusicSource(StrEnum):
@@ -1402,6 +1406,8 @@ class AmazonEchoApi:
                 "skillId": "amzn1.ask.1p.tellalexa",
                 "text": message_body,
             }
+        elif message_type == AmazonSequenceType.Volume:
+            payload = {**base_payload, "value": message_body}
         elif message_type == AmazonSequenceType.LaunchSkill:
             payload = {
                 **base_payload,
@@ -1525,6 +1531,24 @@ class AmazonEchoApi:
         url = f"https://alexa.amazon.{self._domain}/api/dnd/status"
         await self._session_request(
             method="PUT", url=url, input_data=payload, json_data=True
+        )
+
+    async def set_volume(
+        self,
+        device: AmazonDevice,
+        volume: int,
+    ) -> None:
+        """Call Alexa.DeviceControls.Volume to set volume."""
+        if volume < MIN_VOLUME:
+            _vol_clean = MIN_VOLUME
+        if volume > MAX_VOLUME:
+            _vol_clean = MAX_VOLUME
+        else:
+            _vol_clean = math.ceil(volume / 10.0) * 10
+        if volume != _vol_clean:
+            _LOGGER.debug("Volume %s rounded to %s", volume, _vol_clean)
+        return await self._send_message(
+            device, AmazonSequenceType.Volume, str(_vol_clean)
         )
 
     async def _refresh_data(self, data_type: str) -> tuple[bool, dict]:
