@@ -91,7 +91,7 @@ class AmazonEchoApi:
         _LOGGER.debug("Using site: %s", site)
 
         self._session_state_data = AmazonSessionStateData(
-            client_session, site, login_email, login_password, login_data
+            site, login_email, login_password, login_data
         )
 
         self._serial = self._serial_number()
@@ -655,7 +655,7 @@ class AmazonEchoApi:
         device_login_data = await self._login_mode_interactive_oauth(otp_code)
 
         login_data = await self._register_device(device_login_data)
-        await self._session_state_data.load_login_stored_data(login_data)
+        self._session_state_data.load_login_stored_data(login_data)
 
         await self._domain_refresh_auth_cookies()
 

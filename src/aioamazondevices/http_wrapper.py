@@ -47,14 +47,12 @@ class AmazonSessionStateData:
 
     def __init__(
         self,
-        client_session: ClientSession,
         domain: str,
         login_email: str,
         login_password: str,
         login_data: dict[str, Any] | None = None,
     ) -> None:
         """Init state class."""
-        self._session: ClientSession = client_session
         self._login_email: str = login_email
         self._login_password: str = login_password
         self._login_stored_data: dict[str, Any] = login_data or {}
@@ -111,7 +109,7 @@ class AmazonSessionStateData:
             self._language,
         )
 
-    async def load_login_stored_data(self, data: dict[str, Any]) -> dict[str, Any]:
+    def load_login_stored_data(self, data: dict[str, Any]) -> dict[str, Any]:
         """Load to Amazon using previously stored data."""
         self._login_stored_data = data
         return self._login_stored_data
