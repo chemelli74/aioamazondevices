@@ -4,6 +4,7 @@ import asyncio
 import getpass
 import json
 import logging
+import mimetypes
 import sys
 from argparse import ArgumentParser, Namespace
 from collections.abc import Callable
@@ -15,18 +16,17 @@ from aiohttp import ClientSession
 from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonDevice, AmazonEchoApi, AmazonMusicSource
-from aioamazondevices.const import (
-    BIN_EXTENSION,
-    HTML_EXTENSION,
-    JSON_EXTENSION,
-    SAVE_PATH,
-)
 from aioamazondevices.exceptions import (
     AmazonError,
     CannotAuthenticate,
     CannotConnect,
     CannotRegisterDevice,
 )
+
+SAVE_PATH = "out"
+HTML_EXTENSION = ".html"
+BIN_EXTENSION = ".bin"
+RAW_EXTENSION = ".raw"
 
 
 def get_arguments() -> tuple[ArgumentParser, Namespace]:
@@ -102,15 +102,16 @@ def read_from_file(data_file: str) -> dict[str, Any]:
 async def save_to_file(
     raw_data: str | dict,
     url: str,
-    extension: str = HTML_EXTENSION,
+    content_type: str = "application/json",
 ) -> None:
     """Save response data to disk."""
     if not raw_data:
         return
 
-    output_path: str = SAVE_PATH
-    output_dir = Path(output_path)
+    output_dir = Path(SAVE_PATH)
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    extension = mimetypes.guess_extension(content_type.split(";")[0]) or RAW_EXTENSION
 
     if url.startswith("http"):
         url_split = url.split("/")
@@ -197,7 +198,7 @@ async def main() -> None:
                 login_data = await api.login_mode_interactive(
                     args.otp_code or input("OTP Code: ")
                 )
-                await save_to_file(login_data, "login_data", JSON_EXTENSION)
+                await save_to_file(login_data, "login_data")
         except CannotAuthenticate:
             print(f"Cannot authenticate with {args.email} credentials")
             raise
@@ -217,7 +218,7 @@ async def main() -> None:
     print("Login data:", login_data)
     print("-" * 20)
 
-    await save_to_file(login_data, "output-login-data", JSON_EXTENSION)
+    await save_to_file(login_data, "output-login-data")
 
     print("-" * 20)
     try:
@@ -236,7 +237,7 @@ async def main() -> None:
         await client_session.close()
         sys.exit(0)
 
-    await save_to_file(devices, "output-devices", JSON_EXTENSION)
+    await save_to_file(devices, "output-devices")
 
     if not args.test:
         print("!!! No testing requested, exiting !!!")

@@ -3,7 +3,6 @@
 import asyncio
 import base64
 import hashlib
-import mimetypes
 import secrets
 import uuid
 from collections.abc import Callable, Coroutine
@@ -52,7 +51,6 @@ from .const import (
     NOTIFICATION_REMINDER,
     NOTIFICATION_TIMER,
     NOTIFICATIONS_SUPPORTED,
-    RAW_EXTENSION,
     RECURRING_PATTERNS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
@@ -410,7 +408,7 @@ class AmazonEchoApi:
             await self._save_to_file(
                 raw_content.decode("utf-8"),
                 url,
-                mimetypes.guess_extension(content_type.split(";")[0]) or RAW_EXTENSION,
+                content_type,
             )
 
         return BeautifulSoup(raw_content or "", "html.parser"), resp
