@@ -62,13 +62,6 @@ URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
-# File extensions
-SAVE_PATH = "out"
-HTML_EXTENSION = ".html"
-JSON_EXTENSION = ".json"
-BIN_EXTENSION = ".bin"
-RAW_EXTENSION = ".raw"
-
 SPEAKER_GROUP_FAMILY = "WHA"
 SPEAKER_GROUP_MODEL = "Speaker Group"
 

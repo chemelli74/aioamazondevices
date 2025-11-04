@@ -4,6 +4,7 @@ import asyncio
 import getpass
 import json
 import logging
+import mimetypes
 import sys
 from argparse import ArgumentParser, Namespace
 from collections.abc import Callable
@@ -15,18 +16,19 @@ from aiohttp import ClientSession
 from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonDevice, AmazonEchoApi, AmazonMusicSource
-from aioamazondevices.const import (
-    BIN_EXTENSION,
-    HTML_EXTENSION,
-    JSON_EXTENSION,
-    SAVE_PATH,
-)
 from aioamazondevices.exceptions import (
     AmazonError,
     CannotAuthenticate,
     CannotConnect,
     CannotRegisterDevice,
 )
+
+# File extensions
+SAVE_PATH = "out"
+HTML_EXTENSION = ".html"
+JSON_EXTENSION = ".json"
+BIN_EXTENSION = ".bin"
+RAW_EXTENSION = ".raw"
 
 
 def get_arguments() -> tuple[ArgumentParser, Namespace]:
@@ -102,7 +104,7 @@ def read_from_file(data_file: str) -> dict[str, Any]:
 async def save_to_file(
     raw_data: str | dict,
     url: str,
-    extension: str = HTML_EXTENSION,
+    content_type: str,
 ) -> None:
     """Save response data to disk."""
     if not raw_data:
@@ -111,6 +113,8 @@ async def save_to_file(
     output_path: str = SAVE_PATH
     output_dir = Path(output_path)
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    extension = mimetypes.guess_extension(content_type.split(";")[0]) or RAW_EXTENSION
 
     if url.startswith("http"):
         url_split = url.split("/")
