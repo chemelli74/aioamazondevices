@@ -790,6 +790,7 @@ class AmazonEchoApi:
         if user_domain != DEFAULT_SITE:
             _LOGGER.debug("User domain changed to %s", user_domain)
             self._session_state_data.country_specific_data(user_domain)
+            await self._http_wrapper.clear_csrf_cookie()
             await self._refresh_auth_cookies()
 
     async def _get_account_owner_customer_id(self, data: dict[str, Any]) -> str | None:

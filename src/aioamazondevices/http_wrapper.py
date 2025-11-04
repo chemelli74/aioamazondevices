@@ -104,9 +104,6 @@ class AmazonSessionStateData:
         language = f"{lang_maximized.language}-{lang_maximized.territory}"
         self._language: str = standardize_tag(language)
 
-        # Reset CSRF cookie when changing country
-        self._csrf_cookie: str | None = None
-
         _LOGGER.debug(
             "Initialize country <%s>: domain <amazon.%s>, language <%s>",
             country_code.upper(),
@@ -144,7 +141,7 @@ class AmazonHttpWrapper:
         return self._cookies
 
     def _load_website_cookies(self, language: str) -> dict[str, str]:
-        """Get website cookies, if avaliables."""
+        """Get website cookies, if available."""
         if not self._session_state_data.login_stored_data:
             return {}
 
@@ -346,6 +343,10 @@ class AmazonHttpWrapper:
     async def clear_cookies(self) -> None:
         """Clear session cookies."""
         self._session.cookie_jar.clear()
+
+    async def clear_csrf_cookie(self) -> None:
+        """Clear CSRF cookie."""
+        self._csrf_cookie = None
 
     async def set_cookies(self, cookies: dict[str, str], domain_url: URL) -> None:
         """Set session cookies."""
