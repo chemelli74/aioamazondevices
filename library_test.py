@@ -23,7 +23,6 @@ from aioamazondevices.exceptions import (
     CannotRegisterDevice,
 )
 
-# File extensions
 SAVE_PATH = "out"
 HTML_EXTENSION = ".html"
 BIN_EXTENSION = ".bin"
