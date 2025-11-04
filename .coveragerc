@@ -3,6 +3,7 @@ source = aioamazondevices
 omit =
     src/aioamazondevices/api.py
     src/aioamazondevices/exceptions.py
+    src/aioamazondevices/http_wrapper.py
     src/aioamazondevices/utils.py
     src/aioamazondevices/const/*
     library_test.py
