@@ -26,7 +26,6 @@ from aioamazondevices.exceptions import (
 # File extensions
 SAVE_PATH = "out"
 HTML_EXTENSION = ".html"
-JSON_EXTENSION = ".json"
 BIN_EXTENSION = ".bin"
 RAW_EXTENSION = ".raw"
 
@@ -104,7 +103,7 @@ def read_from_file(data_file: str) -> dict[str, Any]:
 async def save_to_file(
     raw_data: str | dict,
     url: str,
-    content_type: str,
+    content_type: str = "application/json",
 ) -> None:
     """Save response data to disk."""
     if not raw_data:
@@ -201,7 +200,7 @@ async def main() -> None:
                 login_data = await api.login_mode_interactive(
                     args.otp_code or input("OTP Code: ")
                 )
-                await save_to_file(login_data, "login_data", JSON_EXTENSION)
+                await save_to_file(login_data, "login_data")
         except CannotAuthenticate:
             print(f"Cannot authenticate with {args.email} credentials")
             raise
@@ -221,7 +220,7 @@ async def main() -> None:
     print("Login data:", login_data)
     print("-" * 20)
 
-    await save_to_file(login_data, "output-login-data", JSON_EXTENSION)
+    await save_to_file(login_data, "output-login-data")
 
     print("-" * 20)
     try:
@@ -240,7 +239,7 @@ async def main() -> None:
         await client_session.close()
         sys.exit(0)
 
-    await save_to_file(devices, "output-devices", JSON_EXTENSION)
+    await save_to_file(devices, "output-devices")
 
     if not args.test:
         print("!!! No testing requested, exiting !!!")
