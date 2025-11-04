@@ -109,8 +109,7 @@ async def save_to_file(
     if not raw_data:
         return
 
-    output_path: str = SAVE_PATH
-    output_dir = Path(output_path)
+    output_dir = Path(SAVE_PATH)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     extension = mimetypes.guess_extension(content_type.split(";")[0]) or RAW_EXTENSION
