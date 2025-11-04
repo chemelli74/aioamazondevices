@@ -1,5 +1,14 @@
 # Changelog
 
+## v8.0.0 (2025-11-04)
+
+### Refactoring
+
+- Split const by usage ([`329bb51`](https://github.com/chemelli74/aioamazondevices/commit/329bb511758edcae272e4cef7db22bbcca71941a))
+- Remove testing constants from api ([`e596916`](https://github.com/chemelli74/aioamazondevices/commit/e596916ebd71d64c88c470d7ede3efb68bb4cc1b))
+- Remove save_to_file() method ([`bdd6863`](https://github.com/chemelli74/aioamazondevices/commit/bdd6863250d7a8995a4e616475057c42b313d1eb))
+
+
 ## v7.0.0 (2025-11-03)
 
 ### Refactoring
