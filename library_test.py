@@ -15,13 +15,14 @@ import orjson
 from aiohttp import ClientSession
 from colorlog import ColoredFormatter
 
-from aioamazondevices.api import AmazonDevice, AmazonEchoApi, AmazonMusicSource
+from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.exceptions import (
     AmazonError,
     CannotAuthenticate,
     CannotConnect,
     CannotRegisterDevice,
 )
+from aioamazondevices.structures import AmazonDevice, AmazonMusicSource
 
 SAVE_PATH = "out"
 HTML_EXTENSION = ".html"

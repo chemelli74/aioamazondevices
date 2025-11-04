@@ -27,9 +27,13 @@ from multidict import MultiDictProxy
 from yarl import URL
 
 from . import __version__
-from .const import (
-    _LOGGER,
-    ALEXA_INFO_SKILLS,
+from .const.common import _LOGGER
+from .const.devices import (
+    DEVICE_TO_IGNORE,
+    DEVICE_TYPE_TO_MODEL,
+    SPEAKER_GROUP_FAMILY,
+)
+from .const.http import (
     AMAZON_APP_BUNDLE_ID,
     AMAZON_APP_ID,
     AMAZON_APP_NAME,
@@ -38,30 +42,30 @@ from .const import (
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
     ARRAY_WRAPPER,
-    COUNTRY_GROUPS,
     CSRF_COOKIE,
     DEFAULT_HEADERS,
     DEFAULT_SITE,
-    DEVICE_TO_IGNORE,
-    DEVICE_TYPE_TO_MODEL,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
+    REFRESH_ACCESS_TOKEN,
+    REFRESH_AUTH_COOKIES,
+    REQUEST_AGENT,
+    URI_DEVICES,
+    URI_DND,
+    URI_NEXUS_GRAPHQL,
+    URI_NOTIFICATIONS,
+    URI_SIGNIN,
+)
+from .const.metadata import ALEXA_INFO_SKILLS, SENSORS
+from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
+from .const.schedules import (
+    COUNTRY_GROUPS,
     NOTIFICATION_ALARM,
     NOTIFICATION_MUSIC_ALARM,
     NOTIFICATION_REMINDER,
     NOTIFICATION_TIMER,
     NOTIFICATIONS_SUPPORTED,
     RECURRING_PATTERNS,
-    REFRESH_ACCESS_TOKEN,
-    REFRESH_AUTH_COOKIES,
-    REQUEST_AGENT,
-    SENSORS,
-    SPEAKER_GROUP_FAMILY,
-    URI_DEVICES,
-    URI_DND,
-    URI_NEXUS_GRAPHQL,
-    URI_NOTIFICATIONS,
-    URI_SIGNIN,
     WEEKEND_EXCEPTIONS,
 )
 from .exceptions import (
@@ -71,7 +75,6 @@ from .exceptions import (
     CannotRetrieveData,
     WrongMethod,
 )
-from .query import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .structures import (
     AmazonDevice,
     AmazonDeviceSensor,
