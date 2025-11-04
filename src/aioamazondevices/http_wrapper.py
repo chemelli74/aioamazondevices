@@ -281,9 +281,7 @@ class AmazonHttpWrapper:
             _LOGGER.error("No response received from %s", url)
             raise CannotConnect(f"No response received from {url}")
 
-        if not self._csrf_cookie and (
-            csrf := resp.cookies.get(CSRF_COOKIE, Morsel()).value
-        ):
+        if csrf := resp.cookies.get(CSRF_COOKIE, Morsel()).value:
             self._csrf_cookie = csrf
             _LOGGER.debug("CSRF cookie value: <%s> [%s]", self._csrf_cookie, url)
 
@@ -343,6 +341,7 @@ class AmazonHttpWrapper:
     async def clear_cookies(self) -> None:
         """Clear session cookies."""
         self._session.cookie_jar.clear()
+        await self.clear_csrf_cookie()
 
     async def clear_csrf_cookie(self) -> None:
         """Clear CSRF cookie."""
