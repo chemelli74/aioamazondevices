@@ -16,6 +16,7 @@ from aiohttp import (
     ContentTypeError,
 )
 from bs4 import BeautifulSoup
+from langcodes import Language, standardize_tag
 from yarl import URL
 
 from . import __version__
@@ -33,8 +34,90 @@ from .const.http import (
     REQUEST_AGENT,
     URI_SIGNIN,
 )
-from .exceptions import CannotAuthenticate, CannotConnect, CannotRetrieveData
+from .exceptions import (
+    CannotAuthenticate,
+    CannotConnect,
+    CannotRetrieveData,
+)
 from .utils import scrub_fields
+
+
+class AmazonSessionStateData:
+    """Amazon session state data class."""
+
+    def __init__(
+        self,
+        client_session: ClientSession,
+        domain: str,
+        login_email: str,
+        login_password: str,
+        login_data: dict[str, Any] | None = None,
+    ) -> None:
+        """Init state class."""
+        self._session: ClientSession = client_session
+        self._login_email: str = login_email
+        self._login_password: str = login_password
+        self._login_stored_data: dict[str, Any] = login_data or {}
+        self.country_specific_data(domain)
+
+    @property
+    def country_code(self) -> str:
+        """Return country code."""
+        return self._country_code
+
+    @property
+    def domain(self) -> str:
+        """Return domain."""
+        return self._domain
+
+    @property
+    def language(self) -> str:
+        """Return language."""
+        return self._language
+
+    @property
+    def login_email(self) -> str:
+        """Return login email."""
+        return self._login_email
+
+    @property
+    def login_password(self) -> str:
+        """Return login password."""
+        return self._login_password
+
+    @property
+    def login_stored_data(self) -> dict[str, Any]:
+        """Return login stored data."""
+        return self._login_stored_data
+
+    def country_specific_data(self, domain: str) -> None:
+        """Set country specific data."""
+        # Force lower case
+        domain = domain.replace("https://www.amazon.", "").lower()
+        country_code = domain.split(".")[-1] if domain != "com" else "us"
+
+        lang_object = Language.make(territory=country_code.upper())
+        lang_maximized = lang_object.maximize()
+
+        self._country_code: str = country_code
+        self._domain: str = domain
+        language = f"{lang_maximized.language}-{lang_maximized.territory}"
+        self._language: str = standardize_tag(language)
+
+        # Reset CSRF cookie when changing country
+        self._csrf_cookie: str | None = None
+
+        _LOGGER.debug(
+            "Initialize country <%s>: domain <amazon.%s>, language <%s>",
+            country_code.upper(),
+            self._domain,
+            self._language,
+        )
+
+    async def load_login_stored_data(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Load to Amazon using previously stored data."""
+        self._login_stored_data = data
+        return self._login_stored_data
 
 
 class AmazonHttpWrapper:
@@ -43,17 +126,13 @@ class AmazonHttpWrapper:
     def __init__(
         self,
         client_session: ClientSession,
-        domain: str,
-        language: str,
-        login_stored_data: dict[str, Any] | None = None,
+        session_state_data: AmazonSessionStateData,
         save_to_file: Callable[[str | dict, str, str], Coroutine[Any, Any, None]]
         | None = None,
     ) -> None:
         """Initialize HTTP wrapper."""
         self._session = client_session
-        self._domain = domain
-        self._language = language
-        self._login_stored_data: dict[str, Any] | None = login_stored_data
+        self._session_state_data: AmazonSessionStateData = session_state_data
         self._save_to_file = save_to_file
 
         self._csrf_cookie: str | None = None
@@ -64,20 +143,22 @@ class AmazonHttpWrapper:
         """Return the current cookies."""
         return self._cookies
 
-    def _load_website_cookies(self) -> dict[str, str]:
+    def _load_website_cookies(self, language: str) -> dict[str, str]:
         """Get website cookies, if avaliables."""
-        if not self._login_stored_data:
+        if not self._session_state_data.login_stored_data:
             return {}
 
-        website_cookies: dict[str, Any] = self._login_stored_data["website_cookies"]
+        website_cookies: dict[str, Any] = self._session_state_data.login_stored_data[
+            "website_cookies"
+        ]
         website_cookies.update(
             {
-                "session-token": self._login_stored_data["store_authentication_cookie"][
-                    "cookie"
-                ]
+                "session-token": self._session_state_data.login_stored_data[
+                    "store_authentication_cookie"
+                ]["cookie"]
             }
         )
-        website_cookies.update({"lc-acbit": self._language})
+        website_cookies.update({"lc-acbit": language})
 
         return website_cookies
 
@@ -112,6 +193,12 @@ class AmazonHttpWrapper:
             )
         return False
 
+    async def set_session_state_data(
+        self, session_state_data: AmazonSessionStateData
+    ) -> None:
+        """Set the current session state data."""
+        self._session_state_data = session_state_data
+
     async def http_phrase_error(self, error: int) -> str:
         """Convert numeric error in human phrase."""
         if error == HTTP_ERROR_199:
@@ -141,7 +228,7 @@ class AmazonHttpWrapper:
 
         headers = DEFAULT_HEADERS.copy()
         headers.update({"User-Agent": REQUEST_AGENT[agent]})
-        headers.update({"Accept-Language": self._language})
+        headers.update({"Accept-Language": self._session_state_data.language})
         headers.update({"x-amzn-client": "aioamazondevices"})
         headers.update({"x-amzn-build-version": __version__})
 
@@ -156,9 +243,13 @@ class AmazonHttpWrapper:
             headers.update(json_header)
 
         _cookies = (
-            self._load_website_cookies() if self._login_stored_data else self._cookies
+            self._load_website_cookies(self._session_state_data.language)
+            if self._session_state_data.login_stored_data
+            else self._cookies
         )
-        self._session.cookie_jar.update_cookies(_cookies, URL(f"amazon.{self._domain}"))
+        self._session.cookie_jar.update_cookies(
+            _cookies, URL(f"amazon.{self._session_state_data.domain}")
+        )
 
         resp: ClientResponse | None = None
         for delay in [0, 1, 2, 5, 8, 12, 21]:
@@ -259,8 +350,3 @@ class AmazonHttpWrapper:
     async def set_cookies(self, cookies: dict[str, str], domain_url: URL) -> None:
         """Set session cookies."""
         self._session.cookie_jar.update_cookies(cookies, domain_url)
-
-    async def set_country_data(self, domain: str, language: str) -> None:
-        """Set country specific data."""
-        self._domain = domain
-        self._language = language

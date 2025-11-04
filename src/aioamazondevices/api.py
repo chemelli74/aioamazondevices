@@ -18,7 +18,6 @@ from aiohttp import (
 from bs4 import BeautifulSoup, Tag
 from dateutil.parser import parse
 from dateutil.rrule import rrulestr
-from langcodes import Language, standardize_tag
 from multidict import MultiDictProxy
 from yarl import URL
 
@@ -63,7 +62,7 @@ from .exceptions import (
     CannotRetrieveData,
     WrongMethod,
 )
-from .http_wrapper import AmazonHttpWrapper
+from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .structures import (
     AmazonDevice,
     AmazonDeviceSensor,
@@ -90,21 +89,18 @@ class AmazonEchoApi:
         # Check if there is a previous login, otherwise use default (US)
         site = login_data.get("site", DEFAULT_SITE) if login_data else DEFAULT_SITE
         _LOGGER.debug("Using site: %s", site)
-        self._country_specific_data(site)
 
-        self._login_email = login_email
-        self._login_password = login_password
+        self._session_state_data = AmazonSessionStateData(
+            client_session, site, login_email, login_password, login_data
+        )
 
-        self._login_stored_data = login_data or {}
         self._serial = self._serial_number()
         self._account_owner_customer_id: str | None = None
         self._list_for_clusters: dict[str, str] = {}
 
         self._http_wrapper = AmazonHttpWrapper(
             client_session,
-            self._domain,
-            self._language,
-            self._login_stored_data,
+            self._session_state_data,
             save_to_file,
         )
         self._final_devices: dict[str, AmazonDevice] = {}
@@ -119,35 +115,11 @@ class AmazonEchoApi:
     @property
     def domain(self) -> str:
         """Return current Amazon domain."""
-        return self._domain
-
-    def _country_specific_data(self, domain: str) -> None:
-        """Set country specific data."""
-        # Force lower case
-        domain = domain.replace("https://www.amazon.", "").lower()
-        country_code = domain.split(".")[-1] if domain != "com" else "us"
-
-        lang_object = Language.make(territory=country_code.upper())
-        lang_maximized = lang_object.maximize()
-
-        self._country_code: str = country_code
-        self._domain: str = domain
-        language = f"{lang_maximized.language}-{lang_maximized.territory}"
-        self._language = standardize_tag(language)
-
-        # Reset CSRF cookie when changing country
-        self._csrf_cookie: str | None = None
-
-        _LOGGER.debug(
-            "Initialize country <%s>: domain <amazon.%s>, language <%s>",
-            country_code.upper(),
-            self._domain,
-            self._language,
-        )
+        return self._session_state_data.domain
 
     def _serial_number(self) -> str:
         """Get or calculate device serial number."""
-        if not self._login_stored_data:
+        if not self._session_state_data.login_stored_data:
             # Create a new serial number
             _LOGGER.debug("Cannot find previous login data, creating new serial number")
             return uuid.uuid4().hex.upper()
@@ -155,7 +127,9 @@ class AmazonEchoApi:
         _LOGGER.debug("Found previous login data, loading serial number")
         return cast(
             "str",
-            self._login_stored_data["device_info"]["device_serial_number"],
+            self._session_state_data.login_stored_data["device_info"][
+                "device_serial_number"
+            ],
         )
 
     def _create_code_verifier(self, length: int = 32) -> bytes:
@@ -192,7 +166,7 @@ class AmazonEchoApi:
             "openid.mode": "checkid_setup",
             "openid.ns.oa2": "http://www.amazon.com/ap/ext/oauth/2",
             "openid.oa2.client_id": f"device:{client_id}",
-            "language": self._language.replace("-", "_"),
+            "language": self._session_state_data.language.replace("-", "_"),
             "openid.ns.pape": "http://specs.openid.net/extensions/pape/1.0",
             "openid.oa2.code_challenge": code_challenge,
             "openid.oa2.scope": "device_auth_access",
@@ -252,7 +226,10 @@ class AmazonEchoApi:
 
         body = {
             "requested_extensions": ["device_info", "customer_info"],
-            "cookies": {"website_cookies": [], "domain": f".amazon.{self._domain}"},
+            "cookies": {
+                "website_cookies": [],
+                "domain": f".amazon.{self._session_state_data.domain}",
+            },
             "registration_data": {
                 "domain": "Device",
                 "app_version": AMAZON_APP_VERSION,
@@ -296,7 +273,7 @@ class AmazonEchoApi:
             msg = resp_json["response"]["error"]["message"]
             _LOGGER.error(
                 "Cannot register device for %s: %s",
-                obfuscate_email(self._login_email),
+                obfuscate_email(self._session_state_data.login_email),
                 msg,
             )
             raise CannotRegisterDevice(
@@ -356,7 +333,7 @@ class AmazonEchoApi:
 
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._domain}{URI_NEXUS_GRAPHQL}",
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
             input_data=payload,
             json_data=True,
         )
@@ -465,7 +442,7 @@ class AmazonEchoApi:
 
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._domain}{URI_NEXUS_GRAPHQL}",
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
             input_data=payload,
             json_data=True,
         )
@@ -495,7 +472,7 @@ class AmazonEchoApi:
 
         _, raw_resp = await self._http_wrapper.session_request(
             HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._domain}{URI_NOTIFICATIONS}",
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NOTIFICATIONS}",
         )
 
         notifications = await self._http_wrapper.response_to_json(
@@ -608,7 +585,7 @@ class AmazonEchoApi:
                 # Adjust recurring rules for country specific weekend exceptions
                 recurring_pattern = RECURRING_PATTERNS.copy()
                 for group, countries in COUNTRY_GROUPS.items():
-                    if self._country_code in countries:
+                    if self._session_state_data.country_code in countries:
                         recurring_pattern |= WEEKEND_EXCEPTIONS[group]
                         break
 
@@ -671,24 +648,26 @@ class AmazonEchoApi:
         """Login to Amazon interactively via OTP."""
         _LOGGER.debug(
             "Logging-in for %s [otp code: %s]",
-            obfuscate_email(self._login_email),
+            obfuscate_email(self._session_state_data.login_email),
             bool(otp_code),
         )
 
         device_login_data = await self._login_mode_interactive_oauth(otp_code)
 
         login_data = await self._register_device(device_login_data)
-        self._login_stored_data = login_data
+        await self._session_state_data.load_login_stored_data(login_data)
 
         await self._domain_refresh_auth_cookies()
 
-        self._login_stored_data.update({"site": f"https://www.amazon.{self._domain}"})
+        self._session_state_data.login_stored_data.update(
+            {"site": f"https://www.amazon.{self._session_state_data.domain}"}
+        )
 
         # Can take a little while to register device but we need it
         # to be able to pickout account customer ID
         await asyncio.sleep(2)
 
-        return self._login_stored_data
+        return self._session_state_data.login_stored_data
 
     async def _login_mode_interactive_oauth(
         self, otp_code: str
@@ -701,12 +680,13 @@ class AmazonEchoApi:
         login_url = self._build_oauth_url(code_verifier, client_id)
 
         login_soup, _ = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET, url=login_url
+            method=HTTPMethod.GET,
+            url=login_url,
         )
         login_method, login_url = self._get_request_from_soup(login_soup)
         login_inputs = self._get_inputs_from_soup(login_soup)
-        login_inputs["email"] = self._login_email
-        login_inputs["password"] = self._login_password
+        login_inputs["email"] = self._session_state_data.login_email
+        login_inputs["password"] = self._session_state_data.login_password
 
         _LOGGER.debug("Register at %s", login_url)
         login_soup, _ = await self._http_wrapper.session_request(
@@ -741,12 +721,12 @@ class AmazonEchoApi:
         return {
             "authorization_code": authcode,
             "code_verifier": code_verifier,
-            "domain": self._domain,
+            "domain": self._session_state_data.domain,
         }
 
     async def login_mode_stored_data(self) -> dict[str, Any]:
         """Login to Amazon using previously stored data."""
-        if not self._login_stored_data:
+        if not self._session_state_data.login_stored_data:
             _LOGGER.debug(
                 "Cannot find previous login data,\
                     use login_mode_interactive() method instead",
@@ -755,21 +735,28 @@ class AmazonEchoApi:
 
         _LOGGER.debug(
             "Logging-in for %s with stored data",
-            obfuscate_email(self._login_email),
+            obfuscate_email(self._session_state_data.login_email),
         )
 
-        return self._login_stored_data
+        # Check if session is still authenticated
+        if not await self.auth_check_status():
+            raise CannotAuthenticate("Session no longer authenticated")
+
+        return self._session_state_data.login_stored_data
 
     async def _get_alexa_domain(self) -> str:
         """Get the Alexa domain."""
         _LOGGER.debug("Retrieve Alexa domain")
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._domain}/api/welcome",
+            url=f"https://alexa.amazon.{self._session_state_data.domain}/api/welcome",
         )
         json_data = await self._http_wrapper.response_to_json(raw_resp)
         return cast(
-            "str", json_data.get("alexaHostName", f"alexa.amazon.{self._domain}")
+            "str",
+            json_data.get(
+                "alexaHostName", f"alexa.amazon.{self._session_state_data.domain}"
+            ),
         )
 
     async def _refresh_auth_cookies(self) -> None:
@@ -777,7 +764,9 @@ class AmazonEchoApi:
         _, json_token_resp = await self._refresh_data(REFRESH_AUTH_COOKIES)
 
         # Need to take cookies from response and create them as cookies
-        website_cookies = self._login_stored_data["website_cookies"] = {}
+        website_cookies = self._session_state_data.login_stored_data[
+            "website_cookies"
+        ] = {}
         await self._http_wrapper.clear_cookies()
 
         cookie_json = json_token_resp["response"]["tokens"]["cookies"]
@@ -788,9 +777,9 @@ class AmazonEchoApi:
                 await self._http_wrapper.set_cookies(new_cookie, URL(cookie_domain))
                 website_cookies.update(new_cookie)
                 if cookie["Name"] == "session-token":
-                    self._login_stored_data["store_authentication_cookie"] = {
-                        "cookie": new_cookie_value
-                    }
+                    self._session_state_data.login_stored_data[
+                        "store_authentication_cookie"
+                    ] = {"cookie": new_cookie_value}
 
     async def _domain_refresh_auth_cookies(self) -> None:
         """Refresh cookies after domain swap."""
@@ -800,8 +789,7 @@ class AmazonEchoApi:
         user_domain = (await self._get_alexa_domain()).replace("alexa", "https://www")
         if user_domain != DEFAULT_SITE:
             _LOGGER.debug("User domain changed to %s", user_domain)
-            self._country_specific_data(user_domain)
-            await self._http_wrapper.set_country_data(self._domain, self._language)
+            self._session_state_data.country_specific_data(user_domain)
             await self._refresh_auth_cookies()
 
     async def _get_account_owner_customer_id(self, data: dict[str, Any]) -> str | None:
@@ -811,7 +799,7 @@ class AmazonEchoApi:
 
         account_owner_customer_id: str | None = None
 
-        this_device_serial = self._login_stored_data["device_info"][
+        this_device_serial = self._session_state_data.login_stored_data["device_info"][
             "device_serial_number"
         ]
 
@@ -917,7 +905,7 @@ class AmazonEchoApi:
     async def _get_base_devices(self) -> None:
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._domain}{URI_DEVICES}",
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICES}",
         )
 
         json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
@@ -985,9 +973,10 @@ class AmazonEchoApi:
         """Check AUTH status."""
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._domain}/api/bootstrap?version=0",
+            url=f"https://alexa.amazon.{self._session_state_data.domain}/api/bootstrap?version=0",
             agent="Browser",
         )
+
         if raw_resp.status != HTTPStatus.OK:
             _LOGGER.debug(
                 "Session not authenticated: reply error %s",
@@ -1026,14 +1015,14 @@ class AmazonEchoApi:
         message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
-        if not self._login_stored_data:
+        if not self._session_state_data.login_stored_data:
             _LOGGER.warning("No login data available, cannot send message")
             return
 
         base_payload = {
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
-            "locale": self._language,
+            "locale": self._session_state_data.language,
             "customerId": self._account_owner_customer_id,
         }
 
@@ -1068,7 +1057,7 @@ class AmazonEchoApi:
                 "expireAfter": "PT5S",
                 "content": [
                     {
-                        "locale": self._language,
+                        "locale": self._session_state_data.language,
                         "display": {
                             "title": "Home Assistant",
                             "body": message_body,
@@ -1145,7 +1134,7 @@ class AmazonEchoApi:
         _LOGGER.debug("Preview data payload: %s", node_data)
         await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
+            url=f"https://alexa.amazon.{self._session_state_data.domain}/api/behaviors/preview",
             input_data=node_data,
             json_data=True,
         )
@@ -1224,14 +1213,17 @@ class AmazonEchoApi:
             "deviceType": device.device_type,
             "enabled": state,
         }
-        url = f"https://alexa.amazon.{self._domain}/api/dnd/status"
+        url = f"https://alexa.amazon.{self._session_state_data.domain}/api/dnd/status"
         await self._http_wrapper.session_request(
-            method="PUT", url=url, input_data=payload, json_data=True
+            method="PUT",
+            url=url,
+            input_data=payload,
+            json_data=True,
         )
 
     async def _refresh_data(self, data_type: str) -> tuple[bool, dict]:
         """Refresh data."""
-        if not self._login_stored_data:
+        if not self._session_state_data.login_stored_data:
             _LOGGER.debug("No login data available, cannot refresh")
             return False, {}
 
@@ -1239,7 +1231,7 @@ class AmazonEchoApi:
             "app_name": AMAZON_APP_NAME,
             "app_version": AMAZON_APP_VERSION,
             "di.sdk.version": "6.12.4",
-            "source_token": self._login_stored_data["refresh_token"],
+            "source_token": self._session_state_data.login_stored_data["refresh_token"],
             "package_name": AMAZON_APP_BUNDLE_ID,
             "di.hw.version": "iPhone",
             "platform": "iOS",
@@ -1249,12 +1241,12 @@ class AmazonEchoApi:
             "di.os.version": AMAZON_CLIENT_OS,
             "current_version": "6.12.4",
             "previous_version": "6.12.4",
-            "domain": f"www.amazon.{self._domain}",
+            "domain": f"www.amazon.{self._session_state_data.domain}",
         }
 
         _, raw_resp = await self._http_wrapper.session_request(
-            HTTPMethod.POST,
-            "https://api.amazon.com/auth/token",
+            method=HTTPMethod.POST,
+            url="https://api.amazon.com/auth/token",
             input_data=data,
             json_data=False,
         )
@@ -1273,7 +1265,7 @@ class AmazonEchoApi:
         if data_type == REFRESH_ACCESS_TOKEN and (
             new_token := json_response.get(REFRESH_ACCESS_TOKEN)
         ):
-            self._login_stored_data[REFRESH_ACCESS_TOKEN] = new_token
+            self._session_state_data.login_stored_data[REFRESH_ACCESS_TOKEN] = new_token
             self.expires_in = datetime.now(tz=UTC).timestamp() + int(
                 json_response.get("expires_in", 0)
             )
@@ -1289,7 +1281,7 @@ class AmazonEchoApi:
         dnd_status: dict[str, AmazonDeviceSensor] = {}
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._domain}{URI_DND}",
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DND}",
         )
 
         dnd_data = await self._http_wrapper.response_to_json(raw_resp, "dnd")
