@@ -33,7 +33,6 @@ from .const.devices import (
     DEVICE_TYPE_TO_MODEL,
     SPEAKER_GROUP_FAMILY,
 )
-from .const.entities_details import ALEXA_INFO_SKILLS, SENSORS
 from .const.http import (
     AMAZON_APP_BUNDLE_ID,
     AMAZON_APP_ID,
@@ -57,6 +56,7 @@ from .const.http import (
     URI_NOTIFICATIONS,
     URI_SIGNIN,
 )
+from .const.metadata import ALEXA_INFO_SKILLS, SENSORS
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
     COUNTRY_GROUPS,
