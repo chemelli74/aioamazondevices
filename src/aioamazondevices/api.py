@@ -27,10 +27,7 @@ from multidict import MultiDictProxy
 from yarl import URL
 
 from . import __version__
-from .const.common import (
-    _LOGGER,
-    RAW_EXTENSION,
-)
+from .const.common import _LOGGER
 from .const.devices import (
     DEVICE_TO_IGNORE,
     DEVICE_TYPE_TO_MODEL,

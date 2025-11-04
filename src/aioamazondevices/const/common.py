@@ -24,10 +24,3 @@ TO_REDACT = {
     "street",
     "user_id",
 }
-
-# File extensions
-SAVE_PATH = "out"
-HTML_EXTENSION = ".html"
-JSON_EXTENSION = ".json"
-BIN_EXTENSION = ".bin"
-RAW_EXTENSION = ".raw"
