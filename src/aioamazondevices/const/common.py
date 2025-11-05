@@ -2,7 +2,7 @@
 
 import logging
 
-_LOGGER = logging.getLogger(__package__)
+_LOGGER = logging.getLogger("aioamazondevices")
 
 TO_REDACT = {
     "address",
