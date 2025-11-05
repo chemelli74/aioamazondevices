@@ -27,7 +27,6 @@ from multidict import MultiDictProxy
 from yarl import URL
 
 from . import __version__
-from .const.common import _LOGGER
 from .const.devices import (
     DEVICE_TO_IGNORE,
     DEVICE_TYPE_TO_MODEL,
@@ -82,7 +81,7 @@ from .structures import (
     AmazonSchedule,
     AmazonSequenceType,
 )
-from .utils import obfuscate_email, scrub_fields
+from .utils import _LOGGER, obfuscate_email, scrub_fields
 
 
 class AmazonEchoApi:
