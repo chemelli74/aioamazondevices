@@ -261,12 +261,6 @@ async def main() -> None:
     print("- single : ", device_single)
     print("- cluster: ", device_cluster)
 
-    if not await api.auth_check_status():
-        print("!!! Error: Session not authenticated !!!")
-        await client_session.close()
-        sys.exit(4)
-    print("Session authenticated!")
-
     for sensor in device_single.sensors:
         print(f"Sensor {device_single.sensors[sensor]}")
 

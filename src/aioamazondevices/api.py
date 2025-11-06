@@ -950,10 +950,6 @@ class AmazonEchoApi:
             obfuscate_email(self._login_email),
         )
 
-        # Check if session is still authenticated
-        if not await self.auth_check_status():
-            raise CannotAuthenticate("Session no longer authenticated")
-
         return self._login_stored_data
 
     async def _get_alexa_domain(self) -> str:
@@ -1175,29 +1171,6 @@ class AmazonEchoApi:
         )
 
         self._final_devices = final_devices_list
-
-    async def auth_check_status(self) -> bool:
-        """Check AUTH status."""
-        _, raw_resp = await self._session_request(
-            method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._domain}/api/bootstrap?version=0",
-            agent="Browser",
-        )
-        if raw_resp.status != HTTPStatus.OK:
-            _LOGGER.debug(
-                "Session not authenticated: reply error %s",
-                raw_resp.status,
-            )
-            return False
-
-        resp_json = await self._response_to_json(raw_resp)
-        if not (authentication := resp_json.get("authentication")):
-            _LOGGER.debug('Session not authenticated: reply missing "authentication"')
-            return False
-
-        authenticated = authentication.get("authenticated")
-        _LOGGER.debug("Session authenticated: %s", authenticated)
-        return bool(authenticated)
 
     def get_model_details(self, device: AmazonDevice) -> dict[str, str | None] | None:
         """Return model datails."""
