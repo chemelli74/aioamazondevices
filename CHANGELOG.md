@@ -1,5 +1,17 @@
 # Changelog
 
+## v8.0.1 (2025-11-06)
+
+### Bug fixes
+
+- Temporary remove auth check ([`68766fa`](https://github.com/chemelli74/aioamazondevices/commit/68766fa62ae010ba0c63fb60f450c06ae35b87a8))
+
+
+### Refactoring
+
+- Logger ([`c6349b5`](https://github.com/chemelli74/aioamazondevices/commit/c6349b515945d1f4b3b5e916aa8c0b673ca57af6))
+
+
 ## v8.0.0 (2025-11-04)
 
 ### Refactoring
