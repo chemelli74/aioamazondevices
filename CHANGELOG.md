@@ -1,5 +1,77 @@
 # Changelog
 
+## v8.0.1 (2025-11-06)
+
+### Bug fixes
+
+- Temporary remove auth check ([`68766fa`](https://github.com/chemelli74/aioamazondevices/commit/68766fa62ae010ba0c63fb60f450c06ae35b87a8))
+
+
+### Refactoring
+
+- Logger ([`c6349b5`](https://github.com/chemelli74/aioamazondevices/commit/c6349b515945d1f4b3b5e916aa8c0b673ca57af6))
+
+
+## v8.0.0 (2025-11-04)
+
+### Refactoring
+
+- Split const by usage ([`329bb51`](https://github.com/chemelli74/aioamazondevices/commit/329bb511758edcae272e4cef7db22bbcca71941a))
+- Remove testing constants from api ([`e596916`](https://github.com/chemelli74/aioamazondevices/commit/e596916ebd71d64c88c470d7ede3efb68bb4cc1b))
+- Remove save_to_file() method ([`bdd6863`](https://github.com/chemelli74/aioamazondevices/commit/bdd6863250d7a8995a4e616475057c42b313d1eb))
+
+
+## v7.0.0 (2025-11-03)
+
+### Refactoring
+
+- Move dataclasses ([`2c9a7bc`](https://github.com/chemelli74/aioamazondevices/commit/2c9a7bce72b5995dd8ec55393e93699a0a8d7803))
+
+
+### Build system
+
+- Bump orjson from 3.11.3 to 3.11.4 ([`747ef4a`](https://github.com/chemelli74/aioamazondevices/commit/747ef4a153e89961c4ca741d31f550fdd9497b1a))
+- Bump aiohttp from 3.13.0 to 3.13.2 ([`fa53ee7`](https://github.com/chemelli74/aioamazondevices/commit/fa53ee75c179d3e67e4a87321ae235293de1fb42))
+
+
+## v6.5.6 (2025-10-31)
+
+### Bug fixes
+
+- Move connectivity to graphql ([`9e8a021`](https://github.com/chemelli74/aioamazondevices/commit/9e8a021982127503232fa3c7322e69cbe79e0c89))
+
+
+## v6.5.5 (2025-10-27)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`0a4ee2a`](https://github.com/chemelli74/aioamazondevices/commit/0a4ee2a4bb5d0d2ab5a1da59966dd0483ce513ff))
+
+
+### Bug fixes
+
+- Do not query sensors if endpoint list is empty ([`0c9a1e4`](https://github.com/chemelli74/aioamazondevices/commit/0c9a1e40c30d8de1e4a0de497ae179ac37b84cde))
+
+
+## v6.5.4 (2025-10-26)
+
+### Bug fixes
+
+- Filter unsupported notifications ([`e92d001`](https://github.com/chemelli74/aioamazondevices/commit/e92d001e039c940dab0c26b7a2cdd27fe152d389))
+
+
+## v6.5.3 (2025-10-26)
+
+### Bug fixes
+
+- Handle cancelled notifications ([`e4f0299`](https://github.com/chemelli74/aioamazondevices/commit/e4f02998a7334ace9bd4b977c031675b2890a4fa))
+
+
+### Refactoring
+
+- Add missing and normalize logging ([`dca1e2c`](https://github.com/chemelli74/aioamazondevices/commit/dca1e2c1de46b426301e3a3250a9f374bd9ae026))
+
+
 ## v6.5.2 (2025-10-25)
 
 ### Bug fixes

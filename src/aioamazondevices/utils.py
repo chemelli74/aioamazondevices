@@ -1,10 +1,34 @@
 """Utils module for Amazon devices."""
 
+import logging
 import re
 from collections.abc import Collection
 from typing import Any
 
-from .const import SPEAKER_GROUP_MODEL, TO_REDACT
+from .const.devices import SPEAKER_GROUP_MODEL
+
+_LOGGER = logging.getLogger(__package__)
+
+TO_REDACT = {
+    "address",
+    "address1",
+    "address2",
+    "address3",
+    "city",
+    "county",
+    "customerId",
+    "deviceAccountId",
+    "deviceAddress",
+    "deviceOwnerCustomerId",
+    "given_name",
+    "name",
+    "password",
+    "postalCode",
+    "searchCustomerId",
+    "state",
+    "street",
+    "user_id",
+}
 
 
 def obfuscate_email(email: str) -> str:

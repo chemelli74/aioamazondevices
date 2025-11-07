@@ -4,6 +4,7 @@ import asyncio
 import getpass
 import json
 import logging
+import mimetypes
 import sys
 from argparse import ArgumentParser, Namespace
 from collections.abc import Callable
@@ -14,14 +15,19 @@ import orjson
 from aiohttp import ClientSession
 from colorlog import ColoredFormatter
 
-from aioamazondevices.api import AmazonDevice, AmazonEchoApi, AmazonMusicSource
-from aioamazondevices.const import SAVE_PATH
+from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.exceptions import (
     AmazonError,
     CannotAuthenticate,
     CannotConnect,
     CannotRegisterDevice,
 )
+from aioamazondevices.structures import AmazonDevice, AmazonMusicSource
+
+SAVE_PATH = "out"
+HTML_EXTENSION = ".html"
+BIN_EXTENSION = ".bin"
+RAW_EXTENSION = ".raw"
 
 
 def get_arguments() -> tuple[ArgumentParser, Namespace]:
@@ -55,12 +61,6 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
         help="Cluster device name to send message via 'AlexaAnnouncement'",
     )
     parser.add_argument(
-        "--save_raw_data",
-        "-s",
-        action="store_true",
-        help="Save HTML source on disk",
-    )
-    parser.add_argument(
         "--test",
         "-t",
         action="store_true",
@@ -87,18 +87,6 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
     return parser, Namespace(**args)
 
 
-def save_to_file(filename: str, data_dict: dict[str, Any]) -> None:
-    """Save data to json file."""
-    data_json = orjson.dumps(
-        data_dict,
-        option=orjson.OPT_INDENT_2,
-    ).decode("utf-8")
-    Path(filename).parent.mkdir(parents=True, exist_ok=True)
-    with Path.open(Path(filename), mode="w", encoding="utf-8") as file:
-        file.write(data_json)
-        file.write("\n")
-
-
 def read_from_file(data_file: str) -> dict[str, Any]:
     """Load stored login data from file."""
     if not data_file or not (file := Path(data_file)).exists():
@@ -110,6 +98,51 @@ def read_from_file(data_file: str) -> dict[str, Any]:
 
     with Path.open(file, "rb") as f:
         return cast("dict[str, Any]", json.load(f))
+
+
+async def save_to_file(
+    raw_data: str | dict,
+    url: str,
+    content_type: str = "application/json",
+) -> None:
+    """Save response data to disk."""
+    if not raw_data:
+        return
+
+    output_dir = Path(SAVE_PATH)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    extension = mimetypes.guess_extension(content_type.split(";")[0]) or RAW_EXTENSION
+
+    if url.startswith("http"):
+        url_split = url.split("/")
+        base_filename = f"{url_split[3]}-{url_split[4].split('?')[0]}"
+    else:
+        base_filename = url
+    fullpath = Path(output_dir, base_filename + extension)
+
+    data: str
+    if isinstance(raw_data, dict):
+        data = orjson.dumps(raw_data, option=orjson.OPT_INDENT_2).decode("utf-8")
+    elif extension in [HTML_EXTENSION, BIN_EXTENSION]:
+        data = raw_data
+    else:
+        data = orjson.dumps(
+            orjson.loads(raw_data),
+            option=orjson.OPT_INDENT_2,
+        ).decode("utf-8")
+
+    i = 2
+    while fullpath.exists():
+        filename = f"{base_filename}_{i!s}{extension}"
+        fullpath = Path(output_dir, filename)
+        i += 1
+
+    print(f"Saving data to {fullpath}")
+
+    with Path.open(fullpath, mode="w", encoding="utf-8") as file:
+        file.write(data)
+        file.write("\n")
 
 
 def find_device(
@@ -151,14 +184,12 @@ async def main() -> None:
     client_session = ClientSession()
 
     api = AmazonEchoApi(
-        client_session,
-        args.email,
-        args.password,
-        login_data_stored,
+        client_session=client_session,
+        login_email=args.email,
+        login_password=args.password,
+        login_data=login_data_stored,
+        save_to_file=save_to_file,
     )
-
-    if args.save_raw_data:
-        api.save_raw_data()
 
     try:
         try:
@@ -168,6 +199,7 @@ async def main() -> None:
                 login_data = await api.login_mode_interactive(
                     args.otp_code or input("OTP Code: ")
                 )
+                await save_to_file(login_data, "login_data")
         except CannotAuthenticate:
             print(f"Cannot authenticate with {args.email} credentials")
             raise
@@ -187,7 +219,7 @@ async def main() -> None:
     print("Login data:", login_data)
     print("-" * 20)
 
-    save_to_file(f"{SAVE_PATH}/output-login-data.json", login_data)
+    await save_to_file(login_data, "output-login-data")
 
     print("-" * 20)
     try:
@@ -206,7 +238,7 @@ async def main() -> None:
         await client_session.close()
         sys.exit(0)
 
-    save_to_file(f"{SAVE_PATH}/output-devices.json", devices)
+    await save_to_file(devices, "output-devices")
 
     if not args.test:
         print("!!! No testing requested, exiting !!!")
@@ -228,12 +260,6 @@ async def main() -> None:
     print("Selected devices:")
     print("- single : ", device_single)
     print("- cluster: ", device_cluster)
-
-    if not await api.auth_check_status():
-        print("!!! Error: Session not authenticated !!!")
-        await client_session.close()
-        sys.exit(4)
-    print("Session authenticated!")
 
     for sensor in device_single.sensors:
         print(f"Sensor {device_single.sensors[sensor]}")

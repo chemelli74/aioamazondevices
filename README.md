@@ -56,7 +56,6 @@ The script accept command line arguments or a library_test.json config file:
   "single_device_name": "Echo Dot Livingroom",
   "cluster_device_name": "Everywhere",
   "login_data_file": "out/login_data.json",
-  "save_raw_data": true,
   "test": true
 }
 ```
@@ -118,14 +117,21 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/francescolf">
+                    <img src="https://avatars.githubusercontent.com/u/14892143?v=4" width="100;" alt="francescolf"/>
+                    <br />
+                    <sub><b>Francesco Lo Faro</b></sub>
+                </a>
+            </td>
+		</tr>
+		<tr>
+            <td align="center">
                 <a href="https://github.com/lchavezcuu">
                     <img src="https://avatars.githubusercontent.com/u/22165856?v=4" width="100;" alt="lchavezcuu"/>
                     <br />
                     <sub><b>Luis Chavez</b></sub>
                 </a>
             </td>
-		</tr>
-		<tr>
             <td align="center">
                 <a href="https://github.com/maxmati">
                     <img src="https://avatars.githubusercontent.com/u/509560?v=4" width="100;" alt="maxmati"/>

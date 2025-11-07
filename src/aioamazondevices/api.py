@@ -3,15 +3,12 @@
 import asyncio
 import base64
 import hashlib
-import mimetypes
 import secrets
 import uuid
-from dataclasses import dataclass
+from collections.abc import Callable, Coroutine
 from datetime import UTC, datetime, timedelta
-from enum import StrEnum
 from http import HTTPMethod, HTTPStatus
 from http.cookies import Morsel
-from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
@@ -30,9 +27,13 @@ from multidict import MultiDictProxy
 from yarl import URL
 
 from . import __version__
-from .const import (
-    _LOGGER,
-    ALEXA_INFO_SKILLS,
+from .const.devices import (
+    DEVICE_TO_IGNORE,
+    SPEAKER_GROUP_DEVICE_TYPE,
+    SPEAKER_GROUP_FAMILY,
+    SPEAKER_GROUP_MODEL,
+)
+from .const.http import (
     AMAZON_APP_BUNDLE_ID,
     AMAZON_APP_ID,
     AMAZON_APP_NAME,
@@ -41,34 +42,30 @@ from .const import (
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
     ARRAY_WRAPPER,
-    BIN_EXTENSION,
-    COUNTRY_GROUPS,
     CSRF_COOKIE,
     DEFAULT_HEADERS,
     DEFAULT_SITE,
-    DEVICE_TO_IGNORE,
-    HTML_EXTENSION,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
-    JSON_EXTENSION,
-    NOTIFICATION_ALARM,
-    NOTIFICATION_MUSIC_ALARM,
-    NOTIFICATION_REMINDER,
-    NOTIFICATION_TIMER,
-    RECURRING_PATTERNS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     REQUEST_AGENT,
-    SAVE_PATH,
-    SENSORS,
-    SPEAKER_GROUP_DEVICE_TYPE,
-    SPEAKER_GROUP_FAMILY,
-    SPEAKER_GROUP_MODEL,
     URI_DEVICES,
     URI_DND,
     URI_NEXUS_GRAPHQL,
     URI_NOTIFICATIONS,
     URI_SIGNIN,
+)
+from .const.metadata import ALEXA_INFO_SKILLS, SENSORS
+from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
+from .const.schedules import (
+    COUNTRY_GROUPS,
+    NOTIFICATION_ALARM,
+    NOTIFICATION_MUSIC_ALARM,
+    NOTIFICATION_REMINDER,
+    NOTIFICATION_TIMER,
+    NOTIFICATIONS_SUPPORTED,
+    RECURRING_PATTERNS,
     WEEKEND_EXCEPTIONS,
 )
 from .exceptions import (
@@ -78,75 +75,14 @@ from .exceptions import (
     CannotRetrieveData,
     WrongMethod,
 )
-from .query import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
-from .utils import (
-    obfuscate_email,
-    parse_device_details,
-    scrub_fields,
+from .structures import (
+    AmazonDevice,
+    AmazonDeviceSensor,
+    AmazonMusicSource,
+    AmazonSchedule,
+    AmazonSequenceType,
 )
-
-
-@dataclass
-class AmazonDeviceSensor:
-    """Amazon device sensor class."""
-
-    name: str
-    value: str | int | float
-    error: bool
-    error_type: str | None
-    error_msg: str | None
-    scale: str | None
-
-
-@dataclass
-class AmazonSchedule:
-    """Amazon schedule class."""
-
-    type: str  # alarm, reminder, timer
-    status: str
-    label: str
-    next_occurrence: datetime | None
-
-
-@dataclass
-class AmazonDevice:
-    """Amazon device class."""
-
-    account_name: str
-    capabilities: list[str]
-    device_family: str
-    device_type: str
-    device_owner_customer_id: str
-    household_device: bool
-    device_cluster_members: list[str]
-    online: bool
-    serial_number: str
-    manufacturer: str | None
-    model: str | None
-    software_version: str
-    hardware_version: str | None
-    entity_id: str | None
-    endpoint_id: str | None
-    sensors: dict[str, AmazonDeviceSensor]
-    notifications: dict[str, AmazonSchedule]
-
-
-class AmazonSequenceType(StrEnum):
-    """Amazon sequence types."""
-
-    Announcement = "AlexaAnnouncement"
-    Speak = "Alexa.Speak"
-    Sound = "Alexa.Sound"
-    Music = "Alexa.Music.PlaySearchPhrase"
-    TextCommand = "Alexa.TextCommand"
-    LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
-
-
-class AmazonMusicSource(StrEnum):
-    """Amazon music sources."""
-
-    Radio = "TUNEIN"
-    AmazonMusic = "AMAZON_MUSIC"
+from .utils import _LOGGER, obfuscate_email, parse_device_details, scrub_fields
 
 
 class AmazonEchoApi:
@@ -158,6 +94,8 @@ class AmazonEchoApi:
         login_email: str,
         login_password: str,
         login_data: dict[str, Any] | None = None,
+        save_to_file: Callable[[str | dict, str, str], Coroutine[Any, Any, None]]
+        | None = None,
     ) -> None:
         """Initialize the scanner."""
         # Check if there is a previous login, otherwise use default (US)
@@ -169,7 +107,7 @@ class AmazonEchoApi:
         self._login_password = login_password
 
         self._cookies = self._build_init_cookies()
-        self._save_raw_data = False
+        self._save_to_file = save_to_file
         self._login_stored_data = login_data or {}
         self._serial = self._serial_number()
         self._account_owner_customer_id: str | None = None
@@ -189,11 +127,6 @@ class AmazonEchoApi:
     def domain(self) -> str:
         """Return current Amazon domain."""
         return self._domain
-
-    def save_raw_data(self) -> None:
-        """Save raw data to disk."""
-        self._save_raw_data = True
-        _LOGGER.debug("Saving raw data to disk")
 
     def _country_specific_data(self, domain: str) -> None:
         """Set country specific data."""
@@ -394,6 +327,8 @@ class AmazonEchoApi:
         headers = DEFAULT_HEADERS.copy()
         headers.update({"User-Agent": REQUEST_AGENT[agent]})
         headers.update({"Accept-Language": self._language})
+        headers.update({"x-amzn-client": "aioamazondevices"})
+        headers.update({"x-amzn-build-version": __version__})
 
         if self._csrf_cookie:
             csrf = {CSRF_COOKIE: self._csrf_cookie}
@@ -470,57 +405,16 @@ class AmazonEchoApi:
                     f"Request failed: {await self._http_phrase_error(resp.status)}"
                 )
 
-        await self._save_to_file(
-            await resp.text(),
-            url,
-            mimetypes.guess_extension(content_type.split(";")[0]) or ".raw",
-        )
+        raw_content = await resp.read()
 
-        return BeautifulSoup(await resp.read() or "", "html.parser"), resp
+        if self._save_to_file:
+            await self._save_to_file(
+                raw_content.decode("utf-8"),
+                url,
+                content_type,
+            )
 
-    async def _save_to_file(
-        self,
-        raw_data: str | dict,
-        url: str,
-        extension: str = HTML_EXTENSION,
-        output_path: str = SAVE_PATH,
-    ) -> None:
-        """Save response data to disk."""
-        if not self._save_raw_data or not raw_data:
-            return
-
-        output_dir = Path(output_path)
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        if url.startswith("http"):
-            url_split = url.split("/")
-            base_filename = f"{url_split[3]}-{url_split[4].split('?')[0]}"
-        else:
-            base_filename = url
-        fullpath = Path(output_dir, base_filename + extension)
-
-        data: str
-        if isinstance(raw_data, dict):
-            data = orjson.dumps(raw_data, option=orjson.OPT_INDENT_2).decode("utf-8")
-        elif extension in [HTML_EXTENSION, BIN_EXTENSION]:
-            data = raw_data
-        else:
-            data = orjson.dumps(
-                orjson.loads(raw_data),
-                option=orjson.OPT_INDENT_2,
-            ).decode("utf-8")
-
-        i = 2
-        while fullpath.exists():
-            filename = f"{base_filename}_{i!s}{extension}"
-            fullpath = Path(output_dir, filename)
-            i += 1
-
-        _LOGGER.warning("Saving data to %s", fullpath)
-
-        with Path.open(fullpath, mode="w", encoding="utf-8") as file:
-            file.write(data)
-            file.write("\n")
+        return BeautifulSoup(raw_content or "", "html.parser"), resp
 
     async def _register_device(
         self,
@@ -620,6 +514,9 @@ class AmazonEchoApi:
         """Retrieve devices sensors states."""
         devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
 
+        if not self._endpoints:
+            return {}
+
         endpoint_ids = list(self._endpoints.keys())
         payload = [
             {
@@ -638,8 +535,7 @@ class AmazonEchoApi:
             json_data=True,
         )
 
-        sensors_state = await self._response_to_json(raw_resp)
-        _LOGGER.debug("Sensor data - %s", sensors_state)
+        sensors_state = await self._response_to_json(raw_resp, "sensors")
 
         if await self._format_human_error(sensors_state):
             # Explicit error in returned data
@@ -748,7 +644,7 @@ class AmazonEchoApi:
             json_data=True,
         )
 
-        endpoint_data = await self._response_to_json(raw_resp)
+        endpoint_data = await self._response_to_json(raw_resp, "endpoint")
 
         if not (data := endpoint_data.get("data")) or not data.get("listEndpoints"):
             await self._format_human_error(endpoint_data)
@@ -768,7 +664,9 @@ class AmazonEchoApi:
 
         return devices_endpoints
 
-    async def _response_to_json(self, raw_resp: ClientResponse) -> dict[str, Any]:
+    async def _response_to_json(
+        self, raw_resp: ClientResponse, description: str | None = None
+    ) -> dict[str, Any]:
         """Convert response to JSON, if possible."""
         try:
             data = await raw_resp.json(loads=orjson.loads)
@@ -779,6 +677,8 @@ class AmazonEchoApi:
                 # if anonymous array is returned wrap it inside
                 # generated key to convert list to dict
                 data = {ARRAY_WRAPPER: data}
+            if description:
+                _LOGGER.debug("JSON '%s' data: %s", description, scrub_fields(data))
             return cast("dict[str, Any]", data)
         except ContentTypeError as exc:
             raise ValueError("Response not in JSON format") from exc
@@ -792,10 +692,24 @@ class AmazonEchoApi:
             HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._domain}{URI_NOTIFICATIONS}",
         )
-        notifications = await self._response_to_json(raw_resp)
+
+        notifications = await self._response_to_json(raw_resp, "notifications")
+
         for schedule in notifications["notifications"]:
             schedule_type: str = schedule["type"]
             schedule_device_serial = schedule["deviceSerialNumber"]
+
+            if schedule_device_serial in DEVICE_TO_IGNORE:
+                continue
+
+            if schedule_type not in NOTIFICATIONS_SUPPORTED:
+                _LOGGER.debug(
+                    "Unsupported schedule type %s for device %s",
+                    schedule_type,
+                    schedule_device_serial,
+                )
+                continue
+
             if schedule_type == NOTIFICATION_MUSIC_ALARM:
                 # Structure is the same as standard Alarm
                 schedule_type = NOTIFICATION_ALARM
@@ -877,7 +791,11 @@ class AmazonEchoApi:
                     continue
 
                 if recurring_rule not in RECURRING_PATTERNS:
-                    _LOGGER.warning("Unknown recurring rule: %s", recurring_rule)
+                    _LOGGER.warning(
+                        "Unknown recurring rule <%s> for schedule type <%s>",
+                        recurring_rule,
+                        schedule["type"],
+                    )
                     return None
 
                 # Adjust recurring rules for country specific weekend exceptions
@@ -958,7 +876,6 @@ class AmazonEchoApi:
         await self._domain_refresh_auth_cookies()
 
         self._login_stored_data.update({"site": f"https://www.amazon.{self._domain}"})
-        await self._save_to_file(self._login_stored_data, "login_data", JSON_EXTENSION)
 
         # Can take a little while to register device but we need it
         # to be able to pickout account customer ID
@@ -1033,10 +950,6 @@ class AmazonEchoApi:
             "Logging-in for %s with stored data",
             obfuscate_email(self._login_email),
         )
-
-        # Check if session is still authenticated
-        if not await self.auth_check_status():
-            raise CannotAuthenticate("Session no longer authenticated")
 
         return self._login_stored_data
 
@@ -1155,6 +1068,9 @@ class AmazonEchoApi:
             ) and device.device_family != SPEAKER_GROUP_FAMILY:
                 device.sensors["dnd"] = device_dnd
 
+            # Clear old notifications to handle cancelled ones
+            device.notifications = {}
+
             # Update notifications
             device_notifications = notifications.get(device.serial_number, {})
 
@@ -1213,9 +1129,7 @@ class AmazonEchoApi:
             url=f"https://alexa.amazon.{self._domain}{URI_DEVICES}",
         )
 
-        json_data = await self._response_to_json(raw_resp)
-
-        _LOGGER.debug("JSON devices data: %s", scrub_fields(json_data))
+        json_data = await self._response_to_json(raw_resp, "devices")
 
         for data in json_data["devices"]:
             dev_serial = data.get("serialNumber")
@@ -1278,29 +1192,6 @@ class AmazonEchoApi:
         )
 
         self._final_devices = final_devices_list
-
-    async def auth_check_status(self) -> bool:
-        """Check AUTH status."""
-        _, raw_resp = await self._session_request(
-            method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._domain}/api/bootstrap?version=0",
-            agent="Browser",
-        )
-        if raw_resp.status != HTTPStatus.OK:
-            _LOGGER.debug(
-                "Session not authenticated: reply error %s",
-                raw_resp.status,
-            )
-            return False
-
-        resp_json = await self._response_to_json(raw_resp)
-        if not (authentication := resp_json.get("authentication")):
-            _LOGGER.debug('Session not authenticated: reply missing "authentication"')
-            return False
-
-        authenticated = authentication.get("authenticated")
-        _LOGGER.debug("Session authenticated: %s", authenticated)
-        return bool(authenticated)
 
     async def _send_message(
         self,
@@ -1552,8 +1443,7 @@ class AmazonEchoApi:
             _LOGGER.debug("Failed to refresh data")
             return False, {}
 
-        json_response = await self._response_to_json(raw_resp)
-        _LOGGER.debug("Refresh data json:\n%s ", json_response)
+        json_response = await self._response_to_json(raw_resp, data_type)
 
         if data_type == REFRESH_ACCESS_TOKEN and (
             new_token := json_response.get(REFRESH_ACCESS_TOKEN)
@@ -1577,8 +1467,7 @@ class AmazonEchoApi:
             url=f"https://alexa.amazon.{self._domain}{URI_DND}",
         )
 
-        dnd_data = await self._response_to_json(raw_resp)
-        _LOGGER.debug("DND data: %s", dnd_data)
+        dnd_data = await self._response_to_json(raw_resp, "dnd")
 
         for dnd in dnd_data.get("doNotDisturbDeviceStatusList", {}):
             dnd_status[dnd.get("deviceSerialNumber")] = AmazonDeviceSensor(
