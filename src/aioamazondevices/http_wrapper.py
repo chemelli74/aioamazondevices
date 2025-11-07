@@ -20,7 +20,6 @@ from langcodes import Language, standardize_tag
 from yarl import URL
 
 from . import __version__
-from .const.common import _LOGGER
 from .const.http import (
     AMAZON_APP_BUNDLE_ID,
     AMAZON_APP_ID,
@@ -39,7 +38,7 @@ from .exceptions import (
     CannotConnect,
     CannotRetrieveData,
 )
-from .utils import scrub_fields
+from .utils import _LOGGER, scrub_fields
 
 
 class AmazonSessionStateData:
