@@ -85,13 +85,15 @@ class SequenceBatcher:
     async def shutdown(self) -> None:
         """Cancel pending tasks and flush remaining operations."""
         # Cancel pending batch processing
-        for task in self._tasks:
+        pending = tuple(self._tasks)
+        for task in pending:
             if not task.done():
                 task.cancel()
 
         # Wait for cancellations
-        if self._tasks:
-            await asyncio.gather(*self._tasks, return_exceptions=True)
+        if pending:
+            await asyncio.gather(*pending, return_exceptions=True)
+            self._tasks.clear()
 
         # Flush any remaining operations
         if self._buffer:
