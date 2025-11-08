@@ -24,8 +24,9 @@ from yarl import URL
 from . import __version__
 from .const.devices import (
     DEVICE_TO_IGNORE,
-    DEVICE_TYPE_TO_MODEL,
+    SPEAKER_GROUP_DEVICE_TYPE,
     SPEAKER_GROUP_FAMILY,
+    SPEAKER_GROUP_MODEL,
 )
 from .const.http import (
     AMAZON_APP_BUNDLE_ID,
@@ -70,7 +71,7 @@ from .structures import (
     AmazonSchedule,
     AmazonSequenceType,
 )
-from .utils import _LOGGER, obfuscate_email, scrub_fields
+from .utils import _LOGGER, obfuscate_email, parse_device_details, scrub_fields
 
 
 class AmazonEchoApi:
@@ -898,6 +899,23 @@ class AmazonEchoApi:
             endpoint_device.endpoint_id = (
                 device_endpoint["endpointId"] if device_endpoint else None
             )
+            if (
+                endpoint_device.model is None
+                and endpoint_device.device_type == SPEAKER_GROUP_DEVICE_TYPE
+            ):
+                endpoint_device.model = SPEAKER_GROUP_MODEL
+            device_details = parse_device_details(
+                device_endpoint["model"]["value"]["text"]
+                if device_endpoint
+                else endpoint_device.model
+            )
+            endpoint_device.model = device_details[0]
+            endpoint_device.hardware_version = device_details[1]
+            endpoint_device.manufacturer = (
+                device_endpoint["manufacturer"]["value"]["text"]
+                if device_endpoint
+                else None
+            )
 
     async def _get_base_devices(self) -> None:
         _, raw_resp = await self._http_wrapper.session_request(
@@ -952,6 +970,9 @@ class AmazonEchoApi:
                 serial_number=serial_number,
                 software_version=device["softwareVersion"],
                 entity_id=None,
+                model=device.get("deviceTypeFriendlyName"),
+                manufacturer=None,
+                hardware_version=None,
                 endpoint_id=None,
                 sensors={},
                 notifications={},
@@ -965,20 +986,6 @@ class AmazonEchoApi:
         )
 
         self._final_devices = final_devices_list
-
-    def get_model_details(self, device: AmazonDevice) -> dict[str, str | None] | None:
-        """Return model datails."""
-        model_details: dict[str, str | None] | None = DEVICE_TYPE_TO_MODEL.get(
-            device.device_type
-        )
-        if not model_details:
-            _LOGGER.warning(
-                "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices/wiki/Unknown-Device-Types",
-                device.device_type,
-                device.account_name,
-            )
-
-        return model_details
 
     async def _send_message(
         self,
