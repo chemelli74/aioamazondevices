@@ -65,6 +65,8 @@ class AmazonEchoApi:
         | None = None,
     ) -> None:
         """Initialize the scanner."""
+        _LOGGER.debug("Initialize library v%s", __version__)
+
         # Check if there is a previous login, otherwise use default (US)
         site = login_data.get("site", DEFAULT_SITE) if login_data else DEFAULT_SITE
         _LOGGER.debug("Using site: %s", site)
@@ -93,8 +95,6 @@ class AmazonEchoApi:
         initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
         self._last_devices_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
-
-        _LOGGER.debug("Initialize library v%s", __version__)
 
     @property
     def domain(self) -> str:

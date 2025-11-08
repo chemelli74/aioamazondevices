@@ -7,7 +7,7 @@ import secrets
 import uuid
 from datetime import UTC, datetime, timedelta
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
 import orjson
@@ -15,7 +15,6 @@ from bs4 import BeautifulSoup, Tag
 from multidict import MultiDictProxy
 from yarl import URL
 
-from . import __version__
 from .const.http import (
     AMAZON_APP_BUNDLE_ID,
     AMAZON_APP_NAME,
@@ -36,9 +35,6 @@ from .exceptions import (
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .utils import _LOGGER, obfuscate_email, scrub_fields
 
-if TYPE_CHECKING:
-    from .structures import AmazonDevice
-
 
 class AmazonLogin:
     """Amazon login for Echo devices."""
@@ -48,24 +44,11 @@ class AmazonLogin:
         http_wrapper: AmazonHttpWrapper,
         session_state_data: AmazonSessionStateData,
     ) -> None:
-        """Initialize the scanner."""
-        # Check if there is a previous login, otherwise use default (US)
-
+        """Login to Amazon."""
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
 
         self._serial = self._serial_number()
-        self._account_owner_customer_id: str | None = None
-        self._list_for_clusters: dict[str, str] = {}
-
-        self._final_devices: dict[str, AmazonDevice] = {}
-        self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
-
-        initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
-        self._last_devices_refresh: datetime = initial_time
-        self._last_endpoint_refresh: datetime = initial_time
-
-        _LOGGER.debug("Initialize library v%s", __version__)
 
     def _serial_number(self) -> str:
         """Get or calculate device serial number."""
@@ -407,28 +390,6 @@ class AmazonLogin:
             self._session_state_data.country_specific_data(user_domain)
             await self._http_wrapper.clear_csrf_cookie()
             await self._refresh_auth_cookies()
-
-    async def _get_account_owner_customer_id(self, data: dict[str, Any]) -> str | None:
-        """Get account owner customer ID."""
-        if data["deviceType"] != AMAZON_DEVICE_TYPE:
-            return None
-
-        account_owner_customer_id: str | None = None
-
-        this_device_serial = self._session_state_data.login_stored_data["device_info"][
-            "device_serial_number"
-        ]
-
-        for subdevice in data["appDeviceList"]:
-            if subdevice["serialNumber"] == this_device_serial:
-                account_owner_customer_id = data["deviceOwnerCustomerId"]
-                _LOGGER.debug(
-                    "Setting account owner: %s",
-                    account_owner_customer_id,
-                )
-                break
-
-        return account_owner_customer_id
 
     async def _refresh_data(self, data_type: str) -> tuple[bool, dict]:
         """Refresh data."""
