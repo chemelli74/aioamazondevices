@@ -1239,9 +1239,6 @@ class AmazonEchoApi:
             new_token := json_response.get(REFRESH_ACCESS_TOKEN)
         ):
             self._session_state_data.login_stored_data[REFRESH_ACCESS_TOKEN] = new_token
-            self.expires_in = datetime.now(tz=UTC).timestamp() + int(
-                json_response.get("expires_in", 0)
-            )
             return True, json_response
 
         if data_type == REFRESH_AUTH_COOKIES:
