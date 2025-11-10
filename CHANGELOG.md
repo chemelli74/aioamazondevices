@@ -1,5 +1,18 @@
 # Changelog
 
+## v9.0.0 (2025-11-10)
+
+### Refactoring
+
+- Introduce login.py ([`d43ee5c`](https://github.com/chemelli74/aioamazondevices/commit/d43ee5c1a52616d5e8bf25b7f460e4ef3438255b))
+- Introduce http_wrapper ([`9078ed2`](https://github.com/chemelli74/aioamazondevices/commit/9078ed26cd4dae101a36f823871d5224f72c6f0f))
+
+
+### Build system
+
+- Bump pytest from 8.4.2 to 9.0.0 ([`816c428`](https://github.com/chemelli74/aioamazondevices/commit/816c428e6a529ef69d812597666c3965bd02dee0))
+
+
 ## v8.0.1 (2025-11-06)
 
 ### Bug fixes
