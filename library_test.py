@@ -194,9 +194,9 @@ async def main() -> None:
     try:
         try:
             if login_data_stored:
-                login_data = await api.login_mode_stored_data()
+                login_data = await api.login.login_mode_stored_data()
             else:
-                login_data = await api.login_mode_interactive(
+                login_data = await api.login.login_mode_interactive(
                     args.otp_code or input("OTP Code: ")
                 )
                 await save_to_file(login_data, "login_data")
