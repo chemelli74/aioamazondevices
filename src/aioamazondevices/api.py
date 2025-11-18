@@ -1540,15 +1540,15 @@ class AmazonEchoApi:
     ) -> None:
         """Call Alexa.DeviceControls.Volume to set volume."""
         if volume < MIN_VOLUME:
-            _vol_clean = MIN_VOLUME
+            _api_volume = MIN_VOLUME
         if volume > MAX_VOLUME:
-            _vol_clean = MAX_VOLUME
+            _api_volume = MAX_VOLUME
         else:
-            _vol_clean = math.ceil(volume / 10.0) * 10
-        if volume != _vol_clean:
-            _LOGGER.debug("Volume %s rounded to %s", volume, _vol_clean)
+            _api_volume = math.ceil(volume / 10.0) * 10
+        if volume != _api_volume:
+            _LOGGER.debug("Volume %s rounded to %s", volume, _api_volume)
         return await self._send_message(
-            device, AmazonSequenceType.Volume, str(_vol_clean)
+            device, AmazonSequenceType.Volume, str(_api_volume)
         )
 
     async def _refresh_data(self, data_type: str) -> tuple[bool, dict]:
