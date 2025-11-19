@@ -1,5 +1,52 @@
 # Changelog
 
+## v9.0.0 (2025-11-10)
+
+### Refactoring
+
+- Introduce login.py ([`d43ee5c`](https://github.com/chemelli74/aioamazondevices/commit/d43ee5c1a52616d5e8bf25b7f460e4ef3438255b))
+- Introduce http_wrapper ([`9078ed2`](https://github.com/chemelli74/aioamazondevices/commit/9078ed26cd4dae101a36f823871d5224f72c6f0f))
+
+
+### Build system
+
+- Bump pytest from 8.4.2 to 9.0.0 ([`816c428`](https://github.com/chemelli74/aioamazondevices/commit/816c428e6a529ef69d812597666c3965bd02dee0))
+
+
+## v8.0.1 (2025-11-06)
+
+### Bug fixes
+
+- Temporary remove auth check ([`68766fa`](https://github.com/chemelli74/aioamazondevices/commit/68766fa62ae010ba0c63fb60f450c06ae35b87a8))
+
+
+### Refactoring
+
+- Logger ([`c6349b5`](https://github.com/chemelli74/aioamazondevices/commit/c6349b515945d1f4b3b5e916aa8c0b673ca57af6))
+
+
+## v8.0.0 (2025-11-04)
+
+### Refactoring
+
+- Split const by usage ([`329bb51`](https://github.com/chemelli74/aioamazondevices/commit/329bb511758edcae272e4cef7db22bbcca71941a))
+- Remove testing constants from api ([`e596916`](https://github.com/chemelli74/aioamazondevices/commit/e596916ebd71d64c88c470d7ede3efb68bb4cc1b))
+- Remove save_to_file() method ([`bdd6863`](https://github.com/chemelli74/aioamazondevices/commit/bdd6863250d7a8995a4e616475057c42b313d1eb))
+
+
+## v7.0.0 (2025-11-03)
+
+### Refactoring
+
+- Move dataclasses ([`2c9a7bc`](https://github.com/chemelli74/aioamazondevices/commit/2c9a7bce72b5995dd8ec55393e93699a0a8d7803))
+
+
+### Build system
+
+- Bump orjson from 3.11.3 to 3.11.4 ([`747ef4a`](https://github.com/chemelli74/aioamazondevices/commit/747ef4a153e89961c4ca741d31f550fdd9497b1a))
+- Bump aiohttp from 3.13.0 to 3.13.2 ([`fa53ee7`](https://github.com/chemelli74/aioamazondevices/commit/fa53ee75c179d3e67e4a87321ae235293de1fb42))
+
+
 ## v6.5.6 (2025-10-31)
 
 ### Bug fixes

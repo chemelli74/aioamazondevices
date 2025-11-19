@@ -1,149 +1,56 @@
 """Support for Amazon devices."""
 
-import asyncio
-import base64
-import hashlib
 import math
-import mimetypes
-import secrets
-import uuid
-from dataclasses import dataclass
+from collections.abc import Callable, Coroutine
 from datetime import UTC, datetime, timedelta
-from enum import StrEnum
-from http import HTTPMethod, HTTPStatus
-from http.cookies import Morsel
-from pathlib import Path
-from typing import Any, cast
-from urllib.parse import parse_qs, urlencode
+from http import HTTPMethod
+from typing import Any
 
 import orjson
-from aiohttp import (
-    ClientConnectorError,
-    ClientResponse,
-    ClientSession,
-    ContentTypeError,
-)
-from bs4 import BeautifulSoup, Tag
+from aiohttp import ClientSession
 from dateutil.parser import parse
 from dateutil.rrule import rrulestr
-from langcodes import Language, standardize_tag
-from multidict import MultiDictProxy
-from yarl import URL
 
 from . import __version__
-from .const import (
-    _LOGGER,
-    ALEXA_INFO_SKILLS,
-    AMAZON_APP_BUNDLE_ID,
-    AMAZON_APP_ID,
-    AMAZON_APP_NAME,
-    AMAZON_APP_VERSION,
-    AMAZON_CLIENT_OS,
-    AMAZON_DEVICE_SOFTWARE_VERSION,
-    AMAZON_DEVICE_TYPE,
-    ARRAY_WRAPPER,
-    BIN_EXTENSION,
-    COUNTRY_GROUPS,
-    CSRF_COOKIE,
-    DEFAULT_HEADERS,
-    DEFAULT_SITE,
+from .const.devices import (
     DEVICE_TO_IGNORE,
     DEVICE_TYPE_TO_MODEL,
-    HTML_EXTENSION,
-    HTTP_ERROR_199,
-    HTTP_ERROR_299,
-    JSON_EXTENSION,
-    MAX_VOLUME,
-    MIN_VOLUME,
+    SPEAKER_GROUP_FAMILY,
+)
+from .const.http import (
+    AMAZON_DEVICE_TYPE,
+    ARRAY_WRAPPER,
+    DEFAULT_SITE,
+    URI_DEVICES,
+    URI_DND,
+    URI_NEXUS_GRAPHQL,
+    URI_NOTIFICATIONS,
+)
+from .const.metadata import ALEXA_INFO_SKILLS, MAX_VOLUME, MIN_VOLUME, SENSORS
+from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
+from .const.schedules import (
+    COUNTRY_GROUPS,
     NOTIFICATION_ALARM,
     NOTIFICATION_MUSIC_ALARM,
     NOTIFICATION_REMINDER,
     NOTIFICATION_TIMER,
     NOTIFICATIONS_SUPPORTED,
     RECURRING_PATTERNS,
-    REFRESH_ACCESS_TOKEN,
-    REFRESH_AUTH_COOKIES,
-    REQUEST_AGENT,
-    SAVE_PATH,
-    SENSORS,
-    SPEAKER_GROUP_FAMILY,
-    URI_DEVICES,
-    URI_DND,
-    URI_NEXUS_GRAPHQL,
-    URI_NOTIFICATIONS,
-    URI_SIGNIN,
     WEEKEND_EXCEPTIONS,
 )
 from .exceptions import (
-    CannotAuthenticate,
-    CannotConnect,
-    CannotRegisterDevice,
     CannotRetrieveData,
-    WrongMethod,
 )
-from .query import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
-from .utils import obfuscate_email, scrub_fields
-
-
-@dataclass
-class AmazonDeviceSensor:
-    """Amazon device sensor class."""
-
-    name: str
-    value: str | int | float
-    error: bool
-    error_type: str | None
-    error_msg: str | None
-    scale: str | None
-
-
-@dataclass
-class AmazonSchedule:
-    """Amazon schedule class."""
-
-    type: str  # alarm, reminder, timer
-    status: str
-    label: str
-    next_occurrence: datetime | None
-
-
-@dataclass
-class AmazonDevice:
-    """Amazon device class."""
-
-    account_name: str
-    capabilities: list[str]
-    device_family: str
-    device_type: str
-    device_owner_customer_id: str
-    household_device: bool
-    device_cluster_members: list[str]
-    online: bool
-    serial_number: str
-    software_version: str
-    entity_id: str | None
-    endpoint_id: str | None
-    sensors: dict[str, AmazonDeviceSensor]
-    notifications: dict[str, AmazonSchedule]
-
-
-class AmazonSequenceType(StrEnum):
-    """Amazon sequence types."""
-
-    Announcement = "AlexaAnnouncement"
-    Speak = "Alexa.Speak"
-    Sound = "Alexa.Sound"
-    Music = "Alexa.Music.PlaySearchPhrase"
-    TextCommand = "Alexa.TextCommand"
-    LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
-    Volume = "Alexa.DeviceControls.Volume"
-
-
-class AmazonMusicSource(StrEnum):
-    """Amazon music sources."""
-
-    Radio = "TUNEIN"
-    AmazonMusic = "AMAZON_MUSIC"
+from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
+from .login import AmazonLogin
+from .structures import (
+    AmazonDevice,
+    AmazonDeviceSensor,
+    AmazonMusicSource,
+    AmazonSchedule,
+    AmazonSequenceType,
+)
+from .utils import _LOGGER
 
 
 class AmazonEchoApi:
@@ -155,24 +62,34 @@ class AmazonEchoApi:
         login_email: str,
         login_password: str,
         login_data: dict[str, Any] | None = None,
+        save_to_file: Callable[[str | dict, str, str], Coroutine[Any, Any, None]]
+        | None = None,
     ) -> None:
         """Initialize the scanner."""
+        _LOGGER.debug("Initialize library v%s", __version__)
+
         # Check if there is a previous login, otherwise use default (US)
         site = login_data.get("site", DEFAULT_SITE) if login_data else DEFAULT_SITE
         _LOGGER.debug("Using site: %s", site)
-        self._country_specific_data(site)
 
-        self._login_email = login_email
-        self._login_password = login_password
+        self._session_state_data = AmazonSessionStateData(
+            site, login_email, login_password, login_data
+        )
 
-        self._cookies = self._build_init_cookies()
-        self._save_raw_data = False
-        self._login_stored_data = login_data or {}
-        self._serial = self._serial_number()
+        self._http_wrapper = AmazonHttpWrapper(
+            client_session,
+            self._session_state_data,
+            save_to_file,
+        )
+
+        self._login = AmazonLogin(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
         self._account_owner_customer_id: str | None = None
         self._list_for_clusters: dict[str, str] = {}
 
-        self._session = client_session
         self._final_devices: dict[str, AmazonDevice] = {}
         self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
 
@@ -180,440 +97,15 @@ class AmazonEchoApi:
         self._last_devices_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
 
-        _LOGGER.debug("Initialize library v%s", __version__)
-
     @property
     def domain(self) -> str:
         """Return current Amazon domain."""
-        return self._domain
+        return self._session_state_data.domain
 
-    def save_raw_data(self) -> None:
-        """Save raw data to disk."""
-        self._save_raw_data = True
-        _LOGGER.debug("Saving raw data to disk")
-
-    def _country_specific_data(self, domain: str) -> None:
-        """Set country specific data."""
-        # Force lower case
-        domain = domain.replace("https://www.amazon.", "").lower()
-        country_code = domain.split(".")[-1] if domain != "com" else "us"
-
-        lang_object = Language.make(territory=country_code.upper())
-        lang_maximized = lang_object.maximize()
-
-        self._country_code: str = country_code
-        self._domain: str = domain
-        language = f"{lang_maximized.language}-{lang_maximized.territory}"
-        self._language = standardize_tag(language)
-
-        # Reset CSRF cookie when changing country
-        self._csrf_cookie: str | None = None
-
-        _LOGGER.debug(
-            "Initialize country <%s>: domain <amazon.%s>, language <%s>",
-            country_code.upper(),
-            self._domain,
-            self._language,
-        )
-
-    def _load_website_cookies(self) -> dict[str, str]:
-        """Get website cookies, if avaliables."""
-        if not self._login_stored_data:
-            return {}
-
-        website_cookies: dict[str, Any] = self._login_stored_data["website_cookies"]
-        website_cookies.update(
-            {
-                "session-token": self._login_stored_data["store_authentication_cookie"][
-                    "cookie"
-                ]
-            }
-        )
-        website_cookies.update({"lc-acbit": self._language})
-
-        return website_cookies
-
-    def _serial_number(self) -> str:
-        """Get or calculate device serial number."""
-        if not self._login_stored_data:
-            # Create a new serial number
-            _LOGGER.debug("Cannot find previous login data, creating new serial number")
-            return uuid.uuid4().hex.upper()
-
-        _LOGGER.debug("Found previous login data, loading serial number")
-        return cast(
-            "str",
-            self._login_stored_data["device_info"]["device_serial_number"],
-        )
-
-    def _build_init_cookies(self) -> dict[str, str]:
-        """Build initial cookies to prevent captcha in most cases."""
-        token_bytes = secrets.token_bytes(313)
-        frc = base64.b64encode(token_bytes).decode("ascii").rstrip("=")
-
-        map_md_dict = {
-            "device_user_dictionary": [],
-            "device_registration_data": {
-                "software_version": AMAZON_DEVICE_SOFTWARE_VERSION,
-            },
-            "app_identifier": {
-                "app_version": AMAZON_APP_VERSION,
-                "bundle_id": AMAZON_APP_BUNDLE_ID,
-            },
-        }
-        map_md_str = orjson.dumps(map_md_dict).decode("utf-8")
-        map_md = base64.b64encode(map_md_str.encode()).decode().rstrip("=")
-
-        return {"amzn-app-id": AMAZON_APP_ID, "frc": frc, "map-md": map_md}
-
-    def _create_code_verifier(self, length: int = 32) -> bytes:
-        """Create code verifier."""
-        verifier = secrets.token_bytes(length)
-        return base64.urlsafe_b64encode(verifier).rstrip(b"=")
-
-    def _create_s256_code_challenge(self, verifier: bytes) -> bytes:
-        """Create S256 code challenge."""
-        m = hashlib.sha256(verifier)
-        return base64.urlsafe_b64encode(m.digest()).rstrip(b"=")
-
-    def _build_client_id(self) -> str:
-        """Build client ID."""
-        client_id = self._serial.encode() + b"#" + AMAZON_DEVICE_TYPE.encode("utf-8")
-        return client_id.hex()
-
-    def _build_oauth_url(
-        self,
-        code_verifier: bytes,
-        client_id: str,
-    ) -> str:
-        """Build the url to login to Amazon as a Mobile device."""
-        code_challenge = self._create_s256_code_challenge(code_verifier)
-
-        oauth_params = {
-            "openid.return_to": "https://www.amazon.com/ap/maplanding",
-            "openid.oa2.code_challenge_method": "S256",
-            "openid.assoc_handle": "amzn_dp_project_dee_ios",
-            "openid.identity": "http://specs.openid.net/auth/2.0/identifier_select",
-            "pageId": "amzn_dp_project_dee_ios",
-            "accountStatusPolicy": "P1",
-            "openid.claimed_id": "http://specs.openid.net/auth/2.0/identifier_select",
-            "openid.mode": "checkid_setup",
-            "openid.ns.oa2": "http://www.amazon.com/ap/ext/oauth/2",
-            "openid.oa2.client_id": f"device:{client_id}",
-            "language": self._language.replace("-", "_"),
-            "openid.ns.pape": "http://specs.openid.net/extensions/pape/1.0",
-            "openid.oa2.code_challenge": code_challenge,
-            "openid.oa2.scope": "device_auth_access",
-            "openid.ns": "http://specs.openid.net/auth/2.0",
-            "openid.pape.max_auth_age": "0",
-            "openid.oa2.response_type": "code",
-        }
-
-        return f"https://www.amazon.com{URI_SIGNIN}?{urlencode(oauth_params)}"
-
-    def _get_inputs_from_soup(self, soup: BeautifulSoup) -> dict[str, str]:
-        """Extract hidden form input fields from a Amazon login page."""
-        form = soup.find("form", {"name": "signIn"}) or soup.find("form")
-
-        if not isinstance(form, Tag):
-            raise CannotAuthenticate("Unable to find form in login response")
-
-        inputs = {}
-        for field in form.find_all("input"):
-            if isinstance(field, Tag) and field.get("type", "") == "hidden":
-                inputs[field["name"]] = field.get("value", "")
-
-        return inputs
-
-    def _get_request_from_soup(self, soup: BeautifulSoup) -> tuple[str, str]:
-        """Extract URL and method for the next request."""
-        _LOGGER.debug("Get request data from HTML source")
-        form = soup.find("form", {"name": "signIn"}) or soup.find("form")
-        if isinstance(form, Tag):
-            method = form.get("method")
-            url = form.get("action")
-            if isinstance(method, str) and isinstance(url, str):
-                return method, url
-        raise CannotAuthenticate("Unable to extract form data from response")
-
-    def _extract_code_from_url(self, url: URL) -> str:
-        """Extract the access token from url query after login."""
-        parsed_url: dict[str, list[str]] = {}
-        if isinstance(url.query, bytes):
-            parsed_url = parse_qs(url.query.decode())
-        elif isinstance(url.query, MultiDictProxy):
-            for key, value in url.query.items():
-                parsed_url[key] = [value]
-        else:
-            raise CannotAuthenticate(
-                f"Unable to extract authorization code from url: {url}"
-            )
-        return parsed_url["openid.oa2.authorization_code"][0]
-
-    async def _ignore_ap_signin_error(self, response: ClientResponse) -> bool:
-        """Return true if error is due to signin endpoint."""
-        # Endpoint URI_SIGNIN replies with error 404
-        # but reports the needed parameters anyway
-        if history := response.history:
-            return (
-                response.status == HTTPStatus.NOT_FOUND
-                and URI_SIGNIN in history[0].request_info.url.path
-            )
-        return False
-
-    async def _http_phrase_error(self, error: int) -> str:
-        """Convert numeric error in human phrase."""
-        if error == HTTP_ERROR_199:
-            return "Miscellaneous Warning"
-
-        if error == HTTP_ERROR_299:
-            return "Miscellaneous Persistent Warning"
-
-        return HTTPStatus(error).phrase
-
-    async def _session_request(
-        self,
-        method: str,
-        url: str,
-        input_data: dict[str, Any] | list[dict[str, Any]] | None = None,
-        json_data: bool = False,
-        agent: str = "Amazon",
-    ) -> tuple[BeautifulSoup, ClientResponse]:
-        """Return request response context data."""
-        _LOGGER.debug(
-            "%s request: %s with payload %s [json=%s]",
-            method,
-            url,
-            scrub_fields(input_data) if input_data else None,
-            json_data,
-        )
-
-        headers = DEFAULT_HEADERS.copy()
-        headers.update({"User-Agent": REQUEST_AGENT[agent]})
-        headers.update({"Accept-Language": self._language})
-        headers.update({"x-amzn-client": "aioamazondevices"})
-        headers.update({"x-amzn-build-version": __version__})
-
-        if self._csrf_cookie:
-            csrf = {CSRF_COOKIE: self._csrf_cookie}
-            _LOGGER.debug("Adding to headers: %s", csrf)
-            headers.update(csrf)
-
-        if json_data:
-            json_header = {"Content-Type": "application/json; charset=utf-8"}
-            _LOGGER.debug("Adding to headers: %s", json_header)
-            headers.update(json_header)
-
-        _cookies = (
-            self._load_website_cookies() if self._login_stored_data else self._cookies
-        )
-        self._session.cookie_jar.update_cookies(_cookies, URL(f"amazon.{self._domain}"))
-
-        resp: ClientResponse | None = None
-        for delay in [0, 1, 2, 5, 8, 12, 21]:
-            if delay:
-                _LOGGER.info(
-                    "Sleeping for %s seconds before retrying API call to %s", delay, url
-                )
-                await asyncio.sleep(delay)
-
-            try:
-                resp = await self._session.request(
-                    method,
-                    URL(url, encoded=True),
-                    data=input_data if not json_data else orjson.dumps(input_data),
-                    headers=headers,
-                )
-
-            except (TimeoutError, ClientConnectorError) as exc:
-                _LOGGER.warning("Connection error to %s: %s", url, repr(exc))
-                raise CannotConnect(f"Connection error during {method}") from exc
-
-            # Retry with a delay only for specific HTTP status
-            # that can benefits of a back-off
-            if resp.status not in [
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                HTTPStatus.SERVICE_UNAVAILABLE,
-                HTTPStatus.TOO_MANY_REQUESTS,
-            ]:
-                break
-
-        if resp is None:
-            _LOGGER.error("No response received from %s", url)
-            raise CannotConnect(f"No response received from {url}")
-
-        if not self._csrf_cookie and (
-            csrf := resp.cookies.get(CSRF_COOKIE, Morsel()).value
-        ):
-            self._csrf_cookie = csrf
-            _LOGGER.debug("CSRF cookie value: <%s> [%s]", self._csrf_cookie, url)
-
-        content_type: str = resp.headers.get("Content-Type", "")
-        _LOGGER.debug(
-            "Response for url %s :\nstatus      : %s \
-                                  \ncontent type: %s ",
-            url,
-            resp.status,
-            content_type,
-        )
-
-        if resp.status != HTTPStatus.OK:
-            if resp.status in [
-                HTTPStatus.FORBIDDEN,
-                HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
-                HTTPStatus.UNAUTHORIZED,
-            ]:
-                raise CannotAuthenticate(await self._http_phrase_error(resp.status))
-            if not await self._ignore_ap_signin_error(resp):
-                raise CannotRetrieveData(
-                    f"Request failed: {await self._http_phrase_error(resp.status)}"
-                )
-
-        await self._save_to_file(
-            await resp.text(),
-            url,
-            mimetypes.guess_extension(content_type.split(";")[0]) or ".raw",
-        )
-
-        return BeautifulSoup(await resp.read() or "", "html.parser"), resp
-
-    async def _save_to_file(
-        self,
-        raw_data: str | dict,
-        url: str,
-        extension: str = HTML_EXTENSION,
-        output_path: str = SAVE_PATH,
-    ) -> None:
-        """Save response data to disk."""
-        if not self._save_raw_data or not raw_data:
-            return
-
-        output_dir = Path(output_path)
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        if url.startswith("http"):
-            url_split = url.split("/")
-            base_filename = f"{url_split[3]}-{url_split[4].split('?')[0]}"
-        else:
-            base_filename = url
-        fullpath = Path(output_dir, base_filename + extension)
-
-        data: str
-        if isinstance(raw_data, dict):
-            data = orjson.dumps(raw_data, option=orjson.OPT_INDENT_2).decode("utf-8")
-        elif extension in [HTML_EXTENSION, BIN_EXTENSION]:
-            data = raw_data
-        else:
-            data = orjson.dumps(
-                orjson.loads(raw_data),
-                option=orjson.OPT_INDENT_2,
-            ).decode("utf-8")
-
-        i = 2
-        while fullpath.exists():
-            filename = f"{base_filename}_{i!s}{extension}"
-            fullpath = Path(output_dir, filename)
-            i += 1
-
-        _LOGGER.warning("Saving data to %s", fullpath)
-
-        with Path.open(fullpath, mode="w", encoding="utf-8") as file:
-            file.write(data)
-            file.write("\n")
-
-    async def _register_device(
-        self,
-        data: dict[str, Any],
-    ) -> dict[str, Any]:
-        """Register a dummy Alexa device."""
-        authorization_code: str = data["authorization_code"]
-        code_verifier: bytes = data["code_verifier"]
-
-        body = {
-            "requested_extensions": ["device_info", "customer_info"],
-            "cookies": {"website_cookies": [], "domain": f".amazon.{self._domain}"},
-            "registration_data": {
-                "domain": "Device",
-                "app_version": AMAZON_APP_VERSION,
-                "device_type": AMAZON_DEVICE_TYPE,
-                "device_name": (
-                    f"%FIRST_NAME%\u0027s%DUPE_STRATEGY_1ST%{AMAZON_APP_NAME}"
-                ),
-                "os_version": AMAZON_CLIENT_OS,
-                "device_serial": self._serial,
-                "device_model": "iPhone",
-                "app_name": AMAZON_APP_NAME,
-                "software_version": AMAZON_DEVICE_SOFTWARE_VERSION,
-            },
-            "auth_data": {
-                "use_global_authentication": "true",
-                "client_id": self._build_client_id(),
-                "authorization_code": authorization_code,
-                "code_verifier": code_verifier.decode(),
-                "code_algorithm": "SHA-256",
-                "client_domain": "DeviceLegacy",
-            },
-            "user_context_map": {"frc": self._cookies["frc"]},
-            "requested_token_type": [
-                "bearer",
-                "mac_dms",
-                "website_cookies",
-                "store_authentication_cookie",
-            ],
-        }
-
-        register_url = "https://api.amazon.com/auth/register"
-        _, raw_resp = await self._session_request(
-            method=HTTPMethod.POST,
-            url=register_url,
-            input_data=body,
-            json_data=True,
-        )
-        resp_json = await self._response_to_json(raw_resp)
-
-        if raw_resp.status != HTTPStatus.OK:
-            msg = resp_json["response"]["error"]["message"]
-            _LOGGER.error(
-                "Cannot register device for %s: %s",
-                obfuscate_email(self._login_email),
-                msg,
-            )
-            raise CannotRegisterDevice(
-                f"{await self._http_phrase_error(raw_resp.status)}: {msg}"
-            )
-
-        success_response = resp_json["response"]["success"]
-
-        tokens = success_response["tokens"]
-        adp_token = tokens["mac_dms"]["adp_token"]
-        device_private_key = tokens["mac_dms"]["device_private_key"]
-        store_authentication_cookie = tokens["store_authentication_cookie"]
-        access_token = tokens["bearer"]["access_token"]
-        refresh_token = tokens["bearer"]["refresh_token"]
-        expires_s = int(tokens["bearer"]["expires_in"])
-        expires = (datetime.now(UTC) + timedelta(seconds=expires_s)).timestamp()
-
-        extensions = success_response["extensions"]
-        device_info = extensions["device_info"]
-        customer_info = extensions["customer_info"]
-
-        website_cookies = {}
-        for cookie in tokens["website_cookies"]:
-            website_cookies[cookie["Name"]] = cookie["Value"].replace(r'"', r"")
-
-        login_data = {
-            "adp_token": adp_token,
-            "device_private_key": device_private_key,
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-            "expires": expires,
-            "website_cookies": website_cookies,
-            "store_authentication_cookie": store_authentication_cookie,
-            "device_info": device_info,
-            "customer_info": customer_info,
-        }
-        _LOGGER.info("Register device: %s", scrub_fields(login_data))
-        return login_data
+    @property
+    def login(self) -> AmazonLogin:
+        """Return login."""
+        return self._login
 
     async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
         """Retrieve devices sensors states."""
@@ -633,14 +125,14 @@ class AmazonEchoApi:
             }
         ]
 
-        _, raw_resp = await self._session_request(
+        _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._domain}{URI_NEXUS_GRAPHQL}",
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
             input_data=payload,
             json_data=True,
         )
 
-        sensors_state = await self._response_to_json(raw_resp, "sensors")
+        sensors_state = await self._http_wrapper.response_to_json(raw_resp, "sensors")
 
         if await self._format_human_error(sensors_state):
             # Explicit error in returned data
@@ -742,14 +234,14 @@ class AmazonEchoApi:
             "query": QUERY_DEVICE_DATA,
         }
 
-        _, raw_resp = await self._session_request(
+        _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._domain}{URI_NEXUS_GRAPHQL}",
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
             input_data=payload,
             json_data=True,
         )
 
-        endpoint_data = await self._response_to_json(raw_resp, "endpoint")
+        endpoint_data = await self._http_wrapper.response_to_json(raw_resp, "endpoint")
 
         if not (data := endpoint_data.get("data")) or not data.get("listEndpoints"):
             await self._format_human_error(endpoint_data)
@@ -769,36 +261,17 @@ class AmazonEchoApi:
 
         return devices_endpoints
 
-    async def _response_to_json(
-        self, raw_resp: ClientResponse, description: str | None = None
-    ) -> dict[str, Any]:
-        """Convert response to JSON, if possible."""
-        try:
-            data = await raw_resp.json(loads=orjson.loads)
-            if not data:
-                _LOGGER.warning("Empty JSON data received")
-                data = {}
-            if isinstance(data, list):
-                # if anonymous array is returned wrap it inside
-                # generated key to convert list to dict
-                data = {ARRAY_WRAPPER: data}
-            if description:
-                _LOGGER.debug("JSON '%s' data: %s", description, scrub_fields(data))
-            return cast("dict[str, Any]", data)
-        except ContentTypeError as exc:
-            raise ValueError("Response not in JSON format") from exc
-        except orjson.JSONDecodeError as exc:
-            raise ValueError("Response with corrupted JSON format") from exc
-
     async def _get_notifications(self) -> dict[str, dict[str, AmazonSchedule]]:
         final_notifications: dict[str, dict[str, AmazonSchedule]] = {}
 
-        _, raw_resp = await self._session_request(
+        _, raw_resp = await self._http_wrapper.session_request(
             HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._domain}{URI_NOTIFICATIONS}",
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NOTIFICATIONS}",
         )
 
-        notifications = await self._response_to_json(raw_resp, "notifications")
+        notifications = await self._http_wrapper.response_to_json(
+            raw_resp, "notifications"
+        )
 
         for schedule in notifications["notifications"]:
             schedule_type: str = schedule["type"]
@@ -906,7 +379,7 @@ class AmazonEchoApi:
                 # Adjust recurring rules for country specific weekend exceptions
                 recurring_pattern = RECURRING_PATTERNS.copy()
                 for group, countries in COUNTRY_GROUPS.items():
-                    if self._country_code in countries:
+                    if self._session_state_data.country_code in countries:
                         recurring_pattern |= WEEKEND_EXCEPTIONS[group]
                         break
 
@@ -965,147 +438,6 @@ class AmazonEchoApi:
 
         return rule
 
-    async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
-        """Login to Amazon interactively via OTP."""
-        _LOGGER.debug(
-            "Logging-in for %s [otp code: %s]",
-            obfuscate_email(self._login_email),
-            bool(otp_code),
-        )
-
-        device_login_data = await self._login_mode_interactive_oauth(otp_code)
-
-        login_data = await self._register_device(device_login_data)
-        self._login_stored_data = login_data
-
-        await self._domain_refresh_auth_cookies()
-
-        self._login_stored_data.update({"site": f"https://www.amazon.{self._domain}"})
-        await self._save_to_file(self._login_stored_data, "login_data", JSON_EXTENSION)
-
-        # Can take a little while to register device but we need it
-        # to be able to pickout account customer ID
-        await asyncio.sleep(2)
-
-        return self._login_stored_data
-
-    async def _login_mode_interactive_oauth(
-        self, otp_code: str
-    ) -> dict[str, str | bytes]:
-        """Login interactive via oauth URL."""
-        code_verifier = self._create_code_verifier()
-        client_id = self._build_client_id()
-
-        _LOGGER.debug("Build oauth URL")
-        login_url = self._build_oauth_url(code_verifier, client_id)
-
-        login_soup, _ = await self._session_request(
-            method=HTTPMethod.GET, url=login_url
-        )
-        login_method, login_url = self._get_request_from_soup(login_soup)
-        login_inputs = self._get_inputs_from_soup(login_soup)
-        login_inputs["email"] = self._login_email
-        login_inputs["password"] = self._login_password
-
-        _LOGGER.debug("Register at %s", login_url)
-        login_soup, _ = await self._session_request(
-            method=login_method,
-            url=login_url,
-            input_data=login_inputs,
-        )
-
-        if not login_soup.find("input", id="auth-mfa-otpcode"):
-            _LOGGER.debug(
-                'Cannot find "auth-mfa-otpcode" in html source [%s]', login_url
-            )
-            raise CannotAuthenticate("MFA OTP code not found on login page")
-
-        login_method, login_url = self._get_request_from_soup(login_soup)
-
-        login_inputs = self._get_inputs_from_soup(login_soup)
-        login_inputs["otpCode"] = otp_code
-        login_inputs["mfaSubmit"] = "Submit"
-        login_inputs["rememberDevice"] = "false"
-
-        login_soup, login_resp = await self._session_request(
-            method=login_method,
-            url=login_url,
-            input_data=login_inputs,
-        )
-        _LOGGER.debug("Login response url:%s", login_resp.url)
-
-        authcode = self._extract_code_from_url(login_resp.url)
-        _LOGGER.debug("Login extracted authcode: %s", authcode)
-
-        return {
-            "authorization_code": authcode,
-            "code_verifier": code_verifier,
-            "domain": self._domain,
-        }
-
-    async def login_mode_stored_data(self) -> dict[str, Any]:
-        """Login to Amazon using previously stored data."""
-        if not self._login_stored_data:
-            _LOGGER.debug(
-                "Cannot find previous login data,\
-                    use login_mode_interactive() method instead",
-            )
-            raise WrongMethod
-
-        _LOGGER.debug(
-            "Logging-in for %s with stored data",
-            obfuscate_email(self._login_email),
-        )
-
-        # Check if session is still authenticated
-        if not await self.auth_check_status():
-            raise CannotAuthenticate("Session no longer authenticated")
-
-        return self._login_stored_data
-
-    async def _get_alexa_domain(self) -> str:
-        """Get the Alexa domain."""
-        _LOGGER.debug("Retrieve Alexa domain")
-        _, raw_resp = await self._session_request(
-            method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._domain}/api/welcome",
-        )
-        json_data = await self._response_to_json(raw_resp)
-        return cast(
-            "str", json_data.get("alexaHostName", f"alexa.amazon.{self._domain}")
-        )
-
-    async def _refresh_auth_cookies(self) -> None:
-        """Refresh cookies after domain swap."""
-        _, json_token_resp = await self._refresh_data(REFRESH_AUTH_COOKIES)
-
-        # Need to take cookies from response and create them as cookies
-        website_cookies = self._login_stored_data["website_cookies"] = {}
-        self._session.cookie_jar.clear()
-
-        cookie_json = json_token_resp["response"]["tokens"]["cookies"]
-        for cookie_domain in cookie_json:
-            for cookie in cookie_json[cookie_domain]:
-                new_cookie_value = cookie["Value"].replace(r'"', r"")
-                new_cookie = {cookie["Name"]: new_cookie_value}
-                self._session.cookie_jar.update_cookies(new_cookie, URL(cookie_domain))
-                website_cookies.update(new_cookie)
-                if cookie["Name"] == "session-token":
-                    self._login_stored_data["store_authentication_cookie"] = {
-                        "cookie": new_cookie_value
-                    }
-
-    async def _domain_refresh_auth_cookies(self) -> None:
-        """Refresh cookies after domain swap."""
-        _LOGGER.debug("Refreshing auth cookies after domain change")
-
-        # Get the new Alexa domain
-        user_domain = (await self._get_alexa_domain()).replace("alexa", "https://www")
-        if user_domain != DEFAULT_SITE:
-            _LOGGER.debug("User domain changed to %s", user_domain)
-            self._country_specific_data(user_domain)
-            await self._refresh_auth_cookies()
-
     async def _get_account_owner_customer_id(self, data: dict[str, Any]) -> str | None:
         """Get account owner customer ID."""
         if data["deviceType"] != AMAZON_DEVICE_TYPE:
@@ -1113,7 +445,7 @@ class AmazonEchoApi:
 
         account_owner_customer_id: str | None = None
 
-        this_device_serial = self._login_stored_data["device_info"][
+        this_device_serial = self._session_state_data.login_stored_data["device_info"][
             "device_serial_number"
         ]
 
@@ -1217,12 +549,12 @@ class AmazonEchoApi:
             )
 
     async def _get_base_devices(self) -> None:
-        _, raw_resp = await self._session_request(
+        _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._domain}{URI_DEVICES}",
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICES}",
         )
 
-        json_data = await self._response_to_json(raw_resp, "devices")
+        json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
 
         for data in json_data["devices"]:
             dev_serial = data.get("serialNumber")
@@ -1283,29 +615,6 @@ class AmazonEchoApi:
 
         self._final_devices = final_devices_list
 
-    async def auth_check_status(self) -> bool:
-        """Check AUTH status."""
-        _, raw_resp = await self._session_request(
-            method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._domain}/api/bootstrap?version=0",
-            agent="Browser",
-        )
-        if raw_resp.status != HTTPStatus.OK:
-            _LOGGER.debug(
-                "Session not authenticated: reply error %s",
-                raw_resp.status,
-            )
-            return False
-
-        resp_json = await self._response_to_json(raw_resp)
-        if not (authentication := resp_json.get("authentication")):
-            _LOGGER.debug('Session not authenticated: reply missing "authentication"')
-            return False
-
-        authenticated = authentication.get("authenticated")
-        _LOGGER.debug("Session authenticated: %s", authenticated)
-        return bool(authenticated)
-
     def get_model_details(self, device: AmazonDevice) -> dict[str, str | None] | None:
         """Return model datails."""
         model_details: dict[str, str | None] | None = DEVICE_TYPE_TO_MODEL.get(
@@ -1328,14 +637,14 @@ class AmazonEchoApi:
         message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
-        if not self._login_stored_data:
+        if not self._session_state_data.login_stored_data:
             _LOGGER.warning("No login data available, cannot send message")
             return
 
         base_payload = {
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
-            "locale": self._language,
+            "locale": self._session_state_data.language,
             "customerId": self._account_owner_customer_id,
         }
 
@@ -1370,7 +679,7 @@ class AmazonEchoApi:
                 "expireAfter": "PT5S",
                 "content": [
                     {
-                        "locale": self._language,
+                        "locale": self._session_state_data.language,
                         "display": {
                             "title": "Home Assistant",
                             "body": message_body,
@@ -1447,9 +756,9 @@ class AmazonEchoApi:
         }
 
         _LOGGER.debug("Preview data payload: %s", node_data)
-        await self._session_request(
+        await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._domain}/api/behaviors/preview",
+            url=f"https://alexa.amazon.{self._session_state_data.domain}/api/behaviors/preview",
             input_data=node_data,
             json_data=True,
         )
@@ -1528,9 +837,12 @@ class AmazonEchoApi:
             "deviceType": device.device_type,
             "enabled": state,
         }
-        url = f"https://alexa.amazon.{self._domain}/api/dnd/status"
-        await self._session_request(
-            method="PUT", url=url, input_data=payload, json_data=True
+        url = f"https://alexa.amazon.{self._session_state_data.domain}/api/dnd/status"
+        await self._http_wrapper.session_request(
+            method="PUT",
+            url=url,
+            input_data=payload,
+            json_data=True,
         )
 
     async def set_volume(
@@ -1551,70 +863,14 @@ class AmazonEchoApi:
             device, AmazonSequenceType.Volume, str(_api_volume)
         )
 
-    async def _refresh_data(self, data_type: str) -> tuple[bool, dict]:
-        """Refresh data."""
-        if not self._login_stored_data:
-            _LOGGER.debug("No login data available, cannot refresh")
-            return False, {}
-
-        data = {
-            "app_name": AMAZON_APP_NAME,
-            "app_version": AMAZON_APP_VERSION,
-            "di.sdk.version": "6.12.4",
-            "source_token": self._login_stored_data["refresh_token"],
-            "package_name": AMAZON_APP_BUNDLE_ID,
-            "di.hw.version": "iPhone",
-            "platform": "iOS",
-            "requested_token_type": data_type,
-            "source_token_type": "refresh_token",
-            "di.os.name": "iOS",
-            "di.os.version": AMAZON_CLIENT_OS,
-            "current_version": "6.12.4",
-            "previous_version": "6.12.4",
-            "domain": f"www.amazon.{self._domain}",
-        }
-
-        _, raw_resp = await self._session_request(
-            HTTPMethod.POST,
-            "https://api.amazon.com/auth/token",
-            input_data=data,
-            json_data=False,
-        )
-        _LOGGER.debug(
-            "Refresh data response %s with payload %s",
-            raw_resp.status,
-            orjson.dumps(data),
-        )
-
-        if raw_resp.status != HTTPStatus.OK:
-            _LOGGER.debug("Failed to refresh data")
-            return False, {}
-
-        json_response = await self._response_to_json(raw_resp, data_type)
-
-        if data_type == REFRESH_ACCESS_TOKEN and (
-            new_token := json_response.get(REFRESH_ACCESS_TOKEN)
-        ):
-            self._login_stored_data[REFRESH_ACCESS_TOKEN] = new_token
-            self.expires_in = datetime.now(tz=UTC).timestamp() + int(
-                json_response.get("expires_in", 0)
-            )
-            return True, json_response
-
-        if data_type == REFRESH_AUTH_COOKIES:
-            return True, json_response
-
-        _LOGGER.debug("Unexpected refresh data response")
-        return False, {}
-
     async def _get_dnd_status(self) -> dict[str, AmazonDeviceSensor]:
         dnd_status: dict[str, AmazonDeviceSensor] = {}
-        _, raw_resp = await self._session_request(
+        _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._domain}{URI_DND}",
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DND}",
         )
 
-        dnd_data = await self._response_to_json(raw_resp, "dnd")
+        dnd_data = await self._http_wrapper.response_to_json(raw_resp, "dnd")
 
         for dnd in dnd_data.get("doNotDisturbDeviceStatusList", {}):
             dnd_status[dnd.get("deviceSerialNumber")] = AmazonDeviceSensor(
