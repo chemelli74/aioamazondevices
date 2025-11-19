@@ -37,7 +37,7 @@ class AmazonDevice:
     device_type: str
     device_owner_customer_id: str
     household_device: bool
-    device_cluster_members: list[str]
+    device_cluster_members: dict[str, str | None]
     online: bool
     serial_number: str
     software_version: str

@@ -56,6 +56,7 @@ class AmazonSessionStateData:
         self._login_password: str = login_password
         self._login_stored_data: dict[str, Any] = login_data or {}
         self.country_specific_data(domain)
+        self._customer_account_id: str | None = None
 
     @property
     def country_code(self) -> str:
@@ -86,6 +87,16 @@ class AmazonSessionStateData:
     def login_stored_data(self) -> dict[str, Any]:
         """Return login stored data."""
         return self._login_stored_data
+
+    @property
+    def customer_account_id(self) -> str | None:
+        """Return customer account id."""
+        return self._customer_account_id
+
+    @customer_account_id.setter
+    def customer_account_id(self, value: str | None) -> None:
+        """Set customer account id."""
+        self._customer_account_id = value
 
     def country_specific_data(self, domain: str) -> None:
         """Set country specific data."""
