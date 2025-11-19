@@ -9,8 +9,6 @@ from aiohttp import ClientSession
 from dateutil.parser import parse
 from dateutil.rrule import rrulestr
 
-from aioamazondevices.implementation.sequence import AmazonSequenceHandler
-
 from . import __version__
 from .const.devices import (
     DEVICE_TO_IGNORE,
@@ -42,6 +40,7 @@ from .exceptions import (
     CannotRetrieveData,
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
+from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
 from .structures import (
     AmazonDevice,
