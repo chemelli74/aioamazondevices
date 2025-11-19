@@ -575,6 +575,7 @@ class AmazonEchoApi:
             raise CannotRetrieveData("Cannot find account owner customer ID")
 
         final_devices_list: dict[str, AmazonDevice] = {}
+        serial_to_device_type: dict[str, str] = {}
         for device in json_data["devices"]:
             # Remove stale, orphaned and virtual devices
             if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
@@ -611,13 +612,14 @@ class AmazonEchoApi:
                 notifications={},
             )
 
+            serial_to_device_type[serial_number] = device["deviceType"]
+
+        # backfil device types for cluster members
         for device in final_devices_list.values():
-            # Populate cluster members with device types
             for member_serial in device.device_cluster_members:
-                if member_serial in final_devices_list:
-                    device.device_cluster_members[member_serial] = final_devices_list[
-                        member_serial
-                    ].device_type
+                device.device_cluster_members[member_serial] = serial_to_device_type[
+                    member_serial
+                ]
 
         self._final_devices = final_devices_list
 
