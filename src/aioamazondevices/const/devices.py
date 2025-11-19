@@ -372,4 +372,12 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Plus",
         "hw_version": "Gen2",
     },
+    "A1JJ0KFC4ZPNJ3": {
+        "model": "Echo Input",
+        "hw_version": "Gen1",
+    },
+    "A2V9UEGZ82H4KZ": {
+        "model": "Fire Tablet HD 10",
+        "hw_version": "Gen13",
+    },
 }
