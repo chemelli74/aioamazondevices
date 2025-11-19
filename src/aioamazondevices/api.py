@@ -612,12 +612,12 @@ class AmazonEchoApi:
 
             serial_to_device_type[serial_number] = device["deviceType"]
 
-        # backfil device types for cluster members
+        # backfill device types for cluster members
         for device in final_devices_list.values():
             for member_serial in device.device_cluster_members:
-                device.device_cluster_members[member_serial] = serial_to_device_type[
-                    member_serial
-                ]
+                device.device_cluster_members[member_serial] = (
+                    serial_to_device_type.get(member_serial)
+                )
 
         self._final_devices = final_devices_list
 
