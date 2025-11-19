@@ -91,8 +91,6 @@ class AmazonEchoApi:
             session_state_data=self._session_state_data,
         )
 
-        self._list_for_clusters: dict[str, str] = {}
-
         self._final_devices: dict[str, AmazonDevice] = {}
         self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
 
