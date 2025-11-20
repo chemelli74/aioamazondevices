@@ -29,6 +29,8 @@ DEVICE_TO_IGNORE: list[str] = [
     "A133UZ2CB0IB8",  # Sony Soundbar Sony HT-A5000 - issue #486
     "A2M9HB23M9MSSM",  # Smartwatch Amazfit Bip U Pro - issue #507
     "A1P7E7V3FCZKU6",  # Toshiba Corporation TV 32LF221U19 - issue #531
+    "A1NPP2J03FTS0I",  # Eero Pro 6 - issue #602
+    "A14AIWB3T3AS1Z",  # Samsung Soundbar HW-Q950A - issue #603
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
@@ -375,5 +377,13 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "G2A0V704840708AP": {
         "model": "Echo Plus",
         "hw_version": "Gen2",
+    },
+    "A1JJ0KFC4ZPNJ3": {
+        "model": "Echo Input",
+        "hw_version": "Gen1",
+    },
+    "A2V9UEGZ82H4KZ": {
+        "model": "Fire Tablet HD 10",
+        "hw_version": "Gen13",
     },
 }
