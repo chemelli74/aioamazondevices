@@ -495,7 +495,15 @@ class AmazonEchoApi:
     async def _get_sensor_data(self) -> None:
         devices_sensors = await self._get_sensors_states()
         dnd_sensors = await self._get_dnd_status()
-        notifications = await self._get_notifications()
+        try:
+            notifications = await self._get_notifications()
+            have_notifications = True
+        except CannotRetrieveData:
+            have_notifications = False
+            notifications = {}
+            _LOGGER.warning(
+                "Failed to obtain notification data.  Timers and alarms have not been updated"  # noqa: E501
+            )
         for device in self._final_devices.values():
             # Update sensors
             sensors = devices_sensors.get(device.serial_number, {})
@@ -508,6 +516,9 @@ class AmazonEchoApi:
                 device_dnd := dnd_sensors.get(device.serial_number)
             ) and device.device_family != SPEAKER_GROUP_FAMILY:
                 device.sensors["dnd"] = device_dnd
+
+            if not have_notifications:
+                continue  # notifications were not obtained, do not update
 
             # Clear old notifications to handle cancelled ones
             device.notifications = {}
