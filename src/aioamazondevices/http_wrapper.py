@@ -30,7 +30,6 @@ from .const.http import (
     DEFAULT_HEADERS,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
-    REQUEST_AGENT,
     URI_SIGNIN,
 )
 from .exceptions import (
@@ -209,7 +208,6 @@ class AmazonHttpWrapper:
         url: str,
         input_data: dict[str, Any] | list[dict[str, Any]] | None = None,
         json_data: bool = False,
-        agent: str = "Amazon",
     ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
@@ -220,8 +218,11 @@ class AmazonHttpWrapper:
             json_data,
         )
 
+        dev_serial = self._session_state_data.login_stored_data.get(
+            "device_info", {}
+        ).get("device_serial_number", "unknown")
         headers = DEFAULT_HEADERS.copy()
-        headers.update({"User-Agent": REQUEST_AGENT[agent]})
+        headers.update({"User-Agent": f"aioamazondevices/{dev_serial})"})
         headers.update({"Accept-Language": self._session_state_data.language})
         headers.update({"x-amzn-client": "aioamazondevices"})
         headers.update({"x-amzn-build-version": __version__})
