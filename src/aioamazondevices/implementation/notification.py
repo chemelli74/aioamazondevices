@@ -70,7 +70,7 @@ class AmazonNotificationHandler:
                 schedule["type"] = NOTIFICATION_ALARM
             label_desc = schedule_type.lower() + "Label"
             if (schedule_status := schedule["status"]) == "ON" and (
-                next_occurrence := await self._parse_next_occurence(schedule)
+                next_occurrence := await self._parse_next_occurrence(schedule)
             ):
                 schedule_notification_list = final_notifications.get(
                     schedule_device_serial, {}
@@ -104,7 +104,7 @@ class AmazonNotificationHandler:
 
         return final_notifications
 
-    async def _parse_next_occurence(
+    async def _parse_next_occurrence(
         self,
         schedule: dict[str, Any],
     ) -> datetime | None:
