@@ -274,9 +274,10 @@ class AmazonEchoApi:
 
         for schedule in notifications["notifications"]:
             schedule_type: str = schedule["type"]
+            schedule_device_type = schedule["deviceType"]
             schedule_device_serial = schedule["deviceSerialNumber"]
 
-            if schedule_device_serial in DEVICE_TO_IGNORE:
+            if schedule_device_type in DEVICE_TO_IGNORE:
                 continue
 
             if schedule_type not in NOTIFICATIONS_SUPPORTED:
