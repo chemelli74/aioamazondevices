@@ -119,6 +119,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Life P66970",
         "hw_version": "A16",
     },
+    "A20E9PVI3HANVQ": {
+        "manufacturer": "Marshall",
+        "model": "Marshall Uxbridge",
+    },
     "A25521KS9QCAMD": {
         "model": "Fire Tablet HD 7",
         "hw_version": "Gen4",
