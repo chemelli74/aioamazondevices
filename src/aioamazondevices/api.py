@@ -82,7 +82,7 @@ class AmazonEchoApi:
         self._account_owner_customer_id: str | None = None
         self._list_for_clusters: dict[str, str] = {}
 
-        self.notification_handler = AmazonNotificationHandler(
+        self._notification_handler = AmazonNotificationHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
         )
@@ -316,7 +316,7 @@ class AmazonEchoApi:
     async def _get_sensor_data(self) -> None:
         devices_sensors = await self._get_sensors_states()
         dnd_sensors = await self._get_dnd_status()
-        notifications = await self.notification_handler.get_notifications()
+        notifications = await self._notification_handler.get_notifications()
         for device in self._final_devices.values():
             # Update sensors
             sensors = devices_sensors.get(device.serial_number, {})
