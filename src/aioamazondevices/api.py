@@ -1,5 +1,6 @@
 """Support for Amazon devices."""
 
+import math
 from collections.abc import Callable, Coroutine
 from datetime import UTC, datetime, timedelta
 from http import HTTPMethod
@@ -25,7 +26,7 @@ from .const.http import (
     URI_NEXUS_GRAPHQL,
     URI_NOTIFICATIONS,
 )
-from .const.metadata import ALEXA_INFO_SKILLS, SENSORS
+from .const.metadata import ALEXA_INFO_SKILLS, MAX_VOLUME, MIN_VOLUME, SENSORS
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
     COUNTRY_GROUPS,
@@ -715,6 +716,8 @@ class AmazonEchoApi:
                 "skillId": "amzn1.ask.1p.tellalexa",
                 "text": message_body,
             }
+        elif message_type == AmazonSequenceType.Volume:
+            payload = {**base_payload, "value": message_body}
         elif message_type == AmazonSequenceType.LaunchSkill:
             payload = {
                 **base_payload,
@@ -841,6 +844,24 @@ class AmazonEchoApi:
             url=url,
             input_data=payload,
             json_data=True,
+        )
+
+    async def set_volume(
+        self,
+        device: AmazonDevice,
+        volume: int,
+    ) -> None:
+        """Call Alexa.DeviceControls.Volume to set volume."""
+        if volume < MIN_VOLUME:
+            _api_volume = MIN_VOLUME
+        if volume > MAX_VOLUME:
+            _api_volume = MAX_VOLUME
+        else:
+            _api_volume = math.ceil(volume / 10.0) * 10
+        if volume != _api_volume:
+            _LOGGER.debug("Volume %s rounded to %s", volume, _api_volume)
+        return await self._send_message(
+            device, AmazonSequenceType.Volume, str(_api_volume)
         )
 
     async def _get_dnd_status(self) -> dict[str, AmazonDeviceSensor]:

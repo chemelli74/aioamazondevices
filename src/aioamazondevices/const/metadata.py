@@ -42,3 +42,6 @@ ALEXA_INFO_SKILLS = [
     "Alexa.ImHome.Play",
     "Alexa.GoodNight.Play",
 ]
+
+MAX_VOLUME = 100
+MIN_VOLUME = 0
