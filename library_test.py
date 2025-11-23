@@ -22,6 +22,7 @@ from aioamazondevices.exceptions import (
     CannotConnect,
     CannotRegisterDevice,
 )
+from aioamazondevices.http_wrapper import AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonMusicSource
 
 SAVE_PATH = "out"
@@ -185,9 +186,9 @@ async def main() -> None:
 
     api = AmazonEchoApi(
         client_session=client_session,
-        login_email=args.email,
-        login_password=args.password,
-        login_data=login_data_stored,
+        session_state_data=AmazonSessionStateData(
+            args.email, args.password, login_data_stored
+        ),
         save_to_file=save_to_file,
     )
 

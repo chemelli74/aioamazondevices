@@ -20,6 +20,7 @@ from .const.http import (
     AMAZON_DEVICE_TYPE,
     ARRAY_WRAPPER,
     DEFAULT_SITE,
+    JAPAN_SITE,
     URI_DEVICES,
     URI_DND,
     URI_NEXUS_GRAPHQL,
@@ -58,22 +59,28 @@ class AmazonEchoApi:
     def __init__(
         self,
         client_session: ClientSession,
-        login_email: str,
-        login_password: str,
-        login_data: dict[str, Any] | None = None,
+        session_state_data: AmazonSessionStateData,
         save_to_file: Callable[[str | dict, str, str], Coroutine[Any, Any, None]]
         | None = None,
+        japan_login: bool = False,
     ) -> None:
         """Initialize the scanner."""
         _LOGGER.debug("Initialize library v%s", __version__)
 
-        # Check if there is a previous login, otherwise use default (US)
-        site = login_data.get("site", DEFAULT_SITE) if login_data else DEFAULT_SITE
+        self._session_state_data = session_state_data
+
+        # japan does not use global login so use local site if override set
+        _default_site = JAPAN_SITE if japan_login else DEFAULT_SITE
+
+        # Check if there is a previous login, otherwise use default
+        site = (
+            self._session_state_data.login_stored_data.get("site", _default_site)
+            if self._session_state_data.login_stored_data
+            else _default_site
+        )
         _LOGGER.debug("Using site: %s", site)
 
-        self._session_state_data = AmazonSessionStateData(
-            site, login_email, login_password, login_data
-        )
+        self._session_state_data.country_specific_data(site)
 
         self._http_wrapper = AmazonHttpWrapper(
             client_session,

@@ -15,6 +15,7 @@ AMAZON_DEVICE_TYPE = "A2IVLV5VM2W81"
 AMAZON_CLIENT_OS = "18.5"
 
 DEFAULT_SITE = "https://www.amazon.com"
+JAPAN_SITE = "https://www.amazon.co.jp"
 DEFAULT_HEADERS = {
     "Accept-Charset": "utf-8",
     "Accept-Encoding": "gzip",

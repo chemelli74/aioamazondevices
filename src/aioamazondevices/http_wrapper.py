@@ -46,7 +46,6 @@ class AmazonSessionStateData:
 
     def __init__(
         self,
-        domain: str,
         login_email: str,
         login_password: str,
         login_data: dict[str, Any] | None = None,
@@ -55,7 +54,6 @@ class AmazonSessionStateData:
         self._login_email: str = login_email
         self._login_password: str = login_password
         self._login_stored_data: dict[str, Any] = login_data or {}
-        self.country_specific_data(domain)
 
     @property
     def country_code(self) -> str:
