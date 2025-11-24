@@ -258,13 +258,19 @@ class AmazonEchoApi:
 
         return devices_endpoints
 
-    async def _get_notifications(self) -> dict[str, dict[str, AmazonSchedule]]:
+    async def _get_notifications(self) -> dict[str, dict[str, AmazonSchedule]] | None:
         final_notifications: dict[str, dict[str, AmazonSchedule]] = {}
 
-        _, raw_resp = await self._http_wrapper.session_request(
-            HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NOTIFICATIONS}",
-        )
+        try:
+            _, raw_resp = await self._http_wrapper.session_request(
+                HTTPMethod.GET,
+                url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NOTIFICATIONS}",
+            )
+        except CannotRetrieveData:
+            _LOGGER.warning(
+                "Failed to obtain notification data.  Timers and alarms have not been updated"  # noqa: E501
+            )
+            return None
 
         notifications = await self._http_wrapper.response_to_json(
             raw_resp, "notifications"
@@ -485,6 +491,9 @@ class AmazonEchoApi:
                 device_dnd := dnd_sensors.get(device.serial_number)
             ) and device.device_family != SPEAKER_GROUP_FAMILY:
                 device.sensors["dnd"] = device_dnd
+
+            if notifications is None:
+                continue  # notifications were not obtained, do not update
 
             # Clear old notifications to handle cancelled ones
             device.notifications = {}
