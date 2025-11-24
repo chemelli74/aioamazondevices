@@ -47,6 +47,7 @@ from .structures import (
     AmazonDeviceSensor,
     AmazonMusicSource,
     AmazonSchedule,
+    AmazonSequenceType,
 )
 from .utils import _LOGGER
 
@@ -640,7 +641,9 @@ class AmazonEchoApi:
         text_to_speak: str,
     ) -> None:
         """Call Alexa.Speak to send a message."""
-        await self._sequence_handler.call_alexa_speak(device, text_to_speak)
+        await self._sequence_handler.send_message(
+            device, AmazonSequenceType.Speak, text_to_speak
+        )
 
     async def call_alexa_announcement(
         self,
@@ -648,7 +651,9 @@ class AmazonEchoApi:
         text_to_announce: str,
     ) -> None:
         """Call AlexaAnnouncement to send a message."""
-        await self._sequence_handler.call_alexa_announcement(device, text_to_announce)
+        await self._sequence_handler.send_message(
+            device, AmazonSequenceType.Announcement, text_to_announce
+        )
 
     async def call_alexa_sound(
         self,
@@ -656,7 +661,9 @@ class AmazonEchoApi:
         sound_name: str,
     ) -> None:
         """Call Alexa.Sound to play sound."""
-        await self._sequence_handler.call_alexa_sound(device, sound_name)
+        await self._sequence_handler.send_message(
+            device, AmazonSequenceType.Sound, sound_name
+        )
 
     async def call_alexa_music(
         self,
@@ -665,8 +672,8 @@ class AmazonEchoApi:
         music_source: AmazonMusicSource,
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
-        await self._sequence_handler.call_alexa_music(
-            device, search_phrase, music_source
+        await self._sequence_handler.send_message(
+            device, AmazonSequenceType.Music, search_phrase, music_source
         )
 
     async def call_alexa_text_command(
@@ -675,7 +682,9 @@ class AmazonEchoApi:
         text_command: str,
     ) -> None:
         """Call Alexa.TextCommand to issue command."""
-        await self._sequence_handler.call_alexa_text_command(device, text_command)
+        await self._sequence_handler.send_message(
+            device, AmazonSequenceType.TextCommand, text_command
+        )
 
     async def call_alexa_skill(
         self,
@@ -683,7 +692,9 @@ class AmazonEchoApi:
         skill_name: str,
     ) -> None:
         """Call Alexa.LaunchSkill to launch a skill."""
-        await self._sequence_handler.call_alexa_skill(device, skill_name)
+        await self._sequence_handler.send_message(
+            device, AmazonSequenceType.LaunchSkill, skill_name
+        )
 
     async def call_alexa_info_skill(
         self,
@@ -691,7 +702,7 @@ class AmazonEchoApi:
         info_skill_name: str,
     ) -> None:
         """Call Info skill.  See ALEXA_INFO_SKILLS . const."""
-        await self._sequence_handler.call_alexa_info_skill(device, info_skill_name)
+        await self._sequence_handler.send_message(device, info_skill_name, "")
 
     async def set_do_not_disturb(self, device: AmazonDevice, state: bool) -> None:
         """Set do_not_disturb flag."""

@@ -27,7 +27,7 @@ class AmazonSequenceHandler:
         self._http_wrapper = http_wrapper
         self._session_state_data = session_state_data
 
-    async def _send_message(
+    async def send_message(
         self,
         device: AmazonDevice,
         message_type: str,
@@ -159,68 +159,3 @@ class AmazonSequenceHandler:
         )
 
         return
-
-    async def call_alexa_speak(
-        self,
-        device: AmazonDevice,
-        text_to_speak: str,
-    ) -> None:
-        """Call Alexa.Speak to send a message."""
-        return await self._send_message(device, AmazonSequenceType.Speak, text_to_speak)
-
-    async def call_alexa_announcement(
-        self,
-        device: AmazonDevice,
-        text_to_announce: str,
-    ) -> None:
-        """Call AlexaAnnouncement to send a message."""
-        return await self._send_message(
-            device, AmazonSequenceType.Announcement, text_to_announce
-        )
-
-    async def call_alexa_sound(
-        self,
-        device: AmazonDevice,
-        sound_name: str,
-    ) -> None:
-        """Call Alexa.Sound to play sound."""
-        return await self._send_message(device, AmazonSequenceType.Sound, sound_name)
-
-    async def call_alexa_music(
-        self,
-        device: AmazonDevice,
-        search_phrase: str,
-        music_source: AmazonMusicSource,
-    ) -> None:
-        """Call Alexa.Music.PlaySearchPhrase to play music."""
-        return await self._send_message(
-            device, AmazonSequenceType.Music, search_phrase, music_source
-        )
-
-    async def call_alexa_text_command(
-        self,
-        device: AmazonDevice,
-        text_command: str,
-    ) -> None:
-        """Call Alexa.TextCommand to issue command."""
-        return await self._send_message(
-            device, AmazonSequenceType.TextCommand, text_command
-        )
-
-    async def call_alexa_skill(
-        self,
-        device: AmazonDevice,
-        skill_name: str,
-    ) -> None:
-        """Call Alexa.LaunchSkill to launch a skill."""
-        return await self._send_message(
-            device, AmazonSequenceType.LaunchSkill, skill_name
-        )
-
-    async def call_alexa_info_skill(
-        self,
-        device: AmazonDevice,
-        info_skill_name: str,
-    ) -> None:
-        """Call Info skill.  See ALEXA_INFO_SKILLS . const."""
-        return await self._send_message(device, info_skill_name, "")
