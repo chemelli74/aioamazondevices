@@ -463,6 +463,7 @@ class AmazonEchoApi:
                         account_owner_customer_id,
                     )
                     self._account_owner_customer_id = account_owner_customer_id
+                    return
 
     async def get_devices_data(
         self,
