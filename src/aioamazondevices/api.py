@@ -1,5 +1,6 @@
 """Support for Amazon devices."""
 
+import asyncio
 from collections.abc import Callable, Coroutine
 from datetime import UTC, datetime, timedelta
 from http import HTTPMethod
@@ -25,7 +26,7 @@ from .const.http import (
     URI_NEXUS_GRAPHQL,
     URI_NOTIFICATIONS,
 )
-from .const.metadata import ALEXA_INFO_SKILLS, SENSORS
+from .const.metadata import ALEXA_INFO_SKILLS, MAX_CUSTOMER_ACCOUNT_RETRIES, SENSORS
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
     COUNTRY_GROUPS,
@@ -95,6 +96,7 @@ class AmazonEchoApi:
         initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
         self._last_devices_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
+        self._customer_account_retry_count: int = 0
 
     @property
     def domain(self) -> str:
@@ -569,7 +571,17 @@ class AmazonEchoApi:
                 )
 
         if not self._account_owner_customer_id:
-            raise CannotRetrieveData("Cannot find account owner customer ID")
+            self._customer_account_retry_count += 1
+            if self._customer_account_retry_count > MAX_CUSTOMER_ACCOUNT_RETRIES:
+                raise CannotRetrieveData("Cannot find account owner customer ID")
+            _LOGGER.debug(
+                "Cannot find account owner customer ID.  Retry - (%d/%d)",
+                self._customer_account_retry_count,
+                MAX_CUSTOMER_ACCOUNT_RETRIES,
+            )
+            await asyncio.sleep(2)
+            await self._get_base_devices()
+            return
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in json_data["devices"]:
