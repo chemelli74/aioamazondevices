@@ -440,7 +440,7 @@ class AmazonEchoApi:
         return rule
 
     async def _update_account_owner_customer_id(self, data: dict[str, Any]) -> None:
-        """Get account owner customer ID."""
+        """Lookup and set account owner customer ID."""
         for device in data.get("devices", []):
             dev_serial = device.get("serialNumber")
             if not dev_serial:
@@ -554,16 +554,16 @@ class AmazonEchoApi:
             )
 
     async def _get_base_devices(self) -> None:
-        json_data = {}
-        for retry_attempt in range(1, MAX_CUSTOMER_ACCOUNT_RETRIES):
-            if self._account_owner_customer_id:
-                break
-
-            await asyncio.sleep(2)  # allow time for device to be registered
+        # Can take some time to register device but we need it
+        # to be able to pickout account customer ID
+        # retry should only take place on first login after registration
+        for retry_attempt in range(MAX_CUSTOMER_ACCOUNT_RETRIES):
+            if not self._account_owner_customer_id:
+                await asyncio.sleep(2)  # allow time for device to be registered
 
             _LOGGER.debug(
                 "Lookup customer account ID (attempt %d/%d)",
-                retry_attempt,
+                retry_attempt + 1,
                 MAX_CUSTOMER_ACCOUNT_RETRIES,
             )
             _, raw_resp = await self._http_wrapper.session_request(
@@ -575,11 +575,14 @@ class AmazonEchoApi:
 
             await self._update_account_owner_customer_id(json_data)
 
+            if self._account_owner_customer_id:
+                break
+
         if not self._account_owner_customer_id:
             raise CannotRetrieveData("Cannot find account owner customer ID")
 
         final_devices_list: dict[str, AmazonDevice] = {}
-        for device in json_data["devices"]:
+        for device in json_data["devices"]:  # pyright: ignore[reportPossiblyUnboundVariable]
             # Remove stale, orphaned and virtual devices
             if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
                 continue
