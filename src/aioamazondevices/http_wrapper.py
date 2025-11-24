@@ -88,6 +88,11 @@ class AmazonSessionStateData:
         """Return login stored data."""
         return self._login_stored_data
 
+    @login_stored_data.setter
+    def login_stored_data(self, data: dict[str, Any]) -> None:
+        """Set login stored data."""
+        self._login_stored_data = data
+
     @property
     def account_customer_id(self) -> str | None:
         """Return account customer id."""
