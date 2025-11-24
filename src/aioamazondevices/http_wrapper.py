@@ -119,11 +119,6 @@ class AmazonSessionStateData:
             self._language,
         )
 
-    def load_login_stored_data(self, data: dict[str, Any]) -> dict[str, Any]:
-        """Load to Amazon using previously stored data."""
-        self._login_stored_data = data
-        return self._login_stored_data
-
 
 class AmazonHttpWrapper:
     """Amazon HTTP wrapper class."""
