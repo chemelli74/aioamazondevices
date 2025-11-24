@@ -17,7 +17,6 @@ from .const.devices import (
     SPEAKER_GROUP_FAMILY,
 )
 from .const.http import (
-    AMAZON_DEVICE_TYPE,
     ARRAY_WRAPPER,
     DEFAULT_SITE,
     URI_DEVICES,
@@ -86,7 +85,6 @@ class AmazonEchoApi:
             session_state_data=self._session_state_data,
         )
 
-        self._account_owner_customer_id: str | None = None
         self._list_for_clusters: dict[str, str] = {}
 
         self._final_devices: dict[str, AmazonDevice] = {}
@@ -438,28 +436,6 @@ class AmazonEchoApi:
 
         return rule
 
-    async def _get_account_owner_customer_id(self, data: dict[str, Any]) -> str | None:
-        """Get account owner customer ID."""
-        if data["deviceType"] != AMAZON_DEVICE_TYPE:
-            return None
-
-        account_owner_customer_id: str | None = None
-
-        this_device_serial = self._session_state_data.login_stored_data["device_info"][
-            "device_serial_number"
-        ]
-
-        for subdevice in data["appDeviceList"]:
-            if subdevice["serialNumber"] == this_device_serial:
-                account_owner_customer_id = data["deviceOwnerCustomerId"]
-                _LOGGER.debug(
-                    "Setting account owner: %s",
-                    account_owner_customer_id,
-                )
-                break
-
-        return account_owner_customer_id
-
     async def get_devices_data(
         self,
     ) -> dict[str, AmazonDevice]:
@@ -556,21 +532,6 @@ class AmazonEchoApi:
 
         json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
 
-        for data in json_data["devices"]:
-            dev_serial = data.get("serialNumber")
-            if not dev_serial:
-                _LOGGER.warning(
-                    "Skipping device without serial number: %s", data["accountName"]
-                )
-                continue
-            if not self._account_owner_customer_id:
-                self._account_owner_customer_id = (
-                    await self._get_account_owner_customer_id(data)
-                )
-
-        if not self._account_owner_customer_id:
-            raise CannotRetrieveData("Cannot find account owner customer ID")
-
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in json_data["devices"]:
             # Remove stale, orphaned and virtual devices
@@ -595,7 +556,7 @@ class AmazonEchoApi:
                 device_type=device["deviceType"],
                 device_owner_customer_id=device["deviceOwnerCustomerId"],
                 household_device=device["deviceOwnerCustomerId"]
-                == self._account_owner_customer_id,
+                == self._session_state_data.account_customer_id,
                 device_cluster_members=(device["clusterMembers"] or [serial_number]),
                 online=device["online"],
                 serial_number=serial_number,
@@ -645,7 +606,7 @@ class AmazonEchoApi:
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
             "locale": self._session_state_data.language,
-            "customerId": self._account_owner_customer_id,
+            "customerId": self._session_state_data.account_customer_id,
         }
 
         payload: dict[str, Any]
@@ -654,7 +615,7 @@ class AmazonEchoApi:
                 **base_payload,
                 "textToSpeak": message_body,
                 "target": {
-                    "customerId": self._account_owner_customer_id,
+                    "customerId": self._session_state_data.account_customer_id,
                     "devices": [
                         {
                             "deviceSerialNumber": device.serial_number,
@@ -691,7 +652,7 @@ class AmazonEchoApi:
                     }
                 ],
                 "target": {
-                    "customerId": self._account_owner_customer_id,
+                    "customerId": self._session_state_data.account_customer_id,
                     "devices": playback_devices,
                 },
                 "skillId": "amzn1.ask.1p.routines.messaging",

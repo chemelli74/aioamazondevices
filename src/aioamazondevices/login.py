@@ -25,11 +25,14 @@ from .const.http import (
     DEFAULT_SITE,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
+    URI_DEVICES,
     URI_SIGNIN,
 )
+from .const.metadata import MAX_CUSTOMER_ACCOUNT_RETRIES
 from .exceptions import (
     CannotAuthenticate,
     CannotRegisterDevice,
+    CannotRetrieveData,
     WrongMethod,
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
@@ -261,13 +264,11 @@ class AmazonLogin:
 
         await self._domain_refresh_auth_cookies()
 
+        await self.obtain_account_customer_id()
+
         self._session_state_data.login_stored_data.update(
             {"site": f"https://www.amazon.{self._session_state_data.domain}"}
         )
-
-        # Can take a little while to register device but we need it
-        # to be able to pickout account customer ID
-        await asyncio.sleep(2)
 
         return self._session_state_data.login_stored_data
 
@@ -339,6 +340,8 @@ class AmazonLogin:
             "Logging-in for %s with stored data",
             obfuscate_email(self._session_state_data.login_email),
         )
+
+        await self.obtain_account_customer_id()
 
         return self._session_state_data.login_stored_data
 
@@ -443,3 +446,50 @@ class AmazonLogin:
 
         _LOGGER.debug("Unexpected refresh data response")
         return False, {}
+
+    async def obtain_account_customer_id(self) -> None:
+        """Find account customer id."""
+        for retry_count in range(MAX_CUSTOMER_ACCOUNT_RETRIES):
+            if not self._session_state_data.account_customer_id:
+                await asyncio.sleep(2)  # allow time for device to be registered
+
+            _LOGGER.debug(
+                "Lookup customer account ID (attempt %d/%d)",
+                retry_count + 1,
+                MAX_CUSTOMER_ACCOUNT_RETRIES,
+            )
+            _, raw_resp = await self._http_wrapper.session_request(
+                method=HTTPMethod.GET,
+                url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICES}",
+            )
+
+            json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
+
+            for device in json_data.get("devices", []):
+                dev_serial = device.get("serialNumber")
+                if not dev_serial:
+                    _LOGGER.warning(
+                        "Skipping device without serial number: %s",
+                        device["accountName"],
+                    )
+                    continue
+                if device["deviceType"] != AMAZON_DEVICE_TYPE:
+                    continue
+
+                this_device_serial = self._session_state_data.login_stored_data[
+                    "device_info"
+                ]["device_serial_number"]
+
+                for subdevice in device["appDeviceList"]:
+                    if subdevice["serialNumber"] == this_device_serial:
+                        account_owner_customer_id = device["deviceOwnerCustomerId"]
+                        _LOGGER.debug(
+                            "Setting account owner: %s",
+                            account_owner_customer_id,
+                        )
+                        self._session_state_data.account_customer_id = (
+                            account_owner_customer_id
+                        )
+                        return
+        if not self._session_state_data.account_customer_id:
+            raise CannotRetrieveData("Cannot find account owner customer ID")
