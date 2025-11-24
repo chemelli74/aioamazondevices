@@ -96,7 +96,6 @@ class AmazonEchoApi:
         initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
         self._last_devices_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
-        self._customer_account_retry_count: int = 0
 
     @property
     def domain(self) -> str:
@@ -440,27 +439,30 @@ class AmazonEchoApi:
 
         return rule
 
-    async def _get_account_owner_customer_id(self, data: dict[str, Any]) -> str | None:
+    async def _update_account_owner_customer_id(self, data: dict[str, Any]) -> None:
         """Get account owner customer ID."""
-        if data["deviceType"] != AMAZON_DEVICE_TYPE:
-            return None
-
-        account_owner_customer_id: str | None = None
-
-        this_device_serial = self._session_state_data.login_stored_data["device_info"][
-            "device_serial_number"
-        ]
-
-        for subdevice in data["appDeviceList"]:
-            if subdevice["serialNumber"] == this_device_serial:
-                account_owner_customer_id = data["deviceOwnerCustomerId"]
-                _LOGGER.debug(
-                    "Setting account owner: %s",
-                    account_owner_customer_id,
+        for device in data.get("devices", []):
+            dev_serial = device.get("serialNumber")
+            if not dev_serial:
+                _LOGGER.warning(
+                    "Skipping device without serial number: %s", device["accountName"]
                 )
-                break
+                continue
+            if device["deviceType"] != AMAZON_DEVICE_TYPE:
+                continue
 
-        return account_owner_customer_id
+            this_device_serial = self._session_state_data.login_stored_data[
+                "device_info"
+            ]["device_serial_number"]
+
+            for subdevice in device["appDeviceList"]:
+                if subdevice["serialNumber"] == this_device_serial:
+                    account_owner_customer_id = device["deviceOwnerCustomerId"]
+                    _LOGGER.debug(
+                        "Setting account owner: %s",
+                        account_owner_customer_id,
+                    )
+                    self._account_owner_customer_id = account_owner_customer_id
 
     async def get_devices_data(
         self,
@@ -551,37 +553,29 @@ class AmazonEchoApi:
             )
 
     async def _get_base_devices(self) -> None:
-        _, raw_resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICES}",
-        )
+        json_data = {}
+        for retry_attempt in range(1, MAX_CUSTOMER_ACCOUNT_RETRIES):
+            if self._account_owner_customer_id:
+                break
 
-        json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
+            await asyncio.sleep(2)  # allow time for device to be registered
 
-        for data in json_data["devices"]:
-            dev_serial = data.get("serialNumber")
-            if not dev_serial:
-                _LOGGER.warning(
-                    "Skipping device without serial number: %s", data["accountName"]
-                )
-                continue
-            if not self._account_owner_customer_id:
-                self._account_owner_customer_id = (
-                    await self._get_account_owner_customer_id(data)
-                )
-
-        if not self._account_owner_customer_id:
-            self._customer_account_retry_count += 1
-            if self._customer_account_retry_count > MAX_CUSTOMER_ACCOUNT_RETRIES:
-                raise CannotRetrieveData("Cannot find account owner customer ID")
             _LOGGER.debug(
-                "Cannot find account owner customer ID.  Retry - (%d/%d)",
-                self._customer_account_retry_count,
+                "Lookup customer account ID (attempt %d/%d)",
+                retry_attempt,
                 MAX_CUSTOMER_ACCOUNT_RETRIES,
             )
-            await asyncio.sleep(2)
-            await self._get_base_devices()
-            return
+            _, raw_resp = await self._http_wrapper.session_request(
+                method=HTTPMethod.GET,
+                url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICES}",
+            )
+
+            json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
+
+            await self._update_account_owner_customer_id(json_data)
+
+        if not self._account_owner_customer_id:
+            raise CannotRetrieveData("Cannot find account owner customer ID")
 
         final_devices_list: dict[str, AmazonDevice] = {}
         for device in json_data["devices"]:

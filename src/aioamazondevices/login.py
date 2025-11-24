@@ -1,6 +1,5 @@
 """Support for Amazon login."""
 
-import asyncio
 import base64
 import hashlib
 import secrets
@@ -264,10 +263,6 @@ class AmazonLogin:
         self._session_state_data.login_stored_data.update(
             {"site": f"https://www.amazon.{self._session_state_data.domain}"}
         )
-
-        # Can take a little while to register device but we need it
-        # to be able to pickout account customer ID
-        await asyncio.sleep(2)
 
         return self._session_state_data.login_stored_data
 
