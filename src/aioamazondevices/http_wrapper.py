@@ -87,6 +87,11 @@ class AmazonSessionStateData:
         """Return login stored data."""
         return self._login_stored_data
 
+    @login_stored_data.setter
+    def login_stored_data(self, data: dict[str, Any]) -> None:
+        """Set login stored data."""
+        self._login_stored_data = data
+
     def country_specific_data(self, domain: str) -> None:
         """Set country specific data."""
         # Force lower case
@@ -107,11 +112,6 @@ class AmazonSessionStateData:
             self._domain,
             self._language,
         )
-
-    def load_login_stored_data(self, data: dict[str, Any]) -> dict[str, Any]:
-        """Load to Amazon using previously stored data."""
-        self._login_stored_data = data
-        return self._login_stored_data
 
 
 class AmazonHttpWrapper:
@@ -223,7 +223,7 @@ class AmazonHttpWrapper:
         headers = DEFAULT_HEADERS.copy()
         headers.update({"User-Agent": REQUEST_AGENT[agent]})
         headers.update({"Accept-Language": self._session_state_data.language})
-        headers.update({"x-amzn-client": "aioamazondevices"})
+        headers.update({"x-amzn-client": "github.com/chemelli74/aioamazondevices"})
         headers.update({"x-amzn-build-version": __version__})
 
         if self._csrf_cookie:

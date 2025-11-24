@@ -1,5 +1,12 @@
 # Changelog
 
+## v9.0.2 (2025-11-20)
+
+### Bug fixes
+
+- Incorrect logic in notification checks ([`9df1c42`](https://github.com/chemelli74/aioamazondevices/commit/9df1c42add71b79cfb49319852a8d5973927f765))
+
+
 ## v9.0.1 (2025-11-20)
 
 ### Documentation

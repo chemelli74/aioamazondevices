@@ -257,7 +257,7 @@ class AmazonLogin:
         device_login_data = await self._login_mode_interactive_oauth(otp_code)
 
         login_data = await self._register_device(device_login_data)
-        self._session_state_data.load_login_stored_data(login_data)
+        self._session_state_data.login_stored_data = login_data
 
         await self._domain_refresh_auth_cookies()
 
