@@ -260,13 +260,19 @@ class AmazonEchoApi:
 
         return devices_endpoints
 
-    async def _get_notifications(self) -> dict[str, dict[str, AmazonSchedule]]:
+    async def _get_notifications(self) -> dict[str, dict[str, AmazonSchedule]] | None:
         final_notifications: dict[str, dict[str, AmazonSchedule]] = {}
 
-        _, raw_resp = await self._http_wrapper.session_request(
-            HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NOTIFICATIONS}",
-        )
+        try:
+            _, raw_resp = await self._http_wrapper.session_request(
+                HTTPMethod.GET,
+                url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NOTIFICATIONS}",
+            )
+        except CannotRetrieveData:
+            _LOGGER.warning(
+                "Failed to obtain notification data.  Timers and alarms have not been updated"  # noqa: E501
+            )
+            return None
 
         notifications = await self._http_wrapper.response_to_json(
             raw_resp, "notifications"
@@ -495,15 +501,9 @@ class AmazonEchoApi:
     async def _get_sensor_data(self) -> None:
         devices_sensors = await self._get_sensors_states()
         dnd_sensors = await self._get_dnd_status()
-        try:
-            notifications = await self._get_notifications()
-            have_notifications = True
-        except CannotRetrieveData:
-            have_notifications = False
-            notifications = {}
-            _LOGGER.warning(
-                "Failed to obtain notification data.  Timers and alarms have not been updated"  # noqa: E501
-            )
+
+        notifications = await self._get_notifications()
+
         for device in self._final_devices.values():
             # Update sensors
             sensors = devices_sensors.get(device.serial_number, {})
@@ -517,7 +517,7 @@ class AmazonEchoApi:
             ) and device.device_family != SPEAKER_GROUP_FAMILY:
                 device.sensors["dnd"] = device_dnd
 
-            if not have_notifications:
+            if notifications is None:
                 continue  # notifications were not obtained, do not update
 
             # Clear old notifications to handle cancelled ones
