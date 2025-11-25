@@ -81,7 +81,7 @@ class AmazonSequenceHandler:
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
             "locale": self._session_state_data.language,
-            "customerId": self._session_state_data.customer_account_id,
+            "customerId": self._session_state_data.account_customer_id,
         }
 
         payload: dict[str, Any]
@@ -90,7 +90,7 @@ class AmazonSequenceHandler:
                 **base_payload,
                 "textToSpeak": message_body,
                 "target": {
-                    "customerId": self._session_state_data.customer_account_id,
+                    "customerId": self._session_state_data.account_customer_id,
                     "devices": [
                         {
                             "deviceSerialNumber": device.serial_number,
@@ -126,7 +126,7 @@ class AmazonSequenceHandler:
                     }
                 ],
                 "target": {
-                    "customerId": self._session_state_data.customer_account_id,
+                    "customerId": self._session_state_data.account_customer_id,
                     "devices": playback_devices,
                 },
                 "skillId": "amzn1.ask.1p.routines.messaging",
@@ -174,78 +174,15 @@ class AmazonSequenceHandler:
             "operationPayload": payload,
         }
 
-    async def call_alexa_speak(
+    async def send_message(
         self,
         device: AmazonDevice,
-        text_to_speak: str,
+        message_type: str,
+        message_body: str | float | None = None,
+        message_source: AmazonMusicSource | None = None,
     ) -> None:
-        """Call Alexa.Speak to send a message."""
+        """Send message to specific device."""
         node = await self._build_operation_node(
-            device, AmazonSequenceType.Speak, text_to_speak
+            device, message_type, message_body, message_source
         )
-        await self._sequence_batcher.enqueue(node)
-
-    async def call_alexa_announcement(
-        self,
-        device: AmazonDevice,
-        text_to_announce: str,
-    ) -> None:
-        """Call AlexaAnnouncement to send a message."""
-        node = await self._build_operation_node(
-            device, AmazonSequenceType.Announcement, text_to_announce
-        )
-        await self._sequence_batcher.enqueue(node)
-
-    async def call_alexa_sound(
-        self,
-        device: AmazonDevice,
-        sound_name: str,
-    ) -> None:
-        """Call Alexa.Sound to play sound."""
-        node = await self._build_operation_node(
-            device, AmazonSequenceType.Sound, sound_name
-        )
-        await self._sequence_batcher.enqueue(node)
-
-    async def call_alexa_music(
-        self,
-        device: AmazonDevice,
-        search_phrase: str,
-        music_source: AmazonMusicSource,
-    ) -> None:
-        """Call Alexa.Music.PlaySearchPhrase to play music."""
-        node = await self._build_operation_node(
-            device, AmazonSequenceType.Music, search_phrase, music_source
-        )
-        await self._sequence_batcher.enqueue(node)
-
-    async def call_alexa_text_command(
-        self,
-        device: AmazonDevice,
-        text_command: str,
-    ) -> None:
-        """Call Alexa.TextCommand to issue command."""
-        node = await self._build_operation_node(
-            device, AmazonSequenceType.TextCommand, text_command
-        )
-        await self._sequence_batcher.enqueue(node)
-
-    async def call_alexa_skill(
-        self,
-        device: AmazonDevice,
-        skill_name: str,
-    ) -> None:
-        """Call Alexa.LaunchSkill to launch a skill."""
-        node = await self._build_operation_node(
-            device, AmazonSequenceType.LaunchSkill, skill_name
-        )
-        await self._sequence_batcher.enqueue(node)
-
-    async def call_alexa_info_skill(
-        self,
-        device: AmazonDevice,
-        info_skill_name: str,
-    ) -> None:
-        """Call Info skill.  See ALEXA_INFO_SKILLS . const."""
-        node = await self._build_operation_node(device, info_skill_name)
         await self._sequence_batcher.enqueue(node)

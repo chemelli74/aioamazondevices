@@ -56,7 +56,7 @@ class AmazonSessionStateData:
         self._login_password: str = login_password
         self._login_stored_data: dict[str, Any] = login_data or {}
         self.country_specific_data(domain)
-        self._customer_account_id: str | None = None
+        self._account_customer_id: str | None = None
 
     @property
     def country_code(self) -> str:
@@ -88,15 +88,20 @@ class AmazonSessionStateData:
         """Return login stored data."""
         return self._login_stored_data
 
-    @property
-    def customer_account_id(self) -> str | None:
-        """Return customer account id."""
-        return self._customer_account_id
+    @login_stored_data.setter
+    def login_stored_data(self, data: dict[str, Any]) -> None:
+        """Set login stored data."""
+        self._login_stored_data = data
 
-    @customer_account_id.setter
-    def customer_account_id(self, value: str | None) -> None:
-        """Set customer account id."""
-        self._customer_account_id = value
+    @property
+    def account_customer_id(self) -> str | None:
+        """Return account customer id."""
+        return self._account_customer_id
+
+    @account_customer_id.setter
+    def account_customer_id(self, customer_id: str | None) -> None:
+        """Set account customer id."""
+        self._account_customer_id = customer_id
 
     def country_specific_data(self, domain: str) -> None:
         """Set country specific data."""
@@ -118,11 +123,6 @@ class AmazonSessionStateData:
             self._domain,
             self._language,
         )
-
-    def load_login_stored_data(self, data: dict[str, Any]) -> dict[str, Any]:
-        """Load to Amazon using previously stored data."""
-        self._login_stored_data = data
-        return self._login_stored_data
 
 
 class AmazonHttpWrapper:
@@ -234,7 +234,7 @@ class AmazonHttpWrapper:
         headers = DEFAULT_HEADERS.copy()
         headers.update({"User-Agent": REQUEST_AGENT[agent]})
         headers.update({"Accept-Language": self._session_state_data.language})
-        headers.update({"x-amzn-client": "aioamazondevices"})
+        headers.update({"x-amzn-client": "github.com/chemelli74/aioamazondevices"})
         headers.update({"x-amzn-build-version": __version__})
 
         if self._csrf_cookie:
