@@ -157,5 +157,3 @@ class AmazonSequenceHandler:
             input_data=node_data,
             json_data=True,
         )
-
-        return
