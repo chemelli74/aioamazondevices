@@ -42,7 +42,6 @@ from .structures import (
     AmazonMusicSource,
     AmazonSequenceType,
 )
-
 from .utils import _LOGGER, parse_device_details
 
 
