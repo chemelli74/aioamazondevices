@@ -8,4 +8,5 @@ omit =
     src/aioamazondevices/structures.py
     src/aioamazondevices/utils.py
     src/aioamazondevices/const/*
+    src/aioamazondevices/implementation/*
     library_test.py
