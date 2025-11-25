@@ -8,8 +8,6 @@ from typing import Any
 import orjson
 from aiohttp import ClientSession
 
-from aioamazondevices.implementation.notification import AmazonNotificationHandler
-
 from . import __version__
 from .const.devices import (
     DEVICE_TO_IGNORE,
@@ -34,6 +32,7 @@ from .exceptions import (
     CannotRetrieveData,
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
+from .implementation.notification import AmazonNotificationHandler
 from .login import AmazonLogin
 from .structures import (
     AmazonDevice,
