@@ -1,8 +1,11 @@
 """Utils module for Amazon devices."""
 
 import logging
+import re
 from collections.abc import Collection
 from typing import Any
+
+from .const.devices import SPEAKER_GROUP_MODEL
 
 _LOGGER = logging.getLogger(__package__)
 
@@ -80,3 +83,24 @@ def scrub_fields(
         return {scrub_fields(item, field_names, replacement) for item in obj}
 
     return obj
+
+
+def parse_device_details(model: str | None) -> tuple[str | None, str | None]:
+    """Parse device model to extract a normalized version and its hardware revision."""
+    if model is None or model == SPEAKER_GROUP_MODEL:
+        return model, None
+
+    # Normalize model name
+    model = model.replace("generation", "Gen").strip()
+
+    # Matching example: "Echo Dot (4th Gen)" -> "4th Gen"
+    match = re.search(r"\(([^)]+ Gen)[^)]*\)", model)
+    if match:
+        return model, match.group(1).strip()
+
+    # Matching example: "2021 Samsung UHD TV" -> "2021"
+    match = re.search(r"\b(19|20)\d{2}\b", model)
+    if match:
+        return model, match.group(0).strip()
+
+    return model, None
