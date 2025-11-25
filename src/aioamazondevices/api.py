@@ -20,7 +20,7 @@ from .const.http import (
     URI_DND,
     URI_NEXUS_GRAPHQL,
 )
-from .const.metadata import SENSORS
+from .const.metadata import ALEXA_INFO_SKILLS, SENSORS
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
     NOTIFICATION_ALARM,
@@ -487,7 +487,8 @@ class AmazonEchoApi:
         info_skill_name: str,
     ) -> None:
         """Call Info skill.  See ALEXA_INFO_SKILLS . const."""
-        await self._sequence_handler.send_message(device, info_skill_name, "")
+        info_skill = ALEXA_INFO_SKILLS.get(info_skill_name, info_skill_name)
+        await self._sequence_handler.send_message(device, info_skill, "")
 
     async def set_do_not_disturb(self, device: AmazonDevice, state: bool) -> None:
         """Set do_not_disturb flag."""
