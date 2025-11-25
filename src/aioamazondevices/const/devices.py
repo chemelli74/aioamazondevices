@@ -31,3 +31,5 @@ DEVICE_TO_IGNORE: list[str] = [
     "A2M9HB23M9MSSM",  # Smartwatch Amazfit Bip U Pro - issue #507
     "A1P7E7V3FCZKU6",  # Toshiba Corporation TV 32LF221U19 - issue #531
 ]
+
+DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {}
