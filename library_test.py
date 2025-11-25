@@ -285,7 +285,7 @@ async def main() -> None:
     await wait_action_complete()
 
     print("Sending message via 'Alexa.Date.Play' to:", device_single.account_name)
-    await api.call_alexa_info_skill(device_single, "Alexa.Date.Play")
+    await api.call_alexa_info_skill(device_single, "alexa_date")
 
     await wait_action_complete(5)
 
