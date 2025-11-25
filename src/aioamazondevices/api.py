@@ -364,15 +364,8 @@ class AmazonEchoApi:
                 device_details[0] is None
                 and endpoint_device.device_type != SPEAKER_GROUP_DEVICE_TYPE
             ):
-                model_details: dict[str, str | None] | None = DEVICE_TYPE_TO_MODEL.get(
-                    endpoint_device.device_type
-                )
+                model_details = self.get_model_details(endpoint_device)
                 if model_details is None:
-                    _LOGGER.warning(
-                        "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices/wiki/Unknown-Device-Types",
-                        endpoint_device.device_type,
-                        endpoint_device.account_name,
-                    )
                     continue
                 endpoint_device.model = model_details["model"]
                 endpoint_device.hardware_version = model_details["hw_version"]
@@ -445,6 +438,20 @@ class AmazonEchoApi:
                 )
 
         self._final_devices = final_devices_list
+
+    def get_model_details(self, device: AmazonDevice) -> dict[str, str | None] | None:
+        """Return model datails."""
+        model_details: dict[str, str | None] | None = DEVICE_TYPE_TO_MODEL.get(
+            device.device_type
+        )
+        if not model_details:
+            _LOGGER.warning(
+                "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices/wiki/Unknown-Device-Types",
+                device.device_type,
+                device.account_name,
+            )
+
+        return model_details
 
     async def call_alexa_speak(
         self,
