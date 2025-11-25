@@ -42,3 +42,5 @@ ALEXA_INFO_SKILLS = [
     "Alexa.ImHome.Play",
     "Alexa.GoodNight.Play",
 ]
+
+MAX_CUSTOMER_ACCOUNT_RETRIES = 3

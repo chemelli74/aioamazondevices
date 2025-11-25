@@ -43,7 +43,7 @@ class AmazonSequenceHandler:
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
             "locale": self._session_state_data.language,
-            "customerId": self._session_state_data.customer_account_id,
+            "customerId": self._session_state_data.account_customer_id,
         }
 
         payload: dict[str, Any]
@@ -52,7 +52,7 @@ class AmazonSequenceHandler:
                 **base_payload,
                 "textToSpeak": message_body,
                 "target": {
-                    "customerId": self._session_state_data.customer_account_id,
+                    "customerId": self._session_state_data.account_customer_id,
                     "devices": [
                         {
                             "deviceSerialNumber": device.serial_number,
@@ -88,7 +88,7 @@ class AmazonSequenceHandler:
                     }
                 ],
                 "target": {
-                    "customerId": self._session_state_data.customer_account_id,
+                    "customerId": self._session_state_data.account_customer_id,
                     "devices": playback_devices,
                 },
                 "skillId": "amzn1.ask.1p.routines.messaging",

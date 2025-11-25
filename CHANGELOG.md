@@ -1,5 +1,45 @@
 # Changelog
 
+## v9.0.3 (2025-11-24)
+
+### Bug fixes
+
+- Handle rate limit errors on notification endpoint ([`86bd19e`](https://github.com/chemelli74/aioamazondevices/commit/86bd19e99a0f5cbf663ded366588e367a11b6a0b))
+- Retry if customer account not found ([`05a34e4`](https://github.com/chemelli74/aioamazondevices/commit/05a34e44916723f7331beab2572949c94e11fe28))
+
+
+### Build system
+
+- Bump actions/checkout from 5 to 6 ([`a3ed5c7`](https://github.com/chemelli74/aioamazondevices/commit/a3ed5c7d0510e3297aa10c9f50156fec467ee098))
+
+
+## v9.0.2 (2025-11-20)
+
+### Bug fixes
+
+- Incorrect logic in notification checks ([`9df1c42`](https://github.com/chemelli74/aioamazondevices/commit/9df1c42add71b79cfb49319852a8d5973927f765))
+
+
+## v9.0.1 (2025-11-20)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`9fd06d3`](https://github.com/chemelli74/aioamazondevices/commit/9fd06d34c529b91bfba534aacbd76c6ec80d879d))
+
+
+### Bug fixes
+
+- Add marshall uxbridge model ([`afd0747`](https://github.com/chemelli74/aioamazondevices/commit/afd07471e87d263c240fe1271c373fd9628ad69c))
+
+
+### Build system
+
+- Bump types-python-dateutil from 2.9.0.20251108 to 2.9.0.20251115 ([`7070037`](https://github.com/chemelli74/aioamazondevices/commit/7070037039b7137fe7478a269775a657c3b15308))
+- Bump pytest from 9.0.0 to 9.0.1 ([`2f68931`](https://github.com/chemelli74/aioamazondevices/commit/2f689312a8c3d5339b9b59c680b9791cd6d4e7da))
+- Bump python-semantic-release/python-semantic-release from 10.5.1 to 10.5.2 ([`832b3a3`](https://github.com/chemelli74/aioamazondevices/commit/832b3a3864a639d66f1568c01838f38ad3c2aeb0))
+- Bump python-semantic-release/python-semantic-release from 10.4.1 to 10.5.1 ([`0919d68`](https://github.com/chemelli74/aioamazondevices/commit/0919d6816abf902d109e244dc372bb35011c088d))
+
+
 ## v9.0.0 (2025-11-10)
 
 ### Refactoring

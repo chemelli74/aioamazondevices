@@ -29,6 +29,9 @@ DEVICE_TO_IGNORE: list[str] = [
     "A133UZ2CB0IB8",  # Sony Soundbar Sony HT-A5000 - issue #486
     "A2M9HB23M9MSSM",  # Smartwatch Amazfit Bip U Pro - issue #507
     "A1P7E7V3FCZKU6",  # Toshiba Corporation TV 32LF221U19 - issue #531
+    "A1NPP2J03FTS0I",  # Eero Pro 6 - issue #602
+    "A14AIWB3T3AS1Z",  # Samsung Soundbar HW-Q950A - issue #603
+    "APHEAY6LX7T13",  # Samsung Refrigerator RS22T5561SR/AA - issue #577
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
@@ -115,6 +118,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "manufacturer": "Medion",
         "model": "Life P66970",
         "hw_version": "A16",
+    },
+    "A20E9PVI3HANVQ": {
+        "manufacturer": "Marshall",
+        "model": "Marshall Uxbridge",
     },
     "A25521KS9QCAMD": {
         "model": "Fire Tablet HD 7",
@@ -371,5 +378,43 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     "G2A0V704840708AP": {
         "model": "Echo Plus",
         "hw_version": "Gen2",
+    },
+    "A1JJ0KFC4ZPNJ3": {
+        "model": "Echo Input",
+        "hw_version": "Gen1",
+    },
+    "A2V9UEGZ82H4KZ": {
+        "model": "Fire Tablet HD 10",
+        "hw_version": "Gen13",
+    },
+    "ALCIV0P5M8TZ0": {
+        "manufacturer": "Sonos Inc.",
+        "model": "Sonos Beam",
+        "hw_version": None,
+    },
+    "A1MKGHX5VQBDWX": {
+        "manufacturer": "Denon",
+        "model": "Denon Home 150",
+        "hw_version": None,
+    },
+    "A2X8WT9JELC577": {
+        "manufacturer": "ecobee Inc.",
+        "model": "ecobee 4 Smart Thermostat with Voice Control",
+        "hw_version": None,
+    },
+    "AA1IN44SS3X6O": {
+        "manufacturer": "ecobee Inc.",
+        "model": "ecobee SmartThermostat Premium",
+        "hw_version": None,
+    },
+    "A2ZJ8HST6J24XH": {
+        "manufacturer": "Sonos Inc.",
+        "model": "Sonos Roam 2",
+        "hw_version": None,
+    },
+    "A3M91KUSTM6A3P": {
+        "manufacturer": "Ford",
+        "model": "Ford SYNC 4",
+        "hw_version": None,
     },
 }
