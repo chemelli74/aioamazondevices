@@ -1,5 +1,13 @@
 # Changelog
 
+## v10.0.0 (2025-11-25)
+
+### Refactoring
+
+- Introduce sequence.py ([`1270cb0`](https://github.com/chemelli74/aioamazondevices/commit/1270cb0fde474e118b885ddba493a5edb15d81ad))
+- Introduce notification.py ([`699676f`](https://github.com/chemelli74/aioamazondevices/commit/699676f9d78c67444db7ec83b05b09379f674f00))
+
+
 ## v9.0.3 (2025-11-24)
 
 ### Bug fixes
