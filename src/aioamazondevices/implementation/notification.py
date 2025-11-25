@@ -19,6 +19,7 @@ from aioamazondevices.const.schedules import (
     RECURRING_PATTERNS,
     WEEKEND_EXCEPTIONS,
 )
+from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonSchedule
 from aioamazondevices.utils import _LOGGER
@@ -36,14 +37,20 @@ class AmazonNotificationHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
 
-    async def get_notifications(self) -> dict[str, dict[str, AmazonSchedule]]:
-        """Get notifications from Alexa API."""
+    async def get_notifications(self) -> dict[str, dict[str, AmazonSchedule]] | None:
+        """Get all notifications (alarms, timers, reminders)."""
         final_notifications: dict[str, dict[str, AmazonSchedule]] = {}
 
-        _, raw_resp = await self._http_wrapper.session_request(
-            HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NOTIFICATIONS}",
-        )
+        try:
+            _, raw_resp = await self._http_wrapper.session_request(
+                HTTPMethod.GET,
+                url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NOTIFICATIONS}",
+            )
+        except CannotRetrieveData:
+            _LOGGER.warning(
+                "Failed to obtain notification data.  Timers and alarms have not been updated"  # noqa: E501
+            )
+            return None
 
         notifications = await self._http_wrapper.response_to_json(
             raw_resp, "notifications"

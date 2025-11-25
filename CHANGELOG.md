@@ -1,5 +1,25 @@
 # Changelog
 
+## v9.0.3 (2025-11-24)
+
+### Bug fixes
+
+- Handle rate limit errors on notification endpoint ([`86bd19e`](https://github.com/chemelli74/aioamazondevices/commit/86bd19e99a0f5cbf663ded366588e367a11b6a0b))
+- Retry if customer account not found ([`05a34e4`](https://github.com/chemelli74/aioamazondevices/commit/05a34e44916723f7331beab2572949c94e11fe28))
+
+
+### Build system
+
+- Bump actions/checkout from 5 to 6 ([`a3ed5c7`](https://github.com/chemelli74/aioamazondevices/commit/a3ed5c7d0510e3297aa10c9f50156fec467ee098))
+
+
+## v9.0.2 (2025-11-20)
+
+### Bug fixes
+
+- Incorrect logic in notification checks ([`9df1c42`](https://github.com/chemelli74/aioamazondevices/commit/9df1c42add71b79cfb49319852a8d5973927f765))
+
+
 ## v9.0.1 (2025-11-20)
 
 ### Documentation
