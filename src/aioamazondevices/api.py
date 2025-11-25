@@ -364,8 +364,7 @@ class AmazonEchoApi:
                 device_details[0] is None
                 and endpoint_device.device_type != SPEAKER_GROUP_DEVICE_TYPE
             ):
-                model_details = self.get_model_details(endpoint_device)
-                if model_details is None:
+                if not (model_details := self.get_model_details(endpoint_device)):
                     continue
                 endpoint_device.model = model_details["model"]
                 endpoint_device.hardware_version = model_details["hw_version"]
