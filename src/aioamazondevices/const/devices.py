@@ -417,4 +417,13 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Ford SYNC 4",
         "hw_version": None,
     },
+    "A1J16TEDOYCZTN": {
+        "model": "Fire Tablet 7",
+        "hw_version": "Gen7",
+    },
+    "A18TCD9FP10WJ9": {
+        "manufacturer": "Netgear",
+        "model": "Orbi Voice (RBS40V)",
+        "hw_version": None,
+    },
 }
