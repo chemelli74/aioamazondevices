@@ -5,8 +5,9 @@ from typing import Any
 
 import orjson
 
-from aioamazondevices.const.metadata import ALEXA_INFO_SKILLS
+from aioamazondevices.const.metadata import ALEXA_INFO_SKILLS, SEQUENCE_BATCH_DELAY
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
+from aioamazondevices.implementation.sequence_batcher import SequenceBatcher
 from aioamazondevices.structures import (
     AmazonDevice,
     AmazonMusicSource,
@@ -26,18 +27,55 @@ class AmazonSequenceHandler:
         """Initialize AmazonSequenceHandler."""
         self._http_wrapper = http_wrapper
         self._session_state_data = session_state_data
+        self._sequence_batcher = SequenceBatcher(
+            batch_delay=SEQUENCE_BATCH_DELAY,
+            send_callback=self._send_sequences,
+        )
 
-    async def send_message(
+    async def _send_sequences(self, operation_nodes: list[dict[str, Any]]) -> None:
+        """Send batched sequence operations to Amazon API.
+
+        Args:
+            operation_nodes: List of operation nodes to execute in sequence
+
+        """
+        if not self._session_state_data.login_stored_data:
+            _LOGGER.warning("No login data available, cannot send sequences")
+            return
+
+        sequence = {
+            "@type": "com.amazon.alexa.behaviors.model.Sequence",
+            "startNode": {
+                "@type": "com.amazon.alexa.behaviors.model.SerialNode",
+                "nodesToExecute": operation_nodes,
+            },
+        }
+
+        node_data = {
+            "behaviorId": "PREVIEW",
+            "sequenceJson": orjson.dumps(sequence).decode("utf-8"),
+            "status": "ENABLED",
+        }
+
+        _LOGGER.debug("Sending sequence with %s operations", len(operation_nodes))
+        await self._http_wrapper.session_request(
+            method=HTTPMethod.POST,
+            url=f"https://alexa.amazon.{self._session_state_data.domain}/api/behaviors/preview",
+            input_data=node_data,
+            json_data=True,
+        )
+
+    async def _build_operation_node(
         self,
         device: AmazonDevice,
         message_type: str,
-        message_body: str,
+        message_body: str | float | None = None,
         message_source: AmazonMusicSource | None = None,
-    ) -> None:
+    ) -> dict[str, Any]:
         """Send message to specific device."""
         if not self._session_state_data.login_stored_data:
             _LOGGER.warning("No login data available, cannot send message")
-            return
+            return {}
 
         base_payload = {
             "deviceType": device.device_type,
@@ -120,7 +158,7 @@ class AmazonSequenceHandler:
                     "deviceSerialNumber": device.serial_number,
                 },
                 "connectionRequest": {
-                    "uri": "connection://AMAZON.Launch/" + message_body,
+                    "uri": "connection://AMAZON.Launch/" + str(message_body),
                 },
             }
         elif message_type in ALEXA_INFO_SKILLS:
@@ -130,30 +168,21 @@ class AmazonSequenceHandler:
         else:
             raise ValueError(f"Message type <{message_type}> is not recognised")
 
-        sequence = {
-            "@type": "com.amazon.alexa.behaviors.model.Sequence",
-            "startNode": {
-                "@type": "com.amazon.alexa.behaviors.model.SerialNode",
-                "nodesToExecute": [
-                    {
-                        "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",  # noqa: E501
-                        "type": message_type,
-                        "operationPayload": payload,
-                    },
-                ],
-            },
+        return {
+            "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",
+            "type": message_type,
+            "operationPayload": payload,
         }
 
-        node_data = {
-            "behaviorId": "PREVIEW",
-            "sequenceJson": orjson.dumps(sequence).decode("utf-8"),
-            "status": "ENABLED",
-        }
-
-        _LOGGER.debug("Preview data payload: %s", node_data)
-        await self._http_wrapper.session_request(
-            method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}/api/behaviors/preview",
-            input_data=node_data,
-            json_data=True,
+    async def send_message(
+        self,
+        device: AmazonDevice,
+        message_type: str,
+        message_body: str | float | None = None,
+        message_source: AmazonMusicSource | None = None,
+    ) -> None:
+        """Send message to specific device."""
+        node = await self._build_operation_node(
+            device, message_type, message_body, message_source
         )
+        await self._sequence_batcher.enqueue(node)
