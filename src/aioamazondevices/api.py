@@ -30,7 +30,7 @@ from .exceptions import (
     CannotRetrieveData,
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from .implementation.dnd import get_do_not_disturb_status
+from .implementation.dnd import AmazonDoNotDisturbHandler
 from .implementation.notification import AmazonNotificationHandler
 from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
@@ -83,6 +83,11 @@ class AmazonEchoApi:
         )
 
         self._sequence_handler = AmazonSequenceHandler(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
+        self._dnd_handler = AmazonDoNotDisturbHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
         )
@@ -293,9 +298,7 @@ class AmazonEchoApi:
 
     async def _get_sensor_data(self) -> None:
         devices_sensors = await self._get_sensors_states()
-        dnd_sensors = await get_do_not_disturb_status(
-            self._http_wrapper, self._session_state_data.domain
-        )
+        dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
         notifications = await self._notification_handler.get_notifications()
         for device in self._final_devices.values():
             # Update sensors
@@ -490,6 +493,10 @@ class AmazonEchoApi:
     ) -> None:
         """Call Info skill.  See ALEXA_INFO_SKILLS . const."""
         await self._sequence_handler.send_message(device, info_skill_name, "")
+
+    async def set_do_not_disturb(self, device: AmazonDevice, state: bool) -> None:
+        """Set do_not_disturb flag."""
+        await self._dnd_handler.set_do_not_disturb(device, state)
 
     async def _format_human_error(self, sensors_state: dict) -> bool:
         """Format human readable error from malformed data."""
