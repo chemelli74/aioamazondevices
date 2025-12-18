@@ -30,7 +30,7 @@ from .exceptions import (
     CannotRetrieveData,
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from .implementation.dnd import get_do_not_disturb_status
+from .implementation.dnd import AmazonDnDHandler
 from .implementation.notification import AmazonNotificationHandler
 from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
@@ -85,6 +85,10 @@ class AmazonEchoApi:
         self._sequence_handler = AmazonSequenceHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
+        )
+
+        self._dnd_handler = AmazonDnDHandler(
+            http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
         )
 
         self._final_devices: dict[str, AmazonDevice] = {}
@@ -293,9 +297,7 @@ class AmazonEchoApi:
 
     async def _get_sensor_data(self) -> None:
         devices_sensors = await self._get_sensors_states()
-        dnd_sensors = await get_do_not_disturb_status(
-            self._http_wrapper, self._session_state_data.domain
-        )
+        dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
         notifications = await self._notification_handler.get_notifications()
         for device in self._final_devices.values():
             # Update sensors
@@ -505,3 +507,7 @@ class AmazonEchoApi:
         path = error[0].get("path", "Unknown path")
         _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
         return True
+
+    async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
+        """Set Do Not Disturb status for a device."""
+        await self._dnd_handler.set_do_not_disturb(device, enable)
