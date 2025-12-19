@@ -8,7 +8,7 @@ from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 
 
 class AmazonDnDHandler:
-    """Class to handle Alexa dnd."""
+    """Class to handle Alexa Do Not Disturb functionality."""
 
     def __init__(
         self,
@@ -40,12 +40,12 @@ class AmazonDnDHandler:
             )
         return dnd_status
 
-    async def set_do_not_disturb(self, device: AmazonDevice, state: bool) -> None:
+    async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set do_not_disturb flag."""
         payload = {
             "deviceSerialNumber": device.serial_number,
             "deviceType": device.device_type,
-            "enabled": state,
+            "enabled": enable,
         }
         url = f"https://alexa.amazon.{self._domain}{URI_DND_STATUS_DEVICE}"
         await self._http_wrapper.session_request(
