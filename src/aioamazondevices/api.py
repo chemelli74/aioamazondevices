@@ -17,7 +17,6 @@ from .const.http import (
     ARRAY_WRAPPER,
     DEFAULT_SITE,
     URI_DEVICES,
-    URI_DND,
     URI_NEXUS_GRAPHQL,
 )
 from .const.metadata import ALEXA_INFO_SKILLS, SENSORS
@@ -31,6 +30,7 @@ from .exceptions import (
     CannotRetrieveData,
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
+from .implementation.dnd import AmazonDnDHandler
 from .implementation.notification import AmazonNotificationHandler
 from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
@@ -85,6 +85,10 @@ class AmazonEchoApi:
         self._sequence_handler = AmazonSequenceHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
+        )
+
+        self._dnd_handler = AmazonDnDHandler(
+            http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
         )
 
         self._final_devices: dict[str, AmazonDevice] = {}
@@ -293,7 +297,7 @@ class AmazonEchoApi:
 
     async def _get_sensor_data(self) -> None:
         devices_sensors = await self._get_sensors_states()
-        dnd_sensors = await self._get_dnd_status()
+        dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
         notifications = await self._notification_handler.get_notifications()
         for device in self._final_devices.values():
             # Update sensors
@@ -490,41 +494,6 @@ class AmazonEchoApi:
         info_skill = ALEXA_INFO_SKILLS.get(info_skill_name, info_skill_name)
         await self._sequence_handler.send_message(device, info_skill, "")
 
-    async def set_do_not_disturb(self, device: AmazonDevice, state: bool) -> None:
-        """Set do_not_disturb flag."""
-        payload = {
-            "deviceSerialNumber": device.serial_number,
-            "deviceType": device.device_type,
-            "enabled": state,
-        }
-        url = f"https://alexa.amazon.{self._session_state_data.domain}/api/dnd/status"
-        await self._http_wrapper.session_request(
-            method="PUT",
-            url=url,
-            input_data=payload,
-            json_data=True,
-        )
-
-    async def _get_dnd_status(self) -> dict[str, AmazonDeviceSensor]:
-        dnd_status: dict[str, AmazonDeviceSensor] = {}
-        _, raw_resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DND}",
-        )
-
-        dnd_data = await self._http_wrapper.response_to_json(raw_resp, "dnd")
-
-        for dnd in dnd_data.get("doNotDisturbDeviceStatusList", {}):
-            dnd_status[dnd.get("deviceSerialNumber")] = AmazonDeviceSensor(
-                name="dnd",
-                value=dnd.get("enabled"),
-                error=False,
-                error_type=None,
-                error_msg=None,
-                scale=None,
-            )
-        return dnd_status
-
     async def _format_human_error(self, sensors_state: dict) -> bool:
         """Format human readable error from malformed data."""
         if sensors_state.get(ARRAY_WRAPPER):
@@ -539,3 +508,7 @@ class AmazonEchoApi:
         path = error[0].get("path", "Unknown path")
         _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
         return True
+
+    async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
+        """Set Do Not Disturb status for a device."""
+        await self._dnd_handler.set_do_not_disturb(device, enable)
