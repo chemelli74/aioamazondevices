@@ -5,6 +5,7 @@ import getpass
 import json
 import logging
 import mimetypes
+import signal
 import sys
 from argparse import ArgumentParser, Namespace
 from collections.abc import Callable
@@ -87,6 +88,21 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
     return parser, Namespace(**args)
 
 
+async def wait_until_ctrl_c() -> None:
+    """Wait indefinitely until Ctrl-C (SIGINT)."""
+    loop = asyncio.get_running_loop()
+    stop_event = asyncio.Event()
+
+    def _on_signal() -> None:
+        stop_event.set()
+
+    # Register signal handlers (Unix/macOS)
+    loop.add_signal_handler(signal.SIGINT, _on_signal)
+    loop.add_signal_handler(signal.SIGTERM, _on_signal)
+
+    await stop_event.wait()
+
+
 def read_from_file(data_file: str) -> dict[str, Any]:
     """Load stored login data from file."""
     if not data_file or not (file := Path(data_file)).exists():
@@ -119,7 +135,7 @@ async def save_to_file(
         base_filename = f"{url_split[3]}-{url_split[4].split('?')[0]}"
     else:
         base_filename = url
-    fullpath = Path(output_dir, base_filename + extension)
+    fullpath = Path(output_dir, "2025-12-20-" + base_filename + extension)
 
     data: str
     if isinstance(raw_data, dict):
@@ -222,6 +238,11 @@ async def main() -> None:
     await save_to_file(login_data, "output-login-data")
 
     print("-" * 20)
+    print("Starting HTTP2 background thread")
+    print("-" * 20)
+    await api.start_http2_thread()
+
+    print("-" * 20)
     try:
         devices = await api.get_devices_data()
     except (CannotAuthenticate, CannotConnect, CannotRegisterDevice) as exc:
@@ -239,6 +260,9 @@ async def main() -> None:
         sys.exit(0)
 
     await save_to_file(devices, "output-devices")
+
+    print("Waiting for CTRL-C...")
+    await wait_until_ctrl_c()
 
     if not args.test:
         print("!!! No testing requested, exiting !!!")
