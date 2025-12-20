@@ -208,7 +208,11 @@ class AmazonHTTP2Client:
             response.status_code,
             response.text,
         )
-        if response.status_code in [403]:
+        if response.status_code in [
+            HTTPStatus.FORBIDDEN,
+            HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
+            HTTPStatus.UNAUTHORIZED,
+        ]:
             raise CannotAuthenticate(
                 "Detected ping 403, please check your credentials and region"
             )
