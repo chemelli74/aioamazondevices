@@ -1,5 +1,19 @@
 # Changelog
 
+## v11.0.0 (2025-12-19)
+
+### Refactoring
+
+- Introduce dnd.py ([`202de63`](https://github.com/chemelli74/aioamazondevices/commit/202de6355489c0ece731beaf61bd9f8ee5c7cfb7))
+
+
+### Build system
+
+- Bump python-semantic-release/python-semantic-release from 10.5.2 to 10.5.3 ([`b927b4d`](https://github.com/chemelli74/aioamazondevices/commit/b927b4de4c3534e31fdae80dc19f430be25a40c6))
+- Bump pytest from 9.0.1 to 9.0.2 ([`4dabdb3`](https://github.com/chemelli74/aioamazondevices/commit/4dabdb31af2def7e19eefae353e174ce1c2d451f))
+- Bump orjson from 3.11.4 to 3.11.5 ([`998f7ec`](https://github.com/chemelli74/aioamazondevices/commit/998f7ecde1ec8cafa319ce9622ad7cad9303dad7))
+
+
 ## v10.0.0 (2025-11-25)
 
 ### Refactoring

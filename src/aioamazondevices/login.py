@@ -10,20 +10,17 @@ from http import HTTPMethod, HTTPStatus
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
-import orjson
 from bs4 import BeautifulSoup, Tag
 from multidict import MultiDictProxy
 from yarl import URL
 
 from .const.http import (
-    AMAZON_APP_BUNDLE_ID,
     AMAZON_APP_NAME,
     AMAZON_APP_VERSION,
     AMAZON_CLIENT_OS,
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
     DEFAULT_SITE,
-    REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     URI_DEVICES,
     URI_SIGNIN,
@@ -362,7 +359,7 @@ class AmazonLogin:
 
     async def _refresh_auth_cookies(self) -> None:
         """Refresh cookies after domain swap."""
-        _, json_token_resp = await self._refresh_data(REFRESH_AUTH_COOKIES)
+        _, json_token_resp = await self._http_wrapper.refresh_data(REFRESH_AUTH_COOKIES)
 
         # Need to take cookies from response and create them as cookies
         website_cookies = self._session_state_data.login_stored_data[
@@ -393,59 +390,6 @@ class AmazonLogin:
             self._session_state_data.country_specific_data(user_domain)
             await self._http_wrapper.clear_csrf_cookie()
             await self._refresh_auth_cookies()
-
-    async def _refresh_data(self, data_type: str) -> tuple[bool, dict]:
-        """Refresh data."""
-        if not self._session_state_data.login_stored_data:
-            _LOGGER.debug("No login data available, cannot refresh")
-            return False, {}
-
-        data = {
-            "app_name": AMAZON_APP_NAME,
-            "app_version": AMAZON_APP_VERSION,
-            "di.sdk.version": "6.12.4",
-            "source_token": self._session_state_data.login_stored_data["refresh_token"],
-            "package_name": AMAZON_APP_BUNDLE_ID,
-            "di.hw.version": "iPhone",
-            "platform": "iOS",
-            "requested_token_type": data_type,
-            "source_token_type": "refresh_token",
-            "di.os.name": "iOS",
-            "di.os.version": AMAZON_CLIENT_OS,
-            "current_version": "6.12.4",
-            "previous_version": "6.12.4",
-            "domain": f"www.amazon.{self._session_state_data.domain}",
-        }
-
-        _, raw_resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.POST,
-            url="https://api.amazon.com/auth/token",
-            input_data=data,
-            json_data=False,
-        )
-        _LOGGER.debug(
-            "Refresh data response %s with payload %s",
-            raw_resp.status,
-            orjson.dumps(data),
-        )
-
-        if raw_resp.status != HTTPStatus.OK:
-            _LOGGER.debug("Failed to refresh data")
-            return False, {}
-
-        json_response = await self._http_wrapper.response_to_json(raw_resp, data_type)
-
-        if data_type == REFRESH_ACCESS_TOKEN and (
-            new_token := json_response.get(REFRESH_ACCESS_TOKEN)
-        ):
-            self._session_state_data.login_stored_data[REFRESH_ACCESS_TOKEN] = new_token
-            return True, json_response
-
-        if data_type == REFRESH_AUTH_COOKIES:
-            return True, json_response
-
-        _LOGGER.debug("Unexpected refresh data response")
-        return False, {}
 
     async def obtain_account_customer_id(self) -> None:
         """Find account customer id."""

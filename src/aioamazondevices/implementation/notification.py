@@ -8,7 +8,7 @@ from dateutil.parser import parse
 from dateutil.rrule import rrulestr
 
 from aioamazondevices.const.devices import DEVICE_TO_IGNORE
-from aioamazondevices.const.http import URI_NOTIFICATIONS
+from aioamazondevices.const.http import REQUEST_AGENT, URI_NOTIFICATIONS
 from aioamazondevices.const.schedules import (
     COUNTRY_GROUPS,
     NOTIFICATION_ALARM,
@@ -45,6 +45,7 @@ class AmazonNotificationHandler:
             _, raw_resp = await self._http_wrapper.session_request(
                 HTTPMethod.GET,
                 url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NOTIFICATIONS}",
+                extended_headers={"User-Agent": REQUEST_AGENT["Browser"]},
             )
         except CannotRetrieveData:
             _LOGGER.warning(
