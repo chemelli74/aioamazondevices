@@ -109,9 +109,7 @@ class AmazonSequenceHandler:
         if not self._session_state_data.login_stored_data:
             _LOGGER.warning("No login data available, cannot send message")
             raise CannotConnect(
-                "Cannot perform %s action on %s as not logged in",
-                message_type,
-                device.serial_number,
+                f"Cannot perform {message_type} on {device.serial_number} as not logged in"  # noqa: E501
             )
 
         base_payload = {
