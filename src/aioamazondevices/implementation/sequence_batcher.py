@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from aioamazondevices.utils import _LOGGER
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
+
+    from aioamazondevices.structures import AmazonSequenceNode
 
 
 class SequenceBatcher:
@@ -17,7 +19,7 @@ class SequenceBatcher:
     def __init__(
         self,
         batch_delay: float,
-        send_callback: Callable[[list[dict[str, Any]]], Awaitable[None]],
+        send_callback: Callable[[list[AmazonSequenceNode]], Awaitable[None]],
     ) -> None:
         """Initialize the sequence batcher.
 
@@ -29,21 +31,20 @@ class SequenceBatcher:
         self._batch_delay = batch_delay
         self._send_callback = send_callback
 
-        self._buffer: list[dict[str, Any]] = []
+        self._buffer: list[AmazonSequenceNode] = []
         self._lock = asyncio.Lock()
         self._batch_pending = False
         self._tasks: set[asyncio.Task] = set()
 
-    async def enqueue(self, operation_node: dict[str, Any]) -> None:
+    async def enqueue(self, sequence: AmazonSequenceNode) -> None:
         """Add an operation node to the batch queue.
 
         Args:
-            operation_node: The operation node to enqueue
+            sequence: The sequence node to enqueue
 
         """
         async with self._lock:
-            self._buffer.append(operation_node)
-
+            self._buffer.append(sequence)
             if not self._batch_pending:
                 self._batch_pending = True
                 task = asyncio.create_task(self._process_batch())

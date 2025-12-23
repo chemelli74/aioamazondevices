@@ -1,6 +1,8 @@
 """Module to handle Alexa sequence operations."""
 
+from collections.abc import Generator
 from http import HTTPMethod
+from itertools import groupby
 from typing import Any
 
 import orjson
@@ -11,6 +13,7 @@ from aioamazondevices.implementation.sequence_batcher import SequenceBatcher
 from aioamazondevices.structures import (
     AmazonDevice,
     AmazonMusicSource,
+    AmazonSequenceNode,
     AmazonSequenceType,
 )
 from aioamazondevices.utils import _LOGGER
@@ -32,16 +35,18 @@ class AmazonSequenceHandler:
             send_callback=self._send_sequences,
         )
 
-    async def _send_sequences(self, operation_nodes: list[dict[str, Any]]) -> None:
+    async def _send_sequences(self, sequences: list[AmazonSequenceNode]) -> None:
         """Send batched sequence operations to Amazon API.
 
         Args:
-            operation_nodes: List of operation nodes to execute in sequence
+            sequences: List of sequence nodes to execute in sequence
 
         """
         if not self._session_state_data.login_stored_data:
             _LOGGER.warning("No login data available, cannot send sequences")
             return
+
+        operation_nodes = list(self._optimise_sequence_nodes(sequences))
 
         sequence = {
             "@type": "com.amazon.alexa.behaviors.model.Sequence",
@@ -57,13 +62,37 @@ class AmazonSequenceHandler:
             "status": "ENABLED",
         }
 
-        _LOGGER.debug("Sending sequence with %s operations", len(operation_nodes))
+        _LOGGER.debug("Sending sequence with %s operations", len(sequences))
         await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
             url=f"https://alexa.amazon.{self._session_state_data.domain}/api/behaviors/preview",
             input_data=node_data,
             json_data=True,
         )
+
+    def _optimise_sequence_nodes(
+        self, sequences: list[AmazonSequenceNode]
+    ) -> Generator[dict[str, Any], None, None]:
+        """Optimise sequence nodes by wrapping similar operations in parallel nodes.
+
+        Args:
+            sequences: List of sequence nodes to optimise
+
+        """
+        for sequence, group_iter in groupby(
+            sequences,
+            key=lambda x: (x.message_type, x.message_body, x.message_source),
+        ):
+            group = list(group_iter)
+            if len(group) > 1 and len(
+                {sequence.device.serial_number for sequence in group}
+            ) == len(group):
+                yield {
+                    "@type": "com.amazon.alexa.behaviors.model.ParallelNode",
+                    "nodesToExecute": [sequence.operation_node for sequence in group],
+                }
+            else:
+                yield from (sequence.operation_node for sequence in group)
 
     async def _build_operation_node(
         self,
@@ -185,4 +214,12 @@ class AmazonSequenceHandler:
         node = await self._build_operation_node(
             device, message_type, message_body, message_source
         )
-        await self._sequence_batcher.enqueue(node)
+        await self._sequence_batcher.enqueue(
+            AmazonSequenceNode(
+                message_type=message_type,
+                message_body=message_body,
+                message_source=message_source,
+                device=device,
+                operation_node=node,
+            )
+        )
