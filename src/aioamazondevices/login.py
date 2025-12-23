@@ -10,26 +10,26 @@ from http import HTTPMethod, HTTPStatus
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
-import orjson
 from bs4 import BeautifulSoup, Tag
 from multidict import MultiDictProxy
 from yarl import URL
 
 from .const.http import (
-    AMAZON_APP_BUNDLE_ID,
     AMAZON_APP_NAME,
     AMAZON_APP_VERSION,
     AMAZON_CLIENT_OS,
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
     DEFAULT_SITE,
-    REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
+    URI_DEVICES,
     URI_SIGNIN,
 )
+from .const.metadata import MAX_CUSTOMER_ACCOUNT_RETRIES
 from .exceptions import (
     CannotAuthenticate,
     CannotRegisterDevice,
+    CannotRetrieveData,
     WrongMethod,
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
@@ -257,17 +257,15 @@ class AmazonLogin:
         device_login_data = await self._login_mode_interactive_oauth(otp_code)
 
         login_data = await self._register_device(device_login_data)
-        self._session_state_data.load_login_stored_data(login_data)
+        self._session_state_data.login_stored_data = login_data
 
         await self._domain_refresh_auth_cookies()
+
+        await self.obtain_account_customer_id()
 
         self._session_state_data.login_stored_data.update(
             {"site": f"https://www.amazon.{self._session_state_data.domain}"}
         )
-
-        # Can take a little while to register device but we need it
-        # to be able to pickout account customer ID
-        await asyncio.sleep(2)
 
         return self._session_state_data.login_stored_data
 
@@ -340,6 +338,8 @@ class AmazonLogin:
             obfuscate_email(self._session_state_data.login_email),
         )
 
+        await self.obtain_account_customer_id()
+
         return self._session_state_data.login_stored_data
 
     async def _get_alexa_domain(self) -> str:
@@ -359,7 +359,7 @@ class AmazonLogin:
 
     async def _refresh_auth_cookies(self) -> None:
         """Refresh cookies after domain swap."""
-        _, json_token_resp = await self._refresh_data(REFRESH_AUTH_COOKIES)
+        _, json_token_resp = await self._http_wrapper.refresh_data(REFRESH_AUTH_COOKIES)
 
         # Need to take cookies from response and create them as cookies
         website_cookies = self._session_state_data.login_stored_data[
@@ -391,55 +391,49 @@ class AmazonLogin:
             await self._http_wrapper.clear_csrf_cookie()
             await self._refresh_auth_cookies()
 
-    async def _refresh_data(self, data_type: str) -> tuple[bool, dict]:
-        """Refresh data."""
-        if not self._session_state_data.login_stored_data:
-            _LOGGER.debug("No login data available, cannot refresh")
-            return False, {}
+    async def obtain_account_customer_id(self) -> None:
+        """Find account customer id."""
+        for retry_count in range(MAX_CUSTOMER_ACCOUNT_RETRIES):
+            if not self._session_state_data.account_customer_id:
+                await asyncio.sleep(2)  # allow time for device to be registered
 
-        data = {
-            "app_name": AMAZON_APP_NAME,
-            "app_version": AMAZON_APP_VERSION,
-            "di.sdk.version": "6.12.4",
-            "source_token": self._session_state_data.login_stored_data["refresh_token"],
-            "package_name": AMAZON_APP_BUNDLE_ID,
-            "di.hw.version": "iPhone",
-            "platform": "iOS",
-            "requested_token_type": data_type,
-            "source_token_type": "refresh_token",
-            "di.os.name": "iOS",
-            "di.os.version": AMAZON_CLIENT_OS,
-            "current_version": "6.12.4",
-            "previous_version": "6.12.4",
-            "domain": f"www.amazon.{self._session_state_data.domain}",
-        }
+            _LOGGER.debug(
+                "Lookup customer account ID (attempt %d/%d)",
+                retry_count + 1,
+                MAX_CUSTOMER_ACCOUNT_RETRIES,
+            )
+            _, raw_resp = await self._http_wrapper.session_request(
+                method=HTTPMethod.GET,
+                url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICES}",
+            )
 
-        _, raw_resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.POST,
-            url="https://api.amazon.com/auth/token",
-            input_data=data,
-            json_data=False,
-        )
-        _LOGGER.debug(
-            "Refresh data response %s with payload %s",
-            raw_resp.status,
-            orjson.dumps(data),
-        )
+            json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
 
-        if raw_resp.status != HTTPStatus.OK:
-            _LOGGER.debug("Failed to refresh data")
-            return False, {}
+            for device in json_data.get("devices", []):
+                dev_serial = device.get("serialNumber")
+                if not dev_serial:
+                    _LOGGER.warning(
+                        "Skipping device without serial number: %s",
+                        device["accountName"],
+                    )
+                    continue
+                if device["deviceType"] != AMAZON_DEVICE_TYPE:
+                    continue
 
-        json_response = await self._http_wrapper.response_to_json(raw_resp, data_type)
+                this_device_serial = self._session_state_data.login_stored_data[
+                    "device_info"
+                ]["device_serial_number"]
 
-        if data_type == REFRESH_ACCESS_TOKEN and (
-            new_token := json_response.get(REFRESH_ACCESS_TOKEN)
-        ):
-            self._session_state_data.login_stored_data[REFRESH_ACCESS_TOKEN] = new_token
-            return True, json_response
-
-        if data_type == REFRESH_AUTH_COOKIES:
-            return True, json_response
-
-        _LOGGER.debug("Unexpected refresh data response")
-        return False, {}
+                for subdevice in device["appDeviceList"]:
+                    if subdevice["serialNumber"] == this_device_serial:
+                        account_owner_customer_id = device["deviceOwnerCustomerId"]
+                        _LOGGER.debug(
+                            "Setting account owner: %s",
+                            account_owner_customer_id,
+                        )
+                        self._session_state_data.account_customer_id = (
+                            account_owner_customer_id
+                        )
+                        return
+        if not self._session_state_data.account_customer_id:
+            raise CannotRetrieveData("Cannot find account owner customer ID")

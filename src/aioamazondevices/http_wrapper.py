@@ -4,7 +4,7 @@ import asyncio
 import base64
 import secrets
 from collections.abc import Callable, Coroutine
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 from http.cookies import Morsel
 from typing import Any, cast
 
@@ -23,13 +23,17 @@ from . import __version__
 from .const.http import (
     AMAZON_APP_BUNDLE_ID,
     AMAZON_APP_ID,
+    AMAZON_APP_NAME,
     AMAZON_APP_VERSION,
+    AMAZON_CLIENT_OS,
     AMAZON_DEVICE_SOFTWARE_VERSION,
     ARRAY_WRAPPER,
     CSRF_COOKIE,
     DEFAULT_HEADERS,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
+    REFRESH_ACCESS_TOKEN,
+    REFRESH_AUTH_COOKIES,
     REQUEST_AGENT,
     URI_SIGNIN,
 )
@@ -56,6 +60,7 @@ class AmazonSessionStateData:
         self._login_password: str = login_password
         self._login_stored_data: dict[str, Any] = login_data or {}
         self.country_specific_data(domain)
+        self._account_customer_id: str | None = None
 
     @property
     def country_code(self) -> str:
@@ -87,6 +92,21 @@ class AmazonSessionStateData:
         """Return login stored data."""
         return self._login_stored_data
 
+    @login_stored_data.setter
+    def login_stored_data(self, data: dict[str, Any]) -> None:
+        """Set login stored data."""
+        self._login_stored_data = data
+
+    @property
+    def account_customer_id(self) -> str | None:
+        """Return account customer id."""
+        return self._account_customer_id
+
+    @account_customer_id.setter
+    def account_customer_id(self, customer_id: str | None) -> None:
+        """Set account customer id."""
+        self._account_customer_id = customer_id
+
     def country_specific_data(self, domain: str) -> None:
         """Set country specific data."""
         # Force lower case
@@ -107,11 +127,6 @@ class AmazonSessionStateData:
             self._domain,
             self._language,
         )
-
-    def load_login_stored_data(self, data: dict[str, Any]) -> dict[str, Any]:
-        """Load to Amazon using previously stored data."""
-        self._login_stored_data = data
-        return self._login_stored_data
 
 
 class AmazonHttpWrapper:
@@ -203,13 +218,66 @@ class AmazonHttpWrapper:
 
         return HTTPStatus(error).phrase
 
+    async def refresh_data(self, data_type: str) -> tuple[bool, dict]:
+        """Refresh data."""
+        if not self._session_state_data.login_stored_data:
+            _LOGGER.debug("No login data available, cannot refresh")
+            return False, {}
+
+        data = {
+            "app_name": AMAZON_APP_NAME,
+            "app_version": AMAZON_APP_VERSION,
+            "di.sdk.version": "6.12.4",
+            "source_token": self._session_state_data.login_stored_data["refresh_token"],
+            "package_name": AMAZON_APP_BUNDLE_ID,
+            "di.hw.version": "iPhone",
+            "platform": "iOS",
+            "requested_token_type": data_type,
+            "source_token_type": "refresh_token",
+            "di.os.name": "iOS",
+            "di.os.version": AMAZON_CLIENT_OS,
+            "current_version": "6.12.4",
+            "previous_version": "6.12.4",
+            "domain": f"www.amazon.{self._session_state_data.domain}",
+        }
+
+        _, raw_resp = await self.session_request(
+            method=HTTPMethod.POST,
+            url="https://api.amazon.com/auth/token",
+            input_data=data,
+            json_data=False,
+        )
+        _LOGGER.debug(
+            "Refresh data response %s with payload %s",
+            raw_resp.status,
+            orjson.dumps(data),
+        )
+
+        if raw_resp.status != HTTPStatus.OK:
+            _LOGGER.debug("Failed to refresh data")
+            return False, {}
+
+        json_response = await self.response_to_json(raw_resp, data_type)
+
+        if data_type == REFRESH_ACCESS_TOKEN and (
+            new_token := json_response.get(REFRESH_ACCESS_TOKEN)
+        ):
+            self._session_state_data.login_stored_data[REFRESH_ACCESS_TOKEN] = new_token
+            return True, json_response
+
+        if data_type == REFRESH_AUTH_COOKIES:
+            return True, json_response
+
+        _LOGGER.debug("Unexpected refresh data response")
+        return False, {}
+
     async def session_request(
         self,
         method: str,
         url: str,
         input_data: dict[str, Any] | list[dict[str, Any]] | None = None,
         json_data: bool = False,
-        agent: str = "Amazon",
+        extended_headers: dict[str, str] | None = None,
     ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
@@ -221,10 +289,12 @@ class AmazonHttpWrapper:
         )
 
         headers = DEFAULT_HEADERS.copy()
-        headers.update({"User-Agent": REQUEST_AGENT[agent]})
+        headers.update({"User-Agent": REQUEST_AGENT["Amazon"]})
         headers.update({"Accept-Language": self._session_state_data.language})
-        headers.update({"x-amzn-client": "aioamazondevices"})
+        headers.update({"x-amzn-client": "github.com/chemelli74/aioamazondevices"})
         headers.update({"x-amzn-build-version": __version__})
+        if extended_headers:
+            headers.update(extended_headers)
 
         if self._csrf_cookie:
             csrf = {CSRF_COOKIE: self._csrf_cookie}

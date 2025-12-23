@@ -6,10 +6,7 @@ from datetime import UTC, datetime, timedelta
 from http import HTTPMethod
 from typing import Any
 
-import orjson
 from aiohttp import ClientSession
-from dateutil.parser import parse
-from dateutil.rrule import rrulestr
 
 from . import __version__
 from .const.devices import (
@@ -18,36 +15,30 @@ from .const.devices import (
     SPEAKER_GROUP_FAMILY,
 )
 from .const.http import (
-    AMAZON_DEVICE_TYPE,
     ARRAY_WRAPPER,
     DEFAULT_SITE,
     URI_DEVICES,
-    URI_DND,
     URI_NEXUS_GRAPHQL,
-    URI_NOTIFICATIONS,
 )
-from .const.metadata import ALEXA_INFO_SKILLS, MAX_VOLUME, MIN_VOLUME, SENSORS
+from .const.metadata import MAX_VOLUME, MIN_VOLUME, SENSORS
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
-    COUNTRY_GROUPS,
     NOTIFICATION_ALARM,
-    NOTIFICATION_MUSIC_ALARM,
     NOTIFICATION_REMINDER,
     NOTIFICATION_TIMER,
-    NOTIFICATIONS_SUPPORTED,
-    RECURRING_PATTERNS,
-    WEEKEND_EXCEPTIONS,
 )
 from .exceptions import (
     CannotRetrieveData,
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
+from .implementation.dnd import AmazonDnDHandler
+from .implementation.notification import AmazonNotificationHandler
+from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
 from .structures import (
     AmazonDevice,
     AmazonDeviceSensor,
     AmazonMusicSource,
-    AmazonSchedule,
     AmazonSequenceType,
 )
 from .utils import _LOGGER
@@ -87,8 +78,19 @@ class AmazonEchoApi:
             session_state_data=self._session_state_data,
         )
 
-        self._account_owner_customer_id: str | None = None
-        self._list_for_clusters: dict[str, str] = {}
+        self._notification_handler = AmazonNotificationHandler(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
+        self._sequence_handler = AmazonSequenceHandler(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
+        self._dnd_handler = AmazonDnDHandler(
+            http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
+        )
 
         self._final_devices: dict[str, AmazonDevice] = {}
         self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
@@ -261,205 +263,6 @@ class AmazonEchoApi:
 
         return devices_endpoints
 
-    async def _get_notifications(self) -> dict[str, dict[str, AmazonSchedule]]:
-        final_notifications: dict[str, dict[str, AmazonSchedule]] = {}
-
-        _, raw_resp = await self._http_wrapper.session_request(
-            HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NOTIFICATIONS}",
-        )
-
-        notifications = await self._http_wrapper.response_to_json(
-            raw_resp, "notifications"
-        )
-
-        for schedule in notifications["notifications"]:
-            schedule_type: str = schedule["type"]
-            schedule_device_serial = schedule["deviceSerialNumber"]
-
-            if schedule_device_serial in DEVICE_TO_IGNORE:
-                continue
-
-            if schedule_type not in NOTIFICATIONS_SUPPORTED:
-                _LOGGER.debug(
-                    "Unsupported schedule type %s for device %s",
-                    schedule_type,
-                    schedule_device_serial,
-                )
-                continue
-
-            if schedule_type == NOTIFICATION_MUSIC_ALARM:
-                # Structure is the same as standard Alarm
-                schedule_type = NOTIFICATION_ALARM
-                schedule["type"] = NOTIFICATION_ALARM
-            label_desc = schedule_type.lower() + "Label"
-            if (schedule_status := schedule["status"]) == "ON" and (
-                next_occurrence := await self._parse_next_occurence(schedule)
-            ):
-                schedule_notification_list = final_notifications.get(
-                    schedule_device_serial, {}
-                )
-                schedule_notification_by_type = schedule_notification_list.get(
-                    schedule_type
-                )
-                # Replace if no existing notification
-                # or if existing.next_occurrence is None
-                # or if new next_occurrence is earlier
-                if (
-                    not schedule_notification_by_type
-                    or schedule_notification_by_type.next_occurrence is None
-                    or next_occurrence < schedule_notification_by_type.next_occurrence
-                ):
-                    final_notifications.update(
-                        {
-                            schedule_device_serial: {
-                                **schedule_notification_list
-                                | {
-                                    schedule_type: AmazonSchedule(
-                                        type=schedule_type,
-                                        status=schedule_status,
-                                        label=schedule[label_desc],
-                                        next_occurrence=next_occurrence,
-                                    ),
-                                }
-                            }
-                        }
-                    )
-
-        return final_notifications
-
-    async def _parse_next_occurence(
-        self,
-        schedule: dict[str, Any],
-    ) -> datetime | None:
-        """Parse RFC5545 rule set for next iteration."""
-        # Local timezone
-        tzinfo = datetime.now().astimezone().tzinfo
-        # Current time
-        actual_time = datetime.now(tz=tzinfo)
-        # Reference start date
-        today_midnight = actual_time.replace(hour=0, minute=0, second=0, microsecond=0)
-        # Reference time (1 minute ago to avoid edge cases)
-        now_reference = actual_time - timedelta(minutes=1)
-
-        # Schedule data
-        original_date = schedule.get("originalDate")
-        original_time = schedule.get("originalTime")
-
-        recurring_rules: list[str] = []
-        if schedule.get("rRuleData"):
-            recurring_rules = schedule["rRuleData"]["recurrenceRules"]
-        if schedule.get("recurringPattern"):
-            recurring_rules.append(schedule["recurringPattern"])
-
-        # Recurring events
-        if recurring_rules:
-            next_candidates: list[datetime] = []
-            for recurring_rule in recurring_rules:
-                # Already in RFC5545 format
-                if "FREQ=" in recurring_rule:
-                    rule = await self._add_hours_minutes(recurring_rule, original_time)
-
-                    # Add date to candidates list
-                    next_candidates.append(
-                        rrulestr(rule, dtstart=today_midnight).after(
-                            now_reference, True
-                        ),
-                    )
-                    continue
-
-                if recurring_rule not in RECURRING_PATTERNS:
-                    _LOGGER.warning(
-                        "Unknown recurring rule <%s> for schedule type <%s>",
-                        recurring_rule,
-                        schedule["type"],
-                    )
-                    return None
-
-                # Adjust recurring rules for country specific weekend exceptions
-                recurring_pattern = RECURRING_PATTERNS.copy()
-                for group, countries in COUNTRY_GROUPS.items():
-                    if self._session_state_data.country_code in countries:
-                        recurring_pattern |= WEEKEND_EXCEPTIONS[group]
-                        break
-
-                rule = await self._add_hours_minutes(
-                    recurring_pattern[recurring_rule], original_time
-                )
-
-                # Add date to candidates list
-                next_candidates.append(
-                    rrulestr(rule, dtstart=today_midnight).after(now_reference, True),
-                )
-
-            return min(next_candidates) if next_candidates else None
-
-        # Single events
-        if schedule["type"] == NOTIFICATION_ALARM:
-            timestamp = parse(f"{original_date} {original_time}").replace(tzinfo=tzinfo)
-
-        elif schedule["type"] == NOTIFICATION_TIMER:
-            # API returns triggerTime in milliseconds since epoch
-            timestamp = datetime.fromtimestamp(
-                schedule["triggerTime"] / 1000, tz=tzinfo
-            )
-
-        elif schedule["type"] == NOTIFICATION_REMINDER:
-            # API returns alarmTime in milliseconds since epoch
-            timestamp = datetime.fromtimestamp(schedule["alarmTime"] / 1000, tz=tzinfo)
-
-        else:
-            _LOGGER.warning(("Unknown schedule type: %s"), schedule["type"])
-            return None
-
-        if timestamp > now_reference:
-            return timestamp
-
-        return None
-
-    async def _add_hours_minutes(
-        self,
-        recurring_rule: str,
-        original_time: str | None,
-    ) -> str:
-        """Add hours and minutes to a RFC5545 string."""
-        rule = recurring_rule.removesuffix(";")
-
-        if not original_time:
-            return rule
-
-        # Add missing BYHOUR, BYMINUTE if needed (Alarms only)
-        if "BYHOUR=" not in recurring_rule:
-            hour = int(original_time.split(":")[0])
-            rule += f";BYHOUR={hour}"
-        if "BYMINUTE=" not in recurring_rule:
-            minute = int(original_time.split(":")[1])
-            rule += f";BYMINUTE={minute}"
-
-        return rule
-
-    async def _get_account_owner_customer_id(self, data: dict[str, Any]) -> str | None:
-        """Get account owner customer ID."""
-        if data["deviceType"] != AMAZON_DEVICE_TYPE:
-            return None
-
-        account_owner_customer_id: str | None = None
-
-        this_device_serial = self._session_state_data.login_stored_data["device_info"][
-            "device_serial_number"
-        ]
-
-        for subdevice in data["appDeviceList"]:
-            if subdevice["serialNumber"] == this_device_serial:
-                account_owner_customer_id = data["deviceOwnerCustomerId"]
-                _LOGGER.debug(
-                    "Setting account owner: %s",
-                    account_owner_customer_id,
-                )
-                break
-
-        return account_owner_customer_id
-
     async def get_devices_data(
         self,
     ) -> dict[str, AmazonDevice]:
@@ -495,8 +298,8 @@ class AmazonEchoApi:
 
     async def _get_sensor_data(self) -> None:
         devices_sensors = await self._get_sensors_states()
-        dnd_sensors = await self._get_dnd_status()
-        notifications = await self._get_notifications()
+        dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
+        notifications = await self._notification_handler.get_notifications()
         for device in self._final_devices.values():
             # Update sensors
             sensors = devices_sensors.get(device.serial_number, {})
@@ -509,6 +312,9 @@ class AmazonEchoApi:
                 device_dnd := dnd_sensors.get(device.serial_number)
             ) and device.device_family != SPEAKER_GROUP_FAMILY:
                 device.sensors["dnd"] = device_dnd
+
+            if notifications is None:
+                continue  # notifications were not obtained, do not update
 
             # Clear old notifications to handle cancelled ones
             device.notifications = {}
@@ -556,22 +362,8 @@ class AmazonEchoApi:
 
         json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
 
-        for data in json_data["devices"]:
-            dev_serial = data.get("serialNumber")
-            if not dev_serial:
-                _LOGGER.warning(
-                    "Skipping device without serial number: %s", data["accountName"]
-                )
-                continue
-            if not self._account_owner_customer_id:
-                self._account_owner_customer_id = (
-                    await self._get_account_owner_customer_id(data)
-                )
-
-        if not self._account_owner_customer_id:
-            raise CannotRetrieveData("Cannot find account owner customer ID")
-
         final_devices_list: dict[str, AmazonDevice] = {}
+        serial_to_device_type: dict[str, str] = {}
         for device in json_data["devices"]:
             # Remove stale, orphaned and virtual devices
             if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
@@ -595,8 +387,10 @@ class AmazonEchoApi:
                 device_type=device["deviceType"],
                 device_owner_customer_id=device["deviceOwnerCustomerId"],
                 household_device=device["deviceOwnerCustomerId"]
-                == self._account_owner_customer_id,
-                device_cluster_members=(device["clusterMembers"] or [serial_number]),
+                == self._session_state_data.account_customer_id,
+                device_cluster_members=dict.fromkeys(
+                    device["clusterMembers"] or [serial_number]
+                ),
                 online=device["online"],
                 serial_number=serial_number,
                 software_version=device["softwareVersion"],
@@ -606,12 +400,14 @@ class AmazonEchoApi:
                 notifications={},
             )
 
-        self._list_for_clusters.update(
-            {
-                device.serial_number: device.device_type
-                for device in final_devices_list.values()
-            }
-        )
+            serial_to_device_type[serial_number] = device["deviceType"]
+
+        # backfill device types for cluster members
+        for device in final_devices_list.values():
+            for member_serial in device.device_cluster_members:
+                device.device_cluster_members[member_serial] = (
+                    serial_to_device_type.get(member_serial)
+                )
 
         self._final_devices = final_devices_list
 
@@ -629,221 +425,74 @@ class AmazonEchoApi:
 
         return model_details
 
-    async def _send_message(
-        self,
-        device: AmazonDevice,
-        message_type: str,
-        message_body: str,
-        message_source: AmazonMusicSource | None = None,
-    ) -> None:
-        """Send message to specific device."""
-        if not self._session_state_data.login_stored_data:
-            _LOGGER.warning("No login data available, cannot send message")
-            return
-
-        base_payload = {
-            "deviceType": device.device_type,
-            "deviceSerialNumber": device.serial_number,
-            "locale": self._session_state_data.language,
-            "customerId": self._account_owner_customer_id,
-        }
-
-        payload: dict[str, Any]
-        if message_type == AmazonSequenceType.Speak:
-            payload = {
-                **base_payload,
-                "textToSpeak": message_body,
-                "target": {
-                    "customerId": self._account_owner_customer_id,
-                    "devices": [
-                        {
-                            "deviceSerialNumber": device.serial_number,
-                            "deviceTypeId": device.device_type,
-                        },
-                    ],
-                },
-                "skillId": "amzn1.ask.1p.saysomething",
-            }
-        elif message_type == AmazonSequenceType.Announcement:
-            playback_devices: list[dict[str, str]] = [
-                {
-                    "deviceSerialNumber": serial,
-                    "deviceTypeId": self._list_for_clusters[serial],
-                }
-                for serial in device.device_cluster_members
-                if serial in self._list_for_clusters
-            ]
-
-            payload = {
-                **base_payload,
-                "expireAfter": "PT5S",
-                "content": [
-                    {
-                        "locale": self._session_state_data.language,
-                        "display": {
-                            "title": "Home Assistant",
-                            "body": message_body,
-                        },
-                        "speak": {
-                            "type": "text",
-                            "value": message_body,
-                        },
-                    }
-                ],
-                "target": {
-                    "customerId": self._account_owner_customer_id,
-                    "devices": playback_devices,
-                },
-                "skillId": "amzn1.ask.1p.routines.messaging",
-            }
-        elif message_type == AmazonSequenceType.Sound:
-            payload = {
-                **base_payload,
-                "soundStringId": message_body,
-                "skillId": "amzn1.ask.1p.sound",
-            }
-        elif message_type == AmazonSequenceType.Music:
-            payload = {
-                **base_payload,
-                "searchPhrase": message_body,
-                "sanitizedSearchPhrase": message_body,
-                "musicProviderId": message_source,
-            }
-        elif message_type == AmazonSequenceType.TextCommand:
-            payload = {
-                **base_payload,
-                "skillId": "amzn1.ask.1p.tellalexa",
-                "text": message_body,
-            }
-        elif message_type == AmazonSequenceType.Volume:
-            payload = {**base_payload, "value": message_body}
-        elif message_type == AmazonSequenceType.LaunchSkill:
-            payload = {
-                **base_payload,
-                "targetDevice": {
-                    "deviceType": device.device_type,
-                    "deviceSerialNumber": device.serial_number,
-                },
-                "connectionRequest": {
-                    "uri": "connection://AMAZON.Launch/" + message_body,
-                },
-            }
-        elif message_type in ALEXA_INFO_SKILLS:
-            payload = {
-                **base_payload,
-            }
-        else:
-            raise ValueError(f"Message type <{message_type}> is not recognised")
-
-        sequence = {
-            "@type": "com.amazon.alexa.behaviors.model.Sequence",
-            "startNode": {
-                "@type": "com.amazon.alexa.behaviors.model.SerialNode",
-                "nodesToExecute": [
-                    {
-                        "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",  # noqa: E501
-                        "type": message_type,
-                        "operationPayload": payload,
-                    },
-                ],
-            },
-        }
-
-        node_data = {
-            "behaviorId": "PREVIEW",
-            "sequenceJson": orjson.dumps(sequence).decode("utf-8"),
-            "status": "ENABLED",
-        }
-
-        _LOGGER.debug("Preview data payload: %s", node_data)
-        await self._http_wrapper.session_request(
-            method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}/api/behaviors/preview",
-            input_data=node_data,
-            json_data=True,
-        )
-
-        return
-
     async def call_alexa_speak(
         self,
         device: AmazonDevice,
-        message_body: str,
+        text_to_speak: str,
     ) -> None:
         """Call Alexa.Speak to send a message."""
-        return await self._send_message(device, AmazonSequenceType.Speak, message_body)
+        await self._sequence_handler.send_message(
+            device, AmazonSequenceType.Speak, text_to_speak
+        )
 
     async def call_alexa_announcement(
         self,
         device: AmazonDevice,
-        message_body: str,
+        text_to_announce: str,
     ) -> None:
         """Call AlexaAnnouncement to send a message."""
-        return await self._send_message(
-            device, AmazonSequenceType.Announcement, message_body
+        await self._sequence_handler.send_message(
+            device, AmazonSequenceType.Announcement, text_to_announce
         )
 
     async def call_alexa_sound(
         self,
         device: AmazonDevice,
-        message_body: str,
+        sound_name: str,
     ) -> None:
         """Call Alexa.Sound to play sound."""
-        return await self._send_message(device, AmazonSequenceType.Sound, message_body)
+        await self._sequence_handler.send_message(
+            device, AmazonSequenceType.Sound, sound_name
+        )
 
     async def call_alexa_music(
         self,
         device: AmazonDevice,
-        message_body: str,
-        message_source: AmazonMusicSource,
+        search_phrase: str,
+        music_source: AmazonMusicSource,
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
-        return await self._send_message(
-            device, AmazonSequenceType.Music, message_body, message_source
+        await self._sequence_handler.send_message(
+            device, AmazonSequenceType.Music, search_phrase, music_source
         )
 
     async def call_alexa_text_command(
         self,
         device: AmazonDevice,
-        message_body: str,
+        text_command: str,
     ) -> None:
         """Call Alexa.TextCommand to issue command."""
-        return await self._send_message(
-            device, AmazonSequenceType.TextCommand, message_body
+        await self._sequence_handler.send_message(
+            device, AmazonSequenceType.TextCommand, text_command
         )
 
     async def call_alexa_skill(
         self,
         device: AmazonDevice,
-        message_body: str,
+        skill_name: str,
     ) -> None:
         """Call Alexa.LaunchSkill to launch a skill."""
-        return await self._send_message(
-            device, AmazonSequenceType.LaunchSkill, message_body
+        await self._sequence_handler.send_message(
+            device, AmazonSequenceType.LaunchSkill, skill_name
         )
 
     async def call_alexa_info_skill(
         self,
         device: AmazonDevice,
-        message_type: str,
+        info_skill_name: str,
     ) -> None:
         """Call Info skill.  See ALEXA_INFO_SKILLS . const."""
-        return await self._send_message(device, message_type, "")
-
-    async def set_do_not_disturb(self, device: AmazonDevice, state: bool) -> None:
-        """Set do_not_disturb flag."""
-        payload = {
-            "deviceSerialNumber": device.serial_number,
-            "deviceType": device.device_type,
-            "enabled": state,
-        }
-        url = f"https://alexa.amazon.{self._session_state_data.domain}/api/dnd/status"
-        await self._http_wrapper.session_request(
-            method="PUT",
-            url=url,
-            input_data=payload,
-            json_data=True,
-        )
+        await self._sequence_handler.send_message(device, info_skill_name, "")
 
     async def set_volume(
         self,
@@ -859,29 +508,9 @@ class AmazonEchoApi:
             _api_volume = math.ceil(volume / 10.0) * 10
         if volume != _api_volume:
             _LOGGER.debug("Volume %s rounded to %s", volume, _api_volume)
-        return await self._send_message(
+        return await self._sequence_handler.send_message(
             device, AmazonSequenceType.Volume, str(_api_volume)
         )
-
-    async def _get_dnd_status(self) -> dict[str, AmazonDeviceSensor]:
-        dnd_status: dict[str, AmazonDeviceSensor] = {}
-        _, raw_resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DND}",
-        )
-
-        dnd_data = await self._http_wrapper.response_to_json(raw_resp, "dnd")
-
-        for dnd in dnd_data.get("doNotDisturbDeviceStatusList", {}):
-            dnd_status[dnd.get("deviceSerialNumber")] = AmazonDeviceSensor(
-                name="dnd",
-                value=dnd.get("enabled"),
-                error=False,
-                error_type=None,
-                error_msg=None,
-                scale=None,
-            )
-        return dnd_status
 
     async def _format_human_error(self, sensors_state: dict) -> bool:
         """Format human readable error from malformed data."""
@@ -897,3 +526,7 @@ class AmazonEchoApi:
         path = error[0].get("path", "Unknown path")
         _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
         return True
+
+    async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
+        """Set Do Not Disturb status for a device."""
+        await self._dnd_handler.set_do_not_disturb(device, enable)
