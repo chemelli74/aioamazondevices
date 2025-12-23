@@ -8,6 +8,7 @@ from typing import Any
 import orjson
 
 from aioamazondevices.const.metadata import ALEXA_INFO_SKILLS, SEQUENCE_BATCH_DELAY
+from aioamazondevices.exceptions import CannotConnect
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.implementation.sequence_batcher import SequenceBatcher
 from aioamazondevices.structures import (
@@ -82,7 +83,7 @@ class AmazonSequenceHandler:
         # list will be in the order nodes were added
         # group by message type, body and source to find similar operations
         # then wrap in parallel node if from different devices
-        for sequence, group_iter in groupby(
+        for _, group_iter in groupby(
             sequences,
             key=lambda x: (x.message_type, x.message_body, x.message_source),
         ):
@@ -97,7 +98,7 @@ class AmazonSequenceHandler:
             else:
                 yield from (sequence.operation_node for sequence in group)
 
-    async def _build_operation_node(
+    def _build_operation_node(
         self,
         device: AmazonDevice,
         message_type: str,
@@ -107,7 +108,11 @@ class AmazonSequenceHandler:
         """Convert message to operation node."""
         if not self._session_state_data.login_stored_data:
             _LOGGER.warning("No login data available, cannot send message")
-            return {}
+            raise CannotConnect(
+                "Cannot perform %s action on %s as not logged in",
+                message_type,
+                device.serial_number,
+            )
 
         base_payload = {
             "deviceType": device.device_type,
@@ -214,7 +219,7 @@ class AmazonSequenceHandler:
         message_source: AmazonMusicSource | None = None,
     ) -> None:
         """Send message to specific device."""
-        node = await self._build_operation_node(
+        node = self._build_operation_node(
             device, message_type, message_body, message_source
         )
         await self._sequence_batcher.enqueue(
