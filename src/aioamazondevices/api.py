@@ -450,9 +450,12 @@ class AmazonEchoApi:
         sound_name: str,
     ) -> None:
         """Call Alexa.Sound to play sound."""
-        await self._sequence_handler.send_message(
-            device, AmazonSequenceType.Sound, sound_name
-        )
+        for cluster_member in device.device_cluster_members:
+            await self._sequence_handler.send_message(
+                self._final_devices[cluster_member],
+                AmazonSequenceType.Sound,
+                sound_name,
+            )
 
     async def call_alexa_music(
         self,
