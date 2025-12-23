@@ -20,7 +20,7 @@ from aioamazondevices.utils import _LOGGER
 
 
 class AmazonSequenceHandler:
-    """Class to handle Alexa sequence operations."""
+    """Class to handle Alexa sequence (routine) operations."""
 
     def __init__(
         self,
@@ -79,6 +79,9 @@ class AmazonSequenceHandler:
             sequences: List of sequence nodes to optimise
 
         """
+        # list will be in the order nodes were added
+        # group by message type, body and source to find similar operations
+        # then wrap in parallel node if from different devices
         for sequence, group_iter in groupby(
             sequences,
             key=lambda x: (x.message_type, x.message_body, x.message_source),
@@ -101,7 +104,7 @@ class AmazonSequenceHandler:
         message_body: str | float | None = None,
         message_source: AmazonMusicSource | None = None,
     ) -> dict[str, Any]:
-        """Send message to specific device."""
+        """Convert message to operation node."""
         if not self._session_state_data.login_stored_data:
             _LOGGER.warning("No login data available, cannot send message")
             return {}
