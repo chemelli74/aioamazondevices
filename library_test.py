@@ -275,6 +275,19 @@ async def main() -> None:
 
     await wait_action_complete(10)
 
+    print(
+        "Sending parallel messages via 'Alexa.Speak' to cluster:",
+        device_cluster.account_name,
+    )
+    # Should simulate sending to all devices in cluster in parallel
+    for cluster_member in device_cluster.device_cluster_members:
+        await api.call_alexa_speak(
+            devices[cluster_member],
+            "This is a cluster test message from new library",
+        )
+
+    await wait_action_complete()
+
     print("Sending message via 'AlexaAnnouncement' to:", device_cluster.account_name)
     await api.call_alexa_announcement(
         device_cluster, "Test Announcement message from new library"
