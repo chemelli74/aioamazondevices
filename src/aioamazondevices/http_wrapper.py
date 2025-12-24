@@ -289,11 +289,13 @@ class AmazonHttpWrapper:
         )
 
         headers = DEFAULT_HEADERS.copy()
-        headers.update({"User-Agent": REQUEST_AGENT["Amazon"]})
+        headers.update({"User-Agent": REQUEST_AGENT["Browser"]})
         headers.update({"Accept-Language": self._session_state_data.language})
         headers.update({"x-amzn-client": "github.com/chemelli74/aioamazondevices"})
         headers.update({"x-amzn-build-version": __version__})
+
         if extended_headers:
+            _LOGGER.debug("Adding to headers: %s", extended_headers)
             headers.update(extended_headers)
 
         if self._csrf_cookie:
