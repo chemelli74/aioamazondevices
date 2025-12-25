@@ -11,7 +11,9 @@ from . import __version__
 from .const.devices import (
     DEVICE_TO_IGNORE,
     DEVICE_TYPE_TO_MODEL,
+    SPEAKER_GROUP_DEVICE_TYPE,
     SPEAKER_GROUP_FAMILY,
+    SPEAKER_GROUP_MODEL,
 )
 from .const.http import (
     ARRAY_WRAPPER,
@@ -40,7 +42,7 @@ from .structures import (
     AmazonMusicSource,
     AmazonSequenceType,
 )
-from .utils import _LOGGER
+from .utils import _LOGGER, parse_device_details
 
 
 class AmazonEchoApi:
@@ -352,6 +354,33 @@ class AmazonEchoApi:
             endpoint_device.endpoint_id = (
                 device_endpoint["endpointId"] if device_endpoint else None
             )
+            if (
+                endpoint_device.model is None
+                and endpoint_device.device_type == SPEAKER_GROUP_DEVICE_TYPE
+            ):
+                endpoint_device.model = SPEAKER_GROUP_MODEL
+            device_details = parse_device_details(
+                device_endpoint["model"]["value"]["text"]
+                if device_endpoint
+                else endpoint_device.model
+            )
+            if (
+                device_details[0] is None
+                and endpoint_device.device_type != SPEAKER_GROUP_DEVICE_TYPE
+            ):
+                if not (model_details := self.get_model_details(endpoint_device)):
+                    continue
+                endpoint_device.model = model_details["model"]
+                endpoint_device.hardware_version = model_details["hw_version"]
+                endpoint_device.manufacturer = model_details["manufacturer"]
+            else:
+                endpoint_device.model = device_details[0]
+                endpoint_device.hardware_version = device_details[1]
+                endpoint_device.manufacturer = (
+                    device_endpoint["manufacturer"]["value"]["text"]
+                    if device_endpoint
+                    else None
+                )
 
     async def _get_base_devices(self) -> None:
         _, raw_resp = await self._http_wrapper.session_request(
@@ -394,6 +423,9 @@ class AmazonEchoApi:
                 serial_number=serial_number,
                 software_version=device["softwareVersion"],
                 entity_id=None,
+                model=device.get("deviceTypeFriendlyName"),
+                manufacturer=None,
+                hardware_version=None,
                 endpoint_id=None,
                 sensors={},
                 notifications={},
