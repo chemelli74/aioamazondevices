@@ -371,6 +371,7 @@ class AmazonHttpWrapper:
             ]:
                 raise CannotAuthenticate(await self.http_phrase_error(resp.status))
             if not await self._ignore_ap_signin_error(resp):
+                _LOGGER.debug("Error response content: %s", await resp.text())
                 raise CannotRetrieveData(
                     f"Request failed: {await self.http_phrase_error(resp.status)}"
                 )
