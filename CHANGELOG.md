@@ -1,5 +1,12 @@
 # Changelog
 
+## v11.0.2 (2025-12-30)
+
+### Bug fixes
+
+- Log response content on error ([`887ae6d`](https://github.com/chemelli74/aioamazondevices/commit/887ae6d9026dba3d80af755dc485b0d9e626c620))
+
+
 ## v11.0.1 (2025-12-30)
 
 ### Bug fixes
