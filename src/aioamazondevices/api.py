@@ -216,10 +216,7 @@ class AmazonEchoApi:
                         "error in sensor %s - %s - %s", name, error_type, error_msg
                     )
 
-                if (
-                    error_type != "NOT_FOUND"
-                    or feature_property.get("name") == "reachability"
-                ):
+                if error_type != "NOT_FOUND":
                     device_sensors[name] = AmazonDeviceSensor(
                         name,
                         value,
@@ -307,8 +304,7 @@ class AmazonEchoApi:
             sensors = devices_sensors.get(device.serial_number, {})
             if sensors:
                 device.sensors = sensors
-                reachability_sensor = sensors.get("reachability")
-                if reachability_sensor:
+                if reachability_sensor := sensors.get("reachability"):
                     device.online = reachability_sensor.value == "OK"
                 else:
                     device.online = False
