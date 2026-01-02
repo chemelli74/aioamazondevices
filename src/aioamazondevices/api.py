@@ -309,15 +309,7 @@ class AmazonEchoApi:
                 else:
                     device.online = False
             else:
-                if device.device_family == SPEAKER_GROUP_FAMILY:
-                    # base online status of speaker groups on their members
-                    device.online = all(
-                        d.online
-                        for d in self._final_devices.values()
-                        if d.serial_number in device.device_cluster_members
-                    )
-                else:
-                    device.online = False
+                device.online = False
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
 
@@ -351,6 +343,15 @@ class AmazonEchoApi:
                     )
                 ):
                     device.notifications[notification_type] = notification_object
+
+        # base online status of speaker groups on their members
+        for device in self._final_devices.values():
+            if device.device_family == SPEAKER_GROUP_FAMILY:
+                device.online = all(
+                    d.online
+                    for d in self._final_devices.values()
+                    if d.serial_number in device.device_cluster_members
+                )
 
     async def _set_device_endpoints_data(self) -> None:
         """Set device endpoint data."""
