@@ -56,7 +56,6 @@ The script accept command line arguments or a library_test.json config file:
   "single_device_name": "Echo Dot Livingroom",
   "cluster_device_name": "Everywhere",
   "login_data_file": "out/login_data.json",
-  "save_raw_data": true,
   "test": true
 }
 ```
@@ -111,12 +110,21 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/eyadkobatte">
+                    <img src="https://avatars.githubusercontent.com/u/16541074?v=4" width="100;" alt="eyadkobatte"/>
+                    <br />
+                    <sub><b>Eyad Kobatte</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/AzonInc">
                     <img src="https://avatars.githubusercontent.com/u/11911587?v=4" width="100;" alt="AzonInc"/>
                     <br />
                     <sub><b>Flo</b></sub>
                 </a>
             </td>
+		</tr>
+		<tr>
             <td align="center">
                 <a href="https://github.com/francescolf">
                     <img src="https://avatars.githubusercontent.com/u/14892143?v=4" width="100;" alt="francescolf"/>
@@ -124,8 +132,6 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                     <sub><b>Francesco Lo Faro</b></sub>
                 </a>
             </td>
-		</tr>
-		<tr>
             <td align="center">
                 <a href="https://github.com/lchavezcuu">
                     <img src="https://avatars.githubusercontent.com/u/22165856?v=4" width="100;" alt="lchavezcuu"/>

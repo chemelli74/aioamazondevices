@@ -1,5 +1,133 @@
 # Changelog
 
+## v11.0.2 (2025-12-30)
+
+### Bug fixes
+
+- Log response content on error ([`887ae6d`](https://github.com/chemelli74/aioamazondevices/commit/887ae6d9026dba3d80af755dc485b0d9e626c620))
+
+
+## v11.0.1 (2025-12-30)
+
+### Bug fixes
+
+- User agent ([`1015fdf`](https://github.com/chemelli74/aioamazondevices/commit/1015fdf3b48eae07c0b8ec2ef5c60ca06a63d89a))
+
+
+### Refactoring
+
+- Http refresh_data method ([`e4896bc`](https://github.com/chemelli74/aioamazondevices/commit/e4896bce6555a2a4e57069f42bace200daef8098))
+
+
+## v11.0.0 (2025-12-19)
+
+### Refactoring
+
+- Introduce dnd.py ([`202de63`](https://github.com/chemelli74/aioamazondevices/commit/202de6355489c0ece731beaf61bd9f8ee5c7cfb7))
+
+
+### Build system
+
+- Bump python-semantic-release/python-semantic-release from 10.5.2 to 10.5.3 ([`b927b4d`](https://github.com/chemelli74/aioamazondevices/commit/b927b4de4c3534e31fdae80dc19f430be25a40c6))
+- Bump pytest from 9.0.1 to 9.0.2 ([`4dabdb3`](https://github.com/chemelli74/aioamazondevices/commit/4dabdb31af2def7e19eefae353e174ce1c2d451f))
+- Bump orjson from 3.11.4 to 3.11.5 ([`998f7ec`](https://github.com/chemelli74/aioamazondevices/commit/998f7ecde1ec8cafa319ce9622ad7cad9303dad7))
+
+
+## v10.0.0 (2025-11-25)
+
+### Refactoring
+
+- Introduce sequence.py ([`1270cb0`](https://github.com/chemelli74/aioamazondevices/commit/1270cb0fde474e118b885ddba493a5edb15d81ad))
+- Introduce notification.py ([`699676f`](https://github.com/chemelli74/aioamazondevices/commit/699676f9d78c67444db7ec83b05b09379f674f00))
+
+
+## v9.0.3 (2025-11-24)
+
+### Bug fixes
+
+- Handle rate limit errors on notification endpoint ([`86bd19e`](https://github.com/chemelli74/aioamazondevices/commit/86bd19e99a0f5cbf663ded366588e367a11b6a0b))
+- Retry if customer account not found ([`05a34e4`](https://github.com/chemelli74/aioamazondevices/commit/05a34e44916723f7331beab2572949c94e11fe28))
+
+
+### Build system
+
+- Bump actions/checkout from 5 to 6 ([`a3ed5c7`](https://github.com/chemelli74/aioamazondevices/commit/a3ed5c7d0510e3297aa10c9f50156fec467ee098))
+
+
+## v9.0.2 (2025-11-20)
+
+### Bug fixes
+
+- Incorrect logic in notification checks ([`9df1c42`](https://github.com/chemelli74/aioamazondevices/commit/9df1c42add71b79cfb49319852a8d5973927f765))
+
+
+## v9.0.1 (2025-11-20)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`9fd06d3`](https://github.com/chemelli74/aioamazondevices/commit/9fd06d34c529b91bfba534aacbd76c6ec80d879d))
+
+
+### Bug fixes
+
+- Add marshall uxbridge model ([`afd0747`](https://github.com/chemelli74/aioamazondevices/commit/afd07471e87d263c240fe1271c373fd9628ad69c))
+
+
+### Build system
+
+- Bump types-python-dateutil from 2.9.0.20251108 to 2.9.0.20251115 ([`7070037`](https://github.com/chemelli74/aioamazondevices/commit/7070037039b7137fe7478a269775a657c3b15308))
+- Bump pytest from 9.0.0 to 9.0.1 ([`2f68931`](https://github.com/chemelli74/aioamazondevices/commit/2f689312a8c3d5339b9b59c680b9791cd6d4e7da))
+- Bump python-semantic-release/python-semantic-release from 10.5.1 to 10.5.2 ([`832b3a3`](https://github.com/chemelli74/aioamazondevices/commit/832b3a3864a639d66f1568c01838f38ad3c2aeb0))
+- Bump python-semantic-release/python-semantic-release from 10.4.1 to 10.5.1 ([`0919d68`](https://github.com/chemelli74/aioamazondevices/commit/0919d6816abf902d109e244dc372bb35011c088d))
+
+
+## v9.0.0 (2025-11-10)
+
+### Refactoring
+
+- Introduce login.py ([`d43ee5c`](https://github.com/chemelli74/aioamazondevices/commit/d43ee5c1a52616d5e8bf25b7f460e4ef3438255b))
+- Introduce http_wrapper ([`9078ed2`](https://github.com/chemelli74/aioamazondevices/commit/9078ed26cd4dae101a36f823871d5224f72c6f0f))
+
+
+### Build system
+
+- Bump pytest from 8.4.2 to 9.0.0 ([`816c428`](https://github.com/chemelli74/aioamazondevices/commit/816c428e6a529ef69d812597666c3965bd02dee0))
+
+
+## v8.0.1 (2025-11-06)
+
+### Bug fixes
+
+- Temporary remove auth check ([`68766fa`](https://github.com/chemelli74/aioamazondevices/commit/68766fa62ae010ba0c63fb60f450c06ae35b87a8))
+
+
+### Refactoring
+
+- Logger ([`c6349b5`](https://github.com/chemelli74/aioamazondevices/commit/c6349b515945d1f4b3b5e916aa8c0b673ca57af6))
+
+
+## v8.0.0 (2025-11-04)
+
+### Refactoring
+
+- Split const by usage ([`329bb51`](https://github.com/chemelli74/aioamazondevices/commit/329bb511758edcae272e4cef7db22bbcca71941a))
+- Remove testing constants from api ([`e596916`](https://github.com/chemelli74/aioamazondevices/commit/e596916ebd71d64c88c470d7ede3efb68bb4cc1b))
+- Remove save_to_file() method ([`bdd6863`](https://github.com/chemelli74/aioamazondevices/commit/bdd6863250d7a8995a4e616475057c42b313d1eb))
+
+
+## v7.0.0 (2025-11-03)
+
+### Refactoring
+
+- Move dataclasses ([`2c9a7bc`](https://github.com/chemelli74/aioamazondevices/commit/2c9a7bce72b5995dd8ec55393e93699a0a8d7803))
+
+
+### Build system
+
+- Bump orjson from 3.11.3 to 3.11.4 ([`747ef4a`](https://github.com/chemelli74/aioamazondevices/commit/747ef4a153e89961c4ca741d31f550fdd9497b1a))
+- Bump aiohttp from 3.13.0 to 3.13.2 ([`fa53ee7`](https://github.com/chemelli74/aioamazondevices/commit/fa53ee75c179d3e67e4a87321ae235293de1fb42))
+
+
 ## v6.5.6 (2025-10-31)
 
 ### Bug fixes

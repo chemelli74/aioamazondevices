@@ -1,156 +1,9 @@
-"""Constants for Amazon devices."""
+"""aioamazondevices devices."""
 
-import logging
-
-_LOGGER = logging.getLogger(__package__)
-
-ARRAY_WRAPPER = "generatedArrayWrapper"
-
-HTTP_ERROR_199 = 199
-HTTP_ERROR_299 = 299
-
-TO_REDACT = {
-    "address",
-    "address1",
-    "address2",
-    "address3",
-    "city",
-    "county",
-    "customerId",
-    "deviceAccountId",
-    "deviceAddress",
-    "deviceOwnerCustomerId",
-    "given_name",
-    "name",
-    "password",
-    "postalCode",
-    "searchCustomerId",
-    "state",
-    "street",
-    "user_id",
-}
-
-# Amazon APP info
-AMAZON_APP_BUNDLE_ID = "com.amazon.echo"
-AMAZON_APP_ID = "MAPiOSLib/6.0/ToHideRetailLink"
-AMAZON_APP_NAME = "AioAmazonDevices"
-AMAZON_APP_VERSION = "2.2.663733.0"
-AMAZON_DEVICE_SOFTWARE_VERSION = "35602678"
-AMAZON_DEVICE_TYPE = "A2IVLV5VM2W81"
-AMAZON_CLIENT_OS = "18.5"
-
-AQM_DEVICE_TYPE = "AEZME1X38KDRA"
-AQM_RANGE_SENSORS: dict[str, dict[str, str | None]] = {
-    "4": {
-        "name": "Humidity",
-        "scale": "%",
-    },
-    "5": {
-        "name": "VOC",
-        "scale": None,
-    },
-    "6": {
-        "name": "PM25",
-        "scale": "MicroGramsPerCubicMeter",
-    },
-    "7": {
-        "name": "PM10",
-        "scale": "MicroGramsPerCubicMeter",
-    },
-    "8": {
-        "name": "CO",
-        "scale": "ppm",
-    },
-    "9": {
-        "name": "Air Quality",
-        "scale": None,
-    },
-}
-
-DEFAULT_SITE = "https://www.amazon.com"
-DEFAULT_HEADERS = {
-    "Accept-Charset": "utf-8",
-    "Accept-Encoding": "gzip",
-    "Connection": "keep-alive",
-}
-CSRF_COOKIE = "csrf"
-REQUEST_AGENT = {
-    "Amazon": f"AmazonWebView/AmazonAlexa/{AMAZON_APP_VERSION}/iOS/{AMAZON_CLIENT_OS}/iPhone",  # noqa: E501
-    "Browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0",  # noqa: E501
-}
-
-REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
-REFRESH_AUTH_COOKIES = "auth_cookies"
-
-URI_DEVICES = "/api/devices-v2/device"
-URI_DND = "/api/dnd/device-status-list"
-URI_NOTIFICATIONS = "/api/notifications"
-URI_SIGNIN = "/ap/signin"
-URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
-
-SENSOR_STATE_OFF = "NOT_DETECTED"
-
-# File extensions
-SAVE_PATH = "out"
-HTML_EXTENSION = ".html"
-JSON_EXTENSION = ".json"
-BIN_EXTENSION = ".bin"
+from .http import AMAZON_DEVICE_TYPE
 
 SPEAKER_GROUP_FAMILY = "WHA"
 SPEAKER_GROUP_MODEL = "Speaker Group"
-
-SENSORS: dict[str, dict[str, str | None]] = {
-    "temperatureSensor": {
-        "name": "temperature",
-        "key": "value",
-        "subkey": "value",
-        "scale": "scale",
-    },
-    "motionSensor": {
-        "name": "detectionState",
-        "key": "detectionStateValue",
-        "subkey": None,
-        "scale": None,
-    },
-    "lightSensor": {
-        "name": "illuminance",
-        "key": "illuminanceValue",
-        "subkey": "value",
-        "scale": None,
-    },
-    "connectivity": {
-        "name": "reachability",
-        "key": "reachabilityStatusValue",
-        "subkey": None,
-        "scale": None,
-    },
-    "range": {
-        "name": "rangeValue",
-        "key": "rangeValue",
-        "subkey": "value",
-        "scale": None,
-    },
-}
-
-ALEXA_INFO_SKILLS = [
-    "Alexa.Calendar.PlayToday",
-    "Alexa.Calendar.PlayTomorrow",
-    "Alexa.Calendar.PlayNext",
-    "Alexa.Date.Play",
-    "Alexa.Time.Play",
-    "Alexa.News.NationalNews",
-    "Alexa.FlashBriefing.Play",
-    "Alexa.Traffic.Play",
-    "Alexa.Weather.Play",
-    "Alexa.CleanUp.Play",
-    "Alexa.GoodMorning.Play",
-    "Alexa.SingASong.Play",
-    "Alexa.FunFact.Play",
-    "Alexa.Joke.Play",
-    "Alexa.TellStory.Play",
-    "Alexa.ImHome.Play",
-    "Alexa.GoodNight.Play",
-]
 
 DEVICE_TO_IGNORE: list[str] = [
     AMAZON_DEVICE_TYPE,  # Alexa App for iOS
@@ -176,6 +29,9 @@ DEVICE_TO_IGNORE: list[str] = [
     "A133UZ2CB0IB8",  # Sony Soundbar Sony HT-A5000 - issue #486
     "A2M9HB23M9MSSM",  # Smartwatch Amazfit Bip U Pro - issue #507
     "A1P7E7V3FCZKU6",  # Toshiba Corporation TV 32LF221U19 - issue #531
+    "A1NPP2J03FTS0I",  # Eero Pro 6 - issue #602
+    "A14AIWB3T3AS1Z",  # Samsung Soundbar HW-Q950A - issue #603
+    "APHEAY6LX7T13",  # Samsung Refrigerator RS22T5561SR/AA - issue #577
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
@@ -262,6 +118,10 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "manufacturer": "Medion",
         "model": "Life P66970",
         "hw_version": "A16",
+    },
+    "A20E9PVI3HANVQ": {
+        "manufacturer": "Marshall",
+        "model": "Marshall Uxbridge",
     },
     "A25521KS9QCAMD": {
         "model": "Fire Tablet HD 7",
@@ -519,64 +379,51 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Plus",
         "hw_version": "Gen2",
     },
-}
-
-RECURRING_PATTERNS: dict[str, str] = {
-    "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR",
-    "XXXX-WE": "FREQ=WEEKLY;BYDAY=SA,SU",
-    "XXXX-WXX-1": "FREQ=WEEKLY;BYDAY=MO",
-    "XXXX-WXX-2": "FREQ=WEEKLY;BYDAY=TU",
-    "XXXX-WXX-3": "FREQ=WEEKLY;BYDAY=WE",
-    "XXXX-WXX-4": "FREQ=WEEKLY;BYDAY=TH",
-    "XXXX-WXX-5": "FREQ=WEEKLY;BYDAY=FR",
-    "XXXX-WXX-6": "FREQ=WEEKLY;BYDAY=SA",
-    "XXXX-WXX-7": "FREQ=WEEKLY;BYDAY=SU",
-}
-
-WEEKEND_EXCEPTIONS = {
-    "TH-FR": {
-        "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,SA,SU",
-        "XXXX-WE": "FREQ=WEEKLY;BYDAY=TH,FR",
+    "A1JJ0KFC4ZPNJ3": {
+        "model": "Echo Input",
+        "hw_version": "Gen1",
     },
-    "FR-SA": {
-        "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,SU",
-        "XXXX-WE": "FREQ=WEEKLY;BYDAY=FR,SA",
+    "A2V9UEGZ82H4KZ": {
+        "model": "Fire Tablet HD 10",
+        "hw_version": "Gen13",
+    },
+    "ALCIV0P5M8TZ0": {
+        "manufacturer": "Sonos Inc.",
+        "model": "Sonos Beam",
+        "hw_version": None,
+    },
+    "A1MKGHX5VQBDWX": {
+        "manufacturer": "Denon",
+        "model": "Denon Home 150",
+        "hw_version": None,
+    },
+    "A2X8WT9JELC577": {
+        "manufacturer": "ecobee Inc.",
+        "model": "ecobee 4 Smart Thermostat with Voice Control",
+        "hw_version": None,
+    },
+    "AA1IN44SS3X6O": {
+        "manufacturer": "ecobee Inc.",
+        "model": "ecobee SmartThermostat Premium",
+        "hw_version": None,
+    },
+    "A2ZJ8HST6J24XH": {
+        "manufacturer": "Sonos Inc.",
+        "model": "Sonos Roam 2",
+        "hw_version": None,
+    },
+    "A3M91KUSTM6A3P": {
+        "manufacturer": "Ford",
+        "model": "Ford SYNC 4",
+        "hw_version": None,
+    },
+    "A1J16TEDOYCZTN": {
+        "model": "Fire Tablet 7",
+        "hw_version": "Gen7",
+    },
+    "A18TCD9FP10WJ9": {
+        "manufacturer": "Netgear",
+        "model": "Orbi Voice (RBS40V)",
+        "hw_version": None,
     },
 }
-
-# Countries grouped by their weekend type
-COUNTRY_GROUPS = {
-    "TH-FR": ["IR"],
-    "FR-SA": [
-        "AF",
-        "BD",
-        "BH",
-        "DZ",
-        "EG",
-        "IL",
-        "IQ",
-        "JO",
-        "KW",
-        "LY",
-        "MV",
-        "MY",
-        "OM",
-        "PS",
-        "QA",
-        "SA",
-        "SD",
-        "SY",
-        "YE",
-    ],
-}
-
-NOTIFICATION_ALARM = "Alarm"
-NOTIFICATION_MUSIC_ALARM = "MusicAlarm"
-NOTIFICATION_REMINDER = "Reminder"
-NOTIFICATION_TIMER = "Timer"
-NOTIFICATIONS_SUPPORTED = [
-    NOTIFICATION_ALARM,
-    NOTIFICATION_MUSIC_ALARM,
-    NOTIFICATION_REMINDER,
-    NOTIFICATION_TIMER,
-]
