@@ -4,7 +4,7 @@ from http import HTTPMethod
 from typing import Any
 
 from aioamazondevices.const.devices import SPEAKER_GROUP_FAMILY
-from aioamazondevices.const.http import ARRAY_WRAPPER, URI_NEXUS_GRAPHQL
+from aioamazondevices.const.http import ARRAY_WRAPPER, REQUEST_AGENT, URI_NEXUS_GRAPHQL
 from aioamazondevices.const.metadata import SENSORS
 from aioamazondevices.const.queries import QUERY_SENSOR_STATE
 from aioamazondevices.const.schedules import (
@@ -106,6 +106,7 @@ class AmazonSensorHandler:
             url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
             input_data=payload,
             json_data=True,
+            extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
         )
 
         sensors_state = await self._http_wrapper.response_to_json(raw_resp, "sensors")
