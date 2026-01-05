@@ -258,6 +258,12 @@ async def main() -> None:
     else:
         device_cluster = device_single
 
+    print("-" * 20)
+    print("All Devices:")
+    for d in devices.values():
+        print(f"  {d.account_name} - Online: {d.online}")
+    print("-" * 20)
+
     print("Selected devices:")
     print("- single : ", device_single)
     print("- cluster: ", device_cluster)

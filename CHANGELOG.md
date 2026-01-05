@@ -1,5 +1,17 @@
 # Changelog
 
+## v11.0.3 (2026-01-05)
+
+### Bug fixes
+
+- Add connectivity to graphql sensors ([`eda51b8`](https://github.com/chemelli74/aioamazondevices/commit/eda51b8fb91a22dbeafcef7625fea1fccee977b5))
+
+
+### Build system
+
+- Bump aiohttp from 3.13.2 to 3.13.3 ([`a064bd3`](https://github.com/chemelli74/aioamazondevices/commit/a064bd359953988e291998d55958b0afad715c90))
+
+
 ## v11.0.2 (2025-12-30)
 
 ### Bug fixes
