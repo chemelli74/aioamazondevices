@@ -49,7 +49,13 @@ class AmazonSensorHandler:
             sensors = devices_sensors.get(device.serial_number, {})
             if sensors:
                 device.sensors = sensors
+                if reachability_sensor := sensors.get("reachability"):
+                    device.online = reachability_sensor.value == "OK"
+                else:
+                    device.online = False
             else:
+                device.online = False
+
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
             if (
@@ -82,6 +88,15 @@ class AmazonSensorHandler:
                     )
                 ):
                     device.notifications[notification_type] = notification_object
+
+        # base online status of speaker groups on their members
+        for device in self._final_devices.values():
+            if device.device_family == SPEAKER_GROUP_FAMILY:
+                device.online = all(
+                    d.online
+                    for d in self._final_devices.values()
+                    if d.serial_number in device.device_cluster_members
+                )
 
     async def _get_sensor_data(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
         """Retrieve devices sensors states."""
