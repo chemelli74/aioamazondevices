@@ -16,7 +16,7 @@ from aiohttp import ClientSession
 from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.const.metadata import AQM_DEVICE_TYPE
+from aioamazondevices.const.devices import AQM_DEVICE_TYPE
 from aioamazondevices.exceptions import (
     AmazonError,
     CannotAuthenticate,

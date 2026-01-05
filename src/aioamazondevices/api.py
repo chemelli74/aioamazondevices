@@ -9,6 +9,7 @@ from aiohttp import ClientSession
 
 from . import __version__
 from .const.devices import (
+    AQM_DEVICE_TYPE,
     DEVICE_TO_IGNORE,
     DEVICE_TYPE_TO_MODEL,
     SPEAKER_GROUP_FAMILY,
@@ -20,7 +21,7 @@ from .const.http import (
     URI_DEVICES,
     URI_NEXUS_GRAPHQL,
 )
-from .const.metadata import AQM_DEVICE_TYPE, AQM_RANGE_SENSORS, SENSORS
+from .const.metadata import AQM_RANGE_SENSORS, SENSORS
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
     NOTIFICATION_ALARM,

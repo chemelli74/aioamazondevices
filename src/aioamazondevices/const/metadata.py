@@ -35,7 +35,6 @@ SENSORS: dict[str, dict[str, str | None]] = {
     },
 }
 
-AQM_DEVICE_TYPE = "AEZME1X38KDRA"
 AQM_RANGE_SENSORS: dict[str, dict[str, str | None]] = {
     "4": {
         "name": "Humidity",
