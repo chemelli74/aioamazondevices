@@ -16,6 +16,7 @@ from .const.devices import (
 from .const.http import (
     ARRAY_WRAPPER,
     DEFAULT_SITE,
+    REQUEST_AGENT,
     URI_DEVICES,
     URI_NEXUS_GRAPHQL,
 )
@@ -131,6 +132,7 @@ class AmazonEchoApi:
             url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
             input_data=payload,
             json_data=True,
+            extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
         )
 
         sensors_state = await self._http_wrapper.response_to_json(raw_resp, "sensors")
@@ -240,6 +242,7 @@ class AmazonEchoApi:
             url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
             input_data=payload,
             json_data=True,
+            extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
         )
 
         endpoint_data = await self._http_wrapper.response_to_json(raw_resp, "endpoint")
@@ -304,9 +307,15 @@ class AmazonEchoApi:
             sensors = devices_sensors.get(device.serial_number, {})
             if sensors:
                 device.sensors = sensors
+                if reachability_sensor := sensors.get("reachability"):
+                    device.online = reachability_sensor.value == "OK"
+                else:
+                    device.online = False
             else:
+                device.online = False
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
+
             if (
                 device_dnd := dnd_sensors.get(device.serial_number)
             ) and device.device_family != SPEAKER_GROUP_FAMILY:
@@ -337,6 +346,15 @@ class AmazonEchoApi:
                     )
                 ):
                     device.notifications[notification_type] = notification_object
+
+        # base online status of speaker groups on their members
+        for device in self._final_devices.values():
+            if device.device_family == SPEAKER_GROUP_FAMILY:
+                device.online = all(
+                    d.online
+                    for d in self._final_devices.values()
+                    if d.serial_number in device.device_cluster_members
+                )
 
     async def _set_device_endpoints_data(self) -> None:
         """Set device endpoint data."""
