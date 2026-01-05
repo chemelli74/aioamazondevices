@@ -1,5 +1,12 @@
 # Changelog
 
+## v11.1.0 (2026-01-05)
+
+### Features
+
+- Add support for aqm devices ([`3e47826`](https://github.com/chemelli74/aioamazondevices/commit/3e478267b6b55d5cddb12cbeb584f3e33b123f00))
+
+
 ## v11.0.3 (2026-01-05)
 
 ### Bug fixes
