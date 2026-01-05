@@ -289,11 +289,13 @@ class AmazonHttpWrapper:
         )
 
         headers = DEFAULT_HEADERS.copy()
-        headers.update({"User-Agent": REQUEST_AGENT["Amazon"]})
+        headers.update({"User-Agent": REQUEST_AGENT["Browser"]})
         headers.update({"Accept-Language": self._session_state_data.language})
         headers.update({"x-amzn-client": "github.com/chemelli74/aioamazondevices"})
         headers.update({"x-amzn-build-version": __version__})
+
         if extended_headers:
+            _LOGGER.debug("Adding to headers: %s", extended_headers)
             headers.update(extended_headers)
 
         if self._csrf_cookie:
@@ -369,6 +371,7 @@ class AmazonHttpWrapper:
             ]:
                 raise CannotAuthenticate(await self.http_phrase_error(resp.status))
             if not await self._ignore_ap_signin_error(resp):
+                _LOGGER.debug("Error response content: %s", await resp.text())
                 raise CannotRetrieveData(
                     f"Request failed: {await self.http_phrase_error(resp.status)}"
                 )

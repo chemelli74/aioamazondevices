@@ -16,6 +16,7 @@ from .const.devices import (
 from .const.http import (
     ARRAY_WRAPPER,
     DEFAULT_SITE,
+    REQUEST_AGENT,
     URI_DEVICES,
     URI_NEXUS_GRAPHQL,
 )
@@ -131,6 +132,7 @@ class AmazonEchoApi:
             url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
             input_data=payload,
             json_data=True,
+            extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
         )
 
         sensors_state = await self._http_wrapper.response_to_json(raw_resp, "sensors")
@@ -240,6 +242,7 @@ class AmazonEchoApi:
             url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
             input_data=payload,
             json_data=True,
+            extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
         )
 
         endpoint_data = await self._http_wrapper.response_to_json(raw_resp, "endpoint")
