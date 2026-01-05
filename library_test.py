@@ -262,20 +262,7 @@ async def main() -> None:
     print("- single : ", device_single)
     print("- cluster: ", device_cluster)
 
-    print("AQM Devices and Sensors:")
-    print("-" * 20)
-    found_aqm = False
-    for device_serial in devices:
-        device = devices[device_serial]
-        if device.device_type == AQM_DEVICE_TYPE:
-            found_aqm = True
-            print(f"AQM Device: {device.account_name}")
-            for aqm_sensor in device.sensors:
-                print(f"  AQM Sensor {device.sensors[aqm_sensor]}")
-
-    if not found_aqm:
-        print("  No AQM devices found")
-    print("-" * 20)
+    _print_aqm_device_details(devices)
 
     for sensor in device_single.sensors:
         print(f"Sensor {device_single.sensors[sensor]}")
@@ -334,6 +321,22 @@ async def main() -> None:
 
     print("Closing session")
     await client_session.close()
+
+
+def _print_aqm_device_details(devices: dict[str, AmazonDevice]) -> None:
+    print("AQM Devices and Sensors:")
+    print("-" * 20)
+    found_aqm = False
+    for device in devices.values():
+        if device.device_type == AQM_DEVICE_TYPE:
+            found_aqm = True
+            print(f"AQM Device: {device.account_name}")
+            for aqm_sensor in device.sensors:
+                print(f"  AQM Sensor {device.sensors[aqm_sensor]}")
+
+    if not found_aqm:
+        print("  No AQM devices found")
+    print("-" * 20)
 
 
 def set_logging() -> None:
