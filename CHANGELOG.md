@@ -1,5 +1,12 @@
 # Changelog
 
+## v11.1.1 (2026-01-06)
+
+### Bug fixes
+
+- Base notification data on device capabilities ([`1824b72`](https://github.com/chemelli74/aioamazondevices/commit/1824b721a2d5f74786544ead7942748585e56086))
+
+
 ## v11.1.0 (2026-01-05)
 
 ### Features
