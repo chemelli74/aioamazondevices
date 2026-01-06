@@ -320,6 +320,7 @@ class AmazonEchoApi:
                 entity_id=None,
                 endpoint_id=aqm_endpoint.get("endpointId"),
                 sensors={},
+                notifications_supported=False,
                 notifications={},
             )
 
@@ -457,6 +458,11 @@ class AmazonEchoApi:
 
             serial_number: str = device["serialNumber"]
 
+            _has_notification_capability = any(
+                capability in capabilities
+                for capability in ["REMINDERS", "TIMERS_AND_ALARMS"]
+            )
+
             final_devices_list[serial_number] = AmazonDevice(
                 account_name=account_name,
                 capabilities=capabilities,
@@ -474,6 +480,7 @@ class AmazonEchoApi:
                 entity_id=None,
                 endpoint_id=None,
                 sensors={},
+                notifications_supported=_has_notification_capability,
                 notifications={},
             )
 

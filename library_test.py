@@ -317,9 +317,6 @@ async def main() -> None:
 
     await wait_action_complete(10)
 
-    for notification in device_single.notifications:
-        print(f"Notification {device_single.notifications[notification]}")
-
     print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)
     await api.call_alexa_skill(
         device_cluster, "amzn1.ask.skill.94c477e7-61c0-43f5-b7d9-36d7498a4d04"
