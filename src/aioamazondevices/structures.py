@@ -44,7 +44,8 @@ class AmazonDevice:
     entity_id: str | None
     endpoint_id: str | None
     sensors: dict[str, AmazonDeviceSensor]
-    notifications: dict[str, AmazonSchedule] | None
+    notifications_supported: bool
+    notifications: dict[str, AmazonSchedule]
 
 
 class AmazonSequenceType(StrEnum):

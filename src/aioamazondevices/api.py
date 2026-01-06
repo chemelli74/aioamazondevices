@@ -23,6 +23,11 @@ from .const.http import (
 )
 from .const.metadata import AQM_RANGE_SENSORS, SENSORS
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
+from .const.schedules import (
+    NOTIFICATION_ALARM,
+    NOTIFICATION_REMINDER,
+    NOTIFICATION_TIMER,
+)
 from .exceptions import (
     CannotRetrieveData,
 )
@@ -315,7 +320,8 @@ class AmazonEchoApi:
                 entity_id=None,
                 endpoint_id=aqm_endpoint.get("endpointId"),
                 sensors={},
-                notifications=None,
+                notifications_supported=False,
+                notifications={},
             )
 
         return devices_endpoints
@@ -376,12 +382,6 @@ class AmazonEchoApi:
             ) and device.device_family != SPEAKER_GROUP_FAMILY:
                 device.sensors["dnd"] = device_dnd
 
-            if not any(
-                capability in device.capabilities
-                for capability in ["REMINDERS", "TIMERS_AND_ALARMS"]
-            ):
-                continue  # device does not support notifications
-
             if notifications is None:
                 continue  # notifications were not obtained, do not update
 
@@ -391,8 +391,21 @@ class AmazonEchoApi:
             # Update notifications
             device_notifications = notifications.get(device.serial_number, {})
 
-            for notification_type, schedule in device_notifications.items():
-                device.notifications[notification_type] = schedule
+            for capability, notification_type in [
+                ("REMINDERS", NOTIFICATION_REMINDER),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_TIMER),
+            ]:
+                if (
+                    capability in device.capabilities
+                    and notification_type in device_notifications
+                    and (
+                        notification_object := device_notifications.get(
+                            notification_type
+                        )
+                    )
+                ):
+                    device.notifications[notification_type] = notification_object
 
         # base online status of speaker groups on their members
         for device in self._final_devices.values():
@@ -444,6 +457,11 @@ class AmazonEchoApi:
 
             serial_number: str = device["serialNumber"]
 
+            _has_notification_capability = any(
+                capability in capabilities
+                for capability in ["REMINDERS", "TIMERS_AND_ALARMS"]
+            )
+
             final_devices_list[serial_number] = AmazonDevice(
                 account_name=account_name,
                 capabilities=capabilities,
@@ -461,7 +479,8 @@ class AmazonEchoApi:
                 entity_id=None,
                 endpoint_id=None,
                 sensors={},
-                notifications=None,
+                notifications_supported=_has_notification_capability,
+                notifications={},
             )
 
             serial_to_device_type[serial_number] = device["deviceType"]
