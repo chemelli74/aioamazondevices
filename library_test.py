@@ -273,8 +273,9 @@ async def main() -> None:
     for sensor in device_single.sensors:
         print(f"Sensor {device_single.sensors[sensor]}")
 
-    for notification in device_single.notifications:
-        print(f"Notification {device_single.notifications[notification]}")
+    if device_single.notifications:
+        for notification in device_single.notifications:
+            print(f"Notification {device_single.notifications[notification]}")
 
     print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
     await api.call_alexa_speak(device_single, "Test Speak message from new library")
@@ -316,9 +317,6 @@ async def main() -> None:
     await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
 
     await wait_action_complete(10)
-
-    for notification in device_single.notifications:
-        print(f"Notification {device_single.notifications[notification]}")
 
     print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)
     await api.call_alexa_skill(
