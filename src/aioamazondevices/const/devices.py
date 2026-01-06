@@ -427,4 +427,8 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Orbi Voice (RBS40V)",
         "hw_version": None,
     },
+    AQM_DEVICE_TYPE: {
+        "model": "Air Quality Monitor",
+        "hw_version": "Gen1",
+    },
 }
