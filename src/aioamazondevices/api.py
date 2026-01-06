@@ -391,6 +391,7 @@ class AmazonEchoApi:
             # Update notifications
             device_notifications = notifications.get(device.serial_number, {})
 
+            # Add only supported notification types
             for capability, notification_type in [
                 ("REMINDERS", NOTIFICATION_REMINDER),
                 ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
