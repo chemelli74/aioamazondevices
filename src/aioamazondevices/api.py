@@ -461,7 +461,7 @@ class AmazonEchoApi:
                 entity_id=None,
                 endpoint_id=None,
                 sensors={},
-                notifications={},
+                notifications=None,
             )
 
             serial_to_device_type[serial_number] = device["deviceType"]
