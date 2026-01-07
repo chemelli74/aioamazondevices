@@ -453,12 +453,9 @@ class AmazonEchoApi:
         sound_name: str,
     ) -> None:
         """Call Alexa.Sound to play sound."""
-        for cluster_member in device.device_cluster_members:
-            await self._sequence_handler.send_message(
-                self._final_devices[cluster_member],
-                AmazonSequenceType.Sound,
-                sound_name,
-            )
+        await self._call_alexa_command_per_cluster_member(
+            device, AmazonSequenceType.Sound, sound_name
+        )
 
     async def call_alexa_music(
         self,
@@ -477,12 +474,9 @@ class AmazonEchoApi:
         text_command: str,
     ) -> None:
         """Call Alexa.TextCommand to issue command."""
-        for cluster_member in device.device_cluster_members:
-            await self._sequence_handler.send_message(
-                self._final_devices[cluster_member],
-                AmazonSequenceType.TextCommand,
-                text_command,
-            )
+        await self._call_alexa_command_per_cluster_member(
+            device, AmazonSequenceType.TextCommand, text_command
+        )
 
     async def call_alexa_skill(
         self,
@@ -490,12 +484,9 @@ class AmazonEchoApi:
         skill_name: str,
     ) -> None:
         """Call Alexa.LaunchSkill to launch a skill."""
-        for cluster_member in device.device_cluster_members:
-            await self._sequence_handler.send_message(
-                self._final_devices[cluster_member],
-                AmazonSequenceType.LaunchSkill,
-                skill_name,
-            )
+        await self._call_alexa_command_per_cluster_member(
+            device, AmazonSequenceType.LaunchSkill, skill_name
+        )
 
     async def call_alexa_info_skill(
         self,
@@ -503,11 +494,20 @@ class AmazonEchoApi:
         info_skill_name: str,
     ) -> None:
         """Call Info skill.  See ALEXA_INFO_SKILLS . const."""
+        await self._call_alexa_command_per_cluster_member(device, info_skill_name, "")
+
+    async def _call_alexa_command_per_cluster_member(
+        self,
+        device: AmazonDevice,
+        message_type: str,
+        message_body: str,
+    ) -> None:
+        """Call Alexa command per cluster member."""
         for cluster_member in device.device_cluster_members:
             await self._sequence_handler.send_message(
                 self._final_devices[cluster_member],
-                info_skill_name,
-                "",
+                message_type,
+                message_body,
             )
 
     async def _format_human_error(self, sensors_state: dict) -> bool:
