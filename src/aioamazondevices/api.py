@@ -33,6 +33,7 @@ from .exceptions import (
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
+from .implementation.http2 import AmazonHTTP2Client
 from .implementation.notification import AmazonNotificationHandler
 from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
@@ -90,7 +91,13 @@ class AmazonEchoApi:
         )
 
         self._dnd_handler = AmazonDnDHandler(
-            http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
+        self._http2_client = AmazonHTTP2Client(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
         )
 
         self._final_devices: dict[str, AmazonDevice] = {}
@@ -160,6 +167,10 @@ class AmazonEchoApi:
                 )
 
         return devices_sensors
+
+    async def start_http2_thread(self) -> None:
+        """Start HTTP2 background thread."""
+        await self._http2_client.start_thread()
 
     def _get_device_sensor_state(
         self, endpoint: dict[str, Any], serial_number: str
