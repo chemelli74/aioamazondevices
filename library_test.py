@@ -8,6 +8,7 @@ import mimetypes
 import sys
 from argparse import ArgumentParser, Namespace
 from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
@@ -115,11 +116,13 @@ async def save_to_file(
 
     extension = mimetypes.guess_extension(content_type.split(";")[0]) or RAW_EXTENSION
 
+    date = datetime.now(UTC).strftime("%Y-%m-%d")
+    base_filename = date + "-"
     if url.startswith("http"):
         url_split = url.split("/")
-        base_filename = f"{url_split[3]}-{url_split[4].split('?')[0]}"
+        base_filename += f"{url_split[3]}-{url_split[4].split('?')[0]}"
     else:
-        base_filename = url
+        base_filename += url
     fullpath = Path(output_dir, base_filename + extension)
 
     data: str
@@ -332,9 +335,6 @@ async def main() -> None:
     await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
 
     await wait_action_complete(10)
-
-    for notification in device_single.notifications:
-        print(f"Notification {device_single.notifications[notification]}")
 
     print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)
     await api.call_alexa_skill(
