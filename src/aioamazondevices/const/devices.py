@@ -36,6 +36,7 @@ DEVICE_TO_IGNORE: list[str] = [
     "APHEAY6LX7T13",  # Samsung Refrigerator RS22T5561SR/AA - issue #577
     "A1NPP2J03FTS0I",  # Eero Pro 6 - issue #602
     "A14AIWB3T3AS1Z",  # Samsung Soundbar HW-Q950A - issue #603
+    "A1X5IB2CRN3E8G",  # Fitbit Versa 3 - issue #651
     "A1NQ0LXWBGVQS9",  # Samsung 2012 QLED TV - Issue #660
 ]
 
