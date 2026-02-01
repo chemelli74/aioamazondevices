@@ -3,9 +3,9 @@
 from http import HTTPMethod
 from typing import Any
 
-from aioamazondevices.const.devices import SPEAKER_GROUP_FAMILY
+from aioamazondevices.const.devices import AQM_DEVICE_TYPE, SPEAKER_GROUP_FAMILY
 from aioamazondevices.const.http import ARRAY_WRAPPER, REQUEST_AGENT, URI_NEXUS_GRAPHQL
-from aioamazondevices.const.metadata import SENSORS
+from aioamazondevices.const.metadata import AQM_RANGE_SENSORS, SENSORS
 from aioamazondevices.const.queries import QUERY_SENSOR_STATE
 from aioamazondevices.const.schedules import (
     NOTIFICATION_ALARM,
@@ -55,9 +55,9 @@ class AmazonSensorHandler:
                     device.online = False
             else:
                 device.online = False
-
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
+
             if (
                 device_dnd := dnd_sensors.get(device.serial_number)
             ) and device.device_family != SPEAKER_GROUP_FAMILY:
@@ -153,12 +153,13 @@ class AmazonSensorHandler:
         self, endpoint: dict[str, Any], serial_number: str
     ) -> dict[str, AmazonDeviceSensor]:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
+        device = self._final_devices[serial_number]
         for feature in endpoint.get("features", {}):
             if (sensor_template := SENSORS.get(feature["name"])) is None:
                 # Skip sensors that are not in the predefined list
                 continue
 
-            if not (name := sensor_template["name"]):
+            if not (sensor_template_name_value := sensor_template["name"]):
                 raise CannotRetrieveData("Unable to read sensor template")
 
             for feature_property in feature.get("properties"):
@@ -179,7 +180,7 @@ class AmazonSensorHandler:
                         if not value_raw:
                             _LOGGER.warning(
                                 "Sensor %s [device %s] ignored due to empty value",
-                                name,
+                                sensor_template_name_value,
                                 serial_number,
                             )
                             continue
@@ -197,24 +198,48 @@ class AmazonSensorHandler:
                     except (KeyError, ValueError) as exc:
                         _LOGGER.warning(
                             "Sensor %s [device %s] ignored due to errors in feature %s: %s",  # noqa: E501
-                            name,
+                            sensor_template_name_value,
                             serial_number,
                             feature_property,
                             repr(exc),
                         )
                 if error:
                     _LOGGER.debug(
-                        "error in sensor %s - %s - %s", name, error_type, error_msg
-                    )
-
-                if error_type != "NOT_FOUND":
-                    device_sensors[name] = AmazonDeviceSensor(
-                        name,
-                        value,
-                        error,
+                        "error in sensor %s - %s - %s",
+                        sensor_template_name_value,
                         error_type,
                         error_msg,
-                        scale,
                     )
+
+                if error_type == "NOT_FOUND":
+                    continue
+
+                sensor_name = sensor_template_name_value
+
+                if (
+                    device.device_type == AQM_DEVICE_TYPE
+                    and sensor_template_name_value == "rangeValue"
+                ):
+                    if not (
+                        (instance := feature.get("instance"))
+                        and (aqm_sensor := AQM_RANGE_SENSORS.get(instance))
+                        and (aqm_sensor_name := aqm_sensor.get("name"))
+                    ):
+                        _LOGGER.debug(
+                            "No template for rangeValue (%s) - Skipping sensor",
+                            instance,
+                        )
+                        continue
+                    sensor_name = aqm_sensor_name
+                    scale = aqm_sensor.get("scale")
+
+                device_sensors[sensor_name] = AmazonDeviceSensor(
+                    sensor_name,
+                    value,
+                    error,
+                    error_type,
+                    error_msg,
+                    scale,
+                )
 
         return device_sensors

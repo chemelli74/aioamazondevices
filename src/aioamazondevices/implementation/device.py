@@ -3,7 +3,7 @@
 from http import HTTPMethod
 from typing import Any
 
-from aioamazondevices.const.devices import DEVICE_TO_IGNORE
+from aioamazondevices.const.devices import AQM_DEVICE_TYPE, DEVICE_TO_IGNORE
 from aioamazondevices.const.http import URI_DEVICES, URI_NEXUS_GRAPHQL
 from aioamazondevices.const.queries import QUERY_DEVICE_DATA
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
@@ -62,6 +62,11 @@ class AmazonDeviceHandler:
 
             serial_number: str = device["serialNumber"]
 
+            _has_notification_capability = any(
+                capability in capabilities
+                for capability in ["REMINDERS", "TIMERS_AND_ALARMS"]
+            )
+
             final_devices_list[serial_number] = AmazonDevice(
                 account_name=account_name,
                 capabilities=capabilities,
@@ -79,6 +84,7 @@ class AmazonDeviceHandler:
                 entity_id=None,
                 endpoint_id=None,
                 sensors={},
+                notifications_supported=_has_notification_capability,
                 notifications={},
             )
 
@@ -124,13 +130,15 @@ class AmazonDeviceHandler:
 
         endpoint_data = await self._http_wrapper.response_to_json(raw_resp, "endpoint")
 
-        if not (data := endpoint_data.get("data")) or not data.get("listEndpoints"):
+        if not (data := endpoint_data.get("data")) or not data.get("alexaVoiceDevices"):
             await format_graphql_error(endpoint_data)
             return {}
 
-        endpoints = data["listEndpoints"]
         devices_endpoints: dict[str, dict[str, Any]] = {}
-        for endpoint in endpoints.get("endpoints"):
+
+        # Process Alexa Voice Enabled devices
+        # Just map endpoint ID to serial number to facilitate sensor lookup
+        for endpoint in data.get("alexaVoiceDevices", {}).get("endpoints", {}):
             # save looking up sensor data on apps
             if endpoint.get("alexaEnabledMetadata", {}).get("category") == "APP":
                 continue
@@ -139,5 +147,38 @@ class AmazonDeviceHandler:
                 serial_number = endpoint["serialNumber"]["value"]["text"]
                 devices_endpoints[serial_number] = endpoint
                 self._endpoints[endpoint["endpointId"]] = serial_number
+
+        # Process Air Quality Monitors if present
+        # map endpoint ID to serial number to facilitate sensor lookup but also
+        # create AmazonDevice as these are not present in api/devices-v2/device endpoint
+        for aqm_endpoint in data.get("airQualityMonitors", {}).get("endpoints", {}):
+            aqm_serial_number: str = aqm_endpoint["serialNumber"]["value"]["text"]
+            devices_endpoints[aqm_serial_number] = aqm_endpoint
+            self._endpoints[aqm_endpoint["endpointId"]] = aqm_serial_number
+
+            device_name = aqm_endpoint["friendlyNameObject"]["value"]["text"]
+            device_type = aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
+                "deviceType"
+            ]["value"]["text"]
+            software_version = aqm_endpoint["softwareVersion"]["value"]["text"]
+
+            self._final_devices[aqm_serial_number] = AmazonDevice(
+                account_name=device_name,
+                capabilities=[],
+                device_family="AIR_QUALITY_MONITOR",
+                device_type=device_type,
+                device_owner_customer_id=self._session_state_data.account_customer_id
+                or "n/a",
+                household_device=False,
+                device_cluster_members={aqm_serial_number: AQM_DEVICE_TYPE},
+                online=True,
+                serial_number=aqm_serial_number,
+                software_version=software_version,
+                entity_id=None,
+                endpoint_id=aqm_endpoint.get("endpointId"),
+                sensors={},
+                notifications_supported=False,
+                notifications={},
+            )
 
         return devices_endpoints

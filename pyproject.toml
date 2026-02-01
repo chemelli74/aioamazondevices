@@ -1,6 +1,6 @@
 [project]
 name = "aioamazondevices"
-version = "11.0.3"
+version = "11.1.1"
 requires-python = ">=3.12"
 description = "Python library to control Amazon devices"
 authors = [
@@ -36,7 +36,7 @@ dependencies = [
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0"
 pytest-cov = ">=5,<8"
-types-python-dateutil = "^2.9.0.20251115"
+types-python-dateutil = "^2.9.0.20260124"
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
