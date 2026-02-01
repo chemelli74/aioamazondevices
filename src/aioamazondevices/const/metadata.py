@@ -21,7 +21,47 @@ SENSORS: dict[str, dict[str, str | None]] = {
         "subkey": "value",
         "scale": None,
     },
+    "connectivity": {
+        "name": "reachability",
+        "key": "reachabilityStatusValue",
+        "subkey": None,
+        "scale": None,
+    },
+    "range": {
+        "name": "rangeValue",
+        "key": "rangeValue",
+        "subkey": "value",
+        "scale": None,
+    },
 }
+
+AQM_RANGE_SENSORS: dict[str, dict[str, str | None]] = {
+    "4": {
+        "name": "Humidity",
+        "scale": "%",
+    },
+    "5": {
+        "name": "VOC",
+        "scale": None,
+    },
+    "6": {
+        "name": "PM25",
+        "scale": "MicroGramsPerCubicMeter",
+    },
+    "7": {
+        "name": "PM10",
+        "scale": "MicroGramsPerCubicMeter",
+    },
+    "8": {
+        "name": "CO",
+        "scale": "ppm",
+    },
+    "9": {
+        "name": "Air Quality",
+        "scale": None,
+    },
+}
+
 
 ALEXA_INFO_SKILLS = {
     "alexa_calendar_today": "Alexa.Calendar.PlayToday",

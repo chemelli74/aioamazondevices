@@ -9,6 +9,7 @@ from aiohttp import ClientSession
 
 from . import __version__
 from .const.devices import (
+    AQM_DEVICE_TYPE,
     DEVICE_TO_IGNORE,
     DEVICE_TYPE_TO_MODEL,
     SPEAKER_GROUP_FAMILY,
@@ -16,10 +17,11 @@ from .const.devices import (
 from .const.http import (
     ARRAY_WRAPPER,
     DEFAULT_SITE,
+    REQUEST_AGENT,
     URI_DEVICES,
     URI_NEXUS_GRAPHQL,
 )
-from .const.metadata import ALEXA_INFO_SKILLS, SENSORS
+from .const.metadata import ALEXA_INFO_SKILLS, AQM_RANGE_SENSORS, SENSORS
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
     NOTIFICATION_ALARM,
@@ -131,6 +133,7 @@ class AmazonEchoApi:
             url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
             input_data=payload,
             json_data=True,
+            extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
         )
 
         sensors_state = await self._http_wrapper.response_to_json(raw_resp, "sensors")
@@ -162,12 +165,13 @@ class AmazonEchoApi:
         self, endpoint: dict[str, Any], serial_number: str
     ) -> dict[str, AmazonDeviceSensor]:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
+        device = self._final_devices[serial_number]
         for feature in endpoint.get("features", {}):
             if (sensor_template := SENSORS.get(feature["name"])) is None:
                 # Skip sensors that are not in the predefined list
                 continue
 
-            if not (name := sensor_template["name"]):
+            if not (sensor_template_name_value := sensor_template["name"]):
                 raise CannotRetrieveData("Unable to read sensor template")
 
             for feature_property in feature.get("properties"):
@@ -188,7 +192,7 @@ class AmazonEchoApi:
                         if not value_raw:
                             _LOGGER.warning(
                                 "Sensor %s [device %s] ignored due to empty value",
-                                name,
+                                sensor_template_name_value,
                                 serial_number,
                             )
                             continue
@@ -206,25 +210,49 @@ class AmazonEchoApi:
                     except (KeyError, ValueError) as exc:
                         _LOGGER.warning(
                             "Sensor %s [device %s] ignored due to errors in feature %s: %s",  # noqa: E501
-                            name,
+                            sensor_template_name_value,
                             serial_number,
                             feature_property,
                             repr(exc),
                         )
                 if error:
                     _LOGGER.debug(
-                        "error in sensor %s - %s - %s", name, error_type, error_msg
-                    )
-
-                if error_type != "NOT_FOUND":
-                    device_sensors[name] = AmazonDeviceSensor(
-                        name,
-                        value,
-                        error,
+                        "error in sensor %s - %s - %s",
+                        sensor_template_name_value,
                         error_type,
                         error_msg,
-                        scale,
                     )
+
+                if error_type == "NOT_FOUND":
+                    continue
+
+                sensor_name = sensor_template_name_value
+
+                if (
+                    device.device_type == AQM_DEVICE_TYPE
+                    and sensor_template_name_value == "rangeValue"
+                ):
+                    if not (
+                        (instance := feature.get("instance"))
+                        and (aqm_sensor := AQM_RANGE_SENSORS.get(instance))
+                        and (aqm_sensor_name := aqm_sensor.get("name"))
+                    ):
+                        _LOGGER.debug(
+                            "No template for rangeValue (%s) - Skipping sensor",
+                            instance,
+                        )
+                        continue
+                    sensor_name = aqm_sensor_name
+                    scale = aqm_sensor.get("scale")
+
+                device_sensors[sensor_name] = AmazonDeviceSensor(
+                    sensor_name,
+                    value,
+                    error,
+                    error_type,
+                    error_msg,
+                    scale,
+                )
 
         return device_sensors
 
@@ -240,17 +268,20 @@ class AmazonEchoApi:
             url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
             input_data=payload,
             json_data=True,
+            extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
         )
 
         endpoint_data = await self._http_wrapper.response_to_json(raw_resp, "endpoint")
 
-        if not (data := endpoint_data.get("data")) or not data.get("listEndpoints"):
+        if not (data := endpoint_data.get("data")) or not data.get("alexaVoiceDevices"):
             await self._format_human_error(endpoint_data)
             return {}
 
-        endpoints = data["listEndpoints"]
         devices_endpoints: dict[str, dict[str, Any]] = {}
-        for endpoint in endpoints.get("endpoints"):
+
+        # Process Alexa Voice Enabled devices
+        # Just map endpoint ID to serial number to facilitate sensor lookup
+        for endpoint in data.get("alexaVoiceDevices", {}).get("endpoints", {}):
             # save looking up sensor data on apps
             if endpoint.get("alexaEnabledMetadata", {}).get("category") == "APP":
                 continue
@@ -259,6 +290,39 @@ class AmazonEchoApi:
                 serial_number = endpoint["serialNumber"]["value"]["text"]
                 devices_endpoints[serial_number] = endpoint
                 self._endpoints[endpoint["endpointId"]] = serial_number
+
+        # Process Air Quality Monitors if present
+        # map endpoint ID to serial number to facilitate sensor lookup but also
+        # create AmazonDevice as these are not present in api/devices-v2/device endpoint
+        for aqm_endpoint in data.get("airQualityMonitors", {}).get("endpoints", {}):
+            aqm_serial_number: str = aqm_endpoint["serialNumber"]["value"]["text"]
+            devices_endpoints[aqm_serial_number] = aqm_endpoint
+            self._endpoints[aqm_endpoint["endpointId"]] = aqm_serial_number
+
+            device_name = aqm_endpoint["friendlyNameObject"]["value"]["text"]
+            device_type = aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
+                "deviceType"
+            ]["value"]["text"]
+            software_version = aqm_endpoint["softwareVersion"]["value"]["text"]
+
+            self._final_devices[aqm_serial_number] = AmazonDevice(
+                account_name=device_name,
+                capabilities=[],
+                device_family="AIR_QUALITY_MONITOR",
+                device_type=device_type,
+                device_owner_customer_id=self._session_state_data.account_customer_id
+                or "n/a",
+                household_device=False,
+                device_cluster_members={aqm_serial_number: AQM_DEVICE_TYPE},
+                online=True,
+                serial_number=aqm_serial_number,
+                software_version=software_version,
+                entity_id=None,
+                endpoint_id=aqm_endpoint.get("endpointId"),
+                sensors={},
+                notifications_supported=False,
+                notifications={},
+            )
 
         return devices_endpoints
 
@@ -304,9 +368,15 @@ class AmazonEchoApi:
             sensors = devices_sensors.get(device.serial_number, {})
             if sensors:
                 device.sensors = sensors
+                if reachability_sensor := sensors.get("reachability"):
+                    device.online = reachability_sensor.value == "OK"
+                else:
+                    device.online = False
             else:
+                device.online = False
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
+
             if (
                 device_dnd := dnd_sensors.get(device.serial_number)
             ) and device.device_family != SPEAKER_GROUP_FAMILY:
@@ -337,6 +407,15 @@ class AmazonEchoApi:
                     )
                 ):
                     device.notifications[notification_type] = notification_object
+
+        # base online status of speaker groups on their members
+        for device in self._final_devices.values():
+            if device.device_family == SPEAKER_GROUP_FAMILY:
+                device.online = all(
+                    d.online
+                    for d in self._final_devices.values()
+                    if d.serial_number in device.device_cluster_members
+                )
 
     async def _set_device_endpoints_data(self) -> None:
         """Set device endpoint data."""
@@ -379,6 +458,11 @@ class AmazonEchoApi:
 
             serial_number: str = device["serialNumber"]
 
+            _has_notification_capability = any(
+                capability in capabilities
+                for capability in ["REMINDERS", "TIMERS_AND_ALARMS"]
+            )
+
             final_devices_list[serial_number] = AmazonDevice(
                 account_name=account_name,
                 capabilities=capabilities,
@@ -396,6 +480,7 @@ class AmazonEchoApi:
                 entity_id=None,
                 endpoint_id=None,
                 sensors={},
+                notifications_supported=_has_notification_capability,
                 notifications={},
             )
 
