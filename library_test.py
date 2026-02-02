@@ -8,6 +8,7 @@ import mimetypes
 import sys
 from argparse import ArgumentParser, Namespace
 from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
@@ -16,6 +17,7 @@ from aiohttp import ClientSession
 from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonEchoApi
+from aioamazondevices.const.devices import AQM_DEVICE_TYPE
 from aioamazondevices.exceptions import (
     AmazonError,
     CannotAuthenticate,
@@ -114,11 +116,13 @@ async def save_to_file(
 
     extension = mimetypes.guess_extension(content_type.split(";")[0]) or RAW_EXTENSION
 
+    date = datetime.now(UTC).strftime("%Y-%m-%d")
+    base_filename = date + "-"
     if url.startswith("http"):
         url_split = url.split("/")
-        base_filename = f"{url_split[3]}-{url_split[4].split('?')[0]}"
+        base_filename += f"{url_split[3]}-{url_split[4].split('?')[0]}"
     else:
-        base_filename = url
+        base_filename += url
     fullpath = Path(output_dir, base_filename + extension)
 
     data: str
@@ -257,9 +261,17 @@ async def main() -> None:
     else:
         device_cluster = device_single
 
+    print("-" * 20)
+    print("All Devices:")
+    for d in devices.values():
+        print(f"  {d.account_name} - Online: {d.online}")
+    print("-" * 20)
+
     print("Selected devices:")
     print("- single : ", device_single)
     print("- cluster: ", device_cluster)
+
+    _print_aqm_device_details(devices)
 
     for sensor in device_single.sensors:
         print(f"Sensor {device_single.sensors[sensor]}")
@@ -285,7 +297,7 @@ async def main() -> None:
     await wait_action_complete()
 
     print("Sending message via 'Alexa.Date.Play' to:", device_single.account_name)
-    await api.call_alexa_info_skill(device_single, "Alexa.Date.Play")
+    await api.call_alexa_info_skill(device_single, "alexa_date")
 
     await wait_action_complete(5)
 
@@ -308,9 +320,6 @@ async def main() -> None:
 
     await wait_action_complete(10)
 
-    for notification in device_single.notifications:
-        print(f"Notification {device_single.notifications[notification]}")
-
     print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)
     await api.call_alexa_skill(
         device_cluster, "amzn1.ask.skill.94c477e7-61c0-43f5-b7d9-36d7498a4d04"
@@ -318,6 +327,22 @@ async def main() -> None:
 
     print("Closing session")
     await client_session.close()
+
+
+def _print_aqm_device_details(devices: dict[str, AmazonDevice]) -> None:
+    print("AQM Devices and Sensors:")
+    print("-" * 20)
+    found_aqm = False
+    for device in devices.values():
+        if device.device_type == AQM_DEVICE_TYPE:
+            found_aqm = True
+            print(f"AQM Device: {device.account_name}")
+            for aqm_sensor in device.sensors:
+                print(f"  AQM Sensor {device.sensors[aqm_sensor]}")
+
+    if not found_aqm:
+        print("  No AQM devices found")
+    print("-" * 20)
 
 
 def set_logging() -> None:
