@@ -1,5 +1,28 @@
 # Changelog
 
+## v11.1.2 (2026-02-02)
+
+### Bug fixes
+
+- Expand group sequence call to separate calls per cluster member ([`0d4bb9c`](https://github.com/chemelli74/aioamazondevices/commit/0d4bb9ce3fc89671de02194892ec1ef95c4d89c3))
+
+
+### Refactoring
+
+- Make info skills a dict to allow for translation ([`f15eaa0`](https://github.com/chemelli74/aioamazondevices/commit/f15eaa0d993383c63429918fc9065423a214454c))
+
+
+### Build system
+
+- Bump orjson from 3.11.5 to 3.11.6 ([`3d51077`](https://github.com/chemelli74/aioamazondevices/commit/3d51077f43e8c26c86b5439d576f1d09383e3f4f))
+- Bump types-python-dateutil from 2.9.0.20251115 to 2.9.0.20260124 ([`5b191d7`](https://github.com/chemelli74/aioamazondevices/commit/5b191d7e3d7ec9bc34eafe459969a58f211749f2))
+
+
+### Testing
+
+- Add date to saved debug files ([`ce26c1a`](https://github.com/chemelli74/aioamazondevices/commit/ce26c1a254c4e26cac0a30c0824f0a9f2ca36ab9))
+
+
 ## v11.1.1 (2026-01-06)
 
 ### Bug fixes
