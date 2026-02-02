@@ -57,6 +57,7 @@ class AmazonSequenceType(StrEnum):
     Music = "Alexa.Music.PlaySearchPhrase"
     TextCommand = "Alexa.TextCommand"
     LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
+    Volume = "Alexa.DeviceControls.Volume"
 
 
 class AmazonMusicSource(StrEnum):

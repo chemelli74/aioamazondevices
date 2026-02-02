@@ -1,5 +1,6 @@
 """Support for Amazon devices."""
 
+import math
 from collections.abc import Callable, Coroutine
 from datetime import UTC, datetime, timedelta
 from http import HTTPMethod
@@ -21,7 +22,7 @@ from .const.http import (
     URI_DEVICES,
     URI_NEXUS_GRAPHQL,
 )
-from .const.metadata import AQM_RANGE_SENSORS, SENSORS
+from .const.metadata import AQM_RANGE_SENSORS, MAX_VOLUME, MIN_VOLUME, SENSORS
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
     NOTIFICATION_ALARM,
@@ -577,6 +578,24 @@ class AmazonEchoApi:
     ) -> None:
         """Call Info skill.  See ALEXA_INFO_SKILLS . const."""
         await self._sequence_handler.send_message(device, info_skill_name, "")
+
+    async def set_volume(
+        self,
+        device: AmazonDevice,
+        volume: int,
+    ) -> None:
+        """Call Alexa.DeviceControls.Volume to set volume."""
+        if volume < MIN_VOLUME:
+            _api_volume = MIN_VOLUME
+        if volume > MAX_VOLUME:
+            _api_volume = MAX_VOLUME
+        else:
+            _api_volume = math.ceil(volume / 10.0) * 10
+        if volume != _api_volume:
+            _LOGGER.debug("Volume %s rounded to %s", volume, _api_volume)
+        return await self._sequence_handler.send_message(
+            device, AmazonSequenceType.Volume, str(_api_volume)
+        )
 
     async def _format_human_error(self, sensors_state: dict) -> bool:
         """Format human readable error from malformed data."""
