@@ -535,7 +535,7 @@ class AmazonEchoApi:
         sound_name: str,
     ) -> None:
         """Call Alexa.Sound to play sound."""
-        await self._sequence_handler.send_message(
+        await self._call_alexa_command_per_cluster_member(
             device, AmazonSequenceType.Sound, sound_name
         )
 
@@ -556,7 +556,7 @@ class AmazonEchoApi:
         text_command: str,
     ) -> None:
         """Call Alexa.TextCommand to issue command."""
-        await self._sequence_handler.send_message(
+        await self._call_alexa_command_per_cluster_member(
             device, AmazonSequenceType.TextCommand, text_command
         )
 
@@ -566,7 +566,7 @@ class AmazonEchoApi:
         skill_name: str,
     ) -> None:
         """Call Alexa.LaunchSkill to launch a skill."""
-        await self._sequence_handler.send_message(
+        await self._call_alexa_command_per_cluster_member(
             device, AmazonSequenceType.LaunchSkill, skill_name
         )
 
@@ -577,7 +577,21 @@ class AmazonEchoApi:
     ) -> None:
         """Call Info skill.  See ALEXA_INFO_SKILLS . const."""
         info_skill = ALEXA_INFO_SKILLS.get(info_skill_name, info_skill_name)
-        await self._sequence_handler.send_message(device, info_skill, "")
+        await self._call_alexa_command_per_cluster_member(device, info_skill, "")
+
+    async def _call_alexa_command_per_cluster_member(
+        self,
+        device: AmazonDevice,
+        message_type: str,
+        message_body: str,
+    ) -> None:
+        """Call Alexa command per cluster member."""
+        for cluster_member in device.device_cluster_members:
+            await self._sequence_handler.send_message(
+                self._final_devices[cluster_member],
+                message_type,
+                message_body,
+            )
 
     async def _format_human_error(self, sensors_state: dict) -> bool:
         """Format human readable error from malformed data."""
