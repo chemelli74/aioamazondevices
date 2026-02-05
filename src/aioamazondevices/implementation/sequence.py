@@ -1,5 +1,6 @@
 """Module to handle Alexa sequence operations."""
 
+import asyncio
 from collections.abc import Generator
 from http import HTTPMethod
 from itertools import groupby
@@ -10,7 +11,6 @@ import orjson
 from aioamazondevices.const.metadata import ALEXA_INFO_SKILLS, SEQUENCE_BATCH_DELAY
 from aioamazondevices.exceptions import CannotConnect
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.implementation.sequence_batcher import SequenceBatcher
 from aioamazondevices.structures import (
     AmazonDevice,
     AmazonMusicSource,
@@ -21,7 +21,18 @@ from aioamazondevices.utils import _LOGGER
 
 
 class AmazonSequenceHandler:
-    """Class to handle Alexa sequence (routine) operations."""
+    """Class to handle Alexa sequence (steps in Alexa routine) operations.
+
+    Flow is:
+
+    `send_message` - call to send message
+      -> `_build_operation_node` - generates the JSON payload for message
+      -> `_enqueue_sequence` - adds sequence to pending list
+    `_process_batch` - sends all pending messages and clears pending list
+      -> `_post_sequences` - handles actual HTTP request
+        -> `_optimise_sequence_nodes` - wraps the same message to different devices in
+                                        a parallel block
+    """
 
     def __init__(
         self,
@@ -31,12 +42,14 @@ class AmazonSequenceHandler:
         """Initialize AmazonSequenceHandler."""
         self._http_wrapper = http_wrapper
         self._session_state_data = session_state_data
-        self._sequence_batcher = SequenceBatcher(
-            batch_delay=SEQUENCE_BATCH_DELAY,
-            send_callback=self._send_sequences,
-        )
 
-    async def _send_sequences(self, sequences: list[AmazonSequenceNode]) -> None:
+        # batching variables
+        self._buffer: list[AmazonSequenceNode] = []
+        self._lock = asyncio.Lock()
+        self._batch_pending = False
+        self._tasks: set[asyncio.Task] = set()
+
+    async def _post_sequences(self, sequences: list[AmazonSequenceNode]) -> None:
         """Send batched sequence operations to Amazon API.
 
         Args:
@@ -82,7 +95,7 @@ class AmazonSequenceHandler:
         """
         # list will be in the order nodes were added
         # group by message type, body and source to find similar operations
-        # then wrap in parallel node if from different devices
+        # then wrap in parallel node if for different devices
         for _, group_iter in groupby(
             sequences,
             key=lambda x: (x.message_type, x.message_body, x.message_source),
@@ -105,7 +118,7 @@ class AmazonSequenceHandler:
         message_body: str | float | None = None,
         message_source: AmazonMusicSource | None = None,
     ) -> dict[str, Any]:
-        """Convert message to operation node."""
+        """Build operation node JSON payload for message."""
         if not self._session_state_data.login_stored_data:
             _LOGGER.warning("No login data available, cannot send message")
             raise CannotConnect(
@@ -216,11 +229,11 @@ class AmazonSequenceHandler:
         message_body: str | float | None = None,
         message_source: AmazonMusicSource | None = None,
     ) -> None:
-        """Send message to specific device."""
+        """Parse and enqueue message to specific device."""
         node = self._build_operation_node(
             device, message_type, message_body, message_source
         )
-        await self._sequence_batcher.enqueue(
+        await self._enqueue_sequence(
             AmazonSequenceNode(
                 message_type=message_type,
                 message_body=message_body,
@@ -229,3 +242,34 @@ class AmazonSequenceHandler:
                 operation_node=node,
             )
         )
+
+    async def _enqueue_sequence(self, sequence: AmazonSequenceNode) -> None:
+        """Add an operation node to the batch queue.
+
+        Args:
+            sequence: The sequence node to enqueue
+
+        """
+        async with self._lock:
+            self._buffer.append(sequence)
+            if not self._batch_pending:
+                self._batch_pending = True
+                task = asyncio.create_task(self._process_batch())
+                self._tasks.add(task)
+                task.add_done_callback(self._tasks.discard)
+
+    async def _process_batch(self) -> None:
+        """Wait for batch delay, then send all accumulated operations."""
+        await asyncio.sleep(SEQUENCE_BATCH_DELAY)
+
+        async with self._lock:
+            nodes = self._buffer
+            self._buffer = []
+            self._batch_pending = False
+
+        if nodes:
+            _LOGGER.debug("Processing batch of %d sequence operations", len(nodes))
+            try:
+                await self._post_sequences(nodes)
+            except Exception:  # noqa: BLE001
+                _LOGGER.exception("Failed to send batch of %d operations", len(nodes))
