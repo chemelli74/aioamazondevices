@@ -1,5 +1,12 @@
 # Changelog
 
+## v11.1.3 (2026-02-06)
+
+### Bug fixes
+
+- Ignore non amazon aqm devices ([`45e28dc`](https://github.com/chemelli74/aioamazondevices/commit/45e28dc7de20b12b854bfb8d6c89e120198eeaef))
+
+
 ## v11.1.2 (2026-02-02)
 
 ### Bug fixes
