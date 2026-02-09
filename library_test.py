@@ -114,7 +114,10 @@ async def save_to_file(
     output_dir = Path(SAVE_PATH)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    extension = mimetypes.guess_extension(content_type.split(";")[0]) or RAW_EXTENSION
+    extension = (
+        mimetypes.guess_extension(content_type.split(";", maxsplit=1)[0])
+        or RAW_EXTENSION
+    )
 
     date = datetime.now(UTC).strftime("%Y-%m-%d")
     base_filename = date + "-"
