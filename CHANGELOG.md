@@ -1,5 +1,17 @@
 # Changelog
 
+## v12.0.0 (2026-02-10)
+
+### Refactoring
+
+- Revert info_skill dict changes ([`d7dacb8`](https://github.com/chemelli74/aioamazondevices/commit/d7dacb887c02e07759df8d7c61cc9aa592c2cd46))
+
+
+### Build system
+
+- Bump orjson from 3.11.6 to 3.11.7 ([`4478000`](https://github.com/chemelli74/aioamazondevices/commit/44780005fa038c36ac7a43dbbca497c4860319d0))
+
+
 ## v11.1.3 (2026-02-06)
 
 ### Bug fixes
