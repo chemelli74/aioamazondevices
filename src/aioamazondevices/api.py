@@ -21,7 +21,7 @@ from .const.http import (
     URI_DEVICES,
     URI_NEXUS_GRAPHQL,
 )
-from .const.metadata import AQM_RANGE_SENSORS, SENSORS
+from .const.metadata import ALEXA_INFO_SKILLS, AQM_RANGE_SENSORS, SENSORS
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
     NOTIFICATION_ALARM,
@@ -576,6 +576,8 @@ class AmazonEchoApi:
         info_skill: str,
     ) -> None:
         """Call Info skill."""
+        if info_skill not in ALEXA_INFO_SKILLS:
+            raise ValueError(f"Unsupported info skill: {info_skill}")
         await self._call_alexa_command_per_cluster_member(device, info_skill, "")
 
     async def _call_alexa_command_per_cluster_member(
