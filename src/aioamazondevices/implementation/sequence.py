@@ -123,7 +123,7 @@ class AmazonSequenceHandler:
                     "uri": "connection://AMAZON.Launch/" + message_body,
                 },
             }
-        elif message_type in ALEXA_INFO_SKILLS.values():
+        elif message_type in ALEXA_INFO_SKILLS:
             payload = {
                 **base_payload,
             }

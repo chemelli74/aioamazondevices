@@ -21,7 +21,7 @@ from .const.http import (
     URI_DEVICES,
     URI_NEXUS_GRAPHQL,
 )
-from .const.metadata import ALEXA_INFO_SKILLS, AQM_RANGE_SENSORS, SENSORS
+from .const.metadata import AQM_RANGE_SENSORS, SENSORS
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
     NOTIFICATION_ALARM,
@@ -573,10 +573,9 @@ class AmazonEchoApi:
     async def call_alexa_info_skill(
         self,
         device: AmazonDevice,
-        info_skill_name: str,
+        info_skill: str,
     ) -> None:
-        """Call Info skill.  See ALEXA_INFO_SKILLS . const."""
-        info_skill = ALEXA_INFO_SKILLS.get(info_skill_name, info_skill_name)
+        """Call Info skill."""
         await self._call_alexa_command_per_cluster_member(device, info_skill, "")
 
     async def _call_alexa_command_per_cluster_member(
