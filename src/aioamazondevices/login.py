@@ -261,7 +261,8 @@ class AmazonLogin:
 
         await self._domain_refresh_auth_cookies()
 
-        await self.obtain_account_customer_id()
+        if not self._session_state_data.account_customer_id:
+            await self.obtain_account_customer_id()
 
         self._session_state_data.login_stored_data.update(
             {"site": f"https://www.amazon.{self._session_state_data.domain}"}
@@ -338,7 +339,8 @@ class AmazonLogin:
             obfuscate_email(self._session_state_data.login_email),
         )
 
-        await self.obtain_account_customer_id()
+        if not self._session_state_data.account_customer_id:
+            await self.obtain_account_customer_id()
 
         return self._session_state_data.login_stored_data
 
@@ -394,8 +396,7 @@ class AmazonLogin:
     async def obtain_account_customer_id(self) -> None:
         """Find account customer id."""
         for retry_count in range(MAX_CUSTOMER_ACCOUNT_RETRIES):
-            if not self._session_state_data.account_customer_id:
-                await asyncio.sleep(2)  # allow time for device to be registered
+            await asyncio.sleep(2)  # allow time for device to be registered
 
             _LOGGER.debug(
                 "Lookup customer account ID (attempt %d/%d)",
