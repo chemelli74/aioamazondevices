@@ -1,5 +1,12 @@
 # Changelog
 
+## v12.0.1 (2026-02-11)
+
+### Bug fixes
+
+- Store dnd domain to reflect current value ([`5eda679`](https://github.com/chemelli74/aioamazondevices/commit/5eda6793ae707885746247eed02ec4138f9eb4f9))
+
+
 ## v12.0.0 (2026-02-10)
 
 ### Refactoring
