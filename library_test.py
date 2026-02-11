@@ -9,11 +9,11 @@ import sys
 from argparse import ArgumentParser, Namespace
 from collections.abc import Callable
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Any, cast
 
 import orjson
 from aiohttp import ClientSession
+from anyio import Path
 from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonEchoApi
