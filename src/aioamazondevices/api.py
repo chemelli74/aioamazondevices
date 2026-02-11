@@ -21,7 +21,7 @@ from .const.http import (
     URI_DEVICES,
     URI_NEXUS_GRAPHQL,
 )
-from .const.metadata import AQM_RANGE_SENSORS, SENSORS
+from .const.metadata import ALEXA_INFO_SKILLS, AQM_RANGE_SENSORS, SENSORS
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
     NOTIFICATION_ALARM,
@@ -295,6 +295,17 @@ class AmazonEchoApi:
         # map endpoint ID to serial number to facilitate sensor lookup but also
         # create AmazonDevice as these are not present in api/devices-v2/device endpoint
         for aqm_endpoint in data.get("airQualityMonitors", {}).get("endpoints", {}):
+            if (
+                aqm_endpoint.get("manufacturer", {})
+                .get("value", {})
+                .get("text", "Unknown")
+                != "Amazon"
+            ):
+                _LOGGER.debug(
+                    "Skipping non-Amazon Air Quality Monitor: %s",
+                    aqm_endpoint,
+                )
+                continue
             aqm_serial_number: str = aqm_endpoint["serialNumber"]["value"]["text"]
             devices_endpoints[aqm_serial_number] = aqm_endpoint
             self._endpoints[aqm_endpoint["endpointId"]] = aqm_serial_number
@@ -535,7 +546,7 @@ class AmazonEchoApi:
         sound_name: str,
     ) -> None:
         """Call Alexa.Sound to play sound."""
-        await self._sequence_handler.send_message(
+        await self._call_alexa_command_per_cluster_member(
             device, AmazonSequenceType.Sound, sound_name
         )
 
@@ -556,7 +567,7 @@ class AmazonEchoApi:
         text_command: str,
     ) -> None:
         """Call Alexa.TextCommand to issue command."""
-        await self._sequence_handler.send_message(
+        await self._call_alexa_command_per_cluster_member(
             device, AmazonSequenceType.TextCommand, text_command
         )
 
@@ -566,17 +577,33 @@ class AmazonEchoApi:
         skill_name: str,
     ) -> None:
         """Call Alexa.LaunchSkill to launch a skill."""
-        await self._sequence_handler.send_message(
+        await self._call_alexa_command_per_cluster_member(
             device, AmazonSequenceType.LaunchSkill, skill_name
         )
 
     async def call_alexa_info_skill(
         self,
         device: AmazonDevice,
-        info_skill_name: str,
+        info_skill: str,
     ) -> None:
-        """Call Info skill.  See ALEXA_INFO_SKILLS . const."""
-        await self._sequence_handler.send_message(device, info_skill_name, "")
+        """Call Info skill."""
+        if info_skill not in ALEXA_INFO_SKILLS:
+            raise ValueError(f"Unsupported info skill: {info_skill}")
+        await self._call_alexa_command_per_cluster_member(device, info_skill, "")
+
+    async def _call_alexa_command_per_cluster_member(
+        self,
+        device: AmazonDevice,
+        message_type: str,
+        message_body: str,
+    ) -> None:
+        """Call Alexa command per cluster member."""
+        for cluster_member in device.device_cluster_members:
+            await self._sequence_handler.send_message(
+                self._final_devices[cluster_member],
+                message_type,
+                message_body,
+            )
 
     async def _format_human_error(self, sensors_state: dict) -> bool:
         """Format human readable error from malformed data."""

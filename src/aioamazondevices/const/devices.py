@@ -29,10 +29,15 @@ DEVICE_TO_IGNORE: list[str] = [
     "A3BW5ZVFHRCQPO",  # BMW Mini Car System - issue #479
     "A133UZ2CB0IB8",  # Sony Soundbar Sony HT-A5000 - issue #486
     "A2M9HB23M9MSSM",  # Smartwatch Amazfit Bip U Pro - issue #507
+    "A2QDHDQIWC2LTG",  # Echo Buds (Left) - issue #515
+    "A31PMVIWCRNTX2",  # Echo Buds (Right) - issue #515
+    "A3HVREY4JWAZ6K",  # Echo Buds (Charger) - issue #515
     "A1P7E7V3FCZKU6",  # Toshiba Corporation TV 32LF221U19 - issue #531
+    "APHEAY6LX7T13",  # Samsung Refrigerator RS22T5561SR/AA - issue #577
     "A1NPP2J03FTS0I",  # Eero Pro 6 - issue #602
     "A14AIWB3T3AS1Z",  # Samsung Soundbar HW-Q950A - issue #603
-    "APHEAY6LX7T13",  # Samsung Refrigerator RS22T5561SR/AA - issue #577
+    "A1X5IB2CRN3E8G",  # Fitbit Versa 3 - issue #651
+    "A1NQ0LXWBGVQS9",  # Samsung 2012 QLED TV - Issue #660
 ]
 
 DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
@@ -430,5 +435,36 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
     AQM_DEVICE_TYPE: {
         "model": "Air Quality Monitor",
         "hw_version": "Gen1",
+    },
+    "A1MR3F8QRZNAXI": {
+        "model": "Echo Dot Max",
+        "hw_version": "Gen1",
+    },
+    "A1XULUOD31VLF4": {
+        "manufacturer": "Broan-NuTone LLC",
+        "model": "Bathroom Fan with Alexa (VC110CCT)",
+        "hw_version": None,
+    },
+    "A15QWUTQ6FSMYX": {
+        # This appears to be a group for both speakers
+        # but four devices show this device type (see issue #515)
+        "model": "Echo Buds",
+        "hw_version": "Gen2",
+    },
+    "A345JHMQDGG1M5": {
+        "model": "Echo Show 8",
+        "hw_version": "Gen3",
+    },
+    "A3R9S4ZZECZ6YL": {
+        "model": "Fire Tablet HD 10",
+        "hw_version": "Gen7",
+    },
+    "A1ZB65LA390I4K": {
+        "model": "Fire Tablet HD 10",
+        "hw_version": "Gen9",
+    },
+    "A2QCPPMSOLGVZE": {
+        "model": "Fire Max 11",
+        "hw_version": "Gen13",
     },
 }
