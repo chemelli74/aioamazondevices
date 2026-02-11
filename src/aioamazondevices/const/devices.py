@@ -451,4 +451,20 @@ DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {
         "model": "Echo Buds",
         "hw_version": "Gen2",
     },
+    "A345JHMQDGG1M5": {
+        "model": "Echo Show 8",
+        "hw_version": "Gen3",
+    },
+    "A3R9S4ZZECZ6YL": {
+        "model": "Fire Tablet HD 10",
+        "hw_version": "Gen7",
+    },
+    "A1ZB65LA390I4K": {
+        "model": "Fire Tablet HD 10",
+        "hw_version": "Gen9",
+    },
+    "A2QCPPMSOLGVZE": {
+        "model": "Fire Max 11",
+        "hw_version": "Gen13",
+    },
 }
