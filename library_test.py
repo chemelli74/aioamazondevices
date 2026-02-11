@@ -9,11 +9,11 @@ import sys
 from argparse import ArgumentParser, Namespace
 from collections.abc import Callable
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Any, cast
 
 import orjson
 from aiohttp import ClientSession
+from anyio import Path
 from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonEchoApi
@@ -114,7 +114,10 @@ async def save_to_file(
     output_dir = Path(SAVE_PATH)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    extension = mimetypes.guess_extension(content_type.split(";")[0]) or RAW_EXTENSION
+    extension = (
+        mimetypes.guess_extension(content_type.split(";", maxsplit=1)[0])
+        or RAW_EXTENSION
+    )
 
     date = datetime.now(UTC).strftime("%Y-%m-%d")
     base_filename = date + "-"

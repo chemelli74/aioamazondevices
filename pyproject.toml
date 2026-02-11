@@ -21,6 +21,7 @@ packages = [
 ]
 dependencies = [
 "aiohttp (>=3.12.7)",
+"anyio",
 "beautifulsoup4",
 "colorlog",
 "langcodes",
