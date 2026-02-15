@@ -5,6 +5,7 @@ from .http import AMAZON_DEVICE_TYPE
 SPEAKER_GROUP_DEVICE_TYPE = "A3C9PE6TNYLTCH"
 SPEAKER_GROUP_FAMILY = "WHA"
 SPEAKER_GROUP_MODEL = "Speaker Group"
+AQM_DEVICE_TYPE = "AEZME1X38KDRA"
 
 DEVICE_TO_IGNORE: list[str] = [
     AMAZON_DEVICE_TYPE,  # Alexa App for iOS
@@ -29,8 +30,13 @@ DEVICE_TO_IGNORE: list[str] = [
     "A3BW5ZVFHRCQPO",  # BMW Mini Car System - issue #479
     "A133UZ2CB0IB8",  # Sony Soundbar Sony HT-A5000 - issue #486
     "A2M9HB23M9MSSM",  # Smartwatch Amazfit Bip U Pro - issue #507
+    "A2QDHDQIWC2LTG",  # Echo Buds (Left) - issue #515
+    "A31PMVIWCRNTX2",  # Echo Buds (Right) - issue #515
+    "A3HVREY4JWAZ6K",  # Echo Buds (Charger) - issue #515
     "A1P7E7V3FCZKU6",  # Toshiba Corporation TV 32LF221U19 - issue #531
+    "APHEAY6LX7T13",  # Samsung Refrigerator RS22T5561SR/AA - issue #577
     "A1NPP2J03FTS0I",  # Eero Pro 6 - issue #602
     "A14AIWB3T3AS1Z",  # Samsung Soundbar HW-Q950A - issue #603
-    "APHEAY6LX7T13",  # Samsung Refrigerator RS22T5561SR/AA - issue #577
+    "A1X5IB2CRN3E8G",  # Fitbit Versa 3 - issue #651
+    "A1NQ0LXWBGVQS9",  # Samsung 2012 QLED TV - Issue #660
 ]
