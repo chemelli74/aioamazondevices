@@ -42,6 +42,7 @@ async def get_arguments() -> tuple[ArgumentParser, Namespace]:
         help="Set Amazon login e-mail",
     )
     parser.add_argument("--password", "-p", type=str, help="Set Amazon login password")
+    parser.add_argument("--site", "-s", type=str, help="Set Amazon login site")
     parser.add_argument("--otp_code", "-o", type=str, help="Set Amazon OTP code")
     parser.add_argument(
         "--login_data_file",
@@ -192,10 +193,14 @@ async def main() -> None:
 
     client_session = ClientSession()
 
+    credentials = {
+        "login_site": args.site or login_data_stored.get("site", "US"),
+        "login_email": args.email,
+        "login_password": args.password,
+    }
     api = AmazonEchoApi(
         client_session=client_session,
-        login_email=args.email,
-        login_password=args.password,
+        credentials=credentials,
         login_data=login_data_stored,
         save_to_file=save_to_file,
     )
