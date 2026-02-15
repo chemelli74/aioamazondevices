@@ -89,11 +89,11 @@ class AmazonLogin:
         code_challenge = self._create_s256_code_challenge(code_verifier)
 
         oauth_params = {
-            "openid.return_to": "https://www.amazon.com/ap/maplanding",
+            "openid.return_to": f"https://www.amazon.{self._session_state_data.oauth_and_register_domain}/ap/maplanding",
             "openid.oa2.code_challenge_method": "S256",
-            "openid.assoc_handle": "amzn_dp_project_dee_ios",
+            "openid.assoc_handle": self._session_state_data.oauth_assoc_handle,
             "openid.identity": "http://specs.openid.net/auth/2.0/identifier_select",
-            "pageId": "amzn_dp_project_dee_ios",
+            "pageId": self._session_state_data.oauth_assoc_handle,
             "accountStatusPolicy": "P1",
             "openid.claimed_id": "http://specs.openid.net/auth/2.0/identifier_select",
             "openid.mode": "checkid_setup",
@@ -108,7 +108,7 @@ class AmazonLogin:
             "openid.oa2.response_type": "code",
         }
 
-        return f"https://www.amazon.com{URI_SIGNIN}?{urlencode(oauth_params)}"
+        return f"https://www.amazon.{self._session_state_data.oauth_and_register_domain}{URI_SIGNIN}?{urlencode(oauth_params)}"
 
     def _get_inputs_from_soup(self, soup: BeautifulSoup) -> dict[str, str]:
         """Extract hidden form input fields from a Amazon login page."""
@@ -193,7 +193,7 @@ class AmazonLogin:
             ],
         }
 
-        register_url = "https://api.amazon.com/auth/register"
+        register_url = f"https://api.amazon.{self._session_state_data.oauth_and_register_domain}/auth/register"
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
             url=register_url,

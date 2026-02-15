@@ -35,3 +35,14 @@ URI_DND_STATUS_DEVICE = "/api/dnd/status"
 URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 URI_NOTIFICATIONS = "/api/notifications"
 URI_SIGNIN = "/ap/signin"
+
+LOGIN_EXCEPTIONS = {
+    "default": {
+        "oauth_assoc_handle": "amzn_dp_project_dee_ios",
+        "oauth_and_register_domain": ".com",
+    },
+    "co.jp": {
+        "oauth_assoc_handle": "jpflex",
+        "oauth_and_register_domain": ".co.jp",
+    },
+}

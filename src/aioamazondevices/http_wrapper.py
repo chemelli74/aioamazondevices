@@ -32,6 +32,7 @@ from .const.http import (
     DEFAULT_HEADERS,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
+    LOGIN_EXCEPTIONS,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     REQUEST_AGENT,
@@ -106,6 +107,20 @@ class AmazonSessionStateData:
     def account_customer_id(self, customer_id: str | None) -> None:
         """Set account customer id."""
         self._account_customer_id = customer_id
+
+    @property
+    def oauth_assoc_handle(self) -> str:
+        """Return oauth assoc handle."""
+        return LOGIN_EXCEPTIONS.get(self.domain, LOGIN_EXCEPTIONS["default"])[
+            "oauth_assoc_handle"
+        ]
+
+    @property
+    def oauth_and_register_domain(self) -> str:
+        """Return true if account has exceptions."""
+        return LOGIN_EXCEPTIONS.get(self.domain, LOGIN_EXCEPTIONS["default"])[
+            "oauth_and_register_domain"
+        ]
 
     def country_specific_data(self, login_site: str) -> None:
         """Set country specific data."""
