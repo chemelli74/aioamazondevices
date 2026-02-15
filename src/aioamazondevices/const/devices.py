@@ -34,5 +34,3 @@ DEVICE_TO_IGNORE: list[str] = [
     "A14AIWB3T3AS1Z",  # Samsung Soundbar HW-Q950A - issue #603
     "APHEAY6LX7T13",  # Samsung Refrigerator RS22T5561SR/AA - issue #577
 ]
-
-DEVICE_TYPE_TO_MODEL: dict[str, dict[str, str | None]] = {}
