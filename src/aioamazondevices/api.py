@@ -11,6 +11,7 @@ from . import __version__
 from .const.devices import (
     AQM_DEVICE_TYPE,
     DEVICE_TO_IGNORE,
+    GENERIC_ALEXA_MODELS,
     SPEAKER_GROUP_DEVICE_TYPE,
     SPEAKER_GROUP_FAMILY,
     SPEAKER_GROUP_MODEL,
@@ -451,9 +452,12 @@ class AmazonEchoApi:
                 and endpoint_device.device_type == SPEAKER_GROUP_DEVICE_TYPE
             ):
                 endpoint_device.model = SPEAKER_GROUP_MODEL
+            model = ((device_endpoint.get("model") or {}).get("value") or {}).get(
+                "text"
+            )
             device_details = parse_device_details(
-                device_endpoint["model"]["value"]["text"]
-                if device_endpoint
+                model
+                if model not in GENERIC_ALEXA_MODELS and device_endpoint
                 else endpoint_device.model
             )
             if (

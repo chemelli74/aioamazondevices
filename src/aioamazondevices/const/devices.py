@@ -40,3 +40,8 @@ DEVICE_TO_IGNORE: list[str] = [
     "A1X5IB2CRN3E8G",  # Fitbit Versa 3 - issue #651
     "A1NQ0LXWBGVQS9",  # Samsung 2012 QLED TV - Issue #660
 ]
+
+GENERIC_ALEXA_MODELS: list[str] = [
+    "Alexa Voice Search",
+    "Alexa Voice Service",
+]
