@@ -285,7 +285,23 @@ async def main() -> None:
         print(f"Notification {device_single.notifications[notification]}")
 
     print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
+    # sequences should be batched into a single call
     await api.call_alexa_speak(device_single, "Test Speak message from new library")
+    await api.call_alexa_speak(device_single, "Test Speak 2 from new library")
+    await api.call_alexa_speak(device_single, "Test Speak 3 from new library")
+
+    await wait_action_complete(10)
+
+    print(
+        "Sending parallel messages via 'Alexa.Speak' to cluster:",
+        device_cluster.account_name,
+    )
+    # Should simulate sending to all devices in cluster in parallel
+    for cluster_member in device_cluster.device_cluster_members:
+        await api.call_alexa_speak(
+            devices[cluster_member],
+            "This is a cluster test message from new library",
+        )
 
     await wait_action_complete()
 

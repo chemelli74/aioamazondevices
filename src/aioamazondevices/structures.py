@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
+from typing import Any
 
 
 @dataclass
@@ -64,3 +65,14 @@ class AmazonMusicSource(StrEnum):
 
     Radio = "TUNEIN"
     AmazonMusic = "AMAZON_MUSIC"
+
+
+@dataclass
+class AmazonSequenceNode:
+    """Amazon sequence node used in routines."""
+
+    message_type: str
+    message_body: str | float | None
+    message_source: AmazonMusicSource | None
+    device: AmazonDevice
+    operation_node: dict[str, Any]
