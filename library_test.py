@@ -18,13 +18,18 @@ from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.devices import AQM_DEVICE_TYPE
+from aioamazondevices.const.http import DEFAULT_SITE
 from aioamazondevices.exceptions import (
     AmazonError,
     CannotAuthenticate,
     CannotConnect,
     CannotRegisterDevice,
 )
-from aioamazondevices.structures import AmazonDevice, AmazonMusicSource
+from aioamazondevices.structures import (
+    AmazonCredentials,
+    AmazonDevice,
+    AmazonMusicSource,
+)
 
 SAVE_PATH = "out"
 HTML_EXTENSION = ".html"
@@ -193,14 +198,13 @@ async def main() -> None:
 
     client_session = ClientSession()
 
-    credentials = {
-        "login_site": args.site or login_data_stored.get("site", "US"),
-        "login_email": args.email,
-        "login_password": args.password,
-    }
     api = AmazonEchoApi(
         client_session=client_session,
-        credentials=credentials,
+        credentials=AmazonCredentials(
+            site=args.site or login_data_stored.get("site", DEFAULT_SITE),
+            login=args.email,
+            password=args.password,
+        ),
         login_data=login_data_stored,
         save_to_file=save_to_file,
     )
