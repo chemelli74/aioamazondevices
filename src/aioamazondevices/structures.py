@@ -40,7 +40,10 @@ class AmazonDevice:
     device_cluster_members: dict[str, str | None]
     online: bool
     serial_number: str
+    manufacturer: str | None
+    model: str | None
     software_version: str
+    hardware_version: str | None
     entity_id: str | None
     endpoint_id: str | None
     sensors: dict[str, AmazonDeviceSensor]
