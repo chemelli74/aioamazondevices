@@ -99,7 +99,7 @@ class AmazonLogin:
             "openid.mode": "checkid_setup",
             "openid.ns.oa2": "http://www.amazon.com/ap/ext/oauth/2",
             "openid.oa2.client_id": f"device:{client_id}",
-            "language": self._session_state_data.language.replace("-", "_"),
+            "language": "ja_JP",
             "openid.ns.pape": "http://specs.openid.net/extensions/pape/1.0",
             "openid.oa2.code_challenge": code_challenge,
             "openid.oa2.scope": "device_auth_access",
