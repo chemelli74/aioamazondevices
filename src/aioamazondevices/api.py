@@ -37,6 +37,7 @@ from .implementation.notification import AmazonNotificationHandler
 from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
 from .structures import (
+    AmazonCredentials,
     AmazonDevice,
     AmazonDeviceSensor,
     AmazonMusicSource,
@@ -51,8 +52,7 @@ class AmazonEchoApi:
     def __init__(
         self,
         client_session: ClientSession,
-        login_email: str,
-        login_password: str,
+        credentials: AmazonCredentials,
         login_data: dict[str, Any] | None = None,
         save_to_file: Callable[[str | dict, str, str], Coroutine[Any, Any, None]]
         | None = None,
@@ -61,11 +61,14 @@ class AmazonEchoApi:
         _LOGGER.debug("Initialize library v%s", __version__)
 
         # Check if there is a previous login, otherwise use default (US)
-        site = login_data.get("site", DEFAULT_SITE) if login_data else DEFAULT_SITE
+        site = login_data.get("site", DEFAULT_SITE) if login_data else credentials.site
         _LOGGER.debug("Using site: %s", site)
 
         self._session_state_data = AmazonSessionStateData(
-            site, login_email, login_password, login_data
+            site,
+            credentials.login,
+            credentials.password,
+            login_data,
         )
 
         self._http_wrapper = AmazonHttpWrapper(

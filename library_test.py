@@ -18,13 +18,18 @@ from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.devices import AQM_DEVICE_TYPE
+from aioamazondevices.const.http import DEFAULT_SITE
 from aioamazondevices.exceptions import (
     AmazonError,
     CannotAuthenticate,
     CannotConnect,
     CannotRegisterDevice,
 )
-from aioamazondevices.structures import AmazonDevice, AmazonMusicSource
+from aioamazondevices.structures import (
+    AmazonCredentials,
+    AmazonDevice,
+    AmazonMusicSource,
+)
 
 SAVE_PATH = "out"
 HTML_EXTENSION = ".html"
@@ -42,6 +47,7 @@ async def get_arguments() -> tuple[ArgumentParser, Namespace]:
         help="Set Amazon login e-mail",
     )
     parser.add_argument("--password", "-p", type=str, help="Set Amazon login password")
+    parser.add_argument("--site", "-s", type=str, help="Set Amazon login site")
     parser.add_argument("--otp_code", "-o", type=str, help="Set Amazon OTP code")
     parser.add_argument(
         "--login_data_file",
@@ -194,8 +200,11 @@ async def main() -> None:
 
     api = AmazonEchoApi(
         client_session=client_session,
-        login_email=args.email,
-        login_password=args.password,
+        credentials=AmazonCredentials(
+            site=args.site or login_data_stored.get("site", DEFAULT_SITE),
+            login=args.email,
+            password=args.password,
+        ),
         login_data=login_data_stored,
         save_to_file=save_to_file,
     )
