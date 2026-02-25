@@ -20,7 +20,6 @@ from .const.http import (
     AMAZON_CLIENT_OS,
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
-    DEFAULT_SITE,
     REFRESH_AUTH_COOKIES,
     URI_DEVICES,
     URI_SIGNIN,
@@ -161,7 +160,7 @@ class AmazonLogin:
             "requested_extensions": ["device_info", "customer_info"],
             "cookies": {
                 "website_cookies": [],
-                "domain": f".amazon.{self._session_state_data.domain}",
+                "domain": ".amazon.com",
             },
             "registration_data": {
                 "domain": "Device",
@@ -264,7 +263,7 @@ class AmazonLogin:
         await self.obtain_account_customer_id()
 
         self._session_state_data.login_stored_data.update(
-            {"site": f"https://www.amazon.{self._session_state_data.domain}"}
+            {"site": self._session_state_data.alexa_domain}
         )
 
         return self._session_state_data.login_stored_data
@@ -321,7 +320,6 @@ class AmazonLogin:
         return {
             "authorization_code": authcode,
             "code_verifier": code_verifier,
-            "domain": self._session_state_data.domain,
         }
 
     async def login_mode_stored_data(self) -> dict[str, Any]:
@@ -347,14 +345,12 @@ class AmazonLogin:
         _LOGGER.debug("Retrieve Alexa domain")
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}/api/welcome",
+            url=f"{self._session_state_data.alexa_domain}/api/welcome",
         )
         json_data = await self._http_wrapper.response_to_json(raw_resp)
         return cast(
             "str",
-            json_data.get(
-                "alexaHostName", f"alexa.amazon.{self._session_state_data.domain}"
-            ),
+            json_data.get("alexaHostName", "pitangui.amazon.com"),
         )
 
     async def _refresh_auth_cookies(self) -> None:
@@ -382,14 +378,15 @@ class AmazonLogin:
     async def _domain_refresh_auth_cookies(self) -> None:
         """Refresh cookies after domain swap."""
         _LOGGER.debug("Refreshing auth cookies after domain change")
-
-        # Get the new Alexa domain
-        user_domain = (await self._get_alexa_domain()).replace("alexa", "https://www")
-        if user_domain != DEFAULT_SITE:
-            _LOGGER.debug("User domain changed to %s", user_domain)
-            self._session_state_data.country_specific_data(user_domain)
-            await self._http_wrapper.clear_csrf_cookie()
-            await self._refresh_auth_cookies()
+        home_region = self._session_state_data.login_stored_data["customer_info"][
+            "home_region"
+        ]
+        if home_region == "FE":
+            self._session_state_data.alexa_domain = "https://www.amazon.co.jp"
+        elif home_region == "EU":
+            self._session_state_data.alexa_domain = "https://layla.amazon.com"
+        else:
+            self._session_state_data.alexa_domain = "https://pitangui.amazon.com"
 
     async def obtain_account_customer_id(self) -> None:
         """Find account customer id."""
@@ -404,7 +401,7 @@ class AmazonLogin:
             )
             _, raw_resp = await self._http_wrapper.session_request(
                 method=HTTPMethod.GET,
-                url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICES}",
+                url=f"{self._session_state_data.alexa_domain}{URI_DEVICES}",
             )
 
             json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")

@@ -61,6 +61,7 @@ class AmazonSessionStateData:
         self._login_stored_data: dict[str, Any] = login_data or {}
         self.country_specific_data(login_site)
         self._account_customer_id: str | None = None
+        self._alexa_domain: str = "pitangui.amazon.com"
 
     @property
     def country_code(self) -> str:
@@ -68,9 +69,14 @@ class AmazonSessionStateData:
         return self._country_code
 
     @property
-    def domain(self) -> str:
-        """Return domain."""
-        return self._domain
+    def alexa_domain(self) -> str:
+        """Return Alexa domain."""
+        return self._alexa_domain
+
+    @alexa_domain.setter
+    def alexa_domain(self, domain: str) -> None:
+        """Set Alexa domain."""
+        self._alexa_domain = domain
 
     @property
     def language(self) -> str:
@@ -238,7 +244,7 @@ class AmazonHttpWrapper:
             "di.os.version": AMAZON_CLIENT_OS,
             "current_version": "6.12.4",
             "previous_version": "6.12.4",
-            "domain": f"www.amazon.{self._session_state_data.domain}",
+            "domain": "www.amazon.com",
         }
 
         _, raw_resp = await self.session_request(
@@ -314,7 +320,7 @@ class AmazonHttpWrapper:
             else self._cookies
         )
         self._session.cookie_jar.update_cookies(
-            _cookies, URL(f"amazon.{self._session_state_data.domain}")
+            _cookies, URL(self._session_state_data.alexa_domain)
         )
 
         resp: ClientResponse | None = None

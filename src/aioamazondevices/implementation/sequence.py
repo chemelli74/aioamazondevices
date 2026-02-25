@@ -153,7 +153,7 @@ class AmazonSequenceHandler:
         _LOGGER.debug("Preview data payload: %s", node_data)
         await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}/api/behaviors/preview",
+            url=f"{self._session_state_data.alexa_domain}/api/behaviors/preview",
             input_data=node_data,
             json_data=True,
         )

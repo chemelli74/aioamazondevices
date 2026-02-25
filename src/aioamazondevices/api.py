@@ -101,11 +101,6 @@ class AmazonEchoApi:
         self._last_endpoint_refresh: datetime = initial_time
 
     @property
-    def domain(self) -> str:
-        """Return current Amazon domain."""
-        return self._session_state_data.domain
-
-    @property
     def login(self) -> AmazonLogin:
         """Return login."""
         return self._login
@@ -130,7 +125,7 @@ class AmazonEchoApi:
 
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
+            url=f"{self._session_state_data.alexa_domain}{URI_NEXUS_GRAPHQL}",
             input_data=payload,
             json_data=True,
             extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
@@ -265,7 +260,7 @@ class AmazonEchoApi:
 
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
+            url=f"{self._session_state_data.alexa_domain}{URI_NEXUS_GRAPHQL}",
             input_data=payload,
             json_data=True,
             extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
@@ -446,7 +441,7 @@ class AmazonEchoApi:
     async def _get_base_devices(self) -> None:
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICES}",
+            url=f"{self._session_state_data.alexa_domain}{URI_DEVICES}",
         )
 
         json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")

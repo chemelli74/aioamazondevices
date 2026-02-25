@@ -213,7 +213,7 @@ async def main() -> None:
             print(f"Cannot authenticate with {args.email} credentials")
             raise
         except CannotConnect:
-            print(f"Cannot connect to {api.domain} Amazon host")
+            print("Cannot connect to Amazon host")
             raise
         except CannotRegisterDevice:
             print(f"Cannot register device for {args.email}")
