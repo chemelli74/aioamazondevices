@@ -35,6 +35,7 @@ from .const.http import (
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     REQUEST_AGENT,
+    URI_CAPABILITIES,
     URI_SIGNIN,
 )
 from .exceptions import (
@@ -204,6 +205,14 @@ class AmazonHttpWrapper:
             )
         return False
 
+    async def _ignore_capabilities_error(self, response: ClientResponse) -> bool:
+        """Return true if error is due to capabilities endpoint."""
+        # Endpoint SELF Capabilities replies with error 204
+        return (
+            URI_CAPABILITIES in response.url.path
+            and response.status == HTTPStatus.NO_CONTENT
+        )
+
     async def set_session_state_data(
         self, session_state_data: AmazonSessionStateData
     ) -> None:
@@ -372,8 +381,9 @@ class AmazonHttpWrapper:
                 HTTPStatus.UNAUTHORIZED,
             ]:
                 raise CannotAuthenticate(await self.http_phrase_error(resp.status))
-            if not await self._ignore_ap_signin_error(resp):
-                _LOGGER.debug("Error response content: %s", await resp.text())
+            if not await self._ignore_ap_signin_error(
+                resp
+            ) and not await self._ignore_capabilities_error(resp):
                 raise CannotRetrieveData(
                     f"Request failed: {await self.http_phrase_error(resp.status)}"
                 )
