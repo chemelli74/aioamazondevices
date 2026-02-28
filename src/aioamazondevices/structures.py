@@ -67,3 +67,30 @@ class AmazonMusicSource(StrEnum):
 
     Radio = "TUNEIN"
     AmazonMusic = "AMAZON_MUSIC"
+
+
+class AmazonPushMessage(StrEnum):
+    """Amazon push message types."""
+
+    # Generic
+    GenericActivity = "PUSH_ACTIVITY"
+    ConnectionStatus = "PUSH_DOPPLER_CONNECTION_CHANGE"
+    BluetoothStatus = "PUSH_BLUETOOTH_STATE_CHANGE"
+    MicrophoneStatus = "PUSH_MICROPHONE_STATE"
+
+    # Notifications
+    NotificationChange = "PUSH_NOTIFICATION_CHANGE"
+
+    # Media
+    AudioPlayerState = "PUSH_AUDIO_PLAYER_STATE"
+    EqualizerStateChange = "PUSH_EQUALIZER_STATE_CHANGE"
+    MediaQueueChange = "PUSH_MEDIA_QUEUE_CHANGE"
+    MediaChange = "PUSH_MEDIA_CHANGE"
+    MediaProgressChange = "PUSH_MEDIA_PROGRESS_CHANGE"
+    VolumeChange = "PUSH_VOLUME_CHANGE"
+
+    MediaSessionsUpdated = "NotifyMediaSessionsUpdated"
+    NowPlayingUpdated = "NotifyNowPlayingUpdated"
+
+    # Lists
+    ItemChange = "PUSH_LIST_ITEM_CHANGE"

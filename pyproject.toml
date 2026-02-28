@@ -23,6 +23,7 @@ dependencies = [
 "aiohttp (>=3.12.7)",
 "beautifulsoup4",
 "colorlog",
+"httpx",
 "langcodes",
 "orjson (>=3.10,<4)",
 "python-dateutil",
