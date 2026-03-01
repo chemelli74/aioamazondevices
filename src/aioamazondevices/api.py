@@ -12,7 +12,6 @@ from .const.devices import (
     AQM_DEVICE_TYPE,
     DEVICE_HARDCODED_DATA,
     DEVICE_TO_IGNORE,
-    GENERIC_ALEXA_MODELS,
     SPEAKER_GROUP_FAMILY,
 )
 from .const.http import (
@@ -439,45 +438,40 @@ class AmazonEchoApi:
             device_endpoint = devices_endpoints.get(serial_number, {})
             endpoint_device = self._final_devices[serial_number]
             endpoint_device.entity_id = (
-                device_endpoint.get("legacyIdentifiers", {})
-                .get("chrsIdentifier", {})
-                .get("entityId")
+                device_endpoint["legacyIdentifiers"]["chrsIdentifier"]["entityId"]
+                if device_endpoint
+                else None
             )
-            endpoint_device.endpoint_id = device_endpoint.get("endpointId")
+            endpoint_device.endpoint_id = (
+                device_endpoint["endpointId"] if device_endpoint else None
+            )
 
-            # Devices with no model in the endpoint data
-            if endpoint_device.model is None:
-                endpoint_device.model = DEVICE_HARDCODED_DATA.get(
+            if model_key := device_endpoint.get("model"):
+                model = model_key.get("value", {}).get("text")
+            else:
+                model = DEVICE_HARDCODED_DATA.get(endpoint_device.device_type, {}).get(
+                    "model"
+                )
+
+            if manufacturer_key := device_endpoint.get("manufacturer"):
+                manufacturer = manufacturer_key.get("value", {}).get("text")
+            else:
+                manufacturer = DEVICE_HARDCODED_DATA.get(
                     endpoint_device.device_type, {}
-                ).get("model")
+                ).get("manufacturer")
 
-            # For devices with a model in the endpoint data, try to parse it
-            model = device_endpoint.get("model", {}).get("value", {}).get("text")
+            device_model, device_hw_version = parse_device_details(model)
 
-            device_details = parse_device_details(
-                model
-                if model not in GENERIC_ALEXA_MODELS and device_endpoint
-                else endpoint_device.model
-            )
-
-            # If all parsing attempts fail, log a warning to help improving the parser
-            if (
-                device_details[0] is None
-                and endpoint_device.device_type not in DEVICE_HARDCODED_DATA
-            ):
+            if not device_model:
                 _LOGGER.warning(
                     "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices/wiki/Unknown-Device-Types",
                     endpoint_device.device_type,
                     endpoint_device.account_name,
                 )
             else:
-                endpoint_device.model = device_details[0]
-                endpoint_device.hardware_version = device_details[1]
-                endpoint_device.manufacturer = (
-                    device_endpoint["manufacturer"]["value"]["text"]
-                    if device_endpoint
-                    else None
-                )
+                endpoint_device.model = device_model
+                endpoint_device.hardware_version = device_hw_version
+                endpoint_device.manufacturer = manufacturer
 
     async def _get_base_devices(self) -> None:
         _, raw_resp = await self._http_wrapper.session_request(

@@ -5,8 +5,6 @@ import re
 from collections.abc import Collection
 from typing import Any
 
-from .const.devices import SPEAKER_GROUP_MODEL
-
 _LOGGER = logging.getLogger(__package__)
 
 TO_REDACT = {
@@ -87,8 +85,8 @@ def scrub_fields(
 
 def parse_device_details(model: str | None) -> tuple[str | None, str | None]:
     """Parse device model to extract a normalized version and its hardware revision."""
-    if model is None or model == SPEAKER_GROUP_MODEL:
-        return model, None
+    if model is None:
+        return None, None
 
     model = re.sub(r"\bgeneration\b", "Gen", model, flags=re.IGNORECASE).strip()
 

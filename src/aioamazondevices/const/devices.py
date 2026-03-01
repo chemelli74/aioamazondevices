@@ -3,17 +3,16 @@
 from .http import AMAZON_DEVICE_TYPE
 
 SPEAKER_GROUP_FAMILY = "WHA"
-SPEAKER_GROUP_MODEL = "Speaker Group"
 AQM_DEVICE_TYPE = "AEZME1X38KDRA"
 
 DEVICE_HARDCODED_DATA: dict[str, dict[str, str]] = {
     "A3C9PE6TNYLTCH": {
-        "device_family": SPEAKER_GROUP_FAMILY,
-        "model": SPEAKER_GROUP_MODEL,
+        "model": "Speaker Group",
+        "manufacturer": "Amazon",
     },
     AQM_DEVICE_TYPE: {
-        "device_family": "AQM",
         "model": "Air Quality Monitor",
+        "manufacturer": "Amazon",
     },
 }
 
@@ -49,9 +48,4 @@ DEVICE_TO_IGNORE: list[str] = [
     "A14AIWB3T3AS1Z",  # Samsung Soundbar HW-Q950A - issue #603
     "A1X5IB2CRN3E8G",  # Fitbit Versa 3 - issue #651
     "A1NQ0LXWBGVQS9",  # Samsung 2012 QLED TV - Issue #660
-]
-
-GENERIC_ALEXA_MODELS: list[str] = [
-    "Alexa Voice Search",
-    "Alexa Voice Service",
 ]
