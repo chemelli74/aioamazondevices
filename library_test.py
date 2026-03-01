@@ -32,7 +32,7 @@ BIN_EXTENSION = ".bin"
 RAW_EXTENSION = ".raw"
 
 
-def get_arguments() -> tuple[ArgumentParser, Namespace]:
+async def get_arguments() -> tuple[ArgumentParser, Namespace]:
     """Get parsed passed in arguments."""
     parser = ArgumentParser(description="aioamazondevices library test")
     parser.add_argument(
@@ -81,25 +81,27 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
     # Re-parse the command line
     # taking the options in the optional JSON file as additional arguments to cli
     cfg_file = arguments_cli.configfile
-    if cfg_file and Path(cfg_file).exists():
-        with Path.open(cfg_file) as f:
-            arguments_cfg = parser.parse_args(namespace=Namespace(**json.load(f)))
+    if cfg_file and await Path(cfg_file).exists():
+        async with await Path(cfg_file).open("r", encoding="utf-8") as f:
+            arguments_cfg = parser.parse_args(
+                namespace=Namespace(**json.loads(await f.read()))
+            )
         args.update(vars(arguments_cfg))
 
     return parser, Namespace(**args)
 
 
-def read_from_file(data_file: str) -> dict[str, Any]:
+async def read_from_file(data_file: str) -> dict[str, Any]:
     """Load stored login data from file."""
-    if not data_file or not (file := Path(data_file)).exists():
+    if not data_file or not await (file := Path(data_file)).exists():
         print(
             "Cannot find previous login data file: ",
             data_file,
         )
         return {}
 
-    with Path.open(file, "rb") as f:
-        return cast("dict[str, Any]", json.load(f))
+    async with await Path(file).open("rb") as f:
+        return cast("dict[str, Any]", json.loads(await f.read()))
 
 
 async def save_to_file(
@@ -112,7 +114,7 @@ async def save_to_file(
         return
 
     output_dir = Path(SAVE_PATH)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    await output_dir.mkdir(parents=True, exist_ok=True)
 
     extension = (
         mimetypes.guess_extension(content_type.split(";", maxsplit=1)[0])
@@ -140,16 +142,16 @@ async def save_to_file(
         ).decode("utf-8")
 
     i = 2
-    while fullpath.exists():
+    while await fullpath.exists():
         filename = f"{base_filename}_{i!s}{extension}"
         fullpath = Path(output_dir, filename)
         i += 1
 
     print(f"Saving data to {fullpath}")
 
-    with Path.open(fullpath, mode="w", encoding="utf-8") as file:
-        file.write(data)
-        file.write("\n")
+    async with await fullpath.open("w", encoding="utf-8") as file:
+        await file.write(data)
+        await file.write("\n")
 
 
 def find_device(
@@ -180,9 +182,9 @@ async def wait_action_complete(sleep: int = 4) -> None:
 
 async def main() -> None:
     """Run main."""
-    _, args = get_arguments()
+    _, args = await get_arguments()
 
-    login_data_stored = read_from_file(args.login_data_file)
+    login_data_stored = await read_from_file(args.login_data_file)
 
     if not login_data_stored and not args.password:
         print(f"You have to specify credentials for {args.email}")
