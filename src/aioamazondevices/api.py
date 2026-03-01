@@ -10,11 +10,10 @@ from aiohttp import ClientSession
 from . import __version__
 from .const.devices import (
     AQM_DEVICE_TYPE,
+    DEVICE_HARDCODED_DATA,
     DEVICE_TO_IGNORE,
     GENERIC_ALEXA_MODELS,
-    SPEAKER_GROUP_DEVICE_TYPE,
     SPEAKER_GROUP_FAMILY,
-    SPEAKER_GROUP_MODEL,
 )
 from .const.http import (
     ARRAY_WRAPPER,
@@ -440,29 +439,31 @@ class AmazonEchoApi:
             device_endpoint = devices_endpoints.get(serial_number, {})
             endpoint_device = self._final_devices[serial_number]
             endpoint_device.entity_id = (
-                device_endpoint["legacyIdentifiers"]["chrsIdentifier"]["entityId"]
-                if device_endpoint
-                else None
+                device_endpoint.get("legacyIdentifiers", {})
+                .get("chrsIdentifier", {})
+                .get("entityId")
             )
-            endpoint_device.endpoint_id = (
-                device_endpoint["endpointId"] if device_endpoint else None
-            )
-            if (
-                endpoint_device.model is None
-                and endpoint_device.device_type == SPEAKER_GROUP_DEVICE_TYPE
-            ):
-                endpoint_device.model = SPEAKER_GROUP_MODEL
-            model = ((device_endpoint.get("model") or {}).get("value") or {}).get(
-                "text"
-            )
+            endpoint_device.endpoint_id = device_endpoint.get("endpointId")
+
+            # Devices with no model in the endpoint data
+            if endpoint_device.model is None:
+                endpoint_device.model = DEVICE_HARDCODED_DATA.get(
+                    endpoint_device.device_type, {}
+                ).get("model")
+
+            # For devices with a model in the endpoint data, try to parse it
+            model = device_endpoint.get("model", {}).get("value", {}).get("text")
+
             device_details = parse_device_details(
                 model
                 if model not in GENERIC_ALEXA_MODELS and device_endpoint
                 else endpoint_device.model
             )
+
+            # If all parsing attempts fail, log a warning to help improving the parser
             if (
                 device_details[0] is None
-                and endpoint_device.device_type != SPEAKER_GROUP_DEVICE_TYPE
+                and endpoint_device.device_type not in DEVICE_HARDCODED_DATA
             ):
                 _LOGGER.warning(
                     "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices/wiki/Unknown-Device-Types",
