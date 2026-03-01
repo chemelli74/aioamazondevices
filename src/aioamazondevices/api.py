@@ -448,16 +448,14 @@ class AmazonEchoApi:
                 device_endpoint["endpointId"] if device_endpoint else None
             )
 
-            model: str | None = None
-
-            if model_key := device_endpoint.get("model"):
-                model_value = model_key.get("value", {}).get("text")
-                if model_value and "Alexa Voice" not in model_value:
-                    model = model_value
-
-            if not model:
-                friendly_name = device_endpoint.get("friendlyNameObject", {})
-                model = friendly_name.get("value", {}).get("text")
+            model_value: str | None = (
+                device_endpoint.get("model", {}).get("value", {}).get("text")
+            )
+            model: str | None = (
+                model_value
+                if model_value and "Alexa Voice" not in model_value
+                else endpoint_device.model
+            )
 
             if not model:
                 _LOGGER.warning(
