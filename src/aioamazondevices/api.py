@@ -447,8 +447,18 @@ class AmazonEchoApi:
             )
 
             if model_key := device_endpoint.get("model"):
-                model = model_key.get("value", {}).get("text")
+                if "Alexa Voice" in model_key:
+                    model = endpoint_device.model
+                else:
+                    model = model_key.get("value", {}).get("text")
+            elif friendly_name := device_endpoint.get("friendlyNameObject", {}):
+                model = friendly_name.get("value", {}).get("text")
             else:
+                _LOGGER.warning(
+                    "No model info for device %s [%s] - trying hardcoded data",
+                    endpoint_device.account_name,
+                    endpoint_device.device_type,
+                )
                 model = DEVICE_HARDCODED_DATA.get(endpoint_device.device_type, {}).get(
                     "model"
                 )
