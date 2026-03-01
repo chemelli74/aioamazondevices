@@ -1,5 +1,22 @@
 # Changelog
 
+## v12.0.2 (2026-03-01)
+
+### Bug fixes
+
+- Add daily recurring pattern ([`d5e3b2b`](https://github.com/chemelli74/aioamazondevices/commit/d5e3b2b317bc09f632de9c41fe6ec1324d1f2681))
+
+
+### Testing
+
+- Fix asyncio in library_test.py ([`01618cd`](https://github.com/chemelli74/aioamazondevices/commit/01618cd39dc9f9742b3ade3b1e22aaf2a6bebe8a))
+
+
+### Refactoring
+
+- Make login variables clearer ([`c0db5f4`](https://github.com/chemelli74/aioamazondevices/commit/c0db5f4d17c920b11a07cfc2c848a6df3a41f63e))
+
+
 ## v12.0.1 (2026-02-11)
 
 ### Bug fixes
