@@ -6,6 +6,15 @@ from enum import StrEnum
 
 
 @dataclass
+class AmazonCredentials:
+    """Amazon credentials class."""
+
+    login: str
+    password: str
+    site: str
+
+
+@dataclass
 class AmazonDeviceSensor:
     """Amazon device sensor class."""
 
