@@ -90,13 +90,20 @@ def parse_device_details(model: str | None) -> tuple[str | None, str | None]:
     if model is None or model == SPEAKER_GROUP_MODEL:
         return model, None
 
-    # Normalize model name
-    model = model.replace("generation", "Gen").strip()
+    model = re.sub(r"\bgeneration\b", "Gen", model, flags=re.IGNORECASE).strip()
 
-    # Matching example: "Echo Dot (4th Gen)" -> "4th Gen"
-    match = re.search(r"\(([^)]+ Gen)[^)]*\)", model)
+    # Matching examples:
+    #   "Echo Dot (5th gen) with Clock" -> ("Echo Dot with Clock", "5th Gen")
+    #   "Fire TV Stick 4K (2nd Gen)" -> ("Fire TV Stick 4K", "2nd Gen")
+    match = re.search(
+        r"\(\s*(?P<ordinal>\d+(?:st|nd|rd|th))\s*gen\s*\)",  # codespell:ignore nd
+        model,
+        flags=re.IGNORECASE,
+    )
     if match:
-        return model, match.group(1).strip()
+        parsed_model = re.sub(match.re, "", model, count=1)
+        parsed_model = re.sub(r"\s+", " ", parsed_model).strip()
+        return parsed_model, f"{match.group('ordinal').lower()} Gen"
 
     # Matching example: "2021 Samsung UHD TV" -> "2021"
     match = re.search(r"\b(19|20)\d{2}\b", model)
