@@ -84,6 +84,7 @@ class AmazonLogin:
         self,
         code_verifier: bytes,
         client_id: str,
+        registration_language: str = "en-US",
     ) -> str:
         """Build the url to login to Amazon as a Mobile device."""
         code_challenge = self._create_s256_code_challenge(code_verifier)
@@ -99,7 +100,7 @@ class AmazonLogin:
             "openid.mode": "checkid_setup",
             "openid.ns.oa2": "http://www.amazon.com/ap/ext/oauth/2",
             "openid.oa2.client_id": f"device:{client_id}",
-            "language": self._session_state_data.language.replace("-", "_"),
+            "language": registration_language,
             "openid.ns.pape": "http://specs.openid.net/extensions/pape/1.0",
             "openid.oa2.code_challenge": code_challenge,
             "openid.oa2.scope": "device_auth_access",
@@ -274,26 +275,13 @@ class AmazonLogin:
     ) -> dict[str, str | bytes]:
         """Login interactive via oauth URL."""
         code_verifier = self._create_code_verifier()
-        client_id = self._build_client_id()
+        login_url, login_soup = await self._login_test(code_verifier)
 
-        _LOGGER.debug("Build oauth URL")
-        login_url = self._build_oauth_url(code_verifier, client_id)
-
-        login_soup, _ = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET,
-            url=login_url,
-        )
-        login_method, login_url = self._get_request_from_soup(login_soup)
-        login_inputs = self._get_inputs_from_soup(login_soup)
-        login_inputs["email"] = self._session_state_data.login_email
-        login_inputs["password"] = self._session_state_data.login_password
-
-        _LOGGER.debug("Register at %s", login_url)
-        login_soup, _ = await self._http_wrapper.session_request(
-            method=login_method,
-            url=login_url,
-            input_data=login_inputs,
-        )
+        if login_soup.find("form", id="cvf-aamation-challenge-form"):
+            _LOGGER.debug("Captcha challenge found.")
+            login_url, login_soup = await self._login_test(
+                code_verifier, registration_language="ja_JP"
+            )
 
         if not login_soup.find("input", id="auth-mfa-otpcode"):
             _LOGGER.debug(
@@ -323,6 +311,34 @@ class AmazonLogin:
             "code_verifier": code_verifier,
             "domain": self._session_state_data.domain,
         }
+
+    async def _login_test(
+        self, code_verifier: bytes, registration_language: str = "en-US"
+    ) -> tuple[str, BeautifulSoup]:
+        client_id = self._build_client_id()
+
+        _LOGGER.debug("Build oauth URL")
+        login_url = self._build_oauth_url(
+            code_verifier, client_id, registration_language
+        )
+
+        login_soup, _test = await self._http_wrapper.session_request(
+            method=HTTPMethod.GET,
+            url=login_url,
+        )
+        login_method, login_url = self._get_request_from_soup(login_soup)
+        login_inputs = self._get_inputs_from_soup(login_soup)
+        login_inputs["email"] = self._session_state_data.login_email
+        login_inputs["password"] = self._session_state_data.login_password
+
+        _LOGGER.debug("Register at %s", login_url)
+        login_soup, _test = await self._http_wrapper.session_request(
+            method=login_method,
+            url=login_url,
+            input_data=login_inputs,
+        )
+
+        return login_url, login_soup
 
     async def login_mode_stored_data(self) -> dict[str, Any]:
         """Login to Amazon using previously stored data."""
@@ -384,7 +400,15 @@ class AmazonLogin:
         _LOGGER.debug("Refreshing auth cookies after domain change")
 
         # Get the new Alexa domain
-        user_domain = (await self._get_alexa_domain()).replace("alexa", "https://www")
+        if (
+            self._session_state_data.login_stored_data["customer_info"]["home_region"]
+            == "FE"
+        ):
+            user_domain = "https://www.amazon.co.jp"
+        else:
+            user_domain = (await self._get_alexa_domain()).replace(
+                "alexa", "https://www"
+            )
         if user_domain != DEFAULT_SITE:
             _LOGGER.debug("User domain changed to %s", user_domain)
             self._session_state_data.country_specific_data(user_domain)
