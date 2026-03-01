@@ -437,6 +437,8 @@ class AmazonEchoApi:
         for serial_number in self._final_devices:
             device_endpoint = devices_endpoints.get(serial_number, {})
             endpoint_device = self._final_devices[serial_number]
+            hardcoded_data = DEVICE_HARDCODED_DATA.get(endpoint_device.device_type, {})
+
             endpoint_device.entity_id = (
                 device_endpoint["legacyIdentifiers"]["chrsIdentifier"]["entityId"]
                 if device_endpoint
@@ -446,29 +448,30 @@ class AmazonEchoApi:
                 device_endpoint["endpointId"] if device_endpoint else None
             )
 
-            if model_key := device_endpoint.get("model"):
-                if "Alexa Voice" in model_key:
-                    model = endpoint_device.model
-                else:
-                    model = model_key.get("value", {}).get("text")
-            elif friendly_name := device_endpoint.get("friendlyNameObject", {}):
-                model = friendly_name.get("value", {}).get("text")
-            else:
-                _LOGGER.warning(
-                    "No model info for device %s [%s] - trying hardcoded data",
-                    endpoint_device.account_name,
-                    endpoint_device.device_type,
-                )
-                model = DEVICE_HARDCODED_DATA.get(endpoint_device.device_type, {}).get(
-                    "model"
-                )
+            model: str | None = None
 
-            if manufacturer_key := device_endpoint.get("manufacturer"):
-                manufacturer = manufacturer_key.get("value", {}).get("text")
-            else:
-                manufacturer = DEVICE_HARDCODED_DATA.get(
-                    endpoint_device.device_type, {}
-                ).get("manufacturer")
+            if model_key := device_endpoint.get("model"):
+                model_value = model_key.get("value", {}).get("text")
+                if model_value and "Alexa Voice" not in model_value:
+                    model = model_value
+
+            if not model:
+                friendly_name = device_endpoint.get("friendlyNameObject", {})
+                model = friendly_name.get("value", {}).get("text")
+
+            if not model:
+                _LOGGER.warning(
+                    "Looking hardcoded model for device type %s [%s]",
+                    endpoint_device.device_type,
+                    endpoint_device.account_name,
+                )
+                model = hardcoded_data.get("model")
+
+            manufacturer = (
+                manufacturer_key.get("value", {}).get("text")
+                if (manufacturer_key := device_endpoint.get("manufacturer"))
+                else hardcoded_data.get("manufacturer")
+            )
 
             device_model, device_hw_version = parse_device_details(model)
 
