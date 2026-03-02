@@ -449,7 +449,7 @@ class AmazonEchoApi:
             )
 
             model_value: str | None = (
-                device_endpoint.get("model", {}).get("value", {}).get("text")
+                (device_endpoint.get("model") or {}).get("value", {}).get("text")
             )
             model: str | None = (
                 model_value
@@ -458,7 +458,7 @@ class AmazonEchoApi:
             )
 
             if not model:
-                _LOGGER.warning(
+                _LOGGER.debug(
                     "Looking hardcoded model for device type %s [%s]",
                     endpoint_device.device_type,
                     endpoint_device.account_name,
