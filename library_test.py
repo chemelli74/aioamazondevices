@@ -23,7 +23,7 @@ from aioamazondevices.exceptions import (
     CannotConnect,
     CannotRegisterDevice,
 )
-from aioamazondevices.structures import AmazonDevice, AmazonMusicSource
+from aioamazondevices.structures import AmazonDevice, AmazonMusicProvider
 
 SAVE_PATH = "out"
 SAVE_PATH_DATE = datetime.now(UTC).strftime("%Y-%m-%d-%H-%M-%S")
@@ -266,6 +266,18 @@ async def main() -> None:
     print("Check above file for full devices details")
     print("-" * 20)
 
+    music_providers = await api.get_music_providers()
+    print("Available music providers:")
+    _default_music_provider = AmazonMusicProvider("None", "None", "None", False)
+    for provider in music_providers.values():
+        if provider.default_provider:
+            _default_music_provider = provider
+            default_label = "[default]"
+        else:
+            default_label = ""
+
+        print(f" - {provider.provider_name} {default_label}")
+
     if not args.test:
         print("!!! No testing requested, exiting !!!")
         await client_session.close()
@@ -284,30 +296,10 @@ async def main() -> None:
         device_cluster = device_single
 
     print("Selected devices:")
-<<<<<<< HEAD
     print("- single : ", device_single.account_name)
     print("- cluster: ", device_cluster.account_name)
     print("-" * 20)
-=======
-    print("- single : ", device_single)
-    print("- cluster: ", device_cluster)
 
-    _print_aqm_device_details(devices)
-
-    for sensor in device_single.sensors:
-        print(f"Sensor {device_single.sensors[sensor]}")
-
-    for notification in device_single.notifications:
-        print(f"Notification {device_single.notifications[notification]}")
-
-    await api.update_music_providers()
-    _default_music_provider = next(
-        p for p in api.music_providers.values() if p.default_provider
-    )
-    print(api.music_providers)
-    print(_default_music_provider)
-
->>>>>>> e0d5ecc (feat: get supported music providers)
     print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
     await api.call_alexa_speak(device_single, "Test Speak message from new library")
 
