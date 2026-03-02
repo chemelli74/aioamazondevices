@@ -103,6 +103,13 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/francescolf">
+                    <img src="https://avatars.githubusercontent.com/u/14892143?v=4" width="100;" alt="francescolf"/>
+                    <br />
+                    <sub><b>Francesco Lo Faro</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/ivanfmartinez">
                     <img src="https://avatars.githubusercontent.com/u/677001?v=4" width="100;" alt="ivanfmartinez"/>
                     <br />
@@ -116,20 +123,13 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                     <sub><b>Eyad Kobatte</b></sub>
                 </a>
             </td>
+		</tr>
+		<tr>
             <td align="center">
                 <a href="https://github.com/AzonInc">
                     <img src="https://avatars.githubusercontent.com/u/11911587?v=4" width="100;" alt="AzonInc"/>
                     <br />
                     <sub><b>Flo</b></sub>
-                </a>
-            </td>
-		</tr>
-		<tr>
-            <td align="center">
-                <a href="https://github.com/francescolf">
-                    <img src="https://avatars.githubusercontent.com/u/14892143?v=4" width="100;" alt="francescolf"/>
-                    <br />
-                    <sub><b>Francesco Lo Faro</b></sub>
                 </a>
             </td>
             <td align="center">
