@@ -1,6 +1,7 @@
 """Utils module for Amazon devices."""
 
 import logging
+import re
 from collections.abc import Collection
 from typing import Any
 
@@ -80,3 +81,41 @@ def scrub_fields(
         return {scrub_fields(item, field_names, replacement) for item in obj}
 
     return obj
+
+
+def parse_device_details(model: str | None) -> tuple[str | None, str | None]:
+    """Parse device model to extract a normalized version and its hardware revision."""
+    if model is None:
+        return None, None
+
+    model = re.sub(r"\bgeneration\b", "Gen", model, flags=re.IGNORECASE).strip()
+
+    # Matching examples:
+    #   "Echo Dot (5th gen) with Clock" -> ("Echo Dot with Clock", "5th Gen")
+    #   "Fire TV Stick 4K (2nd Gen)"    -> ("Fire TV Stick 4K", "2nd Gen")
+    match = re.search(
+        r"\(\s*(?P<ordinal>\d+(?:st|nd|rd|th))\s*gen\s*\)",  # codespell:ignore nd
+        model,
+        flags=re.IGNORECASE,
+    )
+    if match:
+        parsed_model = re.sub(match.re, "", model, count=1)
+        parsed_model = re.sub(r"\s+", " ", parsed_model).strip()
+        return parsed_model, f"{match.group('ordinal').lower()} Gen"
+
+    # Matching examples:
+    #   "2021 Samsung UHD TV"    -> ("Samsung UHD TV", "2021")
+    #   "Panasonic Viera (2019)" -> ("Panasonic Viera", "2019")
+    match = re.search(r"\b(19|20)\d{2}\b", model)
+    if match:
+        year = match.group(0)
+        parsed_model = re.sub(
+            rf"\(\s*{re.escape(year)}\s*\)|\b{re.escape(year)}\b",
+            "",
+            model,
+            count=1,
+        )
+        parsed_model = re.sub(r"\s+", " ", parsed_model).strip()
+        return parsed_model, year.strip()
+
+    return model, None

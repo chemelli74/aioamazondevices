@@ -239,7 +239,19 @@ async def main() -> None:
         sys.exit(3)
 
     print("Devices count  :", len(devices))
-    print("Devices details:", devices)
+    print("-" * 20)
+    print("Devices full details:", devices)
+    print("-" * 20)
+    print("Devices summary:")
+    dev_index = 1
+    for device in devices.values():
+        print(f"{dev_index}. Device {device.account_name}:")
+        print(f"   Online: {device.online}")
+        print(f"   Device manufacturer: {device.manufacturer}")
+        print(f"   Device model: {device.model}")
+        print(f"   Device hardware version: {device.hardware_version}")
+        print(f"   Device software version: {device.software_version}")
+        dev_index += 1
     print("-" * 20)
 
     if not devices:
@@ -265,12 +277,6 @@ async def main() -> None:
         )
     else:
         device_cluster = device_single
-
-    print("-" * 20)
-    print("All Devices:")
-    for d in devices.values():
-        print(f"  {d.account_name} - Online: {d.online}")
-    print("-" * 20)
 
     print("Selected devices:")
     print("- single : ", device_single)
