@@ -33,6 +33,21 @@ from aioamazondevices.utils import parse_device_details
             "Echo Dot",
             "5th Gen",
         ),
+        (
+            "2021 Samsung UHD TV",
+            "Samsung UHD TV",
+            "2021",
+        ),
+        (
+            "LG OLED TV 2023",
+            "LG OLED TV",
+            "2023",
+        ),
+        (
+            "Panasonic Viera (2019)",
+            "Panasonic Viera",
+            "2019",
+        ),
     ],
 )
 def test_parse_device_details_hardware_generation(
