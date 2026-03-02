@@ -275,11 +275,14 @@ class AmazonLogin:
     ) -> dict[str, str | bytes]:
         """Login interactive via oauth URL."""
         code_verifier = self._create_code_verifier()
-        login_url, login_soup = await self._login_test(code_verifier)
+        login_url, login_soup = await self._oauth_login(code_verifier)
 
+        # appears that if users in Japan login with english set as language
+        # in OAuth URL, they get a captcha challenge.
+        # so if we detect this captcha then retry with Japanese language
         if login_soup.find("form", id="cvf-aamation-challenge-form"):
             _LOGGER.debug("Captcha challenge found.")
-            login_url, login_soup = await self._login_test(
+            login_url, login_soup = await self._oauth_login(
                 code_verifier, registration_language="ja_JP"
             )
 
@@ -312,7 +315,7 @@ class AmazonLogin:
             "domain": self._session_state_data.domain,
         }
 
-    async def _login_test(
+    async def _oauth_login(
         self, code_verifier: bytes, registration_language: str = "en-US"
     ) -> tuple[str, BeautifulSoup]:
         client_id = self._build_client_id()
@@ -322,7 +325,7 @@ class AmazonLogin:
             code_verifier, client_id, registration_language
         )
 
-        login_soup, _test = await self._http_wrapper.session_request(
+        login_soup, _ = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
             url=login_url,
         )
@@ -332,7 +335,7 @@ class AmazonLogin:
         login_inputs["password"] = self._session_state_data.login_password
 
         _LOGGER.debug("Register at %s", login_url)
-        login_soup, _test = await self._http_wrapper.session_request(
+        login_soup, _ = await self._http_wrapper.session_request(
             method=login_method,
             url=login_url,
             input_data=login_inputs,
