@@ -49,6 +49,8 @@ class AmazonDevice:
     sensors: dict[str, AmazonDeviceSensor]
     notifications_supported: bool
     notifications: dict[str, AmazonSchedule]
+    locale: str | None
+    supported_locales: list[str] | None
 
 
 class AmazonSequenceType(StrEnum):

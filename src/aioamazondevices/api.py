@@ -18,6 +18,7 @@ from .const.http import (
     ARRAY_WRAPPER,
     DEFAULT_SITE,
     REQUEST_AGENT,
+    URI_DEVICE_PREFERENCES,
     URI_DEVICES,
     URI_NEXUS_GRAPHQL,
 )
@@ -336,6 +337,8 @@ class AmazonEchoApi:
                 sensors={},
                 notifications_supported=False,
                 notifications={},
+                locale=None,
+                supported_locales=None,
             )
 
         return devices_endpoints
@@ -352,6 +355,7 @@ class AmazonEchoApi:
             )
             # Request base device data
             await self._get_base_devices()
+            await self._get_device_preferences()
             self._last_devices_refresh = datetime.now(UTC)
 
         # Only refresh endpoint data if we have no endpoints yet
@@ -537,6 +541,8 @@ class AmazonEchoApi:
                 sensors={},
                 notifications_supported=_has_notification_capability,
                 notifications={},
+                locale=None,
+                supported_locales=None,
             )
 
             serial_to_device_type[serial_number] = device["deviceType"]
@@ -549,6 +555,24 @@ class AmazonEchoApi:
                 )
 
         self._final_devices = final_devices_list
+
+    async def _get_device_preferences(self) -> None:
+        """Get device preferences to obtain locale and supported locales."""
+        _, raw_resp = await self._http_wrapper.session_request(
+            method=HTTPMethod.GET,
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICE_PREFERENCES}",
+        )
+
+        json_data = await self._http_wrapper.response_to_json(
+            raw_resp, "Device preferences"
+        )
+
+        for device_prefs in json_data.get("devicePreferences", []):
+            device_serial_number = device_prefs.get("deviceSerialNumber")
+            device = self._final_devices.get(device_serial_number)
+            if device:
+                device.locale = device_prefs.get("locale")
+                device.supported_locales = json_data.get("supportedLocales")
 
     async def call_alexa_speak(
         self,

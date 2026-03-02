@@ -42,7 +42,7 @@ class AmazonSequenceHandler:
         base_payload = {
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
-            "locale": self._session_state_data.language,
+            "locale": device.locale,
             "customerId": self._session_state_data.account_customer_id,
         }
 
@@ -76,7 +76,7 @@ class AmazonSequenceHandler:
                 "expireAfter": "PT5S",
                 "content": [
                     {
-                        "locale": self._session_state_data.language,
+                        "locale": device.locale,
                         "display": {
                             "title": "Home Assistant",
                             "body": message_body,

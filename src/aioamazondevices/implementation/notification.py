@@ -164,7 +164,8 @@ class AmazonNotificationHandler:
                 # Adjust recurring rules for country specific weekend exceptions
                 recurring_pattern = RECURRING_PATTERNS.copy()
                 for group, countries in COUNTRY_GROUPS.items():
-                    if self._session_state_data.country_code in countries:
+                    if "XX" in countries:
+                        # was self._session_state_data.country_code
                         recurring_pattern |= WEEKEND_EXCEPTIONS[group]
                         break
 

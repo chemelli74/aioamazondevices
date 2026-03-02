@@ -16,7 +16,6 @@ from aiohttp import (
     ContentTypeError,
 )
 from bs4 import BeautifulSoup
-from langcodes import Language, standardize_tag
 from yarl import URL
 
 from . import __version__
@@ -63,19 +62,9 @@ class AmazonSessionStateData:
         self._account_customer_id: str | None = None
 
     @property
-    def country_code(self) -> str:
-        """Return country code."""
-        return self._country_code
-
-    @property
     def domain(self) -> str:
         """Return domain."""
         return self._domain
-
-    @property
-    def language(self) -> str:
-        """Return language."""
-        return self._language
 
     @property
     def login_email(self) -> str:
@@ -111,22 +100,9 @@ class AmazonSessionStateData:
         """Set country specific data."""
         # Force lower case
         domain = login_site.replace("https://www.amazon.", "").lower()
-        country_code = domain.split(".")[-1] if domain != "com" else "us"
-
-        lang_object = Language.make(territory=country_code.upper())
-        lang_maximized = lang_object.maximize()
-
-        self._country_code: str = country_code
         self._domain: str = domain
-        language = f"{lang_maximized.language}-{lang_maximized.territory}"
-        self._language: str = standardize_tag(language)
 
-        _LOGGER.debug(
-            "Initialize country <%s>: domain <amazon.%s>, language <%s>",
-            country_code.upper(),
-            self._domain,
-            self._language,
-        )
+        _LOGGER.debug("Initialize domain <amazon.%s>", self._domain)
 
 
 class AmazonHttpWrapper:
@@ -152,7 +128,7 @@ class AmazonHttpWrapper:
         """Return the current cookies."""
         return self._cookies
 
-    def _load_website_cookies(self, language: str) -> dict[str, str]:
+    def _load_website_cookies(self) -> dict[str, str]:
         """Get website cookies, if available."""
         if not self._session_state_data.login_stored_data:
             return {}
@@ -167,7 +143,6 @@ class AmazonHttpWrapper:
                 ]["cookie"]
             }
         )
-        website_cookies.update({"lc-acbit": language})
 
         return website_cookies
 
@@ -290,7 +265,6 @@ class AmazonHttpWrapper:
 
         headers = DEFAULT_HEADERS.copy()
         headers.update({"User-Agent": REQUEST_AGENT["Browser"]})
-        headers.update({"Accept-Language": self._session_state_data.language})
         headers.update({"x-amzn-client": "github.com/chemelli74/aioamazondevices"})
         headers.update({"x-amzn-build-version": __version__})
 
@@ -309,7 +283,7 @@ class AmazonHttpWrapper:
             headers.update(json_header)
 
         _cookies = (
-            self._load_website_cookies(self._session_state_data.language)
+            self._load_website_cookies()
             if self._session_state_data.login_stored_data
             else self._cookies
         )
