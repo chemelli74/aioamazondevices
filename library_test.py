@@ -323,7 +323,7 @@ async def main() -> None:
     await wait_action_complete(5)
 
     radio = "BBC one"
-    source = "TUNEIN"  # AmazonMusicSource.Radio
+    source = "TUNEIN"
     print(f"Playing {radio} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, radio, source)
 
