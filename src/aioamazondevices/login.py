@@ -282,7 +282,7 @@ class AmazonLogin:
         # in OAuth URL, they get a captcha challenge.
         # so if we detect this captcha then retry with Japanese language
         if login_soup.find("form", id="cvf-aamation-challenge-form"):
-            _LOGGER.debug("Captcha challenge found.")
+            _LOGGER.debug("Captcha challenge found, retrying with Japanese")
             login_url, login_soup = await self._oauth_login(
                 code_verifier, registration_language="ja_JP"
             )
