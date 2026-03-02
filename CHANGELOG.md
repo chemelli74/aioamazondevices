@@ -1,5 +1,27 @@
 # Changelog
 
+## v12.0.3 (2026-03-02)
+
+### Bug fixes
+
+- Login for fe countries and exception for japan ([`fffa8ec`](https://github.com/chemelli74/aioamazondevices/commit/fffa8ec8ba31bcff0144542881cf7b0d287ba9d3))
+
+
+### Refactoring
+
+- Get device models from api ([`52301d3`](https://github.com/chemelli74/aioamazondevices/commit/52301d31d907191167aa102e58ffe7910fc66a0c))
+
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`fbd10d5`](https://github.com/chemelli74/aioamazondevices/commit/fbd10d5a52ddcf34147476106ff818cf15a68446))
+
+
+### Build system
+
+- Bump types-python-dateutil from 2.9.0.20260124 to 2.9.0.20260302 ([`e8e9226`](https://github.com/chemelli74/aioamazondevices/commit/e8e92265a38cff199c1b86e4b442ee57825160cf))
+
+
 ## v12.0.2 (2026-03-01)
 
 ### Bug fixes
