@@ -21,6 +21,7 @@ from .const.http import (
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
     DEFAULT_SITE,
+    FE_SITE,
     REFRESH_AUTH_COOKIES,
     URI_DEVICES,
     URI_SIGNIN,
@@ -407,14 +408,14 @@ class AmazonLogin:
             self._session_state_data.login_stored_data["customer_info"]["home_region"]
             == "FE"
         ):
-            user_domain = "https://www.amazon.co.jp"
+            login_site = FE_SITE
         else:
-            user_domain = (await self._get_alexa_domain()).replace(
+            login_site = (await self._get_alexa_domain()).replace(
                 "alexa", "https://www"
             )
-        if user_domain != DEFAULT_SITE:
-            _LOGGER.debug("User domain changed to %s", user_domain)
-            self._session_state_data.country_specific_data(user_domain)
+        if login_site != DEFAULT_SITE:
+            _LOGGER.debug("User domain changed to %s", login_site)
+            self._session_state_data.country_specific_data(login_site)
             await self._http_wrapper.clear_csrf_cookie()
             await self._refresh_auth_cookies()
 
