@@ -1,5 +1,17 @@
 # Changelog
 
+## v13.0.0 (2026-03-03)
+
+### Bug fixes
+
+- Move speaker group device type to const ([`2616110`](https://github.com/chemelli74/aioamazondevices/commit/261611044ea6d408a01bfa1ccaff99edbcc293e7))
+
+
+### Testing
+
+- Optime library_test output ([`6bd6d45`](https://github.com/chemelli74/aioamazondevices/commit/6bd6d45181b35ce97c3f610d7cd18d9709368113))
+
+
 ## v12.0.3 (2026-03-02)
 
 ### Bug fixes
