@@ -4,9 +4,10 @@ from .http import AMAZON_DEVICE_TYPE
 
 SPEAKER_GROUP_FAMILY = "WHA"
 AQM_DEVICE_TYPE = "AEZME1X38KDRA"
+SPEAKER_GROUP_DEVICE_TYPE = "A3C9PE6TNYLTCH"
 
 DEVICE_HARDCODED_DATA: dict[str, dict[str, str]] = {
-    "A3C9PE6TNYLTCH": {
+    SPEAKER_GROUP_DEVICE_TYPE: {
         "model": "Speaker Group",
         "manufacturer": "Amazon",
     },
