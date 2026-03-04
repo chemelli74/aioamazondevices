@@ -4,7 +4,8 @@
 # Stop on errors
 set -e
 
-poetry install
+poetry self update
+poetry env activate
 pre-commit install
 pre-commit install --hook-type commit-msg
 cd
