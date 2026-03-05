@@ -8,8 +8,7 @@
         "(^|/)\\.github/workflows/ci\\.yml$"
       ],
       "matchStrings": [
-        "POETRY_VERSION=\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=(?<depName>\\S+)\\s+datasource=(?<datasource>\\S+)",
-        "version:\\s*\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=(?<depName>\\S+)\\s+datasource=(?<datasource>\\S+)"
+        "POETRY_VERSION\\s*[:=]\\s*\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=(?<depName>\\S+)\\s+datasource=(?<datasource>\\S+)"
       ]
     }
   ]
