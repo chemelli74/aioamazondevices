@@ -59,6 +59,10 @@ class AmazonHTTP2Client:
     async def stop_thread(self) -> None:
         """Stop the background task gracefully."""
         self._stop_event.set()
+
+        if self.is_connected():
+            await self._http2_client.aclose()
+
         if self._task:
             self._task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
