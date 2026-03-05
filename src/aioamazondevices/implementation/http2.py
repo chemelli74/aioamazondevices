@@ -77,7 +77,7 @@ class AmazonHTTP2Client:
         """Set push callback."""
         self._on_push_cb = on_push_cb
 
-    async def is_connected(self) -> bool:
+    def is_connected(self) -> bool:
         """Return True if HTTP/2 connection is active."""
         return hasattr(self, "_http2_client") and not self._http2_client.is_closed
 
@@ -124,14 +124,12 @@ class AmazonHTTP2Client:
 
             try:
                 _LOGGER.debug("Starting AVS Directives stream")
+                access_token = self._login_stored_data["access_token"]
                 async with self._http2_client.stream(
                     "GET",
-                    (
-                        f"{await self._http2_site()}/v{HTTP2_DIRECTIVES_VERSION}"
-                        "/directives"
-                    ),
+                    (f"{self._http2_site()}/v{HTTP2_DIRECTIVES_VERSION}/directives"),
                     headers={
-                        "Authorization": f"Bearer {self._login_stored_data['access_token']}",  # noqa: E501
+                        "Authorization": f"Bearer {access_token}",
                         "Accept": "text/event-stream",
                         "Accept-Encoding": "gzip",
                     },
@@ -164,7 +162,7 @@ class AmazonHTTP2Client:
                             "payload", {}
                         )
 
-                        if chunk_type in AmazonPushMessage.__members__.values():
+                        if chunk_type in AmazonPushMessage._value2member_map_:
                             _LOGGER.debug(
                                 "Detected push type <%s> on device <%s>",
                                 chunk_type,
@@ -201,19 +199,17 @@ class AmazonHTTP2Client:
                 )
                 await asyncio.sleep(self.reconnect_delay)
 
-    async def _string_recursive_parse(
-        self, obj: dict | str | list
-    ) -> dict | list | str:
+    def _string_recursive_parse(self, obj: dict | str | list) -> dict | list | str:
         """Recursively parse strings inside dicts/lists if they are valid JSON."""
         if isinstance(obj, dict):
-            return {k: await self._string_recursive_parse(v) for k, v in obj.items()}
+            return {k: self._string_recursive_parse(v) for k, v in obj.items()}
 
         if isinstance(obj, list):
-            return [await self._string_recursive_parse(i) for i in obj]
+            return [self._string_recursive_parse(i) for i in obj]
 
         try:
             parsed = orjson.loads(obj)
-            return await self._string_recursive_parse(parsed)
+            return self._string_recursive_parse(parsed)
         except orjson.JSONDecodeError:
             return obj
 
@@ -230,12 +226,15 @@ class AmazonHTTP2Client:
         top_level_json = orjson.loads(body)
 
         # recursively parse strings inside JSON
-        json_chunk = await self._string_recursive_parse(top_level_json)
+        json_chunk = self._string_recursive_parse(top_level_json)
 
         return cast("dict[str,Any]", json_chunk)
 
     async def _http2_init_client(self) -> None:
         """Create HTTP2 client session."""
+        if hasattr(self, "_http2_client"):
+            await self._http2_client.aclose()
+
         ssl_context = await self._build_ssl_context_async()
         self._http2_client = httpx.AsyncClient(
             http2=True,
@@ -244,7 +243,7 @@ class AmazonHTTP2Client:
         )
         _LOGGER.debug("Initialized HTTP2 client")
 
-    async def _http2_site(self) -> str:
+    def _http2_site(self) -> str:
         """Get HTTP2 site."""
         if not self._login_stored_data:
             _LOGGER.debug("No login data available, cannot get HTTP2 site")
@@ -260,7 +259,7 @@ class AmazonHTTP2Client:
             return
 
         response = await self._http2_client.post(
-            f"{await self._http2_site()}/ping",
+            f"{self._http2_site()}/ping",
             headers={
                 "Authorization": f"Bearer {self._login_stored_data['access_token']}",
             },
@@ -270,11 +269,11 @@ class AmazonHTTP2Client:
             response.status_code,
             response.text,
         )
-        if response.status_code in [
+        if response.status_code in (
             HTTPStatus.FORBIDDEN,
             HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
             HTTPStatus.UNAUTHORIZED,
-        ]:
+        ):
             raise CannotAuthenticate(
                 "Detected ping 403, please check your credentials and region"
             )
