@@ -91,19 +91,6 @@ jobs:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name }}
           repository: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-
-      - uses: snok/install-poetry@v1.4.1
-        with:
-          version: ${{ env.POETRY_VERSION }}
-
-      - name: Sync Dependencies
-        run: poetry sync --with dev
-        shell: bash
-
       # Do a dry run of PSR
       - name: Test release
         uses: python-semantic-release/python-semantic-release@v10.5.3
