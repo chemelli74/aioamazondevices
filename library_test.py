@@ -17,7 +17,6 @@ from anyio import Path
 from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.const.devices import AQM_DEVICE_TYPE
 from aioamazondevices.exceptions import (
     AmazonError,
     CannotAuthenticate,
@@ -27,12 +26,13 @@ from aioamazondevices.exceptions import (
 from aioamazondevices.structures import AmazonDevice, AmazonMusicSource
 
 SAVE_PATH = "out"
+SAVE_PATH_DATE = datetime.now(UTC).strftime("%Y-%m-%d-%H-%M-%S")
 HTML_EXTENSION = ".html"
 BIN_EXTENSION = ".bin"
 RAW_EXTENSION = ".raw"
 
 
-def get_arguments() -> tuple[ArgumentParser, Namespace]:
+async def get_arguments() -> tuple[ArgumentParser, Namespace]:
     """Get parsed passed in arguments."""
     parser = ArgumentParser(description="aioamazondevices library test")
     parser.add_argument(
@@ -81,25 +81,27 @@ def get_arguments() -> tuple[ArgumentParser, Namespace]:
     # Re-parse the command line
     # taking the options in the optional JSON file as additional arguments to cli
     cfg_file = arguments_cli.configfile
-    if cfg_file and Path(cfg_file).exists():
-        with Path.open(cfg_file) as f:
-            arguments_cfg = parser.parse_args(namespace=Namespace(**json.load(f)))
+    if cfg_file and await Path(cfg_file).exists():
+        async with await Path(cfg_file).open("r", encoding="utf-8") as f:
+            arguments_cfg = parser.parse_args(
+                namespace=Namespace(**json.loads(await f.read()))
+            )
         args.update(vars(arguments_cfg))
 
     return parser, Namespace(**args)
 
 
-def read_from_file(data_file: str) -> dict[str, Any]:
+async def read_from_file(data_file: str) -> dict[str, Any]:
     """Load stored login data from file."""
-    if not data_file or not (file := Path(data_file)).exists():
+    if not data_file or not await (file := Path(data_file)).exists():
         print(
             "Cannot find previous login data file: ",
             data_file,
         )
         return {}
 
-    with Path.open(file, "rb") as f:
-        return cast("dict[str, Any]", json.load(f))
+    async with await Path(file).open("rb") as f:
+        return cast("dict[str, Any]", json.loads(await f.read()))
 
 
 async def save_to_file(
@@ -111,21 +113,22 @@ async def save_to_file(
     if not raw_data:
         return
 
+    # Create main output directory and timestamp subdirectory
     output_dir = Path(SAVE_PATH)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    await output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = output_dir.joinpath(SAVE_PATH_DATE)
+    await output_dir.mkdir(parents=True, exist_ok=True)
 
     extension = (
         mimetypes.guess_extension(content_type.split(";", maxsplit=1)[0])
         or RAW_EXTENSION
     )
 
-    date = datetime.now(UTC).strftime("%Y-%m-%d")
-    base_filename = date + "-"
     if url.startswith("http"):
         url_split = url.split("/")
-        base_filename += f"{url_split[3]}-{url_split[4].split('?')[0]}"
+        base_filename = f"{url_split[3]}-{url_split[4].split('?')[0]}"
     else:
-        base_filename += url
+        base_filename = url
     fullpath = Path(output_dir, base_filename + extension)
 
     data: str
@@ -140,16 +143,16 @@ async def save_to_file(
         ).decode("utf-8")
 
     i = 2
-    while fullpath.exists():
+    while await fullpath.exists():
         filename = f"{base_filename}_{i!s}{extension}"
         fullpath = Path(output_dir, filename)
         i += 1
 
     print(f"Saving data to {fullpath}")
 
-    with Path.open(fullpath, mode="w", encoding="utf-8") as file:
-        file.write(data)
-        file.write("\n")
+    async with await fullpath.open("w", encoding="utf-8") as file:
+        await file.write(data)
+        await file.write("\n")
 
 
 def find_device(
@@ -180,9 +183,9 @@ async def wait_action_complete(sleep: int = 4) -> None:
 
 async def main() -> None:
     """Run main."""
-    _, args = get_arguments()
+    _, args = await get_arguments()
 
-    login_data_stored = read_from_file(args.login_data_file)
+    login_data_stored = await read_from_file(args.login_data_file)
 
     if not login_data_stored and not args.password:
         print(f"You have to specify credentials for {args.email}")
@@ -237,7 +240,21 @@ async def main() -> None:
         sys.exit(3)
 
     print("Devices count  :", len(devices))
-    print("Devices details:", devices)
+    print("-" * 20)
+    print("Devices full details:", devices)
+    print("-" * 20)
+    print("Devices summary:")
+    dev_index = 1
+    for device in devices.values():
+        print(f"{dev_index}. Device {device.account_name}:")
+        print(f"   Online: {device.online}")
+        print(f"   Device manufacturer: {device.manufacturer}")
+        print(f"   Device model: {device.model}")
+        print(f"   Device hardware version: {device.hardware_version}")
+        print(f"   Device software version: {device.software_version}")
+        print(f"   Device sensors: {len(device.sensors)}")
+        print(f"   Device notifications: {len(device.notifications)}")
+        dev_index += 1
     print("-" * 20)
 
     if not devices:
@@ -246,6 +263,8 @@ async def main() -> None:
         sys.exit(0)
 
     await save_to_file(devices, "output-devices")
+    print("Check above file for full devices details")
+    print("-" * 20)
 
     if not args.test:
         print("!!! No testing requested, exiting !!!")
@@ -264,24 +283,10 @@ async def main() -> None:
     else:
         device_cluster = device_single
 
-    print("-" * 20)
-    print("All Devices:")
-    for d in devices.values():
-        print(f"  {d.account_name} - Online: {d.online}")
-    print("-" * 20)
-
     print("Selected devices:")
-    print("- single : ", device_single)
-    print("- cluster: ", device_cluster)
-
-    _print_aqm_device_details(devices)
-
-    for sensor in device_single.sensors:
-        print(f"Sensor {device_single.sensors[sensor]}")
-
-    for notification in device_single.notifications:
-        print(f"Notification {device_single.notifications[notification]}")
-
+    print("- single : ", device_single.account_name)
+    print("- cluster: ", device_cluster.account_name)
+    print("-" * 20)
     print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
     # sequences should be batched into a single call
     await api.call_alexa_speak(device_single, "Test Speak message from new library")
@@ -346,22 +351,6 @@ async def main() -> None:
 
     print("Closing session")
     await client_session.close()
-
-
-def _print_aqm_device_details(devices: dict[str, AmazonDevice]) -> None:
-    print("AQM Devices and Sensors:")
-    print("-" * 20)
-    found_aqm = False
-    for device in devices.values():
-        if device.device_type == AQM_DEVICE_TYPE:
-            found_aqm = True
-            print(f"AQM Device: {device.account_name}")
-            for aqm_sensor in device.sensors:
-                print(f"  AQM Sensor {device.sensors[aqm_sensor]}")
-
-    if not found_aqm:
-        print("  No AQM devices found")
-    print("-" * 20)
 
 
 def set_logging() -> None:

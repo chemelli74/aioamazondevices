@@ -10,8 +10,8 @@ from aiohttp import ClientSession
 from . import __version__
 from .const.devices import (
     AQM_DEVICE_TYPE,
+    DEVICE_HARDCODED_DATA,
     DEVICE_TO_IGNORE,
-    DEVICE_TYPE_TO_MODEL,
     SPEAKER_GROUP_FAMILY,
 )
 from .const.http import (
@@ -42,7 +42,7 @@ from .structures import (
     AmazonMusicSource,
     AmazonSequenceType,
 )
-from .utils import _LOGGER
+from .utils import _LOGGER, parse_device_details
 
 
 class AmazonEchoApi:
@@ -328,6 +328,9 @@ class AmazonEchoApi:
                 online=True,
                 serial_number=aqm_serial_number,
                 software_version=software_version,
+                manufacturer="Amazon",
+                model=None,
+                hardware_version=None,
                 entity_id=None,
                 endpoint_id=aqm_endpoint.get("endpointId"),
                 sensors={},
@@ -434,6 +437,8 @@ class AmazonEchoApi:
         for serial_number in self._final_devices:
             device_endpoint = devices_endpoints.get(serial_number, {})
             endpoint_device = self._final_devices[serial_number]
+            hardcoded_data = DEVICE_HARDCODED_DATA.get(endpoint_device.device_type, {})
+
             endpoint_device.entity_id = (
                 device_endpoint["legacyIdentifiers"]["chrsIdentifier"]["entityId"]
                 if device_endpoint
@@ -442,6 +447,42 @@ class AmazonEchoApi:
             endpoint_device.endpoint_id = (
                 device_endpoint["endpointId"] if device_endpoint else None
             )
+
+            model_value: str | None = (
+                (device_endpoint.get("model") or {}).get("value", {}).get("text")
+            )
+            model: str | None = (
+                model_value
+                if model_value and "Alexa Voice" not in model_value
+                else endpoint_device.model
+            )
+
+            if not model:
+                _LOGGER.debug(
+                    "Looking hardcoded model for device type %s [%s]",
+                    endpoint_device.device_type,
+                    endpoint_device.account_name,
+                )
+                model = hardcoded_data.get("model")
+
+            manufacturer = (
+                manufacturer_key.get("value", {}).get("text")
+                if (manufacturer_key := device_endpoint.get("manufacturer"))
+                else hardcoded_data.get("manufacturer")
+            )
+
+            device_model, device_hw_version = parse_device_details(model)
+
+            if not device_model:
+                _LOGGER.warning(
+                    "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices/wiki/Unknown-Device-Types",
+                    endpoint_device.device_type,
+                    endpoint_device.account_name,
+                )
+            else:
+                endpoint_device.model = device_model
+                endpoint_device.hardware_version = device_hw_version
+                endpoint_device.manufacturer = manufacturer
 
     async def _get_base_devices(self) -> None:
         _, raw_resp = await self._http_wrapper.session_request(
@@ -489,6 +530,9 @@ class AmazonEchoApi:
                 serial_number=serial_number,
                 software_version=device["softwareVersion"],
                 entity_id=None,
+                model=device.get("deviceTypeFriendlyName"),
+                manufacturer=None,
+                hardware_version=None,
                 endpoint_id=None,
                 sensors={},
                 notifications_supported=_has_notification_capability,
@@ -505,20 +549,6 @@ class AmazonEchoApi:
                 )
 
         self._final_devices = final_devices_list
-
-    def get_model_details(self, device: AmazonDevice) -> dict[str, str | None] | None:
-        """Return model datails."""
-        model_details: dict[str, str | None] | None = DEVICE_TYPE_TO_MODEL.get(
-            device.device_type
-        )
-        if not model_details:
-            _LOGGER.warning(
-                "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices/wiki/Unknown-Device-Types",
-                device.device_type,
-                device.account_name,
-            )
-
-        return model_details
 
     async def call_alexa_speak(
         self,

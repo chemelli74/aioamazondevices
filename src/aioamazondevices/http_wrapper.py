@@ -50,7 +50,7 @@ class AmazonSessionStateData:
 
     def __init__(
         self,
-        domain: str,
+        login_site: str,
         login_email: str,
         login_password: str,
         login_data: dict[str, Any] | None = None,
@@ -59,7 +59,7 @@ class AmazonSessionStateData:
         self._login_email: str = login_email
         self._login_password: str = login_password
         self._login_stored_data: dict[str, Any] = login_data or {}
-        self.country_specific_data(domain)
+        self.country_specific_data(login_site)
         self._account_customer_id: str | None = None
 
     @property
@@ -107,10 +107,10 @@ class AmazonSessionStateData:
         """Set account customer id."""
         self._account_customer_id = customer_id
 
-    def country_specific_data(self, domain: str) -> None:
+    def country_specific_data(self, login_site: str) -> None:
         """Set country specific data."""
         # Force lower case
-        domain = domain.replace("https://www.amazon.", "").lower()
+        domain = login_site.replace("https://www.amazon.", "").lower()
         country_code = domain.split(".")[-1] if domain != "com" else "us"
 
         lang_object = Language.make(territory=country_code.upper())

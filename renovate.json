@@ -1,3 +1,15 @@
 {
-  "extends": ["github>browniebroke/renovate-configs:python"]
+  "extends": ["github>browniebroke/renovate-configs:python"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "(^|/)scripts/setup\\.sh$",
+        "(^|/)\\.github/workflows/ci\\.yml$"
+      ],
+      "matchStrings": [
+        "POETRY_VERSION\\s*[:=]\\s*\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=(?<depName>\\S+)\\s+datasource=(?<datasource>\\S+)"
+      ]
+    }
+  ]
 }

@@ -1,5 +1,56 @@
 # Changelog
 
+## v13.0.0 (2026-03-03)
+
+### Bug fixes
+
+- Move speaker group device type to const ([`2616110`](https://github.com/chemelli74/aioamazondevices/commit/261611044ea6d408a01bfa1ccaff99edbcc293e7))
+
+
+### Testing
+
+- Optime library_test output ([`6bd6d45`](https://github.com/chemelli74/aioamazondevices/commit/6bd6d45181b35ce97c3f610d7cd18d9709368113))
+
+
+## v12.0.3 (2026-03-02)
+
+### Bug fixes
+
+- Login for fe countries and exception for japan ([`fffa8ec`](https://github.com/chemelli74/aioamazondevices/commit/fffa8ec8ba31bcff0144542881cf7b0d287ba9d3))
+
+
+### Refactoring
+
+- Get device models from api ([`52301d3`](https://github.com/chemelli74/aioamazondevices/commit/52301d31d907191167aa102e58ffe7910fc66a0c))
+
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`fbd10d5`](https://github.com/chemelli74/aioamazondevices/commit/fbd10d5a52ddcf34147476106ff818cf15a68446))
+
+
+### Build system
+
+- Bump types-python-dateutil from 2.9.0.20260124 to 2.9.0.20260302 ([`e8e9226`](https://github.com/chemelli74/aioamazondevices/commit/e8e92265a38cff199c1b86e4b442ee57825160cf))
+
+
+## v12.0.2 (2026-03-01)
+
+### Bug fixes
+
+- Add daily recurring pattern ([`d5e3b2b`](https://github.com/chemelli74/aioamazondevices/commit/d5e3b2b317bc09f632de9c41fe6ec1324d1f2681))
+
+
+### Testing
+
+- Fix asyncio in library_test.py ([`01618cd`](https://github.com/chemelli74/aioamazondevices/commit/01618cd39dc9f9742b3ade3b1e22aaf2a6bebe8a))
+
+
+### Refactoring
+
+- Make login variables clearer ([`c0db5f4`](https://github.com/chemelli74/aioamazondevices/commit/c0db5f4d17c920b11a07cfc2c848a6df3a41f63e))
+
+
 ## v12.0.1 (2026-02-11)
 
 ### Bug fixes
