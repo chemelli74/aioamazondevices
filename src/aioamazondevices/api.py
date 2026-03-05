@@ -197,6 +197,10 @@ class AmazonEchoApi:
         """Start HTTP2 background thread."""
         await self._http2_client.start_thread()
 
+    async def stop_http2_thread(self) -> None:
+        """Stop HTTP2 background thread."""
+        await self._http2_client.stop_thread()
+
     def register_http2_push_callback(
         self, callback: Callable[[str, dict | None], Coroutine[Any, Any, None]]
     ) -> None:
