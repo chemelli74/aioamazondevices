@@ -60,7 +60,7 @@ jobs:
         with:
           version: ${{ env.POETRY_VERSION }}
       - name: Sync Dependencies
-        run: poetry sync --only main
+        run: poetry sync --with dev
         shell: bash
       - name: Test with Pytest
         run: poetry run pytest --cov-report=xml
