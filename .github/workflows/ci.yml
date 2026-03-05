@@ -25,15 +25,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
-      - uses: snok/install-poetry@v1.4.1
-        with:
-          version: ${{ env.POETRY_VERSION }}
-      - name: Sync Dependencies
-        run: poetry sync --with dev
-        shell: bash
-      - name: Run Pre-commit
-        run: poetry run pre-commit run --all-files
-        shell: bash
+      - uses: pre-commit/action@v3.0.1
 
   # Make sure commit messages follow the conventional commits convention:
   # https://www.conventionalcommits.org
