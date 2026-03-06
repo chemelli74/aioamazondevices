@@ -127,6 +127,8 @@ class AmazonSequenceHandler:
             payload = {
                 **base_payload,
             }
+        elif message_type == AmazonSequenceType.Volume:
+            payload = {**base_payload, "value": message_body}
         else:
             raise ValueError(f"Message type <{message_type}> is not recognised")
 

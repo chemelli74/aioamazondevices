@@ -49,6 +49,8 @@ class AmazonDevice:
     sensors: dict[str, AmazonDeviceSensor]
     notifications_supported: bool
     notifications: dict[str, AmazonSchedule]
+    media_player_supported: bool
+    volume: int
 
 
 class AmazonSequenceType(StrEnum):
@@ -60,6 +62,7 @@ class AmazonSequenceType(StrEnum):
     Music = "Alexa.Music.PlaySearchPhrase"
     TextCommand = "Alexa.TextCommand"
     LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
+    Volume = "Alexa.DeviceControls.Volume"
 
 
 class AmazonMusicSource(StrEnum):

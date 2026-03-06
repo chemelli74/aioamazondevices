@@ -30,6 +30,7 @@ REQUEST_AGENT = {
 REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
 REFRESH_AUTH_COOKIES = "auth_cookies"
 
+URI_DEVICE_VOLUMES = "/api/devices/deviceType/dsn/audio/v1/allDeviceVolumes"
 URI_DEVICES = "/api/devices-v2/device"
 URI_DND_STATUS_ALL = "/api/dnd/device-status-list"
 URI_DND_STATUS_DEVICE = "/api/dnd/status"

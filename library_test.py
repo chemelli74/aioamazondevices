@@ -254,6 +254,7 @@ async def main() -> None:
         print(f"   Device software version: {device.software_version}")
         print(f"   Device sensors: {len(device.sensors)}")
         print(f"   Device notifications: {len(device.notifications)}")
+        print(f"   Device Volume: {device.volume}")
         dev_index += 1
     print("-" * 20)
 
@@ -282,6 +283,8 @@ async def main() -> None:
         )
     else:
         device_cluster = device_single
+
+    await api.set_device_volume(device_single, 80)
 
     print("Selected devices:")
     print("- single : ", device_single.account_name)

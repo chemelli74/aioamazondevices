@@ -18,10 +18,17 @@ from .const.http import (
     ARRAY_WRAPPER,
     DEFAULT_SITE,
     REQUEST_AGENT,
+    URI_DEVICE_VOLUMES,
     URI_DEVICES,
     URI_NEXUS_GRAPHQL,
 )
-from .const.metadata import ALEXA_INFO_SKILLS, AQM_RANGE_SENSORS, SENSORS
+from .const.metadata import (
+    ALEXA_INFO_SKILLS,
+    AQM_RANGE_SENSORS,
+    MAX_VOLUME,
+    MIN_VOLUME,
+    SENSORS,
+)
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
     NOTIFICATION_ALARM,
@@ -336,6 +343,8 @@ class AmazonEchoApi:
                 sensors={},
                 notifications_supported=False,
                 notifications={},
+                media_player_supported=False,
+                volume=0,
             )
 
         return devices_endpoints
@@ -515,6 +524,8 @@ class AmazonEchoApi:
                 for capability in ["REMINDERS", "TIMERS_AND_ALARMS"]
             )
 
+            _volumes = await self._get_device_volumes()
+
             final_devices_list[serial_number] = AmazonDevice(
                 account_name=account_name,
                 capabilities=capabilities,
@@ -537,6 +548,8 @@ class AmazonEchoApi:
                 sensors={},
                 notifications_supported=_has_notification_capability,
                 notifications={},
+                media_player_supported="AUDIO_PLAYER" in capabilities,
+                volume=_volumes.get(serial_number, 0),
             )
 
             serial_to_device_type[serial_number] = device["deviceType"]
@@ -549,6 +562,22 @@ class AmazonEchoApi:
                 )
 
         self._final_devices = final_devices_list
+
+    async def _get_device_volumes(self) -> dict[str, int]:
+        _, raw_resp = await self._http_wrapper.session_request(
+            method=HTTPMethod.GET,
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICE_VOLUMES}",
+        )
+
+        _volumes: dict[str, int] = {}
+
+        json_data = await self._http_wrapper.response_to_json(
+            raw_resp, "device volumes"
+        )
+        for device_volume_data in json_data.get("volumes", []):
+            _volumes[device_volume_data["dsn"]] = device_volume_data["speakerVolume"]
+
+        return _volumes
 
     async def call_alexa_speak(
         self,
@@ -620,6 +649,14 @@ class AmazonEchoApi:
         if info_skill not in ALEXA_INFO_SKILLS:
             raise ValueError(f"Unsupported info skill: {info_skill}")
         await self._call_alexa_command_per_cluster_member(device, info_skill, "")
+
+    async def set_device_volume(self, device: AmazonDevice, volume: int) -> None:
+        """Set device volume."""
+        if not (MIN_VOLUME <= volume <= MAX_VOLUME):
+            raise ValueError(f"Volume must be between {MIN_VOLUME} and {MAX_VOLUME}")
+        await self._call_alexa_command_per_cluster_member(
+            device, AmazonSequenceType.Volume, str(volume)
+        )
 
     async def _call_alexa_command_per_cluster_member(
         self,
