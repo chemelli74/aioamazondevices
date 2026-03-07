@@ -63,6 +63,7 @@ class AmazonSequenceType(StrEnum):
     TextCommand = "Alexa.TextCommand"
     LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
     Volume = "Alexa.DeviceControls.Volume"
+    Stop = "Alexa.DeviceControls.Stop"
 
 
 class AmazonMusicSource(StrEnum):
