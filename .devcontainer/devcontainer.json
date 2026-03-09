@@ -19,8 +19,7 @@
         },
         "terminal.integrated.defaultProfile.linux": "zsh",
         "python.terminal.activateEnvInCurrentTerminal": true,
-        "python.defaultInterpreterPath": "/workspaces/aioamazondevices/.venv/bin/python",
-        "python.pythonPath": "/workspaces/aioamazondevices/.venv/bin/python",
+        "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python",
         "python.languageServer": "Pylance",
         "[python]": {
           "editor.defaultFormatter": "charliermarsh.ruff"
