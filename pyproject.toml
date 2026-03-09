@@ -104,6 +104,7 @@ warn_unused_ignores = true
 [[tool.mypy.overrides]]
 module = "tests.*"
 allow_untyped_defs = true
+disallow_untyped_decorators = false
 
 [build-system]
 requires = ["poetry-core>=2.0"]
