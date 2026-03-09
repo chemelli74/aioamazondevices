@@ -34,7 +34,8 @@ class AmazonHTTP2Client:
         self,
         http_wrapper: AmazonHttpWrapper,
         session_state_data: AmazonSessionStateData,
-        on_push: Callable[[str, dict | None], Coroutine[Any, Any, None]] | None = None,
+        on_push: Callable[[str, dict[str, Any] | None], Coroutine[Any, Any, None]]
+        | None = None,
     ) -> None:
         """Initialize Amazon HTTP2 client class."""
         self._http_wrapper = http_wrapper
@@ -44,9 +45,9 @@ class AmazonHTTP2Client:
         self._http2_client: httpx.AsyncClient
 
         self.reconnect_delay = HTTP2_RECONNECT_DELAY
-        self._task: asyncio.Task | None = None
+        self._task: asyncio.Task[None] | None = None
         self._stop_event = asyncio.Event()
-        self._pending_push_tasks: set[asyncio.Task] = set()
+        self._pending_push_tasks: set[asyncio.Task[None]] = set()
 
     async def start_thread(self) -> None:
         """Start the background task."""
@@ -76,7 +77,7 @@ class AmazonHTTP2Client:
 
     def set_callback(
         self,
-        on_push_cb: Callable[[str, dict | None], Coroutine[Any, Any, None]],
+        on_push_cb: Callable[[str, dict[str, Any] | None], Coroutine[Any, Any, None]],
     ) -> None:
         """Set push callback."""
         self._on_push_cb = on_push_cb
@@ -203,7 +204,9 @@ class AmazonHTTP2Client:
                 )
                 await asyncio.sleep(self.reconnect_delay)
 
-    def _string_recursive_parse(self, obj: dict | str | list) -> dict | list | str:
+    def _string_recursive_parse(
+        self, obj: dict[str, Any] | str | list[Any]
+    ) -> dict[str, Any] | list[Any] | str:
         """Recursively parse strings inside dicts/lists if they are valid JSON."""
         if isinstance(obj, dict):
             return {k: self._string_recursive_parse(v) for k, v in obj.items()}
