@@ -179,7 +179,8 @@ class AmazonEchoApi:
         await self._http2_client.stop_thread()
 
     def register_http2_push_callback(
-        self, callback: Callable[[str, dict | None], Coroutine[Any, Any, None]]
+        self,
+        callback: Callable[[str, dict[str, Any] | None], Coroutine[Any, Any, None]],
     ) -> None:
         """Register a HTTP/2 push callback."""
         self._http2_client.set_callback(callback)
