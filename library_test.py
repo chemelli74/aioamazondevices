@@ -368,8 +368,6 @@ async def main() -> None:
     await api.send_media_command(device_single, AmazonMediaControls.Next)
     await wait_action_complete(15)
 
-    await wait_action_complete()
-
     music = "taylor swift"
     print(f"Playing {music} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, music, source)
