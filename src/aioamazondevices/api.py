@@ -505,6 +505,8 @@ class AmazonEchoApi:
 
         json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
 
+        _volumes = await self._get_device_volumes()
+
         final_devices_list: dict[str, AmazonDevice] = {}
         serial_to_device_type: dict[str, str] = {}
         for device in json_data["devices"]:
@@ -527,8 +529,6 @@ class AmazonEchoApi:
                 capability in capabilities
                 for capability in ["REMINDERS", "TIMERS_AND_ALARMS"]
             )
-
-            _volumes = await self._get_device_volumes()
 
             final_devices_list[serial_number] = AmazonDevice(
                 account_name=account_name,
