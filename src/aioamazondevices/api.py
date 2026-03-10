@@ -55,7 +55,9 @@ class AmazonEchoApi:
         login_email: str,
         login_password: str,
         login_data: dict[str, Any] | None = None,
-        save_to_file: Callable[[str | dict, str, str], Coroutine[Any, Any, None]]
+        save_to_file: Callable[
+            [str | dict[str, Any], str, str], Coroutine[Any, Any, None]
+        ]
         | None = None,
     ) -> None:
         """Initialize the scanner."""
@@ -642,7 +644,7 @@ class AmazonEchoApi:
                 music_provider_id,
             )
 
-    async def _format_human_error(self, sensors_state: dict) -> bool:
+    async def _format_human_error(self, sensors_state: dict[str, Any]) -> bool:
         """Format human readable error from malformed data."""
         if sensors_state.get(ARRAY_WRAPPER):
             error = sensors_state[ARRAY_WRAPPER][0].get("errors", [])
