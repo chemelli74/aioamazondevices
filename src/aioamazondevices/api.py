@@ -686,9 +686,12 @@ class AmazonEchoApi:
             )
             return
         payload = {"type": command.value}
+        query_string = (
+            f"deviceSerialNumber={device.serial_number}&deviceType={device.device_type}"
+        )
         await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_MEDIA_CONTROL}?deviceSerialNumber={device.serial_number}&deviceType={device.device_type}",
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_MEDIA_CONTROL}?{query_string}",
             input_data=payload,
             json_data=True,
         )
