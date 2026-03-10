@@ -23,7 +23,11 @@ from aioamazondevices.exceptions import (
     CannotConnect,
     CannotRegisterDevice,
 )
-from aioamazondevices.structures import AmazonDevice, AmazonMusicSource
+from aioamazondevices.structures import (
+    AmazonDevice,
+    AmazonMediaControls,
+    AmazonMusicSource,
+)
 
 SAVE_PATH = "out"
 SAVE_PATH_DATE = datetime.now(UTC).strftime("%Y-%m-%d-%H-%M-%S")
@@ -290,8 +294,34 @@ async def main() -> None:
     print("- single : ", device_single.account_name)
     print("- cluster: ", device_cluster.account_name)
     print("-" * 20)
-    print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
-    await api.call_alexa_speak(device_single, "Test Speak message from new library")
+
+    print("Volume to 100% on :", device_single.account_name)
+    await api.set_device_volume(device_single, 100)
+
+    await wait_action_complete(1)
+
+    print(
+        "Sending message via 'Alexa.Speak' at 100% volume to:",
+        device_single.account_name,
+    )
+    await api.call_alexa_speak(
+        device_single, "Test Speak message at 100% from new library"
+    )
+
+    await wait_action_complete()
+
+    print("Volume to 30% on :", device_single.account_name)
+    await api.set_device_volume(device_single, 30)
+
+    await wait_action_complete(1)
+
+    print(
+        "Sending message via 'Alexa.Speak' at 30% volume to:",
+        device_single.account_name,
+    )
+    await api.call_alexa_speak(
+        device_single, "Test Speak message at 30% from new library"
+    )
 
     await wait_action_complete()
 
@@ -325,6 +355,24 @@ async def main() -> None:
     await api.call_alexa_music(device_single, music, source)
 
     await wait_action_complete(15)
+
+    print(f"Pausing track on {device_single.account_name}")
+    await api.send_media_command(device_single, AmazonMediaControls.Pause)
+    await wait_action_complete(8)
+
+    print(f"Play track on {device_single.account_name}")
+    await api.send_media_command(device_single, AmazonMediaControls.Play)
+    await wait_action_complete()
+
+    print(f"Skipping to next track on {device_single.account_name}")
+    await api.send_media_command(device_single, AmazonMediaControls.Next)
+    await wait_action_complete(15)
+
+    await wait_action_complete()
+
+    music = "taylor swift"
+    print(f"Playing {music} from {source} on {device_single.account_name}")
+    await api.call_alexa_music(device_single, music, source)
 
     print(f"Text command on {device_single.account_name}")
     await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
