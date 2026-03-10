@@ -105,7 +105,7 @@ async def read_from_file(data_file: str) -> dict[str, Any]:
 
 
 async def save_to_file(
-    raw_data: str | dict,
+    raw_data: str | dict[str, Any],
     url: str,
     content_type: str = "application/json",
 ) -> None:

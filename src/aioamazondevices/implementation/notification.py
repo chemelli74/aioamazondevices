@@ -145,12 +145,12 @@ class AmazonNotificationHandler:
                 if "FREQ=" in recurring_rule:
                     rule = await self._add_hours_minutes(recurring_rule, original_time)
 
-                    # Add date to candidates list
-                    next_candidates.append(
-                        rrulestr(rule, dtstart=today_midnight).after(
-                            now_reference, True
-                        ),
+                    # `after` may return None when no next occurrence exists.
+                    candidate = rrulestr(rule, dtstart=today_midnight).after(
+                        now_reference, True
                     )
+                    if candidate is not None:
+                        next_candidates.append(candidate)
                     continue
 
                 if recurring_rule not in RECURRING_PATTERNS:
@@ -172,10 +172,12 @@ class AmazonNotificationHandler:
                     recurring_pattern[recurring_rule], original_time
                 )
 
-                # Add date to candidates list
-                next_candidates.append(
-                    rrulestr(rule, dtstart=today_midnight).after(now_reference, True),
+                # `after` may return None when no next occurrence exists.
+                candidate = rrulestr(rule, dtstart=today_midnight).after(
+                    now_reference, True
                 )
+                if candidate is not None:
+                    next_candidates.append(candidate)
 
             return min(next_candidates) if next_candidates else None
 

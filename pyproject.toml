@@ -10,7 +10,7 @@ license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/chemelli74/aioamazondevices"
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Natural Language :: English",
     "Operating System :: OS Independent",
@@ -37,7 +37,7 @@ dependencies = [
 anyio = ">=4"
 pytest = "^9.0"
 pytest-cov = ">=5,<8"
-types-python-dateutil = "^2.9.0.20260302"
+types-python-dateutil = "^2.9.0.20260305"
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
@@ -63,8 +63,9 @@ match = "(?!main$)"
 prerelease = true
 
 [tool.pytest.ini_options]
-addopts = "-v -Wdefault --cov=aioamazondevices --cov-report=term-missing:skip-covered"
+addopts = "-v -Wdefault"
 pythonpath = ["src"]
+testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
@@ -85,19 +86,25 @@ known-first-party = ["aioamazondevices", "tests"]
 check_untyped_defs = true
 disallow_any_generics = true
 disallow_incomplete_defs = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
 disallow_untyped_defs = true
-mypy_path = "src/"
 no_implicit_optional = true
 show_error_codes = true
+strict_equality = true
+warn_incomplete_stub = true
+warn_redundant_casts = true
+warn_return_any = true
 warn_unreachable = true
+warn_unused_configs = true
 warn_unused_ignores = true
-exclude = [
-    'setup.py',
-]
+
 
 [[tool.mypy.overrides]]
 module = "tests.*"
 allow_untyped_defs = true
+disallow_untyped_decorators = false
 
 [build-system]
 requires = ["poetry-core>=2.0"]
