@@ -179,7 +179,7 @@ def find_device(
         sys.exit(0)
 
 
-async def wait_action_complete(sleep: int = 4) -> None:
+async def wait_action_complete(sleep: int = 5) -> None:
     """Wait for an action to complete."""
     print(f"Waiting for {sleep}s before next test")
     await asyncio.sleep(sleep)
@@ -297,7 +297,6 @@ async def main() -> None:
 
     print("Volume to 100% on :", device_single.account_name)
     await api.set_device_volume(device_single, 100)
-
     await wait_action_complete(1)
 
     print(
@@ -307,12 +306,10 @@ async def main() -> None:
     await api.call_alexa_speak(
         device_single, "Test Speak message at 100% from new library"
     )
-
     await wait_action_complete()
 
     print("Volume to 30% on :", device_single.account_name)
     await api.set_device_volume(device_single, 30)
-
     await wait_action_complete(1)
 
     print(
@@ -322,43 +319,37 @@ async def main() -> None:
     await api.call_alexa_speak(
         device_single, "Test Speak message at 30% from new library"
     )
-
     await wait_action_complete()
 
     print("Sending message via 'AlexaAnnouncement' to:", device_cluster.account_name)
     await api.call_alexa_announcement(
         device_cluster, "Test Announcement message from new library"
     )
-
     await wait_action_complete()
 
     print("Sending sound via 'Alexa.Sound' to:", device_single.account_name)
     await api.call_alexa_sound(device_single, "amzn_sfx_doorbell_chime_01")
-
     await wait_action_complete()
 
     print("Sending message via 'Alexa.Date.Play' to:", device_single.account_name)
     await api.call_alexa_info_skill(device_single, "Alexa.Date.Play")
-
-    await wait_action_complete(5)
+    await wait_action_complete()
 
     radio = "BBC one"
     source = AmazonMusicSource.Radio
     print(f"Playing {radio} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, radio, source)
-
     await wait_action_complete(15)
 
     music = "taylor swift"
     source = AmazonMusicSource.AmazonMusic
     print(f"Playing {music} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, music, source)
-
     await wait_action_complete(15)
 
     print(f"Pausing track on {device_single.account_name}")
     await api.send_media_command(device_single, AmazonMediaControls.Pause)
-    await wait_action_complete(8)
+    await wait_action_complete()
 
     print(f"Play track on {device_single.account_name}")
     await api.send_media_command(device_single, AmazonMediaControls.Play)
@@ -371,10 +362,10 @@ async def main() -> None:
     music = "taylor swift"
     print(f"Playing {music} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, music, source)
+    await wait_action_complete(15)
 
     print(f"Text command on {device_single.account_name}")
     await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
-
     await wait_action_complete(10)
 
     print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)
