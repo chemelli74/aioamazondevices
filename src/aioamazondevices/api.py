@@ -47,6 +47,7 @@ from .login import AmazonLogin
 from .structures import (
     AmazonDevice,
     AmazonDeviceSensor,
+    AmazonMediaControls,
     AmazonMusicSource,
     AmazonSequenceType,
 )
@@ -675,70 +676,22 @@ class AmazonEchoApi:
                 message_body,
             )
 
-    async def _media_command(
-        self, device: AmazonDevice, command: dict[str, Any]
+    async def send_media_command(
+        self, device: AmazonDevice, command: AmazonMediaControls
     ) -> None:
         """Send media control command."""
+        if command == AmazonMediaControls.Stop:
+            await self._call_alexa_command_per_cluster_member(
+                device, AmazonSequenceType.Stop, ""
+            )
+            return
+        payload = {"type": command.value}
         await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
             url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_MEDIA_CONTROL}?deviceSerialNumber={device.serial_number}&deviceType={device.device_type}",
-            input_data=command,
+            input_data=payload,
             json_data=True,
         )
-
-    async def stop_media(self, device: AmazonDevice) -> None:
-        """Stop media playback."""
-        await self._call_alexa_command_per_cluster_member(
-            device, AmazonSequenceType.Stop, ""
-        )
-
-    async def media_play(
-        self,
-        device: AmazonDevice,
-    ) -> None:
-        """Media Player play."""
-        command = {"type": "PlayCommand"}
-        await self._media_command(device, command)
-
-    async def media_pause(
-        self,
-        device: AmazonDevice,
-    ) -> None:
-        """Media Player pause."""
-        command = {"type": "PauseCommand"}
-        await self._media_command(device, command)
-
-    async def media_prev(
-        self,
-        device: AmazonDevice,
-    ) -> None:
-        """Media Player previous."""
-        command = {"type": "PreviousCommand"}
-        await self._media_command(device, command)
-
-    async def media_next(
-        self,
-        device: AmazonDevice,
-    ) -> None:
-        """Media Player next."""
-        command = {"type": "NextCommand"}
-        await self._media_command(device, command)
-
-    async def media_rewind(
-        self,
-        device: AmazonDevice,
-    ) -> None:
-        """Media Player rewind."""
-        command = {"type": "RewindCommand"}
-        await self._media_command(device, command)
-
-    async def media_fast_forward(
-        self,
-        device: AmazonDevice,
-    ) -> None:
-        """Media Player fast forward."""
-        command = {"type": "ForwardCommand"}
-        await self._media_command(device, command)
 
     async def _format_human_error(self, sensors_state: dict[str, Any]) -> bool:
         """Format human readable error from malformed data."""

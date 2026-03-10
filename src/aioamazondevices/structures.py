@@ -71,3 +71,15 @@ class AmazonMusicSource(StrEnum):
 
     Radio = "TUNEIN"
     AmazonMusic = "AMAZON_MUSIC"
+
+
+class AmazonMediaControls(StrEnum):
+    """Amazon media controls."""
+
+    Play = "PlayCommand"
+    Stop = "StopSequence"
+    Pause = "PauseCommand"
+    Next = "NextCommand"
+    Previous = "PreviousCommand"
+    Rewind = "RewindCommand"
+    FastForward = "ForwardCommand"
