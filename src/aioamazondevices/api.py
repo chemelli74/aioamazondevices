@@ -6,6 +6,7 @@ from http import HTTPMethod
 from typing import Any
 
 from aiohttp import ClientSession
+from aiosignal import Signal
 
 from . import __version__
 from .const.devices import (
@@ -101,6 +102,8 @@ class AmazonEchoApi:
         initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
         self._last_devices_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
+
+        self.on_dnd_event: Signal = Signal(self)
 
     @property
     def domain(self) -> str:
@@ -655,3 +658,4 @@ class AmazonEchoApi:
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
+        await self.on_dnd_event.send(serial=device.serial_number, dnd=enable)
