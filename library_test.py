@@ -287,8 +287,6 @@ async def main() -> None:
     else:
         device_cluster = device_single
 
-    await api.set_device_volume(device_single, 80)
-
     print("Selected devices:")
     print("- single : ", device_single.account_name)
     print("- cluster: ", device_cluster.account_name)

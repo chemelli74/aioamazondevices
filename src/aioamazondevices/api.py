@@ -26,9 +26,9 @@ from .const.http import (
 from .const.metadata import (
     ALEXA_INFO_SKILLS,
     AQM_RANGE_SENSORS,
-    MAX_VOLUME,
-    MIN_VOLUME,
     SENSORS,
+    VOLUME_MAX,
+    VOLUME_MIN,
 )
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
@@ -652,8 +652,8 @@ class AmazonEchoApi:
 
     async def set_device_volume(self, device: AmazonDevice, volume: int) -> None:
         """Set device volume."""
-        if not (MIN_VOLUME <= volume <= MAX_VOLUME):
-            raise ValueError(f"Volume must be between {MIN_VOLUME} and {MAX_VOLUME}")
+        if not (VOLUME_MIN <= volume <= VOLUME_MAX):
+            raise ValueError(f"Volume must be between {VOLUME_MIN} and {VOLUME_MAX}")
         await self._call_alexa_command_per_cluster_member(
             device, AmazonSequenceType.Volume, str(volume)
         )
