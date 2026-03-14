@@ -9,9 +9,9 @@ from aiohttp import ClientSession
 
 from . import __version__
 from .const.devices import (
-    AQM_DEVICE_TYPE,
-    DEVICE_HARDCODED_DATA,
-    DEVICE_TO_IGNORE,
+    DEVICE_TYPE_AQM,
+    DEVICE_TYPES_HARDCODED_METADATA,
+    DEVICE_TYPES_TO_IGNORE,
     SPEAKER_GROUP_FAMILY,
 )
 from .const.http import (
@@ -240,7 +240,7 @@ class AmazonEchoApi:
                 sensor_name = sensor_template_name_value
 
                 if (
-                    device.device_type == AQM_DEVICE_TYPE
+                    device.device_type == DEVICE_TYPE_AQM
                     and sensor_template_name_value == "rangeValue"
                 ):
                     if not (
@@ -321,24 +321,20 @@ class AmazonEchoApi:
             devices_endpoints[aqm_serial_number] = aqm_endpoint
             self._endpoints[aqm_endpoint["endpointId"]] = aqm_serial_number
 
-            device_name = aqm_endpoint["friendlyNameObject"]["value"]["text"]
-            device_type = aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
-                "deviceType"
-            ]["value"]["text"]
-            software_version = aqm_endpoint["softwareVersion"]["value"]["text"]
-
             self._final_devices[aqm_serial_number] = AmazonDevice(
-                account_name=device_name,
+                account_name=aqm_endpoint["friendlyNameObject"]["value"]["text"],
                 capabilities=[],
                 device_family="AIR_QUALITY_MONITOR",
-                device_type=device_type,
+                device_type=aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
+                    "deviceType"
+                ]["value"]["text"],
                 device_owner_customer_id=self._session_state_data.account_customer_id
                 or "n/a",
                 household_device=False,
-                device_cluster_members={aqm_serial_number: AQM_DEVICE_TYPE},
+                device_cluster_members={aqm_serial_number: DEVICE_TYPE_AQM},
                 online=True,
                 serial_number=aqm_serial_number,
-                software_version=software_version,
+                software_version=aqm_endpoint["softwareVersion"]["value"]["text"],
                 manufacturer="Amazon",
                 model=None,
                 hardware_version=None,
@@ -449,8 +445,9 @@ class AmazonEchoApi:
         for serial_number in self._final_devices:
             device_endpoint = devices_endpoints.get(serial_number, {})
             endpoint_device = self._final_devices[serial_number]
-            hardcoded_data = DEVICE_HARDCODED_DATA.get(endpoint_device.device_type, {})
-
+            hardcoded_data = DEVICE_TYPES_HARDCODED_METADATA.get(
+                endpoint_device.device_type, {}
+            )
             endpoint_device.entity_id = (
                 device_endpoint["legacyIdentifiers"]["chrsIdentifier"]["entityId"]
                 if device_endpoint
@@ -508,7 +505,7 @@ class AmazonEchoApi:
         serial_to_device_type: dict[str, str] = {}
         for device in json_data["devices"]:
             # Remove stale, orphaned and virtual devices
-            if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
+            if not device or (device.get("deviceType") in DEVICE_TYPES_TO_IGNORE):
                 continue
 
             account_name: str = device["accountName"]
@@ -540,7 +537,9 @@ class AmazonEchoApi:
                 ),
                 online=device["online"],
                 serial_number=serial_number,
-                software_version=device["softwareVersion"],
+                software_version=device["softwareVersion"]
+                if "SUPPORTS_SOFTWARE_VERSION" in capabilities
+                else None,
                 entity_id=None,
                 model=device.get("deviceTypeFriendlyName"),
                 manufacturer=None,
