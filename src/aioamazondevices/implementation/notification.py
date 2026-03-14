@@ -7,7 +7,7 @@ from typing import Any
 from dateutil.parser import parse
 from dateutil.rrule import rrulestr
 
-from aioamazondevices.const.devices import DEVICE_TO_IGNORE
+from aioamazondevices.const.devices import DEVICE_TYPES_TO_IGNORE
 from aioamazondevices.const.http import REQUEST_AGENT, URI_NOTIFICATIONS
 from aioamazondevices.const.schedules import (
     COUNTRY_GROUPS,
@@ -62,7 +62,7 @@ class AmazonNotificationHandler:
             schedule_device_type = schedule["deviceType"]
             schedule_device_serial = schedule["deviceSerialNumber"]
 
-            if schedule_device_type in DEVICE_TO_IGNORE:
+            if schedule_device_type in DEVICE_TYPES_TO_IGNORE:
                 continue
 
             if schedule_type not in NOTIFICATIONS_SUPPORTED:
@@ -145,12 +145,12 @@ class AmazonNotificationHandler:
                 if "FREQ=" in recurring_rule:
                     rule = await self._add_hours_minutes(recurring_rule, original_time)
 
-                    # Add date to candidates list
-                    next_candidates.append(
-                        rrulestr(rule, dtstart=today_midnight).after(
-                            now_reference, True
-                        ),
+                    # `after` may return None when no next occurrence exists.
+                    candidate = rrulestr(rule, dtstart=today_midnight).after(
+                        now_reference, True
                     )
+                    if candidate is not None:
+                        next_candidates.append(candidate)
                     continue
 
                 if recurring_rule not in RECURRING_PATTERNS:
@@ -172,10 +172,12 @@ class AmazonNotificationHandler:
                     recurring_pattern[recurring_rule], original_time
                 )
 
-                # Add date to candidates list
-                next_candidates.append(
-                    rrulestr(rule, dtstart=today_midnight).after(now_reference, True),
+                # `after` may return None when no next occurrence exists.
+                candidate = rrulestr(rule, dtstart=today_midnight).after(
+                    now_reference, True
                 )
+                if candidate is not None:
+                    next_candidates.append(candidate)
 
             return min(next_candidates) if next_candidates else None
 
