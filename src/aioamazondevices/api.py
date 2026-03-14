@@ -19,9 +19,16 @@ from .const.http import (
     DEFAULT_SITE,
     REQUEST_AGENT,
     URI_DEVICES,
+    URI_MEDIA_CONTROL,
     URI_NEXUS_GRAPHQL,
 )
-from .const.metadata import ALEXA_INFO_SKILLS, AQM_RANGE_SENSORS, SENSORS
+from .const.metadata import (
+    ALEXA_INFO_SKILLS,
+    AQM_RANGE_SENSORS,
+    SENSORS,
+    VOLUME_MAX,
+    VOLUME_MIN,
+)
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
     NOTIFICATION_ALARM,
@@ -39,6 +46,7 @@ from .login import AmazonLogin
 from .structures import (
     AmazonDevice,
     AmazonDeviceSensor,
+    AmazonMediaControls,
     AmazonMusicSource,
     AmazonSequenceType,
 )
@@ -334,6 +342,7 @@ class AmazonEchoApi:
                 sensors={},
                 notifications_supported=False,
                 notifications={},
+                media_player_supported=False,
             )
 
         return devices_endpoints
@@ -538,6 +547,7 @@ class AmazonEchoApi:
                 sensors={},
                 notifications_supported=_has_notification_capability,
                 notifications={},
+                media_player_supported="AUDIO_PLAYER" in capabilities,
             )
 
             serial_to_device_type[serial_number] = device["deviceType"]
@@ -622,6 +632,14 @@ class AmazonEchoApi:
             raise ValueError(f"Unsupported info skill: {info_skill}")
         await self._call_alexa_command_per_cluster_member(device, info_skill, "")
 
+    async def set_device_volume(self, device: AmazonDevice, volume: int) -> None:
+        """Set device volume."""
+        if not (VOLUME_MIN <= volume <= VOLUME_MAX):
+            raise ValueError(f"Volume must be between {VOLUME_MIN} and {VOLUME_MAX}")
+        await self._call_alexa_command_per_cluster_member(
+            device, AmazonSequenceType.Volume, str(volume)
+        )
+
     async def _call_alexa_command_per_cluster_member(
         self,
         device: AmazonDevice,
@@ -635,6 +653,26 @@ class AmazonEchoApi:
                 message_type,
                 message_body,
             )
+
+    async def send_media_command(
+        self, device: AmazonDevice, command: AmazonMediaControls
+    ) -> None:
+        """Send media control command."""
+        if command == AmazonMediaControls.Stop:
+            await self._call_alexa_command_per_cluster_member(
+                device, AmazonSequenceType.Stop, ""
+            )
+            return
+        payload = {"type": command.value}
+        query_string = (
+            f"deviceSerialNumber={device.serial_number}&deviceType={device.device_type}"
+        )
+        await self._http_wrapper.session_request(
+            method=HTTPMethod.POST,
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_MEDIA_CONTROL}?{query_string}",
+            input_data=payload,
+            json_data=True,
+        )
 
     async def _format_human_error(self, sensors_state: dict[str, Any]) -> bool:
         """Format human readable error from malformed data."""
