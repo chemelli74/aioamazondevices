@@ -19,6 +19,7 @@ from .const.http import (
     DEFAULT_SITE,
     REQUEST_AGENT,
     URI_DEVICES,
+    URI_MUSIC_PROVIDERS,
     URI_NEXUS_GRAPHQL,
 )
 from .const.metadata import ALEXA_INFO_SKILLS, AQM_RANGE_SENSORS, SENSORS
@@ -39,7 +40,7 @@ from .login import AmazonLogin
 from .structures import (
     AmazonDevice,
     AmazonDeviceSensor,
-    AmazonMusicSource,
+    AmazonMusicProvider,
     AmazonSequenceType,
 )
 from .utils import _LOGGER, parse_device_details
@@ -101,6 +102,8 @@ class AmazonEchoApi:
         initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
         self._last_devices_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
+
+        self._music_providers: dict[str, AmazonMusicProvider] = {}
 
     @property
     def domain(self) -> str:
@@ -584,12 +587,14 @@ class AmazonEchoApi:
     async def call_alexa_music(
         self,
         device: AmazonDevice,
-        search_phrase: str,
-        music_source: AmazonMusicSource,
+        message_body: str,
+        provider_id: str,
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
-        await self._sequence_handler.send_message(
-            device, AmazonSequenceType.Music, search_phrase, music_source
+        if not (self._music_providers.get(provider_id)):
+            raise ValueError("%s is not available as a music provider", provider_id)
+        return await self._call_alexa_command_per_cluster_member(
+            device, AmazonSequenceType.Music, message_body, provider_id
         )
 
     async def call_alexa_text_command(
@@ -627,6 +632,7 @@ class AmazonEchoApi:
         device: AmazonDevice,
         message_type: str,
         message_body: str,
+        music_provider_id: str | None = None,
     ) -> None:
         """Call Alexa command per cluster member."""
         for cluster_member in device.device_cluster_members:
@@ -634,6 +640,7 @@ class AmazonEchoApi:
                 self._final_devices[cluster_member],
                 message_type,
                 message_body,
+                music_provider_id,
             )
 
     async def _format_human_error(self, sensors_state: dict[str, Any]) -> bool:
@@ -654,3 +661,33 @@ class AmazonEchoApi:
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
+
+    async def get_music_providers(self) -> dict[str, AmazonMusicProvider]:
+        """Get a list of available music providers for user."""
+        if self._music_providers:
+            return self._music_providers
+
+        url = f"https://alexa.amazon.{self.domain}{URI_MUSIC_PROVIDERS}"
+        _, resp = await self._http_wrapper.session_request(
+            method=HTTPMethod.GET, url=url
+        )
+        provider_json = await self._http_wrapper.response_to_json(
+            resp, "music providers"
+        )
+        _LOGGER.debug(
+            "Music providers data received: %s",
+            provider_json,
+        )
+        self._music_providers = {
+            provider.get("id"): AmazonMusicProvider(
+                provider_id=provider["id"],
+                provider_name=provider["displayName"],
+                availability=provider["availability"],
+                default_provider=provider["providerData"].get("isDefaultMusicProvider"),
+            )
+            for provider in provider_json["generatedArrayWrapper"]
+            if provider["displayName"]
+            and AmazonSequenceType.Music in provider["supportedProperties"]
+            and provider["availability"] == "AVAILABLE"
+        }
+        return self._music_providers

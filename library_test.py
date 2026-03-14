@@ -23,7 +23,7 @@ from aioamazondevices.exceptions import (
     CannotConnect,
     CannotRegisterDevice,
 )
-from aioamazondevices.structures import AmazonDevice, AmazonMusicSource
+from aioamazondevices.structures import AmazonDevice, AmazonMusicProvider
 
 SAVE_PATH = "out"
 SAVE_PATH_DATE = datetime.now(UTC).strftime("%Y-%m-%d-%H-%M-%S")
@@ -266,6 +266,18 @@ async def main() -> None:
     print("Check above file for full devices details")
     print("-" * 20)
 
+    music_providers = await api.get_music_providers()
+    print("Available music providers:")
+    _default_music_provider = AmazonMusicProvider("None", "None", "None", False)
+    for provider in music_providers.values():
+        if provider.default_provider:
+            _default_music_provider = provider
+            default_label = "[default]"
+        else:
+            default_label = ""
+
+        print(f" - {provider.provider_name} {default_label}")
+
     if not args.test:
         print("!!! No testing requested, exiting !!!")
         await client_session.close()
@@ -287,6 +299,7 @@ async def main() -> None:
     print("- single : ", device_single.account_name)
     print("- cluster: ", device_cluster.account_name)
     print("-" * 20)
+
     print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
     await api.call_alexa_speak(device_single, "Test Speak message from new library")
 
@@ -310,14 +323,14 @@ async def main() -> None:
     await wait_action_complete(5)
 
     radio = "BBC one"
-    source = AmazonMusicSource.Radio
+    source = "TUNEIN"
     print(f"Playing {radio} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, radio, source)
 
     await wait_action_complete(15)
 
     music = "taylor swift"
-    source = AmazonMusicSource.AmazonMusic
+    source = _default_music_provider.provider_id
     print(f"Playing {music} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, music, source)
 

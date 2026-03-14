@@ -394,7 +394,7 @@ class AmazonHttpWrapper:
     ) -> dict[str, Any]:
         """Convert response to JSON, if possible."""
         try:
-            data = await raw_resp.json(loads=orjson.loads)
+            data = await raw_resp.json(loads=orjson.loads, content_type=None)
             if not data:
                 _LOGGER.warning("Empty JSON data received")
                 data = {}
