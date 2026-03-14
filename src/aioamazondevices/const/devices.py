@@ -7,7 +7,7 @@ SPEAKER_GROUP_FAMILY = "WHA"
 DEVICE_TYPE_AQM = "AEZME1X38KDRA"
 DEVICE_TYPE_SPEAKER_GROUP = "A3C9PE6TNYLTCH"
 
-DEVICE_HARDCODED_DATA: dict[str, dict[str, str]] = {
+DEVICES_HARDCODED_METADATA: dict[str, dict[str, str]] = {
     DEVICE_TYPE_SPEAKER_GROUP: {
         "model": "Speaker Group",
         "manufacturer": "Amazon",

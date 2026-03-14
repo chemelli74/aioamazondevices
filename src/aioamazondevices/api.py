@@ -9,9 +9,9 @@ from aiohttp import ClientSession
 
 from . import __version__
 from .const.devices import (
-    DEVICE_HARDCODED_DATA,
     DEVICE_TYPE_AQM,
     DEVICE_TYPE_TO_IGNORE,
+    DEVICES_HARDCODED_METADATA,
     SPEAKER_GROUP_FAMILY,
 )
 from .const.http import (
@@ -439,8 +439,9 @@ class AmazonEchoApi:
         for serial_number in self._final_devices:
             device_endpoint = devices_endpoints.get(serial_number, {})
             endpoint_device = self._final_devices[serial_number]
-            hardcoded_data = DEVICE_HARDCODED_DATA.get(endpoint_device.device_type, {})
-
+            hardcoded_data = DEVICES_HARDCODED_METADATA.get(
+                endpoint_device.device_type, {}
+            )
             endpoint_device.entity_id = (
                 device_endpoint["legacyIdentifiers"]["chrsIdentifier"]["entityId"]
                 if device_endpoint
