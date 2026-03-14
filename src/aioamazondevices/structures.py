@@ -42,7 +42,7 @@ class AmazonDevice:
     serial_number: str
     manufacturer: str | None
     model: str | None
-    software_version: str
+    software_version: str | None
     hardware_version: str | None
     entity_id: str | None
     endpoint_id: str | None

@@ -312,24 +312,20 @@ class AmazonEchoApi:
             devices_endpoints[aqm_serial_number] = aqm_endpoint
             self._endpoints[aqm_endpoint["endpointId"]] = aqm_serial_number
 
-            device_name = aqm_endpoint["friendlyNameObject"]["value"]["text"]
-            device_type = aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
-                "deviceType"
-            ]["value"]["text"]
-            software_version = aqm_endpoint["softwareVersion"]["value"]["text"]
-
             self._final_devices[aqm_serial_number] = AmazonDevice(
-                account_name=device_name,
+                account_name=aqm_endpoint["friendlyNameObject"]["value"]["text"],
                 capabilities=[],
                 device_family="AIR_QUALITY_MONITOR",
-                device_type=device_type,
+                device_type=aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
+                    "deviceType"
+                ]["value"]["text"],
                 device_owner_customer_id=self._session_state_data.account_customer_id
                 or "n/a",
                 household_device=False,
                 device_cluster_members={aqm_serial_number: AQM_DEVICE_TYPE},
                 online=True,
                 serial_number=aqm_serial_number,
-                software_version=software_version,
+                software_version=aqm_endpoint["softwareVersion"]["value"]["text"],
                 manufacturer="Amazon",
                 model=None,
                 hardware_version=None,
@@ -530,7 +526,9 @@ class AmazonEchoApi:
                 ),
                 online=device["online"],
                 serial_number=serial_number,
-                software_version=device["softwareVersion"],
+                software_version=device["softwareVersion"]
+                if "SUPPORTS_SOFTWARE_VERSION" in capabilities
+                else None,
                 entity_id=None,
                 model=device.get("deviceTypeFriendlyName"),
                 manufacturer=None,
