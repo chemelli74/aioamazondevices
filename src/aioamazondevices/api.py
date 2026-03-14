@@ -33,6 +33,7 @@ from .exceptions import (
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
+from .implementation.http2 import AmazonHTTP2Client
 from .implementation.notification import AmazonNotificationHandler
 from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
@@ -92,7 +93,13 @@ class AmazonEchoApi:
         )
 
         self._dnd_handler = AmazonDnDHandler(
-            http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
+        self._http2_client = AmazonHTTP2Client(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
         )
 
         self._final_devices: dict[str, AmazonDevice] = {}
@@ -162,6 +169,25 @@ class AmazonEchoApi:
                 )
 
         return devices_sensors
+
+    async def start_http2_thread(self) -> None:
+        """Start HTTP2 background thread."""
+        await self._http2_client.start_thread()
+
+    async def stop_http2_thread(self) -> None:
+        """Stop HTTP2 background thread."""
+        await self._http2_client.stop_thread()
+
+    def register_http2_push_callback(
+        self,
+        callback: Callable[[str, dict[str, Any] | None], Coroutine[Any, Any, None]],
+    ) -> None:
+        """Register a HTTP/2 push callback."""
+        self._http2_client.set_callback(callback)
+
+    def get_current_devices(self) -> dict[str, AmazonDevice]:
+        """Return the current cached devices mapping."""
+        return self._final_devices
 
     def _get_device_sensor_state(
         self, endpoint: dict[str, Any], serial_number: str
@@ -374,7 +400,7 @@ class AmazonEchoApi:
     async def _get_sensor_data(self) -> None:
         devices_sensors = await self._get_sensors_states()
         dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
-        notifications = await self._notification_handler.get_notifications()
+        await self.update_notification_sensors()
         for device in self._final_devices.values():
             # Update sensors
             sensors = devices_sensors.get(device.serial_number, {})
@@ -394,6 +420,10 @@ class AmazonEchoApi:
             ) and device.device_family != SPEAKER_GROUP_FAMILY:
                 device.sensors["dnd"] = device_dnd
 
+    async def update_notification_sensors(self) -> None:
+        """Update notification sensors for all devices."""
+        notifications = await self._notification_handler.get_notifications()
+        for device in self._final_devices.values():
             if notifications is None:
                 continue  # notifications were not obtained, do not update
 
