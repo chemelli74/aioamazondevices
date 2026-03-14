@@ -18,7 +18,6 @@ from .const.http import (
     ARRAY_WRAPPER,
     DEFAULT_SITE,
     REQUEST_AGENT,
-    URI_DEVICE_VOLUMES,
     URI_DEVICES,
     URI_MEDIA_CONTROL,
     URI_NEXUS_GRAPHQL,
@@ -561,22 +560,6 @@ class AmazonEchoApi:
                 )
 
         self._final_devices = final_devices_list
-
-    async def _get_device_volumes(self) -> dict[str, int]:
-        _, raw_resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICE_VOLUMES}",
-        )
-
-        _volumes: dict[str, int] = {}
-
-        json_data = await self._http_wrapper.response_to_json(
-            raw_resp, "device volumes"
-        )
-        for device_volume_data in json_data.get("volumes", []):
-            _volumes[device_volume_data["dsn"]] = device_volume_data["speakerVolume"]
-
-        return _volumes
 
     async def call_alexa_speak(
         self,

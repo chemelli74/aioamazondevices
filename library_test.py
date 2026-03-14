@@ -344,6 +344,23 @@ async def main() -> None:
     await api.call_alexa_music(device_single, music, source)
     await wait_action_complete(15)
 
+    print(f"Text command on {device_single.account_name}")
+    await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
+    await wait_action_complete(10)
+
+    print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)
+    await api.call_alexa_skill(
+        device_cluster, "amzn1.ask.skill.94c477e7-61c0-43f5-b7d9-36d7498a4d04"
+    )
+
+    if not device_single.media_player_supported:
+        print(
+            f"Device {device_single.account_name} does not support media controls, "
+            "skipping media control tests"
+        )
+        await client_session.close()
+        sys.exit(0)
+
     print(f"Pausing track on {device_single.account_name}")
     await api.send_media_command(device_single, AmazonMediaControls.Pause)
     await wait_action_complete()
@@ -355,20 +372,6 @@ async def main() -> None:
     print(f"Skipping to next track on {device_single.account_name}")
     await api.send_media_command(device_single, AmazonMediaControls.Next)
     await wait_action_complete(15)
-
-    music = "taylor swift"
-    print(f"Playing {music} from {source} on {device_single.account_name}")
-    await api.call_alexa_music(device_single, music, source)
-    await wait_action_complete(15)
-
-    print(f"Text command on {device_single.account_name}")
-    await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
-    await wait_action_complete(10)
-
-    print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)
-    await api.call_alexa_skill(
-        device_cluster, "amzn1.ask.skill.94c477e7-61c0-43f5-b7d9-36d7498a4d04"
-    )
 
     print("Closing session")
     await client_session.close()
