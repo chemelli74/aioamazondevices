@@ -10,8 +10,8 @@ from aiohttp import ClientSession
 from . import __version__
 from .const.devices import (
     DEVICE_TYPE_AQM,
-    DEVICE_TYPE_TO_IGNORE,
-    DEVICES_HARDCODED_METADATA,
+    DEVICE_TYPES_HARDCODED_METADATA,
+    DEVICE_TYPES_TO_IGNORE,
     SPEAKER_GROUP_FAMILY,
 )
 from .const.http import (
@@ -439,7 +439,7 @@ class AmazonEchoApi:
         for serial_number in self._final_devices:
             device_endpoint = devices_endpoints.get(serial_number, {})
             endpoint_device = self._final_devices[serial_number]
-            hardcoded_data = DEVICES_HARDCODED_METADATA.get(
+            hardcoded_data = DEVICE_TYPES_HARDCODED_METADATA.get(
                 endpoint_device.device_type, {}
             )
             endpoint_device.entity_id = (
@@ -499,7 +499,7 @@ class AmazonEchoApi:
         serial_to_device_type: dict[str, str] = {}
         for device in json_data["devices"]:
             # Remove stale, orphaned and virtual devices
-            if not device or (device.get("deviceType") in DEVICE_TYPE_TO_IGNORE):
+            if not device or (device.get("deviceType") in DEVICE_TYPES_TO_IGNORE):
                 continue
 
             account_name: str = device["accountName"]

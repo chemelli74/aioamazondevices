@@ -7,7 +7,7 @@ SPEAKER_GROUP_FAMILY = "WHA"
 DEVICE_TYPE_AQM = "AEZME1X38KDRA"
 DEVICE_TYPE_SPEAKER_GROUP = "A3C9PE6TNYLTCH"
 
-DEVICES_HARDCODED_METADATA: dict[str, dict[str, str]] = {
+DEVICE_TYPES_HARDCODED_METADATA: dict[str, dict[str, str]] = {
     DEVICE_TYPE_SPEAKER_GROUP: {
         "model": "Speaker Group",
         "manufacturer": "Amazon",
@@ -18,7 +18,7 @@ DEVICES_HARDCODED_METADATA: dict[str, dict[str, str]] = {
     },
 }
 
-DEVICE_TYPE_TO_IGNORE: list[str] = [
+DEVICE_TYPES_TO_IGNORE: list[str] = [
     AMAZON_DEVICE_TYPE,  # Alexa App for iOS
     "A2TF17PFR55MTB",  # Alexa App for Android
     "A1RTAM01W29CUP",  # Alexa App for PC
