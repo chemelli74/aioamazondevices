@@ -50,7 +50,6 @@ class AmazonDevice:
     notifications_supported: bool
     notifications: dict[str, AmazonSchedule]
     media_player_supported: bool
-    volume: int
 
 
 class AmazonSequenceType(StrEnum):

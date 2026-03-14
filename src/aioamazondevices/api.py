@@ -348,7 +348,6 @@ class AmazonEchoApi:
                 notifications_supported=False,
                 notifications={},
                 media_player_supported=False,
-                volume=0,
             )
 
         return devices_endpoints
@@ -505,8 +504,6 @@ class AmazonEchoApi:
 
         json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
 
-        _volumes = await self._get_device_volumes()
-
         final_devices_list: dict[str, AmazonDevice] = {}
         serial_to_device_type: dict[str, str] = {}
         for device in json_data["devices"]:
@@ -553,7 +550,6 @@ class AmazonEchoApi:
                 notifications_supported=_has_notification_capability,
                 notifications={},
                 media_player_supported="AUDIO_PLAYER" in capabilities,
-                volume=_volumes.get(serial_number, 0),
             )
 
             serial_to_device_type[serial_number] = device["deviceType"]

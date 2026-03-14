@@ -258,7 +258,6 @@ async def main() -> None:
         print(f"   Device software version: {device.software_version}")
         print(f"   Device sensors: {len(device.sensors)}")
         print(f"   Device notifications: {len(device.notifications)}")
-        print(f"   Device Volume: {device.volume}")
         dev_index += 1
     print("-" * 20)
 
