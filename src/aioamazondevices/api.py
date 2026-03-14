@@ -9,9 +9,9 @@ from aiohttp import ClientSession
 
 from . import __version__
 from .const.devices import (
-    AQM_DEVICE_TYPE,
-    DEVICE_HARDCODED_DATA,
-    DEVICE_TO_IGNORE,
+    DEVICE_TYPE_AQM,
+    DEVICE_TYPES_HARDCODED_METADATA,
+    DEVICE_TYPES_TO_IGNORE,
     SPEAKER_GROUP_FAMILY,
 )
 from .const.http import (
@@ -231,7 +231,7 @@ class AmazonEchoApi:
                 sensor_name = sensor_template_name_value
 
                 if (
-                    device.device_type == AQM_DEVICE_TYPE
+                    device.device_type == DEVICE_TYPE_AQM
                     and sensor_template_name_value == "rangeValue"
                 ):
                     if not (
@@ -326,7 +326,7 @@ class AmazonEchoApi:
                 device_owner_customer_id=self._session_state_data.account_customer_id
                 or "n/a",
                 household_device=False,
-                device_cluster_members={aqm_serial_number: AQM_DEVICE_TYPE},
+                device_cluster_members={aqm_serial_number: DEVICE_TYPE_AQM},
                 online=True,
                 serial_number=aqm_serial_number,
                 software_version=software_version,
@@ -439,8 +439,9 @@ class AmazonEchoApi:
         for serial_number in self._final_devices:
             device_endpoint = devices_endpoints.get(serial_number, {})
             endpoint_device = self._final_devices[serial_number]
-            hardcoded_data = DEVICE_HARDCODED_DATA.get(endpoint_device.device_type, {})
-
+            hardcoded_data = DEVICE_TYPES_HARDCODED_METADATA.get(
+                endpoint_device.device_type, {}
+            )
             endpoint_device.entity_id = (
                 device_endpoint["legacyIdentifiers"]["chrsIdentifier"]["entityId"]
                 if device_endpoint
@@ -498,7 +499,7 @@ class AmazonEchoApi:
         serial_to_device_type: dict[str, str] = {}
         for device in json_data["devices"]:
             # Remove stale, orphaned and virtual devices
-            if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
+            if not device or (device.get("deviceType") in DEVICE_TYPES_TO_IGNORE):
                 continue
 
             account_name: str = device["accountName"]
