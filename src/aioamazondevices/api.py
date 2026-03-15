@@ -6,6 +6,7 @@ from http import HTTPMethod
 from typing import Any
 
 from aiohttp import ClientSession
+from aiosignal import Signal
 
 from . import __version__
 from .const.devices import (
@@ -112,6 +113,8 @@ class AmazonEchoApi:
         initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
         self._last_devices_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
+
+        self.on_media_state_event = Signal(self)
 
     @property
     def domain(self) -> str:
@@ -642,6 +645,7 @@ class AmazonEchoApi:
         await self._call_alexa_command_per_cluster_member(
             device, AmazonSequenceType.Volume, str(volume)
         )
+        await self.sync_media_state()  # For testing only
 
     async def _call_alexa_command_per_cluster_member(
         self,
@@ -676,6 +680,7 @@ class AmazonEchoApi:
             input_data=payload,
             json_data=True,
         )
+        await self.sync_media_state()  # For testing only
 
     async def _format_human_error(self, sensors_state: dict[str, Any]) -> bool:
         """Format human readable error from malformed data."""
@@ -696,12 +701,16 @@ class AmazonEchoApi:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
 
-    async def sync_media_state(self) -> dict[str, AmazonMediaState]:
+    async def sync_media_state(self) -> None:
         """Sync media state.
 
         This will be called at startup to sync media state of all devices
         and can be called later to refresh media state.
         """
+        media_states = await self._sync_media_state()
+        await self.on_media_state_event.send(media_state=media_states)
+
+    async def _sync_media_state(self) -> dict[str, AmazonMediaState]:
         media_states = {}
         volumes = await self._get_device_volumes()
         # the endpoint needs a device type / serial but returns all sessions
