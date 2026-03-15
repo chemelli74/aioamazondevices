@@ -82,3 +82,27 @@ class AmazonMediaControls(StrEnum):
     Previous = "PreviousCommand"
     Rewind = "RewindCommand"
     FastForward = "ForwardCommand"
+
+
+@dataclass
+class AmazonMediaState:
+    """Amazon media state class."""
+
+    volume: int | None
+    is_muted: bool
+    player_state: str
+    now_playing_url: str | None
+    now_playing_title: str | None
+    now_playing_line1: str | None
+    now_playing_line2: str | None
+    next_enabled: bool
+    previous_enabled: bool
+    pause_enabled: bool
+    seek_forward_enabled: bool
+    seek_back_enabled: bool
+    shuffle_enabled: bool
+    repeat_enabled: bool
+    media_length: int | None
+    media_position: int | None
+    media_position_updated_at: datetime | None
+    media_provider: str | None
