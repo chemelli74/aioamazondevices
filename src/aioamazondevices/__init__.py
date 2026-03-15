@@ -8,12 +8,9 @@ from .exceptions import (
     CannotAuthenticate,
     CannotConnect,
 )
-from .structures import AmazonDevice, AmazonMediaControls
 
 __all__ = [
-    "AmazonDevice",
     "AmazonEchoApi",
-    "AmazonMediaControls",
     "CannotAuthenticate",
     "CannotConnect",
 ]
