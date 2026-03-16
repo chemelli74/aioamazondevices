@@ -26,7 +26,7 @@ from aioamazondevices.exceptions import (
 from aioamazondevices.structures import (
     AmazonDevice,
     AmazonMediaControls,
-    AmazonMusicSource,
+    AmazonMusicProvider,
 )
 
 SAVE_PATH = "out"
@@ -270,6 +270,17 @@ async def main() -> None:
     print("Check above file for full devices details")
     print("-" * 20)
 
+    print("Available music providers:")
+    _default_music_provider = AmazonMusicProvider("None", "None", "None", False)
+    for provider in (await api.music_providers).values():
+        if provider.default_provider:
+            _default_music_provider = provider
+            default_label = "[default]"
+        else:
+            default_label = ""
+
+        print(f" - {provider.provider_name} {default_label}")
+
     if not args.test:
         print("!!! No testing requested, exiting !!!")
         await client_session.close()
@@ -333,13 +344,13 @@ async def main() -> None:
     await wait_action_complete()
 
     radio = "BBC one"
-    source = AmazonMusicSource.Radio
+    source = "TUNEIN"
     print(f"Playing {radio} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, radio, source)
     await wait_action_complete(15)
 
     music = "taylor swift"
-    source = AmazonMusicSource.AmazonMusic
+    source = _default_music_provider.provider_id
     print(f"Playing {music} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, music, source)
     await wait_action_complete(15)

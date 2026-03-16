@@ -9,7 +9,6 @@ from aioamazondevices.const.metadata import ALEXA_INFO_SKILLS
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import (
     AmazonDevice,
-    AmazonMusicSource,
     AmazonSequenceType,
 )
 from aioamazondevices.utils import _LOGGER
@@ -32,7 +31,7 @@ class AmazonSequenceHandler:
         device: AmazonDevice,
         message_type: str,
         message_body: str,
-        message_source: AmazonMusicSource | None = None,
+        music_provider_id: str | None = None,
     ) -> None:
         """Send message to specific device."""
         if not self._session_state_data.login_stored_data:
@@ -104,7 +103,7 @@ class AmazonSequenceHandler:
                 **base_payload,
                 "searchPhrase": message_body,
                 "sanitizedSearchPhrase": message_body,
-                "musicProviderId": message_source,
+                "musicProviderId": music_provider_id,
             }
         elif message_type == AmazonSequenceType.TextCommand:
             payload = {

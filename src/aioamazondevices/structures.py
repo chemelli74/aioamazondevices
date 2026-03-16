@@ -18,6 +18,16 @@ class AmazonDeviceSensor:
 
 
 @dataclass
+class AmazonMusicProvider:
+    """Music Provider class."""
+
+    provider_id: str
+    provider_name: str
+    availability: str
+    default_provider: bool
+
+
+@dataclass
 class AmazonSchedule:
     """Amazon schedule class."""
 
@@ -63,13 +73,6 @@ class AmazonSequenceType(StrEnum):
     LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
     Volume = "Alexa.DeviceControls.Volume"
     Stop = "Alexa.DeviceControls.Stop"
-
-
-class AmazonMusicSource(StrEnum):
-    """Amazon music sources."""
-
-    Radio = "TUNEIN"
-    AmazonMusic = "AMAZON_MUSIC"
 
 
 class AmazonMediaControls(StrEnum):
