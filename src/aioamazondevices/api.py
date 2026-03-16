@@ -127,6 +127,11 @@ class AmazonEchoApi:
         """Return login."""
         return self._login
 
+    @property
+    def media_states(self) -> dict[str, AmazonMediaState]:
+        """Return media states."""
+        return self._media_states
+
     async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
         """Retrieve devices sensors states."""
         devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
