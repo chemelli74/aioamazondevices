@@ -120,7 +120,7 @@ class AmazonEchoApi:
         self._last_devices_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
 
-        self._music_providers: dict[str, AmazonMusicProvider] = {}
+        self._music_providers: dict[str, AmazonMusicProvider] | None = None
 
         self._media_states: dict[str, AmazonMediaState] = {}
         self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
@@ -141,7 +141,7 @@ class AmazonEchoApi:
     @property
     async def music_providers(self) -> dict[str, AmazonMusicProvider]:
         """Return music providers."""
-        if self._music_providers:
+        if self._music_providers is not None:
             return self._music_providers
 
         url = f"https://alexa.amazon.{self.domain}{URI_MUSIC_PROVIDERS}"
