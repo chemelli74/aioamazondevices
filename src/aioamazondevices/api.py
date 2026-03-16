@@ -156,15 +156,16 @@ class AmazonEchoApi:
             provider_json,
         )
         self._music_providers = {
-            provider.get("id"): AmazonMusicProvider(
+            provider["id"]: AmazonMusicProvider(
                 provider_id=provider["id"],
                 provider_name=provider["displayName"],
                 availability=provider["availability"],
                 default_provider=provider["providerData"].get("isDefaultMusicProvider"),
             )
-            for provider in provider_json["generatedArrayWrapper"]
-            if provider["displayName"]
-            and AmazonSequenceType.Music in provider["supportedProperties"]
+            for provider in provider_json[ARRAY_WRAPPER]
+            if AmazonSequenceType.Music in provider["supportedProperties"]
+            and provider.get("id")
+            and provider["displayName"]
             and provider["availability"] == "AVAILABLE"
         }
         return self._music_providers
