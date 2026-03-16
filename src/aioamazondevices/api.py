@@ -114,6 +114,7 @@ class AmazonEchoApi:
         self._last_devices_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
 
+        self._media_states: dict[str, AmazonMediaState] = {}
         self.on_media_state_event = Signal(self)
 
     @property
@@ -707,10 +708,14 @@ class AmazonEchoApi:
         This will be called at startup to sync media state of all devices
         and can be called later to refresh media state.
         """
-        media_states = await self._sync_media_state()
-        await self.on_media_state_event.send(media_state=media_states)
+        await self._sync_media_state()
+        await self.emit_media_state_event()
 
-    async def _sync_media_state(self) -> dict[str, AmazonMediaState]:
+    async def emit_media_state_event(self) -> None:
+        """Emit media state data to subscribers."""
+        await self.on_media_state_event.send(media_state=self._media_states)
+
+    async def _sync_media_state(self) -> None:
         media_states = {}
         volumes = await self._get_device_volumes()
         # the endpoint needs a device type / serial but returns all sessions
@@ -749,7 +754,7 @@ class AmazonEchoApi:
                 media_provider=now_playing.get("provider"),  # TBD
             )
 
-        return media_states
+        self._media_states = media_states
 
     async def _get_media_state(self, device: AmazonDevice) -> dict[str, Any] | None:
         """Get media state for a device."""
