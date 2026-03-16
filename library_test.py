@@ -272,7 +272,7 @@ async def main() -> None:
 
     print("Available music providers:")
     _default_music_provider = AmazonMusicProvider("None", "None", "None", False)
-    for provider in (await api.music_providers).values():
+    for provider in (await api.get_music_providers()).values():
         if provider.default_provider:
             _default_music_provider = provider
             default_label = "[default]"

@@ -138,38 +138,6 @@ class AmazonEchoApi:
         """Return login."""
         return self._login
 
-    @property
-    async def music_providers(self) -> dict[str, AmazonMusicProvider]:
-        """Return music providers."""
-        if self._music_providers is not None:
-            return self._music_providers
-
-        url = f"https://alexa.amazon.{self.domain}{URI_MUSIC_PROVIDERS}"
-        _, resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET, url=url
-        )
-        provider_json = await self._http_wrapper.response_to_json(
-            resp, "music providers"
-        )
-        _LOGGER.debug(
-            "Music providers data received: %s",
-            provider_json,
-        )
-        self._music_providers = {
-            provider["id"]: AmazonMusicProvider(
-                provider_id=provider["id"],
-                provider_name=provider["displayName"],
-                availability=provider["availability"],
-                default_provider=provider["providerData"].get("isDefaultMusicProvider"),
-            )
-            for provider in provider_json[ARRAY_WRAPPER]
-            if AmazonSequenceType.Music in provider["supportedProperties"]
-            and provider.get("id")
-            and provider["displayName"]
-            and provider["availability"] == "AVAILABLE"
-        }
-        return self._music_providers
-
     async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
         """Retrieve devices sensors states."""
         devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
@@ -611,6 +579,37 @@ class AmazonEchoApi:
 
         self._final_devices = final_devices_list
 
+    async def get_music_providers(self) -> dict[str, AmazonMusicProvider]:
+        """Return music providers."""
+        if self._music_providers is not None:
+            return self._music_providers
+
+        url = f"https://alexa.amazon.{self.domain}{URI_MUSIC_PROVIDERS}"
+        _, resp = await self._http_wrapper.session_request(
+            method=HTTPMethod.GET, url=url
+        )
+        provider_json = await self._http_wrapper.response_to_json(
+            resp, "music providers"
+        )
+        _LOGGER.debug(
+            "Music providers data received: %s",
+            provider_json,
+        )
+        self._music_providers = {
+            provider["id"]: AmazonMusicProvider(
+                provider_id=provider["id"],
+                provider_name=provider["displayName"],
+                availability=provider["availability"],
+                default_provider=provider["providerData"].get("isDefaultMusicProvider"),
+            )
+            for provider in provider_json[ARRAY_WRAPPER]
+            if AmazonSequenceType.Music in provider["supportedProperties"]
+            and provider.get("id")
+            and provider["displayName"]
+            and provider["availability"] == "AVAILABLE"
+        }
+        return self._music_providers
+
     async def call_alexa_speak(
         self,
         device: AmazonDevice,
@@ -648,10 +647,10 @@ class AmazonEchoApi:
         provider_id: str,
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
-        if provider_id not in await self.music_providers:
+        if provider_id not in await self.get_music_providers():
             raise ValueError(f"{provider_id} is not available as a music provider")
 
-        return await self._call_alexa_command_per_cluster_member(
+        await self._call_alexa_command_per_cluster_member(
             device, AmazonSequenceType.Music, message_body, provider_id
         )
 
