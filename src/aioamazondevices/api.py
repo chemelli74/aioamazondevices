@@ -115,7 +115,7 @@ class AmazonEchoApi:
         self._last_endpoint_refresh: datetime = initial_time
 
         self._media_states: dict[str, AmazonMediaState] = {}
-        self.on_media_state_event = Signal(self)
+        self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
 
     @property
     def domain(self) -> str:
