@@ -1,5 +1,6 @@
 """Support for Amazon devices."""
 
+import asyncio
 from collections.abc import Callable, Coroutine
 from datetime import UTC, datetime, timedelta
 from http import HTTPMethod
@@ -651,6 +652,7 @@ class AmazonEchoApi:
         await self._call_alexa_command_per_cluster_member(
             device, AmazonSequenceType.Volume, str(volume)
         )
+        await asyncio.sleep(1)  # For testing only
         await self.sync_media_state()  # For testing only
 
     async def _call_alexa_command_per_cluster_member(
@@ -686,6 +688,7 @@ class AmazonEchoApi:
             input_data=payload,
             json_data=True,
         )
+        await asyncio.sleep(1)  # For testing only
         await self.sync_media_state()  # For testing only
 
     async def _format_human_error(self, sensors_state: dict[str, Any]) -> bool:
