@@ -1,5 +1,12 @@
 # Changelog
 
+## v13.1.0 (2026-03-14)
+
+### Features
+
+- Media player controls ([`9182ed8`](https://github.com/chemelli74/aioamazondevices/commit/9182ed853cf23c50debb3511bbb8e1f138a82ebf))
+
+
 ## v13.0.1 (2026-03-14)
 
 ### Bug fixes

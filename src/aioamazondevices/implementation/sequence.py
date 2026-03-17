@@ -213,6 +213,19 @@ class AmazonSequenceHandler:
             payload = {
                 **base_payload,
             }
+        elif message_type == AmazonSequenceType.Volume:
+            payload = {**base_payload, "value": message_body}
+        elif message_type == AmazonSequenceType.Stop:
+            payload = {
+                **base_payload,
+                "devices": [
+                    {
+                        "deviceSerialNumber": device.serial_number,
+                        "deviceType": device.device_type,
+                    },
+                ],
+                "skillId": "amzn1.ask.1p.alexadevicecontrols",
+            }
         else:
             raise ValueError(f"Message type <{message_type}> is not recognised")
 

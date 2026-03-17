@@ -23,7 +23,11 @@ from aioamazondevices.exceptions import (
     CannotConnect,
     CannotRegisterDevice,
 )
-from aioamazondevices.structures import AmazonDevice, AmazonMusicSource
+from aioamazondevices.structures import (
+    AmazonDevice,
+    AmazonMediaControls,
+    AmazonMusicSource,
+)
 
 SAVE_PATH = "out"
 SAVE_PATH_DATE = datetime.now(UTC).strftime("%Y-%m-%d-%H-%M-%S")
@@ -175,7 +179,7 @@ def find_device(
         sys.exit(0)
 
 
-async def wait_action_complete(sleep: int = 4) -> None:
+async def wait_action_complete(sleep: int = 5) -> None:
     """Wait for an action to complete."""
     print(f"Waiting for {sleep}s before next test")
     await asyncio.sleep(sleep)
@@ -287,7 +291,34 @@ async def main() -> None:
     print("- single : ", device_single.account_name)
     print("- cluster: ", device_cluster.account_name)
     print("-" * 20)
-    print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
+
+    print("Volume to 100% on :", device_single.account_name)
+    await api.set_device_volume(device_single, 100)
+    await wait_action_complete(1)
+
+    print(
+        "Sending message via 'Alexa.Speak' at 100% volume to:",
+        device_single.account_name,
+    )
+    await api.call_alexa_speak(
+        device_single, "Test Speak message at 100% from new library"
+    )
+    await wait_action_complete()
+
+    print("Volume to 30% on :", device_single.account_name)
+    await api.set_device_volume(device_single, 30)
+    await wait_action_complete(1)
+
+    print(
+        "Sending message via 'Alexa.Speak' at 30% volume to:",
+        device_single.account_name,
+    )
+    await api.call_alexa_speak(
+        device_single, "Test Speak message at 30% from new library"
+    )
+    await wait_action_complete()
+
+    print("Sending multiple messages via 'Alexa.Speak' to:", device_single.account_name)
     # sequences should be batched into a single call
     await api.call_alexa_speak(device_single, "Test Speak message from new library")
     await api.call_alexa_speak(device_single, "Test Speak 2 from new library")
@@ -295,59 +326,60 @@ async def main() -> None:
 
     await wait_action_complete(10)
 
-    print(
-        "Sending parallel messages via 'Alexa.Speak' to cluster:",
-        device_cluster.account_name,
-    )
-    # Should simulate sending to all devices in cluster in parallel
-    for cluster_member in device_cluster.device_cluster_members:
-        await api.call_alexa_speak(
-            devices[cluster_member],
-            "This is a cluster test message from new library",
-        )
-
-    await wait_action_complete()
-
     print("Sending message via 'AlexaAnnouncement' to:", device_cluster.account_name)
     await api.call_alexa_announcement(
         device_cluster, "Test Announcement message from new library"
     )
-
     await wait_action_complete()
 
     print("Sending sound via 'Alexa.Sound' to:", device_single.account_name)
     await api.call_alexa_sound(device_single, "amzn_sfx_doorbell_chime_01")
-
     await wait_action_complete()
 
     print("Sending message via 'Alexa.Date.Play' to:", device_single.account_name)
     await api.call_alexa_info_skill(device_single, "Alexa.Date.Play")
-
-    await wait_action_complete(5)
+    await wait_action_complete()
 
     radio = "BBC one"
     source = AmazonMusicSource.Radio
     print(f"Playing {radio} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, radio, source)
-
     await wait_action_complete(15)
 
     music = "taylor swift"
     source = AmazonMusicSource.AmazonMusic
     print(f"Playing {music} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, music, source)
-
     await wait_action_complete(15)
 
     print(f"Text command on {device_single.account_name}")
     await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
-
     await wait_action_complete(10)
 
     print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)
     await api.call_alexa_skill(
         device_cluster, "amzn1.ask.skill.94c477e7-61c0-43f5-b7d9-36d7498a4d04"
     )
+
+    if not device_single.media_player_supported:
+        print(
+            f"Device {device_single.account_name} does not support media controls, "
+            "skipping media control tests"
+        )
+        await client_session.close()
+        sys.exit(0)
+
+    print(f"Pausing track on {device_single.account_name}")
+    await api.send_media_command(device_single, AmazonMediaControls.Pause)
+    await wait_action_complete()
+
+    print(f"Play track on {device_single.account_name}")
+    await api.send_media_command(device_single, AmazonMediaControls.Play)
+    await wait_action_complete()
+
+    print(f"Skipping to next track on {device_single.account_name}")
+    await api.send_media_command(device_single, AmazonMediaControls.Next)
+    await wait_action_complete(15)
 
     print("Closing session")
     await client_session.close()

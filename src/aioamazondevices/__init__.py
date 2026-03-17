@@ -1,16 +1,15 @@
 """aioamazondevices library."""
 
-__version__ = "13.0.1"
+__version__ = "13.1.0"
 
 
-from .api import AmazonDevice, AmazonEchoApi
+from .api import AmazonEchoApi
 from .exceptions import (
     CannotAuthenticate,
     CannotConnect,
 )
 
 __all__ = [
-    "AmazonDevice",
     "AmazonEchoApi",
     "CannotAuthenticate",
     "CannotConnect",
