@@ -614,6 +614,8 @@ class AmazonEchoApi:
         await self._sequence_handler.send_message(
             device, AmazonSequenceType.Music, search_phrase, music_source
         )
+        await asyncio.sleep(1)  # For testing only
+        await self.sync_media_state()  # For testing only
 
     async def call_alexa_text_command(
         self,
