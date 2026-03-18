@@ -158,40 +158,42 @@ class AmazonHTTP2Client:
                             "renderingUpdates"
                         ][0]
                         chunk_type = updates_node["resourceId"]
-                        chunk_device = (
-                            updates_node["resourceMetadata"]["payload"]
-                            .get("dopplerId", {})
-                            .get("deviceSerialNumber")
-                        )
-                        payload = updates_node.get("resourceMetadata", {}).get(
+                        chunk_payload = updates_node.get("resourceMetadata", {}).get(
                             "payload", {}
                         )
+                        chunk_device = chunk_payload.get("dopplerId", {}).get(
+                            "deviceSerialNumber"
+                        )
 
-                        if chunk_type in AmazonPushMessage._value2member_map_:
-                            _LOGGER.debug(
-                                "Detected push type <%s> on device <%s>",
-                                chunk_type,
-                                chunk_device,
-                            )
-                            # Skip double NotificationChange pushes
-                            # (we assume even version numbers are duplicates)
-                            if (
-                                chunk_type == AmazonPushMessage.NotificationChange.value
-                                and payload.get("notificationVersion", 2) % 2 == 0
-                            ):
-                                continue
-                            if self._on_push_cb:
-                                task = asyncio.create_task(
-                                    self._on_push_cb(chunk_type, payload)
-                                )
-                                self._pending_push_tasks.add(task)
-                                task.add_done_callback(self._pending_push_tasks.discard)
-                        else:
+                        if chunk_type not in AmazonPushMessage._value2member_map_:
                             _LOGGER.warning(
                                 "Unknown HTTP2 push message from device %s: %s",
                                 chunk_device,
                                 chunk_type,
                             )
+                            continue
+
+                        _LOGGER.debug(
+                            "Detected push type <%s> on device <%s>",
+                            chunk_type,
+                            chunk_device,
+                        )
+
+                        # Skip double NotificationChange pushes
+                        # (we assume even version numbers are duplicates)
+                        if (
+                            chunk_type == AmazonPushMessage.NotificationChange.value
+                            and chunk_payload.get("notificationVersion", 2) % 2 == 0
+                        ):
+                            continue
+
+                        if self._on_push_cb:
+                            task = asyncio.create_task(
+                                self._on_push_cb(chunk_type, chunk_payload)
+                            )
+                            self._pending_push_tasks.add(task)
+                            task.add_done_callback(self._pending_push_tasks.discard)
+
                 _LOGGER.debug("AVS Directives stream closed")
             except httpx.RemoteProtocolError as excp:
                 _LOGGER.debug("HTTP2 disconnection detected: %s", excp)
