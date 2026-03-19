@@ -53,6 +53,7 @@ from .structures import (
     AmazonMediaControls,
     AmazonMediaState,
     AmazonMusicSource,
+    AmazonPushMessage,
     AmazonSequenceType,
     AmazonVolumeState,
 )
@@ -208,6 +209,17 @@ class AmazonEchoApi:
         self, event_type: str, payload: dict[str, Any]
     ) -> None:
         _LOGGER.debug("Event - %s : Payload - %s", event_type, payload)
+        if event_type == AmazonPushMessage.VolumeChange.value:
+            serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
+            if serial:
+                self._volume_states[serial] = AmazonVolumeState(
+                    payload.get("volumeSetting"), bool(payload.get("isMuted"))
+                )
+            await self._emit_volume_state_event()
+            return
+        if event_type == AmazonPushMessage.AudioPlayerState.value:
+            await self.sync_media_state()
+            return
 
     def _get_device_sensor_state(
         self, endpoint: dict[str, Any], serial_number: str
