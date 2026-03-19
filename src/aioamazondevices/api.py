@@ -9,6 +9,8 @@ from typing import Any
 from aiohttp import ClientSession
 from aiosignal import Signal
 
+from aioamazondevices.implementation.media import AmazonMediaHandler
+
 from . import __version__
 from .const.devices import (
     DEVICE_TYPE_AQM,
@@ -20,10 +22,8 @@ from .const.http import (
     ARRAY_WRAPPER,
     DEFAULT_SITE,
     REQUEST_AGENT,
-    URI_DEVICE_VOLUMES,
     URI_DEVICES,
     URI_MEDIA_CONTROL,
-    URI_MEDIA_STATE,
     URI_NEXUS_GRAPHQL,
 )
 from .const.metadata import (
@@ -54,6 +54,7 @@ from .structures import (
     AmazonMediaState,
     AmazonMusicSource,
     AmazonSequenceType,
+    AmazonVolume,
 )
 from .utils import _LOGGER, parse_device_details
 
@@ -108,6 +109,10 @@ class AmazonEchoApi:
             http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
         )
 
+        self._media_handler = AmazonMediaHandler(
+            http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
+        )
+
         self._final_devices: dict[str, AmazonDevice] = {}
         self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
 
@@ -117,6 +122,9 @@ class AmazonEchoApi:
 
         self._media_states: dict[str, AmazonMediaState] = {}
         self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
+
+        self._volumes: dict[str, AmazonVolume] = {}
+        self.on_volume_event = Signal[dict[str, AmazonVolume]](self)
 
     @property
     def domain(self) -> str:
@@ -718,106 +726,17 @@ class AmazonEchoApi:
         This will be called at startup to sync media state of all devices
         and can be called later to refresh media state.
         """
-        await self._sync_media_state()
+        self._volumes = await self._media_handler.get_device_volumes()
+        await self.emit_volume_event()
+        self._media_state = await self._media_handler.sync_media_state(
+            self._final_devices
+        )
         await self.emit_media_state_event()
 
     async def emit_media_state_event(self) -> None:
         """Emit media state data to subscribers."""
         await self.on_media_state_event.send(media_state=self._media_states)
 
-    async def _sync_media_state(self) -> None:
-        media_states = {}
-        volumes = await self._get_device_volumes()
-        # the endpoint needs a device type / serial but returns all sessions
-        media_sessions = await self._get_media_state(
-            next(iter(self._final_devices.values()))
-        )
-        for device in self._final_devices.values():
-            if not device.media_player_supported:
-                continue
-
-            if not media_sessions:
-                media_states[device.serial_number] = AmazonMediaState(
-                    volume=volumes.get(device.serial_number),
-                    is_muted=False,  # TBD
-                    player_state=None,
-                    now_playing_url=None,
-                    now_playing_title=None,
-                    now_playing_line1=None,
-                    now_playing_line2=None,
-                    next_enabled=False,
-                    previous_enabled=False,
-                    pause_enabled=False,
-                    seek_forward_enabled=False,
-                    seek_back_enabled=False,
-                    shuffle_enabled=False,
-                    repeat_enabled=False,
-                    media_length=None,
-                    media_position=None,
-                    media_position_updated_at=None,
-                    media_provider=None,
-                )
-                continue
-
-            now_playing = media_sessions.get(device.serial_number, {}).get(
-                "nowPlayingData", {}
-            )
-            transport = now_playing.get("transport", {})
-            media_states[device.serial_number] = AmazonMediaState(
-                volume=volumes.get(device.serial_number),
-                is_muted=False,  # TBD
-                player_state=now_playing.get("playerState"),
-                now_playing_url=now_playing.get("mainArt", {}).get("largeUrl"),
-                now_playing_title=now_playing.get("infoText", {}).get("title"),
-                now_playing_line1=now_playing.get("infoText", {}).get("subText1"),
-                now_playing_line2=now_playing.get("infoText", {}).get("subText2"),
-                next_enabled=transport.get("next") == "ENABLED",
-                previous_enabled=transport.get("previous") == "ENABLED",
-                pause_enabled=transport.get("playPause") == "ENABLED",
-                seek_forward_enabled=transport.get("seekForward") == "ENABLED",
-                seek_back_enabled=transport.get("seekBack") == "ENABLED",
-                shuffle_enabled=transport.get("shuffle") == "ENABLED",
-                repeat_enabled=transport.get("repeat") == "ENABLED",
-                media_length=now_playing.get("progress", {}).get("mediaLength"),
-                media_position=now_playing.get("progress", {}).get("mediaProgress"),
-                media_position_updated_at=datetime.now(UTC),  # TZ
-                media_provider=now_playing.get("provider"),  # TBD
-            )
-
-        self._media_states = media_states
-
-    async def _get_media_state(self, device: AmazonDevice) -> dict[str, Any] | None:
-        """Get media state for a device."""
-        query_string = (
-            f"deviceSerialNumber={device.serial_number}&deviceType={device.device_type}"
-        )
-        _, raw_resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_MEDIA_STATE}?{query_string}",
-        )
-
-        json_data = await self._http_wrapper.response_to_json(raw_resp, "media state")
-
-        media_sessions = {}
-        for session in json_data.get("mediaSessionList") or []:
-            for session_device in session.get("endpointList") or []:
-                serial_num = session_device.get("id", {}).get("deviceSerialNumber")
-                media_sessions[serial_num] = session
-
-        return media_sessions
-
-    async def _get_device_volumes(self) -> dict[str, int]:
-        _, raw_resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICE_VOLUMES}",
-        )
-
-        _volumes: dict[str, int] = {}
-
-        json_data = await self._http_wrapper.response_to_json(
-            raw_resp, "device volumes"
-        )
-        for device_volume_data in json_data.get("volumes", []):
-            _volumes[device_volume_data["dsn"]] = device_volume_data["speakerVolume"]
-
-        return _volumes
+    async def emit_volume_event(self) -> None:
+        """Emit volume event to subscribers."""
+        await self.on_volume_event.send(volumes=self._volumes)

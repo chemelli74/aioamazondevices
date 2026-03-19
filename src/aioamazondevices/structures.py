@@ -88,8 +88,6 @@ class AmazonMediaControls(StrEnum):
 class AmazonMediaState:
     """Amazon media state class."""
 
-    volume: int | None
-    is_muted: bool
     player_state: str | None
     now_playing_url: str | None
     now_playing_title: str | None
@@ -106,3 +104,11 @@ class AmazonMediaState:
     media_position: int | None
     media_position_updated_at: datetime | None
     media_provider: str | None
+
+
+@dataclass
+class AmazonVolume:
+    """Amazon volume state."""
+
+    volume: int | None
+    is_muted: bool
