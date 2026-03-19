@@ -720,16 +720,16 @@ class AmazonEchoApi:
         and can be called later to refresh media state.
         """
         self._volume_states = await self._media_handler.get_device_volumes()
-        await self.emit_volume_state_event()
+        await self._emit_volume_state_event()
         self._media_states = await self._media_handler.sync_media_state(
             self._final_devices
         )
-        await self.emit_media_state_event()
+        await self._emit_media_state_event()
 
-    async def emit_media_state_event(self) -> None:
+    async def _emit_media_state_event(self) -> None:
         """Emit media state data to subscribers."""
         await self.on_media_state_event.send(media_state=self._media_states)
 
-    async def emit_volume_state_event(self) -> None:
+    async def _emit_volume_state_event(self) -> None:
         """Emit volume event to subscribers."""
         await self.on_volume_state_event.send(volume_states=self._volume_states)
