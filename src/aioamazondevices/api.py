@@ -737,7 +737,27 @@ class AmazonEchoApi:
                 continue
 
             if not media_sessions:
-                continue  # TBD
+                media_states[device.serial_number] = AmazonMediaState(
+                    volume=volumes.get(device.serial_number),
+                    is_muted=False,  # TBD
+                    player_state=None,
+                    now_playing_url=None,
+                    now_playing_title=None,
+                    now_playing_line1=None,
+                    now_playing_line2=None,
+                    next_enabled=False,
+                    previous_enabled=False,
+                    pause_enabled=False,
+                    seek_forward_enabled=False,
+                    seek_back_enabled=False,
+                    shuffle_enabled=False,
+                    repeat_enabled=False,
+                    media_length=None,
+                    media_position=None,
+                    media_position_updated_at=None,
+                    media_provider=None,
+                )
+                continue
 
             now_playing = media_sessions.get(device.serial_number, {}).get(
                 "nowPlayingData", {}

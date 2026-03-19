@@ -90,7 +90,7 @@ class AmazonMediaState:
 
     volume: int | None
     is_muted: bool
-    player_state: str
+    player_state: str | None
     now_playing_url: str | None
     now_playing_title: str | None
     now_playing_line1: str | None
