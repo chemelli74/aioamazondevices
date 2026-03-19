@@ -107,7 +107,7 @@ class AmazonMediaState:
 
 
 @dataclass
-class AmazonVolume:
+class AmazonVolumeState:
     """Amazon volume state."""
 
     volume: int | None

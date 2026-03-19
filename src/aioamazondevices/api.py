@@ -54,7 +54,7 @@ from .structures import (
     AmazonMediaState,
     AmazonMusicSource,
     AmazonSequenceType,
-    AmazonVolume,
+    AmazonVolumeState,
 )
 from .utils import _LOGGER, parse_device_details
 
@@ -123,8 +123,8 @@ class AmazonEchoApi:
         self._media_states: dict[str, AmazonMediaState] = {}
         self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
 
-        self._volumes: dict[str, AmazonVolume] = {}
-        self.on_volume_event = Signal[dict[str, AmazonVolume]](self)
+        self._volume_states: dict[str, AmazonVolumeState] = {}
+        self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
 
     @property
     def domain(self) -> str:
@@ -726,8 +726,8 @@ class AmazonEchoApi:
         This will be called at startup to sync media state of all devices
         and can be called later to refresh media state.
         """
-        self._volumes = await self._media_handler.get_device_volumes()
-        await self.emit_volume_event()
+        self._volume_states = await self._media_handler.get_device_volumes()
+        await self.emit_volume_state_event()
         self._media_state = await self._media_handler.sync_media_state(
             self._final_devices
         )
@@ -737,6 +737,6 @@ class AmazonEchoApi:
         """Emit media state data to subscribers."""
         await self.on_media_state_event.send(media_state=self._media_states)
 
-    async def emit_volume_event(self) -> None:
+    async def emit_volume_state_event(self) -> None:
         """Emit volume event to subscribers."""
-        await self.on_volume_event.send(volumes=self._volumes)
+        await self.on_volume_state_event.send(volume_statess=self._volume_states)

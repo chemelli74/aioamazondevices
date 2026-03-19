@@ -9,7 +9,11 @@ from aioamazondevices.const.http import (
     URI_MEDIA_STATE,
 )
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import AmazonDevice, AmazonMediaState, AmazonVolume
+from aioamazondevices.structures import (
+    AmazonDevice,
+    AmazonMediaState,
+    AmazonVolumeState,
+)
 
 
 class AmazonMediaHandler:
@@ -24,20 +28,20 @@ class AmazonMediaHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
 
-    async def get_device_volumes(self) -> dict[str, AmazonVolume]:
+    async def get_device_volumes(self) -> dict[str, AmazonVolumeState]:
         """Get all device volumes."""
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICE_VOLUMES}",
         )
 
-        _volumes: dict[str, AmazonVolume] = {}
+        _volumes: dict[str, AmazonVolumeState] = {}
 
         json_data = await self._http_wrapper.response_to_json(
             raw_resp, "device volumes"
         )
         for device_volume_data in json_data.get("volumes", []):
-            _volumes[device_volume_data["dsn"]] = AmazonVolume(
+            _volumes[device_volume_data["dsn"]] = AmazonVolumeState(
                 device_volume_data["speakerVolume"], device_volume_data["isMuted"]
             )
 
