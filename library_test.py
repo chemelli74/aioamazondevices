@@ -373,9 +373,9 @@ async def main() -> None:
     await api.send_media_command(device_single, AmazonMediaControls.Next)
     await wait_action_complete(15)
 
-    await api.sync_media_state()
+    media_states = await api.sync_media_state()
     for device in devices.values():
-        media_state = api.media_states.get(device.serial_number)
+        media_state = media_states.get(device.serial_number)
         if media_state:
             print(f"Media state for {device.account_name}:")
             print(media_state)

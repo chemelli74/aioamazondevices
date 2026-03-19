@@ -135,11 +135,6 @@ class AmazonEchoApi:
         """Return login."""
         return self._login
 
-    @property
-    def media_states(self) -> dict[str, AmazonMediaState]:
-        """Return media states."""
-        return self._media_states
-
     async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
         """Retrieve devices sensors states."""
         devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
@@ -713,7 +708,7 @@ class AmazonEchoApi:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
 
-    async def sync_media_state(self) -> None:
+    async def sync_media_state(self) -> dict[str, AmazonMediaState]:
         """Sync media state.
 
         This will be called at startup to sync media state of all devices
@@ -725,6 +720,7 @@ class AmazonEchoApi:
             self._final_devices
         )
         await self._emit_media_state_event()
+        return self._media_states
 
     async def _emit_media_state_event(self) -> None:
         """Emit media state data to subscribers."""

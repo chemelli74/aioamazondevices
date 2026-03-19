@@ -91,6 +91,7 @@ class AmazonMediaHandler:
             str_media_length = now_playing.get("progress", {}).get("mediaLength")
             str_media_progress = now_playing.get("progress", {}).get("mediaProgress")
             transport = now_playing.get("transport", {})
+            provider = now_playing.get("provider", {})
             media_states[serial_number] = AmazonMediaState(
                 player_state=now_playing.get("playerState"),
                 now_playing_url=now_playing.get("mainArt", {}).get("largeUrl"),
@@ -104,14 +105,19 @@ class AmazonMediaHandler:
                 seek_back_enabled=transport.get("seekBack") == "ENABLED",
                 shuffle_enabled=transport.get("shuffle") == "ENABLED",
                 repeat_enabled=transport.get("repeat") == "ENABLED",
-                media_length=int(int(str_media_length) / 1000)
-                if str_media_length
-                else None,
-                media_position=int(int(str_media_progress) / 1000)
-                if str_media_progress
-                else None,
-                media_position_updated_at=datetime.now(UTC),  # TZ
-                media_provider=now_playing.get("provider"),  # TBD
+                media_length=(
+                    int(str_media_length) // 1000
+                    if str_media_length is not None
+                    else None
+                ),
+                media_position=(
+                    int(str_media_progress) // 1000
+                    if str_media_progress is not None
+                    else None
+                ),
+                media_position_updated_at=datetime.now(UTC),
+                media_provider=provider.get("providerName"),
+                media_provider_url=provider.get("providerLogo", {}).get("url"),
             )
 
         return media_states
