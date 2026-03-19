@@ -1,5 +1,18 @@
 # Changelog
 
+## v13.2.0 (2026-03-19)
+
+### Features
+
+- Sync media state ([`5bf6d7e`](https://github.com/chemelli74/aioamazondevices/commit/5bf6d7e1175bd1e7597a442145ee599f38276312))
+
+
+### Refactoring
+
+- Revert pr#725 ([`107bf8f`](https://github.com/chemelli74/aioamazondevices/commit/107bf8f81ebc2f42e3b1660d2e690b30bf641bd5))
+- Cleanup imports ([`b544e28`](https://github.com/chemelli74/aioamazondevices/commit/b544e28efe2c0a6e6c8798e3921c134843afb1e6))
+
+
 ## v13.1.0 (2026-03-14)
 
 ### Features
