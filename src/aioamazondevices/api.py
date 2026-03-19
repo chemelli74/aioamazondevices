@@ -208,10 +208,6 @@ class AmazonEchoApi:
         """Register a HTTP/2 push callback."""
         self._http2_client.set_callback(callback)
 
-    def get_current_devices(self) -> dict[str, AmazonDevice]:
-        """Return the current cached devices mapping."""
-        return self._final_devices
-
     def _get_device_sensor_state(
         self, endpoint: dict[str, Any], serial_number: str
     ) -> dict[str, AmazonDeviceSensor]:
