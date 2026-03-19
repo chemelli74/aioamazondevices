@@ -17,7 +17,7 @@ from aioamazondevices.structures import (
 
 
 class AmazonMediaHandler:
-    """Class to handle Alexa Do Not Disturb functionality."""
+    """Class to handle Alexa media functionality."""
 
     def __init__(
         self,

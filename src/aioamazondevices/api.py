@@ -721,7 +721,7 @@ class AmazonEchoApi:
         """
         self._volume_states = await self._media_handler.get_device_volumes()
         await self.emit_volume_state_event()
-        self._media_state = await self._media_handler.sync_media_state(
+        self._media_states = await self._media_handler.sync_media_state(
             self._final_devices
         )
         await self.emit_media_state_event()
@@ -732,4 +732,4 @@ class AmazonEchoApi:
 
     async def emit_volume_state_event(self) -> None:
         """Emit volume event to subscribers."""
-        await self.on_volume_state_event.send(volume_statess=self._volume_states)
+        await self.on_volume_state_event.send(volume_states=self._volume_states)
