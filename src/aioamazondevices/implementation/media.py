@@ -43,7 +43,7 @@ class AmazonMediaHandler:
 
         return _volumes
 
-    async def get_media_state(self, device: AmazonDevice) -> dict[str, Any]:
+    async def _get_media_states(self, device: AmazonDevice) -> dict[str, Any]:
         """Get media state for devices.
 
         Whilst this takes a device as input it actually returns state for all devices.
@@ -72,7 +72,7 @@ class AmazonMediaHandler:
         """Return all media state."""
         media_states = {}
         # the endpoint needs a device type / serial but returns all sessions
-        media_sessions = await self.get_media_state(next(iter(devices.values())))
+        media_sessions = await self._get_media_states(next(iter(devices.values())))
         if not media_sessions:
             return {}
 
