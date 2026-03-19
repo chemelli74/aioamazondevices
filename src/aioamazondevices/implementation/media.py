@@ -42,7 +42,7 @@ class AmazonMediaHandler:
         )
         for device_volume_data in json_data.get("volumes", []):
             _volumes[device_volume_data["dsn"]] = AmazonVolumeState(
-                device_volume_data["speakerVolume"], device_volume_data["isMuted"]
+                device_volume_data["speakerVolume"], device_volume_data["speakerMuted"]
             )
 
         return _volumes
