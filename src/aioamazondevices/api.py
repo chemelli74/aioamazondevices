@@ -132,6 +132,9 @@ class AmazonEchoApi:
         self._volume_states: dict[str, AmazonVolumeState] = {}
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
 
+        self._http2_client.on_push_event.append(self._http2_push_event_handler)
+        self._http2_client.on_push_event.freeze()
+
     @property
     def domain(self) -> str:
         """Return current Amazon domain."""
@@ -201,12 +204,10 @@ class AmazonEchoApi:
         """Stop HTTP2 background thread."""
         await self._http2_client.stop_thread()
 
-    def register_http2_push_callback(
-        self,
-        callback: Callable[[str, dict[str, Any] | None], Coroutine[Any, Any, None]],
+    async def _http2_push_event_handler(
+        self, event_type: str, payload: dict[str, Any]
     ) -> None:
-        """Register a HTTP/2 push callback."""
-        self._http2_client.set_callback(callback)
+        _LOGGER.debug("Event - %s : Payload - %s", event_type, payload)
 
     def _get_device_sensor_state(
         self, endpoint: dict[str, Any], serial_number: str

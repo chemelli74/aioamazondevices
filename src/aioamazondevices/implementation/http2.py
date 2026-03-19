@@ -2,13 +2,13 @@
 
 import asyncio
 import contextlib
-from collections.abc import Callable, Coroutine
 from http import HTTPMethod, HTTPStatus
 from ssl import SSLContext, create_default_context
 from typing import Any, cast
 
 import httpx
 import orjson
+from aiosignal import Signal
 
 from aioamazondevices.capabilities import (
     DEVICE_CAPABILITIES,
@@ -34,15 +34,13 @@ class AmazonHTTP2Client:
         self,
         http_wrapper: AmazonHttpWrapper,
         session_state_data: AmazonSessionStateData,
-        on_push: Callable[[str, dict[str, Any] | None], Coroutine[Any, Any, None]]
-        | None = None,
     ) -> None:
         """Initialize Amazon HTTP2 client class."""
         self._http_wrapper = http_wrapper
         self._login_stored_data = session_state_data.login_stored_data
-        self._on_push_cb = on_push
 
         self._http2_client: httpx.AsyncClient
+        self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
 
         self.reconnect_delay = HTTP2_RECONNECT_DELAY
         self._task: asyncio.Task[None] | None = None
@@ -74,13 +72,6 @@ class AmazonHTTP2Client:
                 t.cancel()
             await asyncio.gather(*self._pending_push_tasks, return_exceptions=True)
             self._pending_push_tasks.clear()
-
-    def set_callback(
-        self,
-        on_push_cb: Callable[[str, dict[str, Any] | None], Coroutine[Any, Any, None]],
-    ) -> None:
-        """Set push callback."""
-        self._on_push_cb = on_push_cb
 
     def is_connected(self) -> bool:
         """Return True if HTTP/2 connection is active."""
@@ -187,12 +178,11 @@ class AmazonHTTP2Client:
                         ):
                             continue
 
-                        if self._on_push_cb:
-                            task = asyncio.create_task(
-                                self._on_push_cb(chunk_type, chunk_payload)
-                            )
-                            self._pending_push_tasks.add(task)
-                            task.add_done_callback(self._pending_push_tasks.discard)
+                        task = asyncio.create_task(
+                            self.on_push_event.send(chunk_type, chunk_payload)
+                        )
+                        self._pending_push_tasks.add(task)
+                        task.add_done_callback(self._pending_push_tasks.discard)
 
                 _LOGGER.debug("AVS Directives stream closed")
             except httpx.RemoteProtocolError as excp:
