@@ -344,6 +344,7 @@ class AmazonEchoApi:
                 ]["value"]["text"],
                 device_owner_customer_id=self._session_state_data.account_customer_id
                 or "n/a",
+                device_account_id=None,
                 household_device=False,
                 device_cluster_members={aqm_serial_number: DEVICE_TYPE_AQM},
                 online=True,
@@ -544,6 +545,7 @@ class AmazonEchoApi:
                 device_family=device["deviceFamily"],
                 device_type=device["deviceType"],
                 device_owner_customer_id=device["deviceOwnerCustomerId"],
+                device_account_id=device["deviceAccountId"],
                 household_device=device["deviceOwnerCustomerId"]
                 == self._session_state_data.account_customer_id,
                 device_cluster_members=dict.fromkeys(
@@ -653,6 +655,30 @@ class AmazonEchoApi:
             raise ValueError(f"Volume must be between {VOLUME_MIN} and {VOLUME_MAX}")
         await self._call_alexa_command_per_cluster_member(
             device, AmazonSequenceType.Volume, str(volume)
+        )
+
+    async def call_alexa_firetv_pause(self, device: AmazonDevice) -> None:
+        """Call Alexa.Operation.FireTV.PauseVideo to pause Fire TV."""
+        await self._call_alexa_command_per_cluster_member(
+            device, AmazonSequenceType.FireTVPause, ""
+        )
+
+    async def call_alexa_firetv_resume(self, device: AmazonDevice) -> None:
+        """Call Alexa.Operation.FireTV.ResumeVideo to resume Fire TV."""
+        await self._call_alexa_command_per_cluster_member(
+            device, AmazonSequenceType.FireTVResume, ""
+        )
+
+    async def call_alexa_firetv_home(self, device: AmazonDevice) -> None:
+        """Call Alexa.Operation.FireTV.NavigateHome to go homne on Fire TV."""
+        await self._call_alexa_command_per_cluster_member(
+            device, AmazonSequenceType.FireTVHome, ""
+        )
+
+    async def call_alexa_video(self, device: AmazonDevice, search_phrase: str) -> None:
+        """Call Alexa.Music.PlaySearchPhrase to play music."""
+        await self._sequence_handler.send_message(
+            device, AmazonSequenceType.FireTVPlay, search_phrase
         )
 
     async def _call_alexa_command_per_cluster_member(
