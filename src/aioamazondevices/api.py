@@ -361,6 +361,8 @@ class AmazonEchoApi:
                 media_player_supported=False,
                 locale=None,
                 supported_locales=None,
+                device_country=None,
+                device_timezone=None,
             )
 
         return devices_endpoints
@@ -402,7 +404,9 @@ class AmazonEchoApi:
     async def _get_sensor_data(self) -> None:
         devices_sensors = await self._get_sensors_states()
         dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
-        notifications = await self._notification_handler.get_notifications()
+        notifications = await self._notification_handler.get_notifications(
+            self._final_devices
+        )
         for device in self._final_devices.values():
             # Update sensors
             sensors = devices_sensors.get(device.serial_number, {})
@@ -569,6 +573,8 @@ class AmazonEchoApi:
                 media_player_supported="AUDIO_PLAYER" in capabilities,
                 locale=None,
                 supported_locales=None,
+                device_timezone=None,
+                device_country=None,
             )
 
             serial_to_device_type[serial_number] = device["deviceType"]
@@ -599,6 +605,10 @@ class AmazonEchoApi:
             if device:
                 device.locale = device_prefs.get("locale")
                 device.supported_locales = json_data.get("supportedLocales")
+                device.device_country = json_data.get("deviceAddressModel", {}).get(
+                    "countryCode"
+                )
+                device.device_timezone = json_data.get("timeZoneId")
 
     async def call_alexa_speak(
         self,

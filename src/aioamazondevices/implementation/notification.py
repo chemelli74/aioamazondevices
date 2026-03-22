@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 from http import HTTPMethod
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from dateutil.parser import parse
 from dateutil.rrule import rrulestr
@@ -21,7 +22,7 @@ from aioamazondevices.const.schedules import (
 )
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import AmazonSchedule
+from aioamazondevices.structures import AmazonDevice, AmazonSchedule
 from aioamazondevices.utils import _LOGGER
 
 
@@ -37,7 +38,9 @@ class AmazonNotificationHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
 
-    async def get_notifications(self) -> dict[str, dict[str, AmazonSchedule]] | None:
+    async def get_notifications(
+        self, devices: dict[str, AmazonDevice]
+    ) -> dict[str, dict[str, AmazonSchedule]] | None:
         """Get all notifications (alarms, timers, reminders)."""
         final_notifications: dict[str, dict[str, AmazonSchedule]] = {}
 
@@ -61,8 +64,9 @@ class AmazonNotificationHandler:
             schedule_type: str = schedule["type"]
             schedule_device_type = schedule["deviceType"]
             schedule_device_serial = schedule["deviceSerialNumber"]
+            _device = devices.get(schedule_device_serial)
 
-            if schedule_device_type in DEVICE_TYPES_TO_IGNORE:
+            if schedule_device_type in DEVICE_TYPES_TO_IGNORE or not _device:
                 continue
 
             if schedule_type not in NOTIFICATIONS_SUPPORTED:
@@ -79,7 +83,7 @@ class AmazonNotificationHandler:
                 schedule["type"] = NOTIFICATION_ALARM
             label_desc = schedule_type.lower() + "Label"
             if (schedule_status := schedule["status"]) == "ON" and (
-                next_occurrence := await self._parse_next_occurrence(schedule)
+                next_occurrence := await self._parse_next_occurrence(schedule, _device)
             ):
                 schedule_notification_list = final_notifications.get(
                     schedule_device_serial, {}
@@ -114,12 +118,14 @@ class AmazonNotificationHandler:
         return final_notifications
 
     async def _parse_next_occurrence(
-        self,
-        schedule: dict[str, Any],
+        self, schedule: dict[str, Any], device: AmazonDevice
     ) -> datetime | None:
         """Parse RFC5545 rule set for next iteration."""
         # Local timezone
-        tzinfo = datetime.now().astimezone().tzinfo
+        if device.device_timezone:
+            tzinfo = ZoneInfo(device.device_timezone)
+        else:
+            tzinfo = ZoneInfo("localtime")
         # Current time
         actual_time = datetime.now(tz=tzinfo)
         # Reference start date
@@ -164,8 +170,7 @@ class AmazonNotificationHandler:
                 # Adjust recurring rules for country specific weekend exceptions
                 recurring_pattern = RECURRING_PATTERNS.copy()
                 for group, countries in COUNTRY_GROUPS.items():
-                    if "XX" in countries:
-                        # was self._session_state_data.country_code
+                    if device.device_country in countries:
                         recurring_pattern |= WEEKEND_EXCEPTIONS[group]
                         break
 

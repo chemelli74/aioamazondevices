@@ -52,6 +52,8 @@ class AmazonDevice:
     media_player_supported: bool
     locale: str | None
     supported_locales: list[str] | None
+    device_timezone: str | None
+    device_country: str | None
 
 
 class AmazonSequenceType(StrEnum):
