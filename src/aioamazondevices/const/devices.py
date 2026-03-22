@@ -3,20 +3,22 @@
 from .http import AMAZON_DEVICE_TYPE
 
 SPEAKER_GROUP_FAMILY = "WHA"
-AQM_DEVICE_TYPE = "AEZME1X38KDRA"
 
-DEVICE_HARDCODED_DATA: dict[str, dict[str, str]] = {
-    "A3C9PE6TNYLTCH": {
+DEVICE_TYPE_AQM = "AEZME1X38KDRA"
+DEVICE_TYPE_SPEAKER_GROUP = "A3C9PE6TNYLTCH"
+
+DEVICE_TYPES_HARDCODED_METADATA: dict[str, dict[str, str]] = {
+    DEVICE_TYPE_SPEAKER_GROUP: {
         "model": "Speaker Group",
         "manufacturer": "Amazon",
     },
-    AQM_DEVICE_TYPE: {
+    DEVICE_TYPE_AQM: {
         "model": "Air Quality Monitor",
         "manufacturer": "Amazon",
     },
 }
 
-DEVICE_TO_IGNORE: list[str] = [
+DEVICE_TYPES_TO_IGNORE: list[str] = [
     AMAZON_DEVICE_TYPE,  # Alexa App for iOS
     "A2TF17PFR55MTB",  # Alexa App for Android
     "A1RTAM01W29CUP",  # Alexa App for PC

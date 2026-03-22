@@ -6,12 +6,15 @@ from http import HTTPMethod
 from typing import Any
 
 from aiohttp import ClientSession
+from aiosignal import Signal
+
+from aioamazondevices.implementation.media import AmazonMediaHandler
 
 from . import __version__
 from .const.devices import (
-    AQM_DEVICE_TYPE,
-    DEVICE_HARDCODED_DATA,
-    DEVICE_TO_IGNORE,
+    DEVICE_TYPE_AQM,
+    DEVICE_TYPES_HARDCODED_METADATA,
+    DEVICE_TYPES_TO_IGNORE,
     SPEAKER_GROUP_FAMILY,
 )
 from .const.http import (
@@ -20,9 +23,16 @@ from .const.http import (
     REQUEST_AGENT,
     URI_DEVICE_PREFERENCES,
     URI_DEVICES,
+    URI_MEDIA_CONTROL,
     URI_NEXUS_GRAPHQL,
 )
-from .const.metadata import ALEXA_INFO_SKILLS, AQM_RANGE_SENSORS, SENSORS
+from .const.metadata import (
+    ALEXA_INFO_SKILLS,
+    AQM_RANGE_SENSORS,
+    SENSORS,
+    VOLUME_MAX,
+    VOLUME_MIN,
+)
 from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
 from .const.schedules import (
     NOTIFICATION_ALARM,
@@ -40,8 +50,11 @@ from .login import AmazonLogin
 from .structures import (
     AmazonDevice,
     AmazonDeviceSensor,
+    AmazonMediaControls,
+    AmazonMediaState,
     AmazonMusicSource,
     AmazonSequenceType,
+    AmazonVolumeState,
 )
 from .utils import _LOGGER, parse_device_details
 
@@ -55,7 +68,9 @@ class AmazonEchoApi:
         login_email: str,
         login_password: str,
         login_data: dict[str, Any] | None = None,
-        save_to_file: Callable[[str | dict, str, str], Coroutine[Any, Any, None]]
+        save_to_file: Callable[
+            [str | dict[str, Any], str, str], Coroutine[Any, Any, None]
+        ]
         | None = None,
     ) -> None:
         """Initialize the scanner."""
@@ -94,12 +109,22 @@ class AmazonEchoApi:
             http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
         )
 
+        self._media_handler = AmazonMediaHandler(
+            http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
+        )
+
         self._final_devices: dict[str, AmazonDevice] = {}
         self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
 
         initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
         self._last_devices_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
+
+        self._media_states: dict[str, AmazonMediaState] = {}
+        self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
+
+        self._volume_states: dict[str, AmazonVolumeState] = {}
+        self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
 
     @property
     def domain(self) -> str:
@@ -230,7 +255,7 @@ class AmazonEchoApi:
                 sensor_name = sensor_template_name_value
 
                 if (
-                    device.device_type == AQM_DEVICE_TYPE
+                    device.device_type == DEVICE_TYPE_AQM
                     and sensor_template_name_value == "rangeValue"
                 ):
                     if not (
@@ -311,24 +336,20 @@ class AmazonEchoApi:
             devices_endpoints[aqm_serial_number] = aqm_endpoint
             self._endpoints[aqm_endpoint["endpointId"]] = aqm_serial_number
 
-            device_name = aqm_endpoint["friendlyNameObject"]["value"]["text"]
-            device_type = aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
-                "deviceType"
-            ]["value"]["text"]
-            software_version = aqm_endpoint["softwareVersion"]["value"]["text"]
-
             self._final_devices[aqm_serial_number] = AmazonDevice(
-                account_name=device_name,
+                account_name=aqm_endpoint["friendlyNameObject"]["value"]["text"],
                 capabilities=[],
                 device_family="AIR_QUALITY_MONITOR",
-                device_type=device_type,
+                device_type=aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
+                    "deviceType"
+                ]["value"]["text"],
                 device_owner_customer_id=self._session_state_data.account_customer_id
                 or "n/a",
                 household_device=False,
-                device_cluster_members={aqm_serial_number: AQM_DEVICE_TYPE},
+                device_cluster_members={aqm_serial_number: DEVICE_TYPE_AQM},
                 online=True,
                 serial_number=aqm_serial_number,
-                software_version=software_version,
+                software_version=aqm_endpoint["softwareVersion"]["value"]["text"],
                 manufacturer="Amazon",
                 model=None,
                 hardware_version=None,
@@ -337,6 +358,7 @@ class AmazonEchoApi:
                 sensors={},
                 notifications_supported=False,
                 notifications={},
+                media_player_supported=False,
                 locale=None,
                 supported_locales=None,
             )
@@ -441,8 +463,9 @@ class AmazonEchoApi:
         for serial_number in self._final_devices:
             device_endpoint = devices_endpoints.get(serial_number, {})
             endpoint_device = self._final_devices[serial_number]
-            hardcoded_data = DEVICE_HARDCODED_DATA.get(endpoint_device.device_type, {})
-
+            hardcoded_data = DEVICE_TYPES_HARDCODED_METADATA.get(
+                endpoint_device.device_type, {}
+            )
             endpoint_device.entity_id = (
                 device_endpoint["legacyIdentifiers"]["chrsIdentifier"]["entityId"]
                 if device_endpoint
@@ -500,7 +523,7 @@ class AmazonEchoApi:
         serial_to_device_type: dict[str, str] = {}
         for device in json_data["devices"]:
             # Remove stale, orphaned and virtual devices
-            if not device or (device.get("deviceType") in DEVICE_TO_IGNORE):
+            if not device or (device.get("deviceType") in DEVICE_TYPES_TO_IGNORE):
                 continue
 
             account_name: str = device["accountName"]
@@ -532,7 +555,9 @@ class AmazonEchoApi:
                 ),
                 online=device["online"],
                 serial_number=serial_number,
-                software_version=device["softwareVersion"],
+                software_version=device["softwareVersion"]
+                if "SUPPORTS_SOFTWARE_VERSION" in capabilities
+                else None,
                 entity_id=None,
                 model=device.get("deviceTypeFriendlyName"),
                 manufacturer=None,
@@ -541,6 +566,7 @@ class AmazonEchoApi:
                 sensors={},
                 notifications_supported=_has_notification_capability,
                 notifications={},
+                media_player_supported="AUDIO_PLAYER" in capabilities,
                 locale=None,
                 supported_locales=None,
             )
@@ -645,6 +671,14 @@ class AmazonEchoApi:
             raise ValueError(f"Unsupported info skill: {info_skill}")
         await self._call_alexa_command_per_cluster_member(device, info_skill, "")
 
+    async def set_device_volume(self, device: AmazonDevice, volume: int) -> None:
+        """Set device volume."""
+        if not (VOLUME_MIN <= volume <= VOLUME_MAX):
+            raise ValueError(f"Volume must be between {VOLUME_MIN} and {VOLUME_MAX}")
+        await self._call_alexa_command_per_cluster_member(
+            device, AmazonSequenceType.Volume, str(volume)
+        )
+
     async def _call_alexa_command_per_cluster_member(
         self,
         device: AmazonDevice,
@@ -659,7 +693,27 @@ class AmazonEchoApi:
                 message_body,
             )
 
-    async def _format_human_error(self, sensors_state: dict) -> bool:
+    async def send_media_command(
+        self, device: AmazonDevice, command: AmazonMediaControls
+    ) -> None:
+        """Send media control command."""
+        if command == AmazonMediaControls.Stop:
+            await self._call_alexa_command_per_cluster_member(
+                device, AmazonSequenceType.Stop, ""
+            )
+            return
+        payload = {"type": command.value}
+        query_string = (
+            f"deviceSerialNumber={device.serial_number}&deviceType={device.device_type}"
+        )
+        await self._http_wrapper.session_request(
+            method=HTTPMethod.POST,
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_MEDIA_CONTROL}?{query_string}",
+            input_data=payload,
+            json_data=True,
+        )
+
+    async def _format_human_error(self, sensors_state: dict[str, Any]) -> bool:
         """Format human readable error from malformed data."""
         if sensors_state.get(ARRAY_WRAPPER):
             error = sensors_state[ARRAY_WRAPPER][0].get("errors", [])
@@ -677,3 +731,25 @@ class AmazonEchoApi:
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
+
+    async def sync_media_state(self) -> dict[str, AmazonMediaState]:
+        """Sync media state.
+
+        This will be called at startup to sync media state of all devices
+        and can be called later to refresh media state.
+        """
+        self._volume_states = await self._media_handler.get_device_volumes()
+        await self._emit_volume_state_event()
+        self._media_states = await self._media_handler.sync_media_state(
+            self._final_devices
+        )
+        await self._emit_media_state_event()
+        return self._media_states
+
+    async def _emit_media_state_event(self) -> None:
+        """Emit media state data to subscribers."""
+        await self.on_media_state_event.send(media_state=self._media_states)
+
+    async def _emit_volume_state_event(self) -> None:
+        """Emit volume event to subscribers."""
+        await self.on_volume_state_event.send(volume_states=self._volume_states)

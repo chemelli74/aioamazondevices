@@ -1,5 +1,57 @@
 # Changelog
 
+## v13.2.0 (2026-03-19)
+
+### Features
+
+- Sync media state ([`5bf6d7e`](https://github.com/chemelli74/aioamazondevices/commit/5bf6d7e1175bd1e7597a442145ee599f38276312))
+
+
+### Refactoring
+
+- Revert pr#725 ([`107bf8f`](https://github.com/chemelli74/aioamazondevices/commit/107bf8f81ebc2f42e3b1660d2e690b30bf641bd5))
+- Cleanup imports ([`b544e28`](https://github.com/chemelli74/aioamazondevices/commit/b544e28efe2c0a6e6c8798e3921c134843afb1e6))
+
+
+## v13.1.0 (2026-03-14)
+
+### Features
+
+- Media player controls ([`9182ed8`](https://github.com/chemelli74/aioamazondevices/commit/9182ed853cf23c50debb3511bbb8e1f138a82ebf))
+
+
+## v13.0.1 (2026-03-14)
+
+### Bug fixes
+
+- Improve software version parsing strategy ([`3438af3`](https://github.com/chemelli74/aioamazondevices/commit/3438af39615ce8bf78ff5b6dd9d150c129815409))
+
+
+### Refactoring
+
+- Cleanup unused device details ([`d8cbf32`](https://github.com/chemelli74/aioamazondevices/commit/d8cbf32aa58622c95172c3f7c92fb4036b9beed1))
+- Clarify const name ([`9661e1d`](https://github.com/chemelli74/aioamazondevices/commit/9661e1d183edb88227107bc0b01671af13d343c9))
+
+
+### Build system
+
+- Improve and cleanup ([`3590ede`](https://github.com/chemelli74/aioamazondevices/commit/3590ede6cb2a4a4eca209b13ee7e21f2da6eeb5f))
+- Bump types-python-dateutil from 2.9.0.20260302 to 2.9.0.20260305 ([`67762c1`](https://github.com/chemelli74/aioamazondevices/commit/67762c19c28d1f41936afcff37df74b83b612f39))
+- Poetry & dependencies ([`2cf2216`](https://github.com/chemelli74/aioamazondevices/commit/2cf22162c93f41d40104cfea867e7172552226b0))
+
+
+## v13.0.0 (2026-03-03)
+
+### Bug fixes
+
+- Move speaker group device type to const ([`2616110`](https://github.com/chemelli74/aioamazondevices/commit/261611044ea6d408a01bfa1ccaff99edbcc293e7))
+
+
+### Testing
+
+- Optime library_test output ([`6bd6d45`](https://github.com/chemelli74/aioamazondevices/commit/6bd6d45181b35ce97c3f610d7cd18d9709368113))
+
+
 ## v12.0.3 (2026-03-02)
 
 ### Bug fixes

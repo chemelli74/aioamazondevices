@@ -17,16 +17,20 @@ from anyio import Path
 from colorlog import ColoredFormatter
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.const.devices import AQM_DEVICE_TYPE
 from aioamazondevices.exceptions import (
     AmazonError,
     CannotAuthenticate,
     CannotConnect,
     CannotRegisterDevice,
 )
-from aioamazondevices.structures import AmazonDevice, AmazonMusicSource
+from aioamazondevices.structures import (
+    AmazonDevice,
+    AmazonMediaControls,
+    AmazonMusicSource,
+)
 
 SAVE_PATH = "out"
+SAVE_PATH_DATE = datetime.now(UTC).strftime("%Y-%m-%d-%H-%M-%S")
 HTML_EXTENSION = ".html"
 BIN_EXTENSION = ".bin"
 RAW_EXTENSION = ".raw"
@@ -105,7 +109,7 @@ async def read_from_file(data_file: str) -> dict[str, Any]:
 
 
 async def save_to_file(
-    raw_data: str | dict,
+    raw_data: str | dict[str, Any],
     url: str,
     content_type: str = "application/json",
 ) -> None:
@@ -113,7 +117,10 @@ async def save_to_file(
     if not raw_data:
         return
 
+    # Create main output directory and timestamp subdirectory
     output_dir = Path(SAVE_PATH)
+    await output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = output_dir.joinpath(SAVE_PATH_DATE)
     await output_dir.mkdir(parents=True, exist_ok=True)
 
     extension = (
@@ -121,13 +128,11 @@ async def save_to_file(
         or RAW_EXTENSION
     )
 
-    date = datetime.now(UTC).strftime("%Y-%m-%d")
-    base_filename = date + "-"
     if url.startswith("http"):
         url_split = url.split("/")
-        base_filename += f"{url_split[3]}-{url_split[4].split('?')[0]}"
+        base_filename = f"{url_split[3]}-{url_split[4].split('?')[0]}"
     else:
-        base_filename += url
+        base_filename = url
     fullpath = Path(output_dir, base_filename + extension)
 
     data: str
@@ -174,7 +179,7 @@ def find_device(
         sys.exit(0)
 
 
-async def wait_action_complete(sleep: int = 4) -> None:
+async def wait_action_complete(sleep: int = 5) -> None:
     """Wait for an action to complete."""
     print(f"Waiting for {sleep}s before next test")
     await asyncio.sleep(sleep)
@@ -251,6 +256,8 @@ async def main() -> None:
         print(f"   Device model: {device.model}")
         print(f"   Device hardware version: {device.hardware_version}")
         print(f"   Device software version: {device.software_version}")
+        print(f"   Device sensors: {len(device.sensors)}")
+        print(f"   Device notifications: {len(device.notifications)}")
         dev_index += 1
     print("-" * 20)
 
@@ -260,6 +267,8 @@ async def main() -> None:
         sys.exit(0)
 
     await save_to_file(devices, "output-devices")
+    print("Check above file for full devices details")
+    print("-" * 20)
 
     if not args.test:
         print("!!! No testing requested, exiting !!!")
@@ -279,56 +288,64 @@ async def main() -> None:
         device_cluster = device_single
 
     print("Selected devices:")
-    print("- single : ", device_single)
-    print("- cluster: ", device_cluster)
+    print("- single : ", device_single.account_name)
+    print("- cluster: ", device_cluster.account_name)
+    print("-" * 20)
 
-    _print_aqm_device_details(devices)
+    print("Volume to 100% on :", device_single.account_name)
+    await api.set_device_volume(device_single, 100)
+    await wait_action_complete(1)
 
-    for sensor in device_single.sensors:
-        print(f"Sensor {device_single.sensors[sensor]}")
+    print(
+        "Sending message via 'Alexa.Speak' at 100% volume to:",
+        device_single.account_name,
+    )
+    await api.call_alexa_speak(
+        device_single, "Test Speak message at 100% from new library"
+    )
+    await wait_action_complete()
 
-    for notification in device_single.notifications:
-        print(f"Notification {device_single.notifications[notification]}")
+    print("Volume to 30% on :", device_single.account_name)
+    await api.set_device_volume(device_single, 30)
+    await wait_action_complete(1)
 
-    print("Sending message via 'Alexa.Speak' to:", device_single.account_name)
-    await api.call_alexa_speak(device_single, "Test Speak message from new library")
-
+    print(
+        "Sending message via 'Alexa.Speak' at 30% volume to:",
+        device_single.account_name,
+    )
+    await api.call_alexa_speak(
+        device_single, "Test Speak message at 30% from new library"
+    )
     await wait_action_complete()
 
     print("Sending message via 'AlexaAnnouncement' to:", device_cluster.account_name)
     await api.call_alexa_announcement(
         device_cluster, "Test Announcement message from new library"
     )
-
     await wait_action_complete()
 
     print("Sending sound via 'Alexa.Sound' to:", device_single.account_name)
     await api.call_alexa_sound(device_single, "amzn_sfx_doorbell_chime_01")
-
     await wait_action_complete()
 
     print("Sending message via 'Alexa.Date.Play' to:", device_single.account_name)
     await api.call_alexa_info_skill(device_single, "Alexa.Date.Play")
-
-    await wait_action_complete(5)
+    await wait_action_complete()
 
     radio = "BBC one"
     source = AmazonMusicSource.Radio
     print(f"Playing {radio} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, radio, source)
-
     await wait_action_complete(15)
 
     music = "taylor swift"
     source = AmazonMusicSource.AmazonMusic
     print(f"Playing {music} from {source} on {device_single.account_name}")
     await api.call_alexa_music(device_single, music, source)
-
     await wait_action_complete(15)
 
     print(f"Text command on {device_single.account_name}")
     await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
-
     await wait_action_complete(10)
 
     print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)
@@ -336,24 +353,37 @@ async def main() -> None:
         device_cluster, "amzn1.ask.skill.94c477e7-61c0-43f5-b7d9-36d7498a4d04"
     )
 
+    if not device_single.media_player_supported:
+        print(
+            f"Device {device_single.account_name} does not support media controls, "
+            "skipping media control tests"
+        )
+        await client_session.close()
+        sys.exit(0)
+
+    print(f"Pausing track on {device_single.account_name}")
+    await api.send_media_command(device_single, AmazonMediaControls.Pause)
+    await wait_action_complete()
+
+    print(f"Play track on {device_single.account_name}")
+    await api.send_media_command(device_single, AmazonMediaControls.Play)
+    await wait_action_complete()
+
+    print(f"Skipping to next track on {device_single.account_name}")
+    await api.send_media_command(device_single, AmazonMediaControls.Next)
+    await wait_action_complete(15)
+
+    media_states = await api.sync_media_state()
+    for device in devices.values():
+        media_state = media_states.get(device.serial_number)
+        if media_state:
+            print(f"Media state for {device.account_name}:")
+            print(media_state)
+        else:
+            print(f"No media state found for {device.account_name}")
+
     print("Closing session")
     await client_session.close()
-
-
-def _print_aqm_device_details(devices: dict[str, AmazonDevice]) -> None:
-    print("AQM Devices and Sensors:")
-    print("-" * 20)
-    found_aqm = False
-    for device in devices.values():
-        if device.device_type == AQM_DEVICE_TYPE:
-            found_aqm = True
-            print(f"AQM Device: {device.account_name}")
-            for aqm_sensor in device.sensors:
-                print(f"  AQM Sensor {device.sensors[aqm_sensor]}")
-
-    if not found_aqm:
-        print("  No AQM devices found")
-    print("-" * 20)
 
 
 def set_logging() -> None:

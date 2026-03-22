@@ -112,7 +112,9 @@ class AmazonHttpWrapper:
         self,
         client_session: ClientSession,
         session_state_data: AmazonSessionStateData,
-        save_to_file: Callable[[str | dict, str, str], Coroutine[Any, Any, None]]
+        save_to_file: Callable[
+            [str | dict[str, Any], str, str], Coroutine[Any, Any, None]
+        ]
         | None = None,
     ) -> None:
         """Initialize HTTP wrapper."""
@@ -193,7 +195,7 @@ class AmazonHttpWrapper:
 
         return HTTPStatus(error).phrase
 
-    async def refresh_data(self, data_type: str) -> tuple[bool, dict]:
+    async def refresh_data(self, data_type: str) -> tuple[bool, dict[str, Any]]:
         """Refresh data."""
         if not self._session_state_data.login_stored_data:
             _LOGGER.debug("No login data available, cannot refresh")
