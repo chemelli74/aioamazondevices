@@ -39,6 +39,12 @@ class AmazonSequenceHandler:
             _LOGGER.warning("No login data available, cannot send message")
             return
 
+        if (
+            message_type not in AmazonSequenceType._value2member_map_
+            and message_type not in ALEXA_INFO_SKILLS
+        ):
+            raise ValueError(f"Message type <{message_type}> is not recognised")
+
         base_payload = {
             "deviceType": device.device_type,
             "deviceSerialNumber": device.serial_number,
@@ -140,8 +146,6 @@ class AmazonSequenceHandler:
                 ],
                 "skillId": "amzn1.ask.1p.alexadevicecontrols",
             }
-        else:
-            raise ValueError(f"Message type <{message_type}> is not recognised")
 
         sequence = {
             "@type": "com.amazon.alexa.behaviors.model.Sequence",
