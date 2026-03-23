@@ -453,6 +453,15 @@ class AmazonEchoApi:
             ) and device.device_family != SPEAKER_GROUP_FAMILY:
                 device.sensors["dnd"] = device_dnd
 
+        # base online status of speaker groups on their members
+        for device in self._final_devices.values():
+            if device.device_family == SPEAKER_GROUP_FAMILY:
+                device.online = all(
+                    d.online
+                    for d in self._final_devices.values()
+                    if d.serial_number in device.device_cluster_members
+                )
+
     async def update_notification_sensors(self) -> None:
         """Update notification sensors for all devices."""
         notifications = await self._notification_handler.get_notifications()
@@ -482,15 +491,6 @@ class AmazonEchoApi:
                     )
                 ):
                     device.notifications[notification_type] = notification_object
-
-        # base online status of speaker groups on their members
-        for device in self._final_devices.values():
-            if device.device_family == SPEAKER_GROUP_FAMILY:
-                device.online = all(
-                    d.online
-                    for d in self._final_devices.values()
-                    if d.serial_number in device.device_cluster_members
-                )
 
     async def _set_device_endpoints_data(self) -> None:
         """Set device endpoint data."""
