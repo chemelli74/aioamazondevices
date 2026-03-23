@@ -647,6 +647,18 @@ class AmazonEchoApi:
             raise ValueError(f"Unsupported info skill: {info_skill}")
         await self._call_alexa_command_per_cluster_member(device, info_skill, "")
 
+    async def call_routine(
+        self,
+        device: AmazonDevice,
+        routine_name: str,
+    ) -> None:
+        """Call routine."""
+        await self._call_alexa_command_per_cluster_member(
+            device,
+            AmazonSequenceType.Routines,
+            routine_name,
+        )
+
     async def set_device_volume(self, device: AmazonDevice, volume: int) -> None:
         """Set device volume."""
         if not (VOLUME_MIN <= volume <= VOLUME_MAX):
@@ -668,19 +680,6 @@ class AmazonEchoApi:
                 message_type,
                 message_body,
             )
-
-    async def send_routine_command(
-        self,
-        routine_name: str,
-    ) -> None:
-        """Send routine command."""
-        # Take the first device as routine command target
-        # as routines are account-wide and not device-specific
-        await self._sequence_handler.send_message(
-            next(iter(self._final_devices.values())),
-            AmazonSequenceType.Routines,
-            routine_name,
-        )
 
     async def update_routines(self) -> None:
         """Update routines."""
