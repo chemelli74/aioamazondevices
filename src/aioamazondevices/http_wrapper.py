@@ -394,7 +394,9 @@ class AmazonHttpWrapper:
     ) -> dict[str, Any]:
         """Convert response to JSON, if possible."""
         try:
-            data = await raw_resp.json(loads=orjson.loads)
+            # Set content_type to None to bypass aiohttp's content type check
+            # and allow parsing of JSON with incorrect Content-Type header
+            data = await raw_resp.json(loads=orjson.loads, content_type=None)
             if not data:
                 _LOGGER.warning("Empty JSON data received")
                 data = {}

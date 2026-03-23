@@ -404,6 +404,13 @@ async def tests(
             else:
                 print(f"No media state found for {device.account_name}")
 
+    # Update routines list before running one
+    await api.update_routines()
+    await api.send_routine_command("ora di cena")
+
+    print("Closing session")
+    await client_session.close()
+
 
 def set_logging() -> None:
     """Set logging levels."""

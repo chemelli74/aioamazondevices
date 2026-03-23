@@ -669,6 +669,23 @@ class AmazonEchoApi:
                 message_body,
             )
 
+    async def send_routine_command(
+        self,
+        routine_name: str,
+    ) -> None:
+        """Send routine command."""
+        # Take the first device as routine command target
+        # as routines are account-wide and not device-specific
+        await self._sequence_handler.send_message(
+            next(iter(self._final_devices.values())),
+            AmazonSequenceType.Routines,
+            routine_name,
+        )
+
+    async def update_routines(self) -> None:
+        """Update routines."""
+        await self._sequence_handler.update_routines()
+
     async def send_media_command(
         self, device: AmazonDevice, command: AmazonMediaControls
     ) -> None:
