@@ -40,7 +40,7 @@ class AmazonSequenceHandler:
             return
 
         if (
-            message_type not in AmazonSequenceType.__members__.values()
+            message_type not in AmazonSequenceType._value2member_map_
             and message_type not in ALEXA_INFO_SKILLS
         ):
             _LOGGER.warning("Message type <%s> is not recognised", message_type)
