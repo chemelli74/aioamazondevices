@@ -43,8 +43,7 @@ class AmazonSequenceHandler:
             message_type not in AmazonSequenceType._value2member_map_
             and message_type not in ALEXA_INFO_SKILLS
         ):
-            _LOGGER.warning("Message type <%s> is not recognised", message_type)
-            return
+            raise ValueError(f"Message type <{message_type}> is not recognised")
 
         base_payload = {
             "deviceType": device.device_type,
