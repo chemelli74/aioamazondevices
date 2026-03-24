@@ -306,9 +306,9 @@ class AmazonEchoApi:
 
         # Process Alexa Voice Enabled devices
         # Just map endpoint ID to serial number to facilitate sensor lookup
-        for endpoint in data.get("alexaVoiceDevices", {}).get("endpoints", {}):
+        for endpoint in data.get("alexaVoiceDevices", {}).get("endpoints", []):
             # save looking up sensor data on apps
-            if endpoint.get("alexaEnabledMetadata", {}).get("category") == "APP":
+            if (endpoint.get("alexaEnabledMetadata") or {}).get("category") == "APP":
                 continue
 
             if endpoint.get("serialNumber"):
