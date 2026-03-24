@@ -30,6 +30,7 @@ from .const.http import (
     ARRAY_WRAPPER,
     CSRF_COOKIE,
     DEFAULT_HEADERS,
+    HTTP_CONTENT_TYPE_JSON,
     HTTP_ERROR_199,
     HTTP_ERROR_299,
     REFRESH_ACCESS_TOKEN,
@@ -390,11 +391,14 @@ class AmazonHttpWrapper:
         return BeautifulSoup(raw_content or "", "html.parser"), resp
 
     async def response_to_json(
-        self, raw_resp: ClientResponse, description: str | None = None
+        self,
+        raw_resp: ClientResponse,
+        description: str | None = None,
+        content_type: str | None = HTTP_CONTENT_TYPE_JSON,
     ) -> dict[str, Any]:
         """Convert response to JSON, if possible."""
         try:
-            data = await raw_resp.json(loads=orjson.loads)
+            data = await raw_resp.json(loads=orjson.loads, content_type=content_type)
             if not data:
                 _LOGGER.warning("Empty JSON data received")
                 data = {}

@@ -5,6 +5,7 @@ from typing import Any
 
 import orjson
 
+from aioamazondevices.const.http import ARRAY_WRAPPER, HTTP_CONTENT_TYPE_STREAM
 from aioamazondevices.const.metadata import ALEXA_INFO_SKILLS
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import (
@@ -26,6 +27,7 @@ class AmazonSequenceHandler:
         """Initialize AmazonSequenceHandler."""
         self._http_wrapper = http_wrapper
         self._session_state_data = session_state_data
+        self._routines: dict[str, Any] = {}
 
     async def send_message(
         self,
@@ -147,19 +149,23 @@ class AmazonSequenceHandler:
                 "skillId": "amzn1.ask.1p.alexadevicecontrols",
             }
 
-        sequence = {
-            "@type": "com.amazon.alexa.behaviors.model.Sequence",
-            "startNode": {
-                "@type": "com.amazon.alexa.behaviors.model.SerialNode",
-                "nodesToExecute": [
-                    {
-                        "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",  # noqa: E501
-                        "type": message_type,
-                        "operationPayload": payload,
-                    },
-                ],
-            },
-        }
+        sequence: dict[str, Any] = {}
+        if message_type == AmazonSequenceType.Routines:
+            sequence = self._routines[message_body]
+        else:
+            sequence = {
+                "@type": "com.amazon.alexa.behaviors.model.Sequence",
+                "startNode": {
+                    "@type": "com.amazon.alexa.behaviors.model.SerialNode",
+                    "nodesToExecute": [
+                        {
+                            "@type": "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",  # noqa: E501
+                            "type": message_type,
+                            "operationPayload": payload,
+                        },
+                    ],
+                },
+            }
 
         node_data = {
             "behaviorId": "PREVIEW",
@@ -174,3 +180,18 @@ class AmazonSequenceHandler:
             input_data=node_data,
             json_data=True,
         )
+
+    async def update_routines(self) -> None:
+        """Update list of enabled routines for the account."""
+        _, raw_resp = await self._http_wrapper.session_request(
+            method=HTTPMethod.GET,
+            url=f"https://alexa.amazon.{self._session_state_data.domain}/api/behaviors/v2/automations",
+        )
+        resp_json = await self._http_wrapper.response_to_json(
+            raw_resp, content_type=HTTP_CONTENT_TYPE_STREAM
+        )
+        self._routines = {
+            routine["name"]: routine["sequence"]
+            for routine in resp_json[ARRAY_WRAPPER]
+            if routine["status"] == "ENABLED"
+        }

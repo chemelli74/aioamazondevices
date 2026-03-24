@@ -647,6 +647,18 @@ class AmazonEchoApi:
             raise ValueError(f"Unsupported info skill: {info_skill}")
         await self._call_alexa_command_per_cluster_member(device, info_skill, "")
 
+    async def call_routine(
+        self,
+        device: AmazonDevice,
+        routine_name: str,
+    ) -> None:
+        """Call routine."""
+        await self._call_alexa_command_per_cluster_member(
+            device,
+            AmazonSequenceType.Routines,
+            routine_name,
+        )
+
     async def set_device_volume(self, device: AmazonDevice, volume: int) -> None:
         """Set device volume."""
         if not (VOLUME_MIN <= volume <= VOLUME_MAX):
@@ -668,6 +680,10 @@ class AmazonEchoApi:
                 message_type,
                 message_body,
             )
+
+    async def update_routines(self) -> None:
+        """Update routines."""
+        await self._sequence_handler.update_routines()
 
     async def send_media_command(
         self, device: AmazonDevice, command: AmazonMediaControls
