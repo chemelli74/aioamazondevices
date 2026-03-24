@@ -56,7 +56,18 @@ The script accept command line arguments or a library_test.json config file:
   "single_device_name": "Echo Dot Livingroom",
   "cluster_device_name": "Everywhere",
   "login_data_file": "out/login_data.json",
-  "test": true
+  "test": true,
+  "tests": {
+    "01_test_volume": false,
+    "02_test_speak": true,
+    "03_test_announcement": false,
+    "04_test_sound": true,
+    "05_test_info_skill": false,
+    "06_test_music": false,
+    "07_test_text_command": false,
+    "08_test_skill": false,
+    "09_test_media_controls": false
+  }
 }
 ```
 
