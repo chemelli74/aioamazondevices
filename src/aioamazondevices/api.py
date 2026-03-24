@@ -6,6 +6,9 @@ from http import HTTPMethod
 from typing import Any
 
 from aiohttp import ClientSession
+from aiosignal import Signal
+
+from aioamazondevices.implementation.media import AmazonMediaHandler
 
 from . import __version__
 from .const.devices import (
@@ -47,8 +50,10 @@ from .structures import (
     AmazonDevice,
     AmazonDeviceSensor,
     AmazonMediaControls,
+    AmazonMediaState,
     AmazonMusicSource,
     AmazonSequenceType,
+    AmazonVolumeState,
 )
 from .utils import _LOGGER, parse_device_details
 
@@ -103,12 +108,22 @@ class AmazonEchoApi:
             http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
         )
 
+        self._media_handler = AmazonMediaHandler(
+            http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
+        )
+
         self._final_devices: dict[str, AmazonDevice] = {}
         self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
 
         initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
         self._last_devices_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
+
+        self._media_states: dict[str, AmazonMediaState] = {}
+        self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
+
+        self._volume_states: dict[str, AmazonVolumeState] = {}
+        self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
 
     @property
     def domain(self) -> str:
@@ -632,6 +647,18 @@ class AmazonEchoApi:
             raise ValueError(f"Unsupported info skill: {info_skill}")
         await self._call_alexa_command_per_cluster_member(device, info_skill, "")
 
+    async def call_routine(
+        self,
+        device: AmazonDevice,
+        routine_name: str,
+    ) -> None:
+        """Call routine."""
+        await self._call_alexa_command_per_cluster_member(
+            device,
+            AmazonSequenceType.Routines,
+            routine_name,
+        )
+
     async def set_device_volume(self, device: AmazonDevice, volume: int) -> None:
         """Set device volume."""
         if not (VOLUME_MIN <= volume <= VOLUME_MAX):
@@ -653,6 +680,10 @@ class AmazonEchoApi:
                 message_type,
                 message_body,
             )
+
+    async def update_routines(self) -> None:
+        """Update routines."""
+        await self._sequence_handler.update_routines()
 
     async def send_media_command(
         self, device: AmazonDevice, command: AmazonMediaControls
@@ -692,3 +723,25 @@ class AmazonEchoApi:
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
+
+    async def sync_media_state(self) -> dict[str, AmazonMediaState]:
+        """Sync media state.
+
+        This will be called at startup to sync media state of all devices
+        and can be called later to refresh media state.
+        """
+        self._volume_states = await self._media_handler.get_device_volumes()
+        await self._emit_volume_state_event()
+        self._media_states = await self._media_handler.sync_media_state(
+            self._final_devices
+        )
+        await self._emit_media_state_event()
+        return self._media_states
+
+    async def _emit_media_state_event(self) -> None:
+        """Emit media state data to subscribers."""
+        await self.on_media_state_event.send(self._media_states)
+
+    async def _emit_volume_state_event(self) -> None:
+        """Emit volume event to subscribers."""
+        await self.on_volume_state_event.send(self._volume_states)

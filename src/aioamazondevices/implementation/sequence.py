@@ -8,6 +8,7 @@ from typing import Any
 
 import orjson
 
+from aioamazondevices.const.http import ARRAY_WRAPPER, HTTP_CONTENT_TYPE_STREAM
 from aioamazondevices.const.metadata import ALEXA_INFO_SKILLS, SEQUENCE_BATCH_DELAY
 from aioamazondevices.exceptions import CannotConnect
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
@@ -42,6 +43,7 @@ class AmazonSequenceHandler:
         """Initialize AmazonSequenceHandler."""
         self._http_wrapper = http_wrapper
         self._session_state_data = session_state_data
+        self._routines: dict[str, Any] = {}
 
         # batching variables
         self._buffer: list[AmazonSequenceNode] = []
@@ -124,6 +126,11 @@ class AmazonSequenceHandler:
             raise CannotConnect(
                 f"Cannot perform {message_type} on {device.serial_number} as not logged in"  # noqa: E501
             )
+        payload: dict[str, Any]
+
+        if message_type == AmazonSequenceType.Routines:
+            payload = self._routines[str(message_body)].get("startNode")
+            return payload
 
         base_payload = {
             "deviceType": device.device_type,
@@ -132,7 +139,6 @@ class AmazonSequenceHandler:
             "customerId": self._session_state_data.account_customer_id,
         }
 
-        payload: dict[str, Any]
         if message_type == AmazonSequenceType.Speak:
             payload = {
                 **base_payload,
@@ -286,3 +292,18 @@ class AmazonSequenceHandler:
                 await self._post_sequences(nodes)
             except Exception:  # noqa: BLE001
                 _LOGGER.exception("Failed to send batch of %d operations", len(nodes))
+
+    async def update_routines(self) -> None:
+        """Update list of enabled routines for the account."""
+        _, raw_resp = await self._http_wrapper.session_request(
+            method=HTTPMethod.GET,
+            url=f"https://alexa.amazon.{self._session_state_data.domain}/api/behaviors/v2/automations",
+        )
+        resp_json = await self._http_wrapper.response_to_json(
+            raw_resp, content_type=HTTP_CONTENT_TYPE_STREAM
+        )
+        self._routines = {
+            routine["name"]: routine["sequence"]
+            for routine in resp_json[ARRAY_WRAPPER]
+            if routine["status"] == "ENABLED"
+        }
