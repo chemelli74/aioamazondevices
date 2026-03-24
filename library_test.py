@@ -404,12 +404,11 @@ async def tests(
             else:
                 print(f"No media state found for {device.account_name}")
 
-    # Update routines list before running one
-    await api.update_routines()
-    await api.call_routine(device_single, "ora di cena")
-
-    print("Closing session")
-    await client_session.close()
+    if args.tests.get("10_test_routines", True):
+        routine_name = args.get("routine_name", "no routine name provided")
+        # Update routines list before running one
+        await api.update_routines()
+        await api.call_routine(device_single, routine_name)
 
 
 def set_logging() -> None:
