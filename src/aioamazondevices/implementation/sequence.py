@@ -5,7 +5,7 @@ from typing import Any
 
 import orjson
 
-from aioamazondevices.const.http import ARRAY_WRAPPER
+from aioamazondevices.const.http import ARRAY_WRAPPER, HTTP_CONTENT_TYPE_STREAM
 from aioamazondevices.const.metadata import ALEXA_INFO_SKILLS
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import (
@@ -187,7 +187,9 @@ class AmazonSequenceHandler:
             method=HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._session_state_data.domain}/api/behaviors/v2/automations",
         )
-        resp_json = await self._http_wrapper.response_to_json(raw_resp)
+        resp_json = await self._http_wrapper.response_to_json(
+            raw_resp, content_type=HTTP_CONTENT_TYPE_STREAM
+        )
         self._routines = {
             routine["name"]: routine["sequence"]
             for routine in resp_json[ARRAY_WRAPPER]
