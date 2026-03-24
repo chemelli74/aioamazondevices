@@ -304,12 +304,12 @@ async def tests(
     print("- cluster: ", device_cluster.account_name)
     print("-" * 20)
 
-    if args.tests.get("01_test_volume", False):
+    if args.tests.get("01_test_volume", True):
         print("Volume to 100% on :", device_single.account_name)
         await api.set_device_volume(device_single, 100)
         await wait_action_complete(1)
 
-    if args.tests.get("02_test_speak", False):
+    if args.tests.get("02_test_speak", True):
         print(
             "Sending message via 'Alexa.Speak' at 100% volume to:",
             device_single.account_name,
@@ -332,7 +332,7 @@ async def tests(
         )
         await wait_action_complete()
 
-    if args.tests.get("03_test_announcement", False):
+    if args.tests.get("03_test_announcement", True):
         print(
             "Sending message via 'AlexaAnnouncement' to:", device_cluster.account_name
         )
@@ -341,17 +341,17 @@ async def tests(
         )
         await wait_action_complete()
 
-    if args.tests.get("04_test_sound", False):
+    if args.tests.get("04_test_sound", True):
         print("Sending sound via 'Alexa.Sound' to:", device_single.account_name)
         await api.call_alexa_sound(device_single, "amzn_sfx_doorbell_chime_01")
         await wait_action_complete()
 
-    if args.tests.get("05_test_info_skill", False):
+    if args.tests.get("05_test_info_skill", True):
         print("Sending message via 'Alexa.Date.Play' to:", device_single.account_name)
         await api.call_alexa_info_skill(device_single, "Alexa.Date.Play")
         await wait_action_complete()
 
-    if args.tests.get("06_test_music", False):
+    if args.tests.get("06_test_music", True):
         radio = "BBC one"
         source = AmazonMusicSource.Radio
         print(f"Playing {radio} from {source} on {device_single.account_name}")
@@ -364,12 +364,12 @@ async def tests(
         await api.call_alexa_music(device_single, music, source)
         await wait_action_complete(15)
 
-    if args.tests.get("07_test_text_command", False):
+    if args.tests.get("07_test_text_command", True):
         print(f"Text command on {device_single.account_name}")
         await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
         await wait_action_complete(10)
 
-    if args.tests.get("08_test_skill", False):
+    if args.tests.get("08_test_skill", True):
         print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)
         await api.call_alexa_skill(
             device_cluster, "amzn1.ask.skill.94c477e7-61c0-43f5-b7d9-36d7498a4d04"
@@ -382,7 +382,7 @@ async def tests(
         )
         return
 
-    if args.tests.get("09_test_media_controls", False):
+    if args.tests.get("09_test_media_controls", True):
         print(f"Pausing track on {device_single.account_name}")
         await api.send_media_command(device_single, AmazonMediaControls.Pause)
         await wait_action_complete()
