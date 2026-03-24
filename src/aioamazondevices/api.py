@@ -724,8 +724,8 @@ class AmazonEchoApi:
 
     async def _emit_media_state_event(self) -> None:
         """Emit media state data to subscribers."""
-        await self.on_media_state_event.send(media_state=self._media_states)
+        await self.on_media_state_event.send(self._media_states)
 
     async def _emit_volume_state_event(self) -> None:
         """Emit volume event to subscribers."""
-        await self.on_volume_state_event.send(volume_states=self._volume_states)
+        await self.on_volume_state_event.send(self._volume_states)
