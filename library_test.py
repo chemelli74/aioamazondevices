@@ -406,7 +406,7 @@ async def tests(
 
     # Update routines list before running one
     await api.update_routines()
-    await api.send_routine_command("ora di cena")
+    await api.call_routine(device_single, "ora di cena")
 
     print("Closing session")
     await client_session.close()
