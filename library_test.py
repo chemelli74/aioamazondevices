@@ -73,6 +73,12 @@ async def get_arguments() -> tuple[ArgumentParser, Namespace]:
         help="Execute test actions",
     )
     parser.add_argument(
+        "--routine_name",
+        "-rn",
+        type=str,
+        help="Routine name to execute for testing",
+    )
+    parser.add_argument(
         "--configfile",
         "-cf",
         type=str,
@@ -405,10 +411,12 @@ async def tests(
                 print(f"No media state found for {device.account_name}")
 
     if args.tests.get("10_test_routines", True):
-        routine_name = args.get("routine_name", "no routine name provided")
+        if not args.routine_name:
+            print("No routine name provided, skipping routine test")
+            return
         # Update routines list before running one
         await api.update_routines()
-        await api.call_routine(device_single, routine_name)
+        await api.call_routine(device_single, args.routine_name)
 
 
 def set_logging() -> None:
