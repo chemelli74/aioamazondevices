@@ -1,5 +1,12 @@
 # Changelog
 
+## v13.3.1 (2026-03-25)
+
+### Bug fixes
+
+- Old devices have no 'alexaenabledmetadata' ([`97309ee`](https://github.com/chemelli74/aioamazondevices/commit/97309eef3309048001d15e5298aff7759df6dbf4))
+
+
 ## v13.3.0 (2026-03-24)
 
 ### Features
