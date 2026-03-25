@@ -315,7 +315,6 @@ async def tests(
         await api.set_device_volume(device_single, 100)
         await wait_action_complete(1)
 
-    if args.tests.get("02_test_speak", True):
         print(
             "Sending message via 'Alexa.Speak' at 100% volume to:",
             device_single.account_name,
@@ -338,6 +337,7 @@ async def tests(
         )
         await wait_action_complete()
 
+    if args.tests.get("02_test_speak", True):
         print(
             "Sending multiple messages via 'Alexa.Speak' to:",
             device_single.account_name,
