@@ -364,10 +364,10 @@ async def tests(
         for provider in _providers.values():
             if provider.default_provider:
                 _default_music_provider = provider
-                default_label = "[default]"
+                default_label = " [default]"
             else:
                 default_label = ""
-            print(f" - {provider.provider_name} {default_label}")
+            print(f" - {provider.provider_name}{default_label}")
 
         radio = "BBC one"
         source = "TUNEIN"
