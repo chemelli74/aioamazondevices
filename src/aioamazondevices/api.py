@@ -377,6 +377,7 @@ class AmazonEchoApi:
             )
             # Request base device data
             await self._get_base_devices()
+            await self._update_music_providers()
             self._last_devices_refresh = datetime.now(UTC)
 
         # Only refresh endpoint data if we have no endpoints yet
@@ -579,11 +580,8 @@ class AmazonEchoApi:
 
         self._final_devices = final_devices_list
 
-    async def get_music_providers(self) -> dict[str, AmazonMusicProvider]:
-        """Return music providers."""
-        if self._music_providers is not None:
-            return self._music_providers
-
+    async def _update_music_providers(self) -> None:
+        """Update availables music providers."""
         url = f"https://alexa.amazon.{self.domain}{URI_MUSIC_PROVIDERS}"
         _, resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET, url=url
@@ -608,7 +606,6 @@ class AmazonEchoApi:
             and provider["displayName"]
             and provider["availability"] == "AVAILABLE"
         }
-        return self._music_providers
 
     async def call_alexa_speak(
         self,
@@ -647,7 +644,9 @@ class AmazonEchoApi:
         provider_id: str,
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
-        if provider_id not in await self.get_music_providers():
+        if self._music_providers is None:
+            raise ValueError("Music providers have not been initialised.")
+        if not self._music_providers.get(provider_id):
             raise ValueError(f"{provider_id} is not available as a music provider")
 
         await self._call_alexa_command_per_cluster_member(
