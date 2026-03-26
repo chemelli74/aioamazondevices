@@ -20,11 +20,9 @@ from .const.devices import (
 from .const.http import (
     ARRAY_WRAPPER,
     DEFAULT_SITE,
-    HTTP_CONTENT_TYPE_STREAM,
     REQUEST_AGENT,
     URI_DEVICES,
     URI_MEDIA_CONTROL,
-    URI_MUSIC_PROVIDERS,
     URI_NEXUS_GRAPHQL,
 )
 from .const.metadata import (
@@ -121,8 +119,6 @@ class AmazonEchoApi:
         self._last_devices_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
 
-        self._music_providers: dict[str, AmazonMusicProvider] | None = None
-
         self._media_states: dict[str, AmazonMediaState] = {}
         self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
 
@@ -142,7 +138,7 @@ class AmazonEchoApi:
     @property
     def music_providers(self) -> dict[str, AmazonMusicProvider] | None:
         """Return music providers."""
-        return self._music_providers
+        return self._media_handler.music_providers
 
     async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
         """Retrieve devices sensors states."""
@@ -383,7 +379,7 @@ class AmazonEchoApi:
             )
             # Request base device data
             await self._get_base_devices()
-            await self._update_music_providers()
+            await self._media_handler.update_music_providers()
             self._last_devices_refresh = datetime.now(UTC)
 
         # Only refresh endpoint data if we have no endpoints yet
@@ -586,33 +582,6 @@ class AmazonEchoApi:
 
         self._final_devices = final_devices_list
 
-    async def _update_music_providers(self) -> None:
-        """Update availables music providers."""
-        url = f"https://alexa.amazon.{self.domain}{URI_MUSIC_PROVIDERS}"
-        _, resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET, url=url
-        )
-        provider_json = await self._http_wrapper.response_to_json(
-            resp, "music providers", content_type=HTTP_CONTENT_TYPE_STREAM
-        )
-        _LOGGER.debug(
-            "Music providers data received: %s",
-            provider_json,
-        )
-        self._music_providers = {
-            provider["id"]: AmazonMusicProvider(
-                provider_id=provider["id"],
-                provider_name=provider["displayName"],
-                availability=provider["availability"],
-                default_provider=provider["providerData"].get("isDefaultMusicProvider"),
-            )
-            for provider in provider_json[ARRAY_WRAPPER]
-            if AmazonSequenceType.Music in provider["supportedProperties"]
-            and provider.get("id")
-            and provider["displayName"]
-            and provider["availability"] == "AVAILABLE"
-        }
-
     async def call_alexa_speak(
         self,
         device: AmazonDevice,
@@ -650,9 +619,9 @@ class AmazonEchoApi:
         provider_id: str,
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
-        if self._music_providers is None:
+        if self._media_handler.music_providers is None:
             raise ValueError("Music providers have not been initialised.")
-        if not self._music_providers.get(provider_id):
+        if not self._media_handler.music_providers.get(provider_id):
             raise ValueError(f"{provider_id} is not available as a music provider")
 
         await self._sequence_handler.send_message(
