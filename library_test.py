@@ -360,14 +360,15 @@ async def tests(
     if args.tests.get("06_test_music", True):
         print("Available music providers:")
         _default_music_provider = AmazonMusicProvider("None", "None", "None", False)
-        for provider in (await api.get_music_providers()).values():
+        _providers = api.music_providers or {}
+        for provider in _providers.values():
             if provider.default_provider:
                 _default_music_provider = provider
                 default_label = "[default]"
             else:
                 default_label = ""
+            print(f" - {provider.provider_name} {default_label}")
 
-        print(f" - {provider.provider_name} {default_label}")
         radio = "BBC one"
         source = "TUNEIN"
         print(f"Playing {radio} from {source} on {device_single.account_name}")
@@ -380,9 +381,10 @@ async def tests(
         await api.call_alexa_music(device_single, music, source)
         await wait_action_complete(15)
 
-    print(f"Text command on {device_single.account_name}")
-    await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
-    await wait_action_complete(10)
+    if args.tests.get("07_test_text_command", True):
+        print(f"Text command on {device_single.account_name}")
+        await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
+        await wait_action_complete(10)
 
     if args.tests.get("08_test_skill", True):
         print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)

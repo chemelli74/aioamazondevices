@@ -20,6 +20,7 @@ from .const.devices import (
 from .const.http import (
     ARRAY_WRAPPER,
     DEFAULT_SITE,
+    HTTP_CONTENT_TYPE_STREAM,
     REQUEST_AGENT,
     URI_DEVICES,
     URI_MEDIA_CONTROL,
@@ -137,6 +138,11 @@ class AmazonEchoApi:
     def login(self) -> AmazonLogin:
         """Return login."""
         return self._login
+
+    @property
+    def music_providers(self) -> dict[str, AmazonMusicProvider] | None:
+        """Return music providers."""
+        return self._music_providers
 
     async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
         """Retrieve devices sensors states."""
@@ -587,7 +593,7 @@ class AmazonEchoApi:
             method=HTTPMethod.GET, url=url
         )
         provider_json = await self._http_wrapper.response_to_json(
-            resp, "music providers"
+            resp, "music providers", content_type=HTTP_CONTENT_TYPE_STREAM
         )
         _LOGGER.debug(
             "Music providers data received: %s",
