@@ -73,6 +73,7 @@ class AmazonSequenceType(StrEnum):
     LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
     Volume = "Alexa.DeviceControls.Volume"
     Stop = "Alexa.DeviceControls.Stop"
+    Routines = "Pseudo.Type.Routines"
 
 
 class AmazonMediaControls(StrEnum):

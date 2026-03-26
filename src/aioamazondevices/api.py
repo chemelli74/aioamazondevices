@@ -309,9 +309,9 @@ class AmazonEchoApi:
 
         # Process Alexa Voice Enabled devices
         # Just map endpoint ID to serial number to facilitate sensor lookup
-        for endpoint in data.get("alexaVoiceDevices", {}).get("endpoints", {}):
+        for endpoint in data.get("alexaVoiceDevices", {}).get("endpoints", []):
             # save looking up sensor data on apps
-            if endpoint.get("alexaEnabledMetadata", {}).get("category") == "APP":
+            if (endpoint.get("alexaEnabledMetadata") or {}).get("category") == "APP":
                 continue
 
             if endpoint.get("serialNumber"):
@@ -684,6 +684,18 @@ class AmazonEchoApi:
             raise ValueError(f"Unsupported info skill: {info_skill}")
         await self._call_alexa_command_per_cluster_member(device, info_skill, "")
 
+    async def call_routine(
+        self,
+        device: AmazonDevice,
+        routine_name: str,
+    ) -> None:
+        """Call routine."""
+        await self._call_alexa_command_per_cluster_member(
+            device,
+            AmazonSequenceType.Routines,
+            routine_name,
+        )
+
     async def set_device_volume(self, device: AmazonDevice, volume: int) -> None:
         """Set device volume."""
         if not (VOLUME_MIN <= volume <= VOLUME_MAX):
@@ -707,6 +719,10 @@ class AmazonEchoApi:
                 message_body,
                 music_provider_id,
             )
+
+    async def update_routines(self) -> None:
+        """Update routines."""
+        await self._sequence_handler.update_routines()
 
     async def send_media_command(
         self, device: AmazonDevice, command: AmazonMediaControls
@@ -763,8 +779,8 @@ class AmazonEchoApi:
 
     async def _emit_media_state_event(self) -> None:
         """Emit media state data to subscribers."""
-        await self.on_media_state_event.send(media_state=self._media_states)
+        await self.on_media_state_event.send(self._media_states)
 
     async def _emit_volume_state_event(self) -> None:
         """Emit volume event to subscribers."""
-        await self.on_volume_state_event.send(volume_states=self._volume_states)
+        await self.on_volume_state_event.send(self._volume_states)

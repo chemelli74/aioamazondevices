@@ -1,5 +1,36 @@
 # Changelog
 
+## v13.3.1 (2026-03-25)
+
+### Bug fixes
+
+- Old devices have no 'alexaenabledmetadata' ([`97309ee`](https://github.com/chemelli74/aioamazondevices/commit/97309eef3309048001d15e5298aff7759df6dbf4))
+
+
+## v13.3.0 (2026-03-24)
+
+### Features
+
+- Add routines support ([`d07a0f2`](https://github.com/chemelli74/aioamazondevices/commit/d07a0f2a10410d4745e24cb0cf13379353f348fe))
+
+
+### Testing
+
+- Refactor library_test params for selective testing ([`4564bfc`](https://github.com/chemelli74/aioamazondevices/commit/4564bfc65e3fcce5e79ee1ed2e89e73e18958e5b))
+
+
+### Refactoring
+
+- Fix pylance errors ([`c5b8745`](https://github.com/chemelli74/aioamazondevices/commit/c5b8745d469da09afd0d960229d703c96359fe3c))
+- Make send_message more readable ([`84d26c6`](https://github.com/chemelli74/aioamazondevices/commit/84d26c603137fbe6eb56ec87b67c872cd85dc575))
+
+
+### Build system
+
+- Bump types-python-dateutil from 2.9.0.20260305 to 2.9.0.20260323 ([`a79c3ae`](https://github.com/chemelli74/aioamazondevices/commit/a79c3aee46cec6b8296d07730fed417fb85a2e69))
+- Bump pytest-cov from 7.0.0 to 7.1.0 ([`c4ee2fa`](https://github.com/chemelli74/aioamazondevices/commit/c4ee2fa13ff80c7180e366929523e612b7ef6b75))
+
+
 ## v13.2.0 (2026-03-19)
 
 ### Features
