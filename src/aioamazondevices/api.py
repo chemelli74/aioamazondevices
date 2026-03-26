@@ -640,7 +640,7 @@ class AmazonEchoApi:
     async def call_alexa_music(
         self,
         device: AmazonDevice,
-        message_body: str,
+        search_phrase: str,
         provider_id: str,
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
@@ -649,8 +649,8 @@ class AmazonEchoApi:
         if not self._music_providers.get(provider_id):
             raise ValueError(f"{provider_id} is not available as a music provider")
 
-        await self._call_alexa_command_per_cluster_member(
-            device, AmazonSequenceType.Music, message_body, provider_id
+        await self._sequence_handler.send_message(
+            device, AmazonSequenceType.Music, search_phrase, provider_id
         )
 
     async def call_alexa_text_command(
