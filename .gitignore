@@ -147,3 +147,6 @@ library_test*.json
 
 # Output folder for saved web call source files
 out/
+
+# Node modules
+node_modules/

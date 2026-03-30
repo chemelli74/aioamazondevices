@@ -57,7 +57,7 @@ repos:
       - id: codespell
         args:
           [
-            "--skip=src/aioamazondevices/sounds.py, scripts/sounds_strings.json, scripts/sounds_services.yaml",
+            "--skip=src/aioamazondevices/sounds.py, scripts/sounds_strings.json, scripts/sounds_services.yaml, package-lock.json",
           ]
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.19.1
