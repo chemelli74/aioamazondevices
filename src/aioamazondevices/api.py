@@ -102,7 +102,6 @@ class AmazonEchoApi:
             http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
         )
 
-        self._final_devices: dict[str, AmazonDevice] = {}
         self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
 
         initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
@@ -265,7 +264,7 @@ class AmazonEchoApi:
         """Call Alexa command per cluster member."""
         for cluster_member in device.device_cluster_members:
             await self._sequence_handler.send_message(
-                self._final_devices[cluster_member],
+                self._device_handler.devices[cluster_member],
                 message_type,
                 message_body,
             )
@@ -307,7 +306,7 @@ class AmazonEchoApi:
         self._volume_states = await self._media_handler.get_device_volumes()
         await self._emit_volume_state_event()
         self._media_states = await self._media_handler.sync_media_state(
-            self._final_devices
+            self._device_handler.devices
         )
         await self._emit_media_state_event()
         return self._media_states
