@@ -5,11 +5,16 @@ from .http import AMAZON_DEVICE_TYPE
 SPEAKER_GROUP_FAMILY = "WHA"
 
 DEVICE_TYPE_AQM = "AEZME1X38KDRA"
+DEVICE_TYPE_CUBE_GEN3 = "A2JKHJ0PX4J3L3"
 DEVICE_TYPE_SPEAKER_GROUP = "A3C9PE6TNYLTCH"
 
 DEVICE_TYPES_HARDCODED_METADATA: dict[str, dict[str, str]] = {
     DEVICE_TYPE_AQM: {
         "model": "Air Quality Monitor",
+        "manufacturer": "Amazon",
+    },
+    DEVICE_TYPE_CUBE_GEN3: {
+        "model": "Fire TV Cube (3rd Generation)",
         "manufacturer": "Amazon",
     },
     DEVICE_TYPE_SPEAKER_GROUP: {
