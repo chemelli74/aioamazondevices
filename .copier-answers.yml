@@ -14,7 +14,7 @@ package_name: aioamazondevices
 project_name: aioamazondevices
 project_short_description: Python library to control Amazon devices
 project_slug: aioamazondevices
-run_poetry_install: true
+run_poetry_install: false
 setup_github: false
 setup_pre_commit: true
 

@@ -4,12 +4,11 @@
 # Stop on errors
 set -e
 
-POETRY_VERSION="2.3.2" # renovate: depName=poetry datasource=pypi
+UV_VERSION="0.8.22" # renovate: depName=uv datasource=pypi
 
-poetry self update "$POETRY_VERSION"
-poetry env use python3
-poetry sync --with dev
-poetry run pre-commit install
-poetry run pre-commit install --hook-type commit-msg
+python3 -m pip install --disable-pip-version-check --no-cache-dir "uv==$UV_VERSION"
+python3 -m uv sync --group dev
+python3 -m uv run pre-commit install
+python3 -m uv run pre-commit install --hook-type commit-msg
 cd
 npm install @commitlint/config-conventional
