@@ -15,8 +15,8 @@
   <a href="https://github.com/ambv/black">
     <img src="https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square" alt="black">
   </a>
-  <a href="https://github.com/pre-commit/pre-commit">
-    <img src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white&style=flat-square" alt="pre-commit">
+  <a href="https://pypi.org/project/prek/">
+    <img src="https://img.shields.io/badge/prek-enabled-brightgreen?style=flat-square" alt="prek">
   </a>
 </p>
 <p align="center">
