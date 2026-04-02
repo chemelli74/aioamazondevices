@@ -18,7 +18,6 @@ pkgs.mkShell {
   ];
 
   shellHook = ''
-    uv sync --group dev
     source .venv/bin/activate
     scripts/setup.sh
   '';
