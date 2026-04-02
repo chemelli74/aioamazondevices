@@ -7,7 +7,7 @@ on:
   pull_request:
 
 env:
-  POETRY_VERSION: "2.3.2" # renovate: depName=poetry datasource=pypi
+  UV_VERSION: "0.8.22" # renovate: depName=uv datasource=pypi
 
 permissions: write-all
 
@@ -56,14 +56,14 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: snok/install-poetry@v1.4.1
+      - uses: astral-sh/setup-uv@v8.0.0
         with:
-          version: ${{ env.POETRY_VERSION }}
+          version: ${{ env.UV_VERSION }}
       - name: Sync Dependencies
-        run: poetry sync --with dev
+        run: uv sync --frozen --group dev
         shell: bash
       - name: Test with Pytest
-        run: poetry run pytest --cov-report=xml
+        run: uv run pytest --cov-report=xml
         shell: bash
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v6

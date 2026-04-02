@@ -19,6 +19,11 @@ repos:
       - id: check-xml
       - id: check-yaml
       - id: detect-private-key
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.8.22
+    hooks:
+      - id: uv-lock
+        args: ["--check"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.8
     hooks:
@@ -36,11 +41,6 @@ repos:
     hooks:
       - id: commitlint
         stages: [commit-msg]
-  - repo: https://github.com/python-poetry/poetry
-    rev: 2.3.2
-    hooks:
-      - id: poetry-check
-        args: ["--lock"]
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v4.0.0-alpha.8
     hooks:
