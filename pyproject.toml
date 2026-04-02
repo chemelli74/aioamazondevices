@@ -43,7 +43,7 @@ version_variables = [
     "src/aioamazondevices/__init__.py:__version__",
 ]
 # Keep this version in sync with scripts/setup.sh and .github/workflows/ci.yml.
-build_command = "pip install uv==0.8.22 && uv build"
+build_command = "pipx install \"uv==0.8.22\" && uv build"
 
 [tool.semantic_release.changelog]
 exclude_commit_patterns = [

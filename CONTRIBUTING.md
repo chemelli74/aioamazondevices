@@ -66,16 +66,17 @@ Ready to contribute? Here's how to set yourself up for local development.
    $ uv run pytest
    ```
 
-6. Linting is done through [pre-commit](https://pre-commit.com). Provided you have the tool installed globally, you can run them all as one-off:
+6. Linting is done through [pre-commit](https://pre-commit.com). You can run them all as one-off:
 
    ```shell
-   $ pre-commit run -a
+   $ uv run pre-commit run -a
    ```
 
    Or better, install the hooks once and have them run automatically each time you commit:
 
    ```shell
-   $ pre-commit install
+   $ uv run pre-commit install
+   $ uv run pre-commit install --hook-type commit-msg
    ```
 
 7. Commit your changes and push your branch to GitHub:

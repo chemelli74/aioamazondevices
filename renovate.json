@@ -15,8 +15,15 @@
       "customType": "regex",
       "fileMatch": ["(^|/)pyproject\\.toml$"],
       "matchStrings": [
-        "build_command\\s*=\\s*\"pip install uv==(?<currentValue>[^\"]+) && uv build\""
+        "build_command\\s*=\\s*\"pipx install \\\"uv==(?<currentValue>[^\"]+)\\\" && uv build\""
       ],
+      "depNameTemplate": "uv",
+      "datasourceTemplate": "pypi"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["(^|/)\\.gitpod\\.yml$"],
+      "matchStrings": ["pipx install \\\"uv==(?<currentValue>[^\"]+)\\\""],
       "depNameTemplate": "uv",
       "datasourceTemplate": "pypi"
     }
