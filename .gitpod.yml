@@ -1,10 +1,2 @@
 tasks:
-  - command: |
-      pipx install "uv==0.8.22"
-      uv sync --group dev
-  - command: |
-      if ! pre-commit --version 2>/dev/null; then
-          uv tool install pre-commit
-      fi
-      uv run pre-commit install
-      uv run pre-commit install --hook-type commit-msg
+  - command: bash scripts/setup.sh

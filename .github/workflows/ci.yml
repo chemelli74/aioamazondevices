@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install prek
-        run: pip install prek
+        run: uv tool install prek
       - name: Run prek hooks
         run: prek run --all-files
 

@@ -19,13 +19,6 @@
       ],
       "depNameTemplate": "uv",
       "datasourceTemplate": "pypi"
-    },
-    {
-      "customType": "regex",
-      "fileMatch": ["(^|/)\\.gitpod\\.yml$"],
-      "matchStrings": ["pipx install \\\"uv==(?<currentValue>[^\"]+)\\\""],
-      "depNameTemplate": "uv",
-      "datasourceTemplate": "pypi"
     }
   ]
 }
