@@ -6,14 +6,14 @@ set -e
 
 UV_VERSION="0.8.22" # renovate: depName=uv datasource=pypi
 
-if ! python3 -m uv --version 2>/dev/null | grep -q "$UV_VERSION"; then
-    python3 -m pip install --disable-pip-version-check --no-cache-dir "uv==$UV_VERSION"
+if ! uv --version 2>/dev/null | grep -q "$UV_VERSION"; then
+    pipx install "uv==$UV_VERSION"
 fi
-if ! python3 -m pre-commit --version 2>/dev/null; then
-    python3 -m pip install --disable-pip-version-check --no-cache-dir "pre-commit"
+if ! pre-commit --version 2>/dev/null; then
+    uv tool install pre-commit
 fi
-python3 -m uv sync --frozen --group dev
-python3 -m uv run pre-commit install
-python3 -m uv run pre-commit install --hook-type commit-msg
-cd
+uv sync --frozen --group dev
+uv run pre-commit install
+uv run pre-commit install --hook-type commit-msg
+
 npm install @commitlint/config-conventional
