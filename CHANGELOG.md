@@ -1,5 +1,57 @@
 # Changelog
 
+## v13.3.2 (2026-04-01)
+
+### Bug fixes
+
+- Hardcode data for fire tv cube (3rd generation) ([`dc75675`](https://github.com/chemelli74/aioamazondevices/commit/dc75675d90f3eefc15563eb1f44d8129a9197e33))
+
+
+### Refactoring
+
+- Sort devices by type ([`9a7754c`](https://github.com/chemelli74/aioamazondevices/commit/9a7754c845c00f8b47a2ac2f845511427cc77cfe))
+- Move graphql error parser to utils ([`d075e75`](https://github.com/chemelli74/aioamazondevices/commit/d075e75b07c38542ede6ad5f15e7daaca891bfc6))
+
+
+### Build system
+
+- Bump pygments from 2.19.2 to 2.20.0 ([`11ce004`](https://github.com/chemelli74/aioamazondevices/commit/11ce0047739e6a7f5d5f5dc0f57220d29ea2306b))
+- Bump aiohttp from 3.13.3 to 3.13.4 ([`327a56f`](https://github.com/chemelli74/aioamazondevices/commit/327a56f49e4ff05fe6870bf03e5a89a670a38348))
+- Bump anyio from 4.12.1 to 4.13.0 ([`5ef9eb8`](https://github.com/chemelli74/aioamazondevices/commit/5ef9eb842f229a288e8391b4b653dc152b1542d2))
+- Bump codecov/codecov-action from 5 to 6 ([`56c8453`](https://github.com/chemelli74/aioamazondevices/commit/56c8453c1c7eeba30f6a5280f339d829349f64ee))
+
+
+## v13.3.1 (2026-03-25)
+
+### Bug fixes
+
+- Old devices have no 'alexaenabledmetadata' ([`97309ee`](https://github.com/chemelli74/aioamazondevices/commit/97309eef3309048001d15e5298aff7759df6dbf4))
+
+
+## v13.3.0 (2026-03-24)
+
+### Features
+
+- Add routines support ([`d07a0f2`](https://github.com/chemelli74/aioamazondevices/commit/d07a0f2a10410d4745e24cb0cf13379353f348fe))
+
+
+### Testing
+
+- Refactor library_test params for selective testing ([`4564bfc`](https://github.com/chemelli74/aioamazondevices/commit/4564bfc65e3fcce5e79ee1ed2e89e73e18958e5b))
+
+
+### Refactoring
+
+- Fix pylance errors ([`c5b8745`](https://github.com/chemelli74/aioamazondevices/commit/c5b8745d469da09afd0d960229d703c96359fe3c))
+- Make send_message more readable ([`84d26c6`](https://github.com/chemelli74/aioamazondevices/commit/84d26c603137fbe6eb56ec87b67c872cd85dc575))
+
+
+### Build system
+
+- Bump types-python-dateutil from 2.9.0.20260305 to 2.9.0.20260323 ([`a79c3ae`](https://github.com/chemelli74/aioamazondevices/commit/a79c3aee46cec6b8296d07730fed417fb85a2e69))
+- Bump pytest-cov from 7.0.0 to 7.1.0 ([`c4ee2fa`](https://github.com/chemelli74/aioamazondevices/commit/c4ee2fa13ff80c7180e366929523e612b7ef6b75))
+
+
 ## v13.2.0 (2026-03-19)
 
 ### Features

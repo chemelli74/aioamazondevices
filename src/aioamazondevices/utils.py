@@ -5,6 +5,8 @@ import re
 from collections.abc import Collection
 from typing import Any
 
+from aioamazondevices.const.http import ARRAY_WRAPPER
+
 _LOGGER = logging.getLogger(__package__)
 
 TO_REDACT = {
@@ -119,3 +121,19 @@ def parse_device_details(model: str | None) -> tuple[str | None, str | None]:
         return parsed_model, year.strip()
 
     return model, None
+
+
+async def format_graphql_error(graphql_response: dict[str, Any]) -> bool:
+    """Format human readable e rror from malformed data."""
+    if graphql_response.get(ARRAY_WRAPPER):
+        error = graphql_response[ARRAY_WRAPPER][0].get("errors", [])
+    else:
+        error = graphql_response.get("errors", [])
+
+    if not error:
+        return False
+
+    msg = error[0].get("message", "Unknown error")
+    path = error[0].get("path", "Unknown path")
+    _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
+    return True

@@ -57,7 +57,7 @@ from .structures import (
     AmazonSequenceType,
     AmazonVolumeState,
 )
-from .utils import _LOGGER, parse_device_details
+from .utils import _LOGGER, format_graphql_error, parse_device_details
 
 
 class AmazonEchoApi:
@@ -174,7 +174,7 @@ class AmazonEchoApi:
 
         sensors_state = await self._http_wrapper.response_to_json(raw_resp, "sensors")
 
-        if await self._format_human_error(sensors_state):
+        if await format_graphql_error(sensors_state):
             # Explicit error in returned data
             return {}
 
@@ -334,16 +334,16 @@ class AmazonEchoApi:
         endpoint_data = await self._http_wrapper.response_to_json(raw_resp, "endpoint")
 
         if not (data := endpoint_data.get("data")) or not data.get("alexaVoiceDevices"):
-            await self._format_human_error(endpoint_data)
+            await format_graphql_error(endpoint_data)
             return {}
 
         devices_endpoints: dict[str, dict[str, Any]] = {}
 
         # Process Alexa Voice Enabled devices
         # Just map endpoint ID to serial number to facilitate sensor lookup
-        for endpoint in data.get("alexaVoiceDevices", {}).get("endpoints", {}):
+        for endpoint in data.get("alexaVoiceDevices", {}).get("endpoints", []):
             # save looking up sensor data on apps
-            if endpoint.get("alexaEnabledMetadata", {}).get("category") == "APP":
+            if (endpoint.get("alexaEnabledMetadata") or {}).get("category") == "APP":
                 continue
 
             if endpoint.get("serialNumber"):
@@ -686,6 +686,18 @@ class AmazonEchoApi:
             raise ValueError(f"Unsupported info skill: {info_skill}")
         await self._call_alexa_command_per_cluster_member(device, info_skill, "")
 
+    async def call_routine(
+        self,
+        device: AmazonDevice,
+        routine_name: str,
+    ) -> None:
+        """Call routine."""
+        await self._call_alexa_command_per_cluster_member(
+            device,
+            AmazonSequenceType.Routines,
+            routine_name,
+        )
+
     async def set_device_volume(self, device: AmazonDevice, volume: int) -> None:
         """Set device volume."""
         if not (VOLUME_MIN <= volume <= VOLUME_MAX):
@@ -708,6 +720,10 @@ class AmazonEchoApi:
                 message_body,
             )
 
+    async def update_routines(self) -> None:
+        """Update routines."""
+        await self._sequence_handler.update_routines()
+
     async def send_media_command(
         self, device: AmazonDevice, command: AmazonMediaControls
     ) -> None:
@@ -727,21 +743,6 @@ class AmazonEchoApi:
             input_data=payload,
             json_data=True,
         )
-
-    async def _format_human_error(self, sensors_state: dict[str, Any]) -> bool:
-        """Format human readable error from malformed data."""
-        if sensors_state.get(ARRAY_WRAPPER):
-            error = sensors_state[ARRAY_WRAPPER][0].get("errors", [])
-        else:
-            error = sensors_state.get("errors", [])
-
-        if not error:
-            return False
-
-        msg = error[0].get("message", "Unknown error")
-        path = error[0].get("path", "Unknown path")
-        _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
-        return True
 
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set Do Not Disturb status for a device."""

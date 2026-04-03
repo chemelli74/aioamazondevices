@@ -3,6 +3,9 @@
 HTTP_ERROR_199 = 199
 HTTP_ERROR_299 = 299
 
+HTTP_CONTENT_TYPE_JSON = "application/json"
+HTTP_CONTENT_TYPE_STREAM = "application/octet-stream"
+
 ARRAY_WRAPPER = "generatedArrayWrapper"
 
 # Amazon APP info

@@ -74,6 +74,12 @@ async def get_arguments() -> tuple[ArgumentParser, Namespace]:
         help="Execute test actions",
     )
     parser.add_argument(
+        "--routine_name",
+        "-rn",
+        type=str,
+        help="Routine name to execute for testing",
+    )
+    parser.add_argument(
         "--configfile",
         "-cf",
         type=str,
@@ -296,8 +302,20 @@ async def main() -> None:
 
     if not args.test:
         print("!!! No testing requested, exiting !!!")
-        await client_session.close()
-        sys.exit(0)
+    else:
+        await tests(args, api, devices)
+
+    print("Closing session")
+    await client_session.close()
+
+
+async def tests(
+    args: Namespace, api: AmazonEchoApi, devices: dict[str, AmazonDevice]
+) -> None:
+    """Run tests."""
+    print("*" * 20)
+    print("*  Running tests   *")
+    print("*" * 20)
 
     device_single = find_device(
         devices, args.single_device_name, lambda d: len(d.device_cluster_members) == 1
@@ -316,98 +334,113 @@ async def main() -> None:
     print("- cluster: ", device_cluster.account_name)
     print("-" * 20)
 
-    print("Volume to 100% on :", device_single.account_name)
-    await api.set_device_volume(device_single, 100)
-    await wait_action_complete(1)
+    if args.tests.get("01_test_volume", True):
+        print("Volume to 100% on :", device_single.account_name)
+        await api.set_device_volume(device_single, 100)
+        await wait_action_complete(1)
 
-    print(
-        "Sending message via 'Alexa.Speak' at 100% volume to:",
-        device_single.account_name,
-    )
-    await api.call_alexa_speak(
-        device_single, "Test Speak message at 100% from new library"
-    )
-    await wait_action_complete()
+    if args.tests.get("02_test_speak", True):
+        print(
+            "Sending message via 'Alexa.Speak' at 100% volume to:",
+            device_single.account_name,
+        )
+        await api.call_alexa_speak(
+            device_single, "Test Speak message at 100% from new library"
+        )
+        await wait_action_complete()
 
-    print("Volume to 30% on :", device_single.account_name)
-    await api.set_device_volume(device_single, 30)
-    await wait_action_complete(1)
+        print("Volume to 30% on :", device_single.account_name)
+        await api.set_device_volume(device_single, 30)
+        await wait_action_complete(1)
 
-    print(
-        "Sending message via 'Alexa.Speak' at 30% volume to:",
-        device_single.account_name,
-    )
-    await api.call_alexa_speak(
-        device_single, "Test Speak message at 30% from new library"
-    )
-    await wait_action_complete()
+        print(
+            "Sending message via 'Alexa.Speak' at 30% volume to:",
+            device_single.account_name,
+        )
+        await api.call_alexa_speak(
+            device_single, "Test Speak message at 30% from new library"
+        )
+        await wait_action_complete()
 
-    print("Sending message via 'AlexaAnnouncement' to:", device_cluster.account_name)
-    await api.call_alexa_announcement(
-        device_cluster, "Test Announcement message from new library"
-    )
-    await wait_action_complete()
+    if args.tests.get("03_test_announcement", True):
+        print(
+            "Sending message via 'AlexaAnnouncement' to:", device_cluster.account_name
+        )
+        await api.call_alexa_announcement(
+            device_cluster, "Test Announcement message from new library"
+        )
+        await wait_action_complete()
 
-    print("Sending sound via 'Alexa.Sound' to:", device_single.account_name)
-    await api.call_alexa_sound(device_single, "amzn_sfx_doorbell_chime_01")
-    await wait_action_complete()
+    if args.tests.get("04_test_sound", True):
+        print("Sending sound via 'Alexa.Sound' to:", device_single.account_name)
+        await api.call_alexa_sound(device_single, "amzn_sfx_doorbell_chime_01")
+        await wait_action_complete()
 
-    print("Sending message via 'Alexa.Date.Play' to:", device_single.account_name)
-    await api.call_alexa_info_skill(device_single, "Alexa.Date.Play")
-    await wait_action_complete()
+    if args.tests.get("05_test_info_skill", True):
+        print("Sending message via 'Alexa.Date.Play' to:", device_single.account_name)
+        await api.call_alexa_info_skill(device_single, "Alexa.Date.Play")
+        await wait_action_complete()
 
-    radio = "BBC one"
-    source = AmazonMusicSource.Radio
-    print(f"Playing {radio} from {source} on {device_single.account_name}")
-    await api.call_alexa_music(device_single, radio, source)
-    await wait_action_complete(15)
+    if args.tests.get("06_test_music", True):
+        radio = "BBC one"
+        source = AmazonMusicSource.Radio
+        print(f"Playing {radio} from {source} on {device_single.account_name}")
+        await api.call_alexa_music(device_single, radio, source)
+        await wait_action_complete(15)
 
-    music = "taylor swift"
-    source = AmazonMusicSource.AmazonMusic
-    print(f"Playing {music} from {source} on {device_single.account_name}")
-    await api.call_alexa_music(device_single, music, source)
-    await wait_action_complete(15)
+        music = "taylor swift"
+        source = AmazonMusicSource.AmazonMusic
+        print(f"Playing {music} from {source} on {device_single.account_name}")
+        await api.call_alexa_music(device_single, music, source)
+        await wait_action_complete(15)
 
-    print(f"Text command on {device_single.account_name}")
-    await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
-    await wait_action_complete(10)
+    if args.tests.get("07_test_text_command", True):
+        print(f"Text command on {device_single.account_name}")
+        await api.call_alexa_text_command(device_single, "Set timer pasta 12 minute")
+        await wait_action_complete(10)
 
-    print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)
-    await api.call_alexa_skill(
-        device_cluster, "amzn1.ask.skill.94c477e7-61c0-43f5-b7d9-36d7498a4d04"
-    )
+    if args.tests.get("08_test_skill", True):
+        print("Launch 'MyTuner Radio' skill on ", device_cluster.account_name)
+        await api.call_alexa_skill(
+            device_cluster, "amzn1.ask.skill.94c477e7-61c0-43f5-b7d9-36d7498a4d04"
+        )
 
     if not device_single.media_player_supported:
         print(
             f"Device {device_single.account_name} does not support media controls, "
             "skipping media control tests"
         )
-        await client_session.close()
-        sys.exit(0)
+        return
 
-    print(f"Pausing track on {device_single.account_name}")
-    await api.send_media_command(device_single, AmazonMediaControls.Pause)
-    await wait_action_complete()
+    if args.tests.get("09_test_media_controls", True):
+        print(f"Pausing track on {device_single.account_name}")
+        await api.send_media_command(device_single, AmazonMediaControls.Pause)
+        await wait_action_complete()
 
-    print(f"Play track on {device_single.account_name}")
-    await api.send_media_command(device_single, AmazonMediaControls.Play)
-    await wait_action_complete()
+        print(f"Play track on {device_single.account_name}")
+        await api.send_media_command(device_single, AmazonMediaControls.Play)
+        await wait_action_complete()
 
-    print(f"Skipping to next track on {device_single.account_name}")
-    await api.send_media_command(device_single, AmazonMediaControls.Next)
-    await wait_action_complete(15)
+        print(f"Skipping to next track on {device_single.account_name}")
+        await api.send_media_command(device_single, AmazonMediaControls.Next)
+        await wait_action_complete(15)
 
-    media_states = await api.sync_media_state()
-    for device in devices.values():
-        media_state = media_states.get(device.serial_number)
-        if media_state:
-            print(f"Media state for {device.account_name}:")
-            print(media_state)
-        else:
-            print(f"No media state found for {device.account_name}")
+        media_states = await api.sync_media_state()
+        for device in devices.values():
+            media_state = media_states.get(device.serial_number)
+            if media_state:
+                print(f"Media state for {device.account_name}:")
+                print(media_state)
+            else:
+                print(f"No media state found for {device.account_name}")
 
-    print("Closing session")
-    await client_session.close()
+    if args.tests.get("10_test_routines", True):
+        if not args.routine_name:
+            print("No routine name provided, skipping routine test")
+            return
+        # Update routines list before running one
+        await api.update_routines()
+        await api.call_routine(device_single, args.routine_name)
 
 
 def set_logging() -> None:

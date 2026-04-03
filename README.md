@@ -9,21 +9,21 @@
   </a>
 </p>
 <p align="center">
-  <a href="https://python-poetry.org/">
-    <img src="https://img.shields.io/badge/packaging-poetry-299bd7?style=flat-square&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAASCAYAAABrXO8xAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAJJSURBVHgBfZLPa1NBEMe/s7tNXoxW1KJQKaUHkXhQvHgW6UHQQ09CBS/6V3hKc/AP8CqCrUcpmop3Cx48eDB4yEECjVQrlZb80CRN8t6OM/teagVxYZi38+Yz853dJbzoMV3MM8cJUcLMSUKIE8AzQ2PieZzFxEJOHMOgMQQ+dUgSAckNXhapU/NMhDSWLs1B24A8sO1xrN4NECkcAC9ASkiIJc6k5TRiUDPhnyMMdhKc+Zx19l6SgyeW76BEONY9exVQMzKExGKwwPsCzza7KGSSWRWEQhyEaDXp6ZHEr416ygbiKYOd7TEWvvcQIeusHYMJGhTwF9y7sGnSwaWyFAiyoxzqW0PM/RjghPxF2pWReAowTEXnDh0xgcLs8l2YQmOrj3N7ByiqEoH0cARs4u78WgAVkoEDIDoOi3AkcLOHU60RIg5wC4ZuTC7FaHKQm8Hq1fQuSOBvX/sodmNJSB5geaF5CPIkUeecdMxieoRO5jz9bheL6/tXjrwCyX/UYBUcjCaWHljx1xiX6z9xEjkYAzbGVnB8pvLmyXm9ep+W8CmsSHQQY77Zx1zboxAV0w7ybMhQmfqdmmw3nEp1I0Z+FGO6M8LZdoyZnuzzBdjISicKRnpxzI9fPb+0oYXsNdyi+d3h9bm9MWYHFtPeIZfLwzmFDKy1ai3p+PDls1Llz4yyFpferxjnyjJDSEy9CaCx5m2cJPerq6Xm34eTrZt3PqxYO1XOwDYZrFlH1fWnpU38Y9HRze3lj0vOujZcXKuuXm3jP+s3KbZVra7y2EAAAAAASUVORK5CYII=" alt="Poetry">
+  <a href="https://docs.astral.sh/uv/">
+    <img src="https://img.shields.io/badge/packaging-uv-2A5BFF?style=flat-square" alt="uv">
   </a>
   <a href="https://github.com/ambv/black">
     <img src="https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square" alt="black">
   </a>
-  <a href="https://github.com/pre-commit/pre-commit">
-    <img src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white&style=flat-square" alt="pre-commit">
+  <a href="https://pypi.org/project/prek/">
+    <img src="https://img.shields.io/badge/prek-enabled-brightgreen?style=flat-square" alt="prek">
   </a>
 </p>
 <p align="center">
   <a href="https://pypi.org/project/aioamazondevices/">
     <img src="https://img.shields.io/pypi/v/aioamazondevices.svg?logo=python&logoColor=fff&style=flat-square" alt="PyPI Version">
   </a>
-  <img src="https://img.shields.io/pypi/pyversions/aioamazondevices.svg?style=flat-square&logo=python&amp;logoColor=fff" alt="Supported Python versions">
+  <img src="https://img.shields.io/pypi/pyversions/aioamazondevices.svg?style=flat-square&logo=python&logoColor=fff" alt="Supported Python versions">
   <img src="https://img.shields.io/pypi/l/aioamazondevices.svg?style=flat-square" alt="License">
 </p>
 
@@ -53,10 +53,23 @@ The script accept command line arguments or a library_test.json config file:
 {
   "email": "<my_address@gmail.com>",
   "password": "<my_password>",
-  "single_device_name": "Echo Dot Livingroom",
-  "cluster_device_name": "Everywhere",
+  "single_device_name": "<my_device_name>",
+  "cluster_device_name": "<my_everywhere_group>",
+  "routine_name": "<my_routine_name>",
   "login_data_file": "out/login_data.json",
-  "test": true
+  "test": true,
+  "tests": {
+    "01_test_volume": false,
+    "02_test_speak": true,
+    "03_test_announcement": false,
+    "04_test_sound": true,
+    "05_test_info_skill": false,
+    "06_test_music": false,
+    "07_test_text_command": false,
+    "08_test_skill": false,
+    "09_test_media_controls": false,
+    "10_test_routines": false
+  }
 }
 ```
 
