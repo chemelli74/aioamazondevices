@@ -69,6 +69,7 @@ Ready to contribute? Here's how to set yourself up for local development.
 6. Linting is done through [prek](https://pypi.org/project/prek/). You can run them all as one-off:
 
    ```shell
+   $ uv tool install prek
    $ prek run --all-files
    ```
 
