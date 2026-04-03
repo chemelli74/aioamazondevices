@@ -23,7 +23,7 @@
   <a href="https://pypi.org/project/aioamazondevices/">
     <img src="https://img.shields.io/pypi/v/aioamazondevices.svg?logo=python&logoColor=fff&style=flat-square" alt="PyPI Version">
   </a>
-  <img src="https://img.shields.io/pypi/pyversions/aioamazondevices.svg?style=flat-square&logo=python&amp;logoColor=fff" alt="Supported Python versions">
+  <img src="https://img.shields.io/pypi/pyversions/aioamazondevices.svg?style=flat-square&logo=python&logoColor=fff" alt="Supported Python versions">
   <img src="https://img.shields.io/pypi/l/aioamazondevices.svg?style=flat-square" alt="License">
 </p>
 
