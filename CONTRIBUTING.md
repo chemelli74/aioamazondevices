@@ -66,17 +66,18 @@ Ready to contribute? Here's how to set yourself up for local development.
    $ uv run pytest
    ```
 
-6. Linting is done through [pre-commit](https://pre-commit.com). You can run them all as one-off:
+6. Linting is done through [prek](https://pypi.org/project/prek/). You can run them all as one-off:
 
    ```shell
-   $ uv run pre-commit run -a
+   $ uv tool install prek
+   $ prek run --all-files
    ```
 
    Or better, install the hooks once and have them run automatically each time you commit:
 
    ```shell
-   $ uv run pre-commit install
-   $ uv run pre-commit install --hook-type commit-msg
+   $ prek install
+   $ prek install --hook-type commit-msg
    ```
 
 7. Commit your changes and push your branch to GitHub:
@@ -87,7 +88,7 @@ Ready to contribute? Here's how to set yourself up for local development.
    $ git push origin name-of-your-bugfix-or-feature
    ```
 
-   Note: the commit message should follow [the conventional commits](https://www.conventionalcommits.org). We run [`commitlint` on CI](https://github.com/marketplace/actions/commit-linter) to validate it, and if you've installed pre-commit hooks at the previous step, the message will be checked at commit time.
+   Note: the commit message should follow [the conventional commits](https://www.conventionalcommits.org). We run [`commitlint` on CI](https://github.com/marketplace/actions/commit-linter) to validate it, and if you've installed prek hooks in the previous step, the message will be checked at commit time.
 
 8. Submit a pull request through the GitHub website or using the GitHub CLI (if you have it installed):
 
