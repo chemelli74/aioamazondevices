@@ -8,8 +8,17 @@
         "(^|/)\\.github/workflows/ci\\.yml$"
       ],
       "matchStrings": [
-        "POETRY_VERSION\\s*[:=]\\s*\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=(?<depName>\\S+)\\s+datasource=(?<datasource>\\S+)"
+        "UV_VERSION\\s*[:=]\\s*\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=(?<depName>\\S+)\\s+datasource=(?<datasource>\\S+)"
       ]
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["(^|/)pyproject\\.toml$"],
+      "matchStrings": [
+        "build_command\\s*=\\s*\"pipx install \\\"uv==(?<currentValue>[^\"]+)\\\" && uv build\""
+      ],
+      "depNameTemplate": "uv",
+      "datasourceTemplate": "pypi"
     }
   ]
 }

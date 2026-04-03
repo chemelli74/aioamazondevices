@@ -142,6 +142,9 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# Node modules
+node_modules/
+
 # Optional config file for library_test.py script
 library_test*.json
 
