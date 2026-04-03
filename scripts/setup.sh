@@ -13,7 +13,7 @@ if ! prek --version 2>/dev/null; then
     uv tool install prek
 fi
 uv sync --frozen --group dev
-prek install
-prek install --hook-type commit-msg
+prek install --overwrite
+prek install --hook-type commit-msg --overwrite
 
 npm install @commitlint/config-conventional
