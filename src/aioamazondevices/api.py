@@ -8,38 +8,19 @@ from typing import Any
 from aiohttp import ClientSession
 from aiosignal import Signal
 
+from aioamazondevices.implementation.device import AmazonDeviceHandler
 from aioamazondevices.implementation.media import AmazonMediaHandler
+from aioamazondevices.implementation.sensor import AmazonSensorHandler
 
 from . import __version__
-from .const.devices import (
-    DEVICE_TYPE_AQM,
-    DEVICE_TYPES_HARDCODED_METADATA,
-    DEVICE_TYPES_TO_IGNORE,
-    SPEAKER_GROUP_FAMILY,
-)
 from .const.http import (
-    ARRAY_WRAPPER,
     DEFAULT_SITE,
-    REQUEST_AGENT,
-    URI_DEVICES,
     URI_MEDIA_CONTROL,
-    URI_NEXUS_GRAPHQL,
 )
 from .const.metadata import (
     ALEXA_INFO_SKILLS,
-    AQM_RANGE_SENSORS,
-    SENSORS,
     VOLUME_MAX,
     VOLUME_MIN,
-)
-from .const.queries import QUERY_DEVICE_DATA, QUERY_SENSOR_STATE
-from .const.schedules import (
-    NOTIFICATION_ALARM,
-    NOTIFICATION_REMINDER,
-    NOTIFICATION_TIMER,
-)
-from .exceptions import (
-    CannotRetrieveData,
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
@@ -49,7 +30,6 @@ from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
 from .structures import (
     AmazonDevice,
-    AmazonDeviceSensor,
     AmazonMediaControls,
     AmazonMediaState,
     AmazonMusicSource,
@@ -57,7 +37,7 @@ from .structures import (
     AmazonSequenceType,
     AmazonVolumeState,
 )
-from .utils import _LOGGER, format_graphql_error, parse_device_details
+from .utils import _LOGGER
 
 
 class AmazonEchoApi:
@@ -96,6 +76,16 @@ class AmazonEchoApi:
             session_state_data=self._session_state_data,
         )
 
+        self._device_handler = AmazonDeviceHandler(
+            session_state_data=self._session_state_data,
+            http_wrapper=self._http_wrapper,
+        )
+
+        self._sensor_handler = AmazonSensorHandler(
+            session_state_data=self._session_state_data,
+            http_wrapper=self._http_wrapper,
+        )
+
         self._notification_handler = AmazonNotificationHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
@@ -120,9 +110,6 @@ class AmazonEchoApi:
             http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
         )
 
-        self._final_devices: dict[str, AmazonDevice] = {}
-        self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
-
         initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
         self._last_devices_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
@@ -146,56 +133,45 @@ class AmazonEchoApi:
         """Return login."""
         return self._login
 
-    async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
-        """Retrieve devices sensors states."""
-        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
+    async def get_devices_data(
+        self,
+    ) -> dict[str, AmazonDevice]:
+        """Get Amazon devices data."""
+        delta_devices = datetime.now(UTC) - self._last_devices_refresh
+        if delta_devices >= timedelta(days=1):
+            _LOGGER.debug(
+                "Refreshing devices data after %s",
+                str(timedelta(minutes=round(delta_devices.total_seconds() / 60))),
+            )
+            # Request base device data
+            await self._device_handler.get_base_devices()
+            self._last_devices_refresh = datetime.now(UTC)
 
-        if not self._endpoints:
-            return {}
+        # Only refresh endpoint data if we have no endpoints yet
+        delta_endpoints = datetime.now(UTC) - self._last_endpoint_refresh
+        endpoint_refresh_needed = delta_endpoints >= timedelta(days=1)
+        endpoints_recently_checked = delta_endpoints < timedelta(minutes=30)
+        if (
+            not self._device_handler.endpoints and not endpoints_recently_checked
+        ) or endpoint_refresh_needed:
+            _LOGGER.debug(
+                "Refreshing endpoint data after %s",
+                str(timedelta(minutes=round(delta_endpoints.total_seconds() / 60))),
+            )
+            # Set device endpoint data
+            await self._device_handler.set_device_endpoints_data()
+            self._last_endpoint_refresh = datetime.now(UTC)
 
-        endpoint_ids = list(self._endpoints.keys())
-        payload = [
-            {
-                "operationName": "getEndpointState",
-                "variables": {
-                    "endpointIds": endpoint_ids,
-                },
-                "query": QUERY_SENSOR_STATE,
-            }
-        ]
-
-        _, raw_resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
-            input_data=payload,
-            json_data=True,
-            extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
+        dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
+        notifications = await self._notification_handler.get_notifications()
+        await self._sensor_handler.update_sensor_data(
+            self._device_handler.devices,
+            self._device_handler.endpoints,
+            dnd_sensors,
+            notifications,
         )
 
-        sensors_state = await self._http_wrapper.response_to_json(raw_resp, "sensors")
-
-        if await format_graphql_error(sensors_state):
-            # Explicit error in returned data
-            return {}
-
-        if (
-            not (arr := sensors_state.get(ARRAY_WRAPPER))
-            or not (data := arr[0].get("data"))
-            or not (endpoints_list := data.get("listEndpoints"))
-            or not (endpoints := endpoints_list.get("endpoints"))
-        ):
-            _LOGGER.error("Malformed sensor state data received: %s", sensors_state)
-            return {}
-
-        for endpoint in endpoints:
-            serial_number = self._endpoints[endpoint.get("endpointId")]
-
-            if serial_number in self._final_devices:
-                devices_sensors[serial_number] = self._get_device_sensor_state(
-                    endpoint, serial_number
-                )
-
-        return devices_sensors
+        return self._device_handler.devices
 
     async def start_http2_thread(self) -> None:
         """Start HTTP2 background thread."""
@@ -220,400 +196,6 @@ class AmazonEchoApi:
         if event_type == AmazonPushMessage.AudioPlayerState.value:
             await self.sync_media_state()
             return
-
-    def _get_device_sensor_state(
-        self, endpoint: dict[str, Any], serial_number: str
-    ) -> dict[str, AmazonDeviceSensor]:
-        device_sensors: dict[str, AmazonDeviceSensor] = {}
-        device = self._final_devices[serial_number]
-        for feature in endpoint.get("features", {}):
-            if (sensor_template := SENSORS.get(feature["name"])) is None:
-                # Skip sensors that are not in the predefined list
-                continue
-
-            if not (sensor_template_name_value := sensor_template["name"]):
-                raise CannotRetrieveData("Unable to read sensor template")
-
-            for feature_property in feature.get("properties"):
-                if sensor_template["name"] != feature_property.get("name"):
-                    continue
-
-                value: str | int | float = "n/a"
-                scale: str | None = None
-
-                # "error" can be None, missing, or a dict
-                api_error = feature_property.get("error") or {}
-                error = bool(api_error)
-                error_type = api_error.get("type")
-                error_msg = api_error.get("message")
-                if not error:
-                    try:
-                        value_raw = feature_property[sensor_template["key"]]
-                        if not value_raw:
-                            _LOGGER.warning(
-                                "Sensor %s [device %s] ignored due to empty value",
-                                sensor_template_name_value,
-                                serial_number,
-                            )
-                            continue
-                        scale = (
-                            value_raw[scale_template]
-                            if (scale_template := sensor_template["scale"])
-                            else None
-                        )
-                        value = (
-                            value_raw[subkey_template]
-                            if (subkey_template := sensor_template["subkey"])
-                            else value_raw
-                        )
-
-                    except (KeyError, ValueError) as exc:
-                        _LOGGER.warning(
-                            "Sensor %s [device %s] ignored due to errors in feature %s: %s",  # noqa: E501
-                            sensor_template_name_value,
-                            serial_number,
-                            feature_property,
-                            repr(exc),
-                        )
-                if error:
-                    _LOGGER.debug(
-                        "error in sensor %s - %s - %s",
-                        sensor_template_name_value,
-                        error_type,
-                        error_msg,
-                    )
-
-                if error_type == "NOT_FOUND":
-                    continue
-
-                sensor_name = sensor_template_name_value
-
-                if (
-                    device.device_type == DEVICE_TYPE_AQM
-                    and sensor_template_name_value == "rangeValue"
-                ):
-                    if not (
-                        (instance := feature.get("instance"))
-                        and (aqm_sensor := AQM_RANGE_SENSORS.get(instance))
-                        and (aqm_sensor_name := aqm_sensor.get("name"))
-                    ):
-                        _LOGGER.debug(
-                            "No template for rangeValue (%s) - Skipping sensor",
-                            instance,
-                        )
-                        continue
-                    sensor_name = aqm_sensor_name
-                    scale = aqm_sensor.get("scale")
-
-                device_sensors[sensor_name] = AmazonDeviceSensor(
-                    sensor_name,
-                    value,
-                    error,
-                    error_type,
-                    error_msg,
-                    scale,
-                )
-
-        return device_sensors
-
-    async def _get_devices_endpoint_data(self) -> dict[str, dict[str, Any]]:
-        """Get Devices endpoint data."""
-        payload = {
-            "operationName": "getDevicesBaseData",
-            "query": QUERY_DEVICE_DATA,
-        }
-
-        _, raw_resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
-            input_data=payload,
-            json_data=True,
-            extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
-        )
-
-        endpoint_data = await self._http_wrapper.response_to_json(raw_resp, "endpoint")
-
-        if not (data := endpoint_data.get("data")) or not data.get("alexaVoiceDevices"):
-            await format_graphql_error(endpoint_data)
-            return {}
-
-        devices_endpoints: dict[str, dict[str, Any]] = {}
-
-        # Process Alexa Voice Enabled devices
-        # Just map endpoint ID to serial number to facilitate sensor lookup
-        for endpoint in data.get("alexaVoiceDevices", {}).get("endpoints", []):
-            # save looking up sensor data on apps
-            if (endpoint.get("alexaEnabledMetadata") or {}).get("category") == "APP":
-                continue
-
-            if endpoint.get("serialNumber"):
-                serial_number = endpoint["serialNumber"]["value"]["text"]
-                devices_endpoints[serial_number] = endpoint
-                self._endpoints[endpoint["endpointId"]] = serial_number
-
-        # Process Air Quality Monitors if present
-        # map endpoint ID to serial number to facilitate sensor lookup but also
-        # create AmazonDevice as these are not present in api/devices-v2/device endpoint
-        for aqm_endpoint in data.get("airQualityMonitors", {}).get("endpoints", {}):
-            if (
-                aqm_endpoint.get("manufacturer", {})
-                .get("value", {})
-                .get("text", "Unknown")
-                != "Amazon"
-            ):
-                _LOGGER.debug(
-                    "Skipping non-Amazon Air Quality Monitor: %s",
-                    aqm_endpoint,
-                )
-                continue
-            aqm_serial_number: str = aqm_endpoint["serialNumber"]["value"]["text"]
-            devices_endpoints[aqm_serial_number] = aqm_endpoint
-            self._endpoints[aqm_endpoint["endpointId"]] = aqm_serial_number
-
-            self._final_devices[aqm_serial_number] = AmazonDevice(
-                account_name=aqm_endpoint["friendlyNameObject"]["value"]["text"],
-                capabilities=[],
-                device_family="AIR_QUALITY_MONITOR",
-                device_type=aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
-                    "deviceType"
-                ]["value"]["text"],
-                device_owner_customer_id=self._session_state_data.account_customer_id
-                or "n/a",
-                household_device=False,
-                device_cluster_members={aqm_serial_number: DEVICE_TYPE_AQM},
-                online=True,
-                serial_number=aqm_serial_number,
-                software_version=aqm_endpoint["softwareVersion"]["value"]["text"],
-                manufacturer="Amazon",
-                model=None,
-                hardware_version=None,
-                entity_id=None,
-                endpoint_id=aqm_endpoint.get("endpointId"),
-                sensors={},
-                notifications_supported=False,
-                notifications={},
-                media_player_supported=False,
-            )
-
-        return devices_endpoints
-
-    async def get_devices_data(
-        self,
-    ) -> dict[str, AmazonDevice]:
-        """Get Amazon devices data."""
-        delta_devices = datetime.now(UTC) - self._last_devices_refresh
-        if delta_devices >= timedelta(days=1):
-            _LOGGER.debug(
-                "Refreshing devices data after %s",
-                str(timedelta(minutes=round(delta_devices.total_seconds() / 60))),
-            )
-            # Request base device data
-            await self._get_base_devices()
-            self._last_devices_refresh = datetime.now(UTC)
-
-        # Only refresh endpoint data if we have no endpoints yet
-        delta_endpoints = datetime.now(UTC) - self._last_endpoint_refresh
-        endpoint_refresh_needed = delta_endpoints >= timedelta(days=1)
-        endpoints_recently_checked = delta_endpoints < timedelta(minutes=30)
-        if (
-            not self._endpoints and not endpoints_recently_checked
-        ) or endpoint_refresh_needed:
-            _LOGGER.debug(
-                "Refreshing endpoint data after %s",
-                str(timedelta(minutes=round(delta_endpoints.total_seconds() / 60))),
-            )
-            # Set device endpoint data
-            await self._set_device_endpoints_data()
-            self._last_endpoint_refresh = datetime.now(UTC)
-
-        await self._get_sensor_data()
-
-        return self._final_devices
-
-    async def _get_sensor_data(self) -> None:
-        devices_sensors = await self._get_sensors_states()
-        dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
-        await self.update_notification_sensors()
-        for device in self._final_devices.values():
-            # Update sensors
-            sensors = devices_sensors.get(device.serial_number, {})
-            if sensors:
-                device.sensors = sensors
-                if reachability_sensor := sensors.get("reachability"):
-                    device.online = reachability_sensor.value == "OK"
-                else:
-                    device.online = False
-            else:
-                device.online = False
-                for device_sensor in device.sensors.values():
-                    device_sensor.error = True
-
-            if (
-                device_dnd := dnd_sensors.get(device.serial_number)
-            ) and device.device_family != SPEAKER_GROUP_FAMILY:
-                device.sensors["dnd"] = device_dnd
-
-        # base online status of speaker groups on their members
-        for device in self._final_devices.values():
-            if device.device_family == SPEAKER_GROUP_FAMILY:
-                device.online = all(
-                    d.online
-                    for d in self._final_devices.values()
-                    if d.serial_number in device.device_cluster_members
-                )
-
-    async def update_notification_sensors(self) -> None:
-        """Update notification sensors for all devices."""
-        notifications = await self._notification_handler.get_notifications()
-        for device in self._final_devices.values():
-            if notifications is None:
-                continue  # notifications were not obtained, do not update
-
-            # Clear old notifications to handle cancelled ones
-            device.notifications = {}
-
-            # Update notifications
-            device_notifications = notifications.get(device.serial_number, {})
-
-            # Add only supported notification types
-            for capability, notification_type in [
-                ("REMINDERS", NOTIFICATION_REMINDER),
-                ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
-                ("TIMERS_AND_ALARMS", NOTIFICATION_TIMER),
-            ]:
-                if (
-                    capability in device.capabilities
-                    and notification_type in device_notifications
-                    and (
-                        notification_object := device_notifications.get(
-                            notification_type
-                        )
-                    )
-                ):
-                    device.notifications[notification_type] = notification_object
-
-    async def _set_device_endpoints_data(self) -> None:
-        """Set device endpoint data."""
-        devices_endpoints = await self._get_devices_endpoint_data()
-        for serial_number in self._final_devices:
-            device_endpoint = devices_endpoints.get(serial_number, {})
-            endpoint_device = self._final_devices[serial_number]
-            hardcoded_data = DEVICE_TYPES_HARDCODED_METADATA.get(
-                endpoint_device.device_type, {}
-            )
-            endpoint_device.entity_id = (
-                device_endpoint["legacyIdentifiers"]["chrsIdentifier"]["entityId"]
-                if device_endpoint
-                else None
-            )
-            endpoint_device.endpoint_id = (
-                device_endpoint["endpointId"] if device_endpoint else None
-            )
-
-            model_value: str | None = (
-                (device_endpoint.get("model") or {}).get("value", {}).get("text")
-            )
-            model: str | None = (
-                model_value
-                if model_value and "Alexa Voice" not in model_value
-                else endpoint_device.model
-            )
-
-            if not model:
-                _LOGGER.debug(
-                    "Looking hardcoded model for device type %s [%s]",
-                    endpoint_device.device_type,
-                    endpoint_device.account_name,
-                )
-                model = hardcoded_data.get("model")
-
-            manufacturer = (
-                manufacturer_key.get("value", {}).get("text")
-                if (manufacturer_key := device_endpoint.get("manufacturer"))
-                else hardcoded_data.get("manufacturer")
-            )
-
-            device_model, device_hw_version = parse_device_details(model)
-
-            if not device_model:
-                _LOGGER.warning(
-                    "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices/wiki/Unknown-Device-Types",
-                    endpoint_device.device_type,
-                    endpoint_device.account_name,
-                )
-            else:
-                endpoint_device.model = device_model
-                endpoint_device.hardware_version = device_hw_version
-                endpoint_device.manufacturer = manufacturer
-
-    async def _get_base_devices(self) -> None:
-        _, raw_resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICES}",
-        )
-
-        json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
-
-        final_devices_list: dict[str, AmazonDevice] = {}
-        serial_to_device_type: dict[str, str] = {}
-        for device in json_data["devices"]:
-            # Remove stale, orphaned and virtual devices
-            if not device or (device.get("deviceType") in DEVICE_TYPES_TO_IGNORE):
-                continue
-
-            account_name: str = device["accountName"]
-            capabilities: list[str] = device["capabilities"]
-            # Skip devices that cannot be used with voice features
-            if "MICROPHONE" not in capabilities:
-                _LOGGER.debug(
-                    "Skipping device without microphone capabilities: %s", account_name
-                )
-                continue
-
-            serial_number: str = device["serialNumber"]
-
-            _has_notification_capability = any(
-                capability in capabilities
-                for capability in ["REMINDERS", "TIMERS_AND_ALARMS"]
-            )
-
-            final_devices_list[serial_number] = AmazonDevice(
-                account_name=account_name,
-                capabilities=capabilities,
-                device_family=device["deviceFamily"],
-                device_type=device["deviceType"],
-                device_owner_customer_id=device["deviceOwnerCustomerId"],
-                household_device=device["deviceOwnerCustomerId"]
-                == self._session_state_data.account_customer_id,
-                device_cluster_members=dict.fromkeys(
-                    device["clusterMembers"] or [serial_number]
-                ),
-                online=device["online"],
-                serial_number=serial_number,
-                software_version=device["softwareVersion"]
-                if "SUPPORTS_SOFTWARE_VERSION" in capabilities
-                else None,
-                entity_id=None,
-                model=device.get("deviceTypeFriendlyName"),
-                manufacturer=None,
-                hardware_version=None,
-                endpoint_id=None,
-                sensors={},
-                notifications_supported=_has_notification_capability,
-                notifications={},
-                media_player_supported="AUDIO_PLAYER" in capabilities,
-            )
-
-            serial_to_device_type[serial_number] = device["deviceType"]
-
-        # backfill device types for cluster members
-        for device in final_devices_list.values():
-            for member_serial in device.device_cluster_members:
-                device.device_cluster_members[member_serial] = (
-                    serial_to_device_type.get(member_serial)
-                )
-
-        self._final_devices = final_devices_list
 
     async def call_alexa_speak(
         self,
@@ -715,7 +297,7 @@ class AmazonEchoApi:
         """Call Alexa command per cluster member."""
         for cluster_member in device.device_cluster_members:
             await self._sequence_handler.send_message(
-                self._final_devices[cluster_member],
+                self._device_handler.devices[cluster_member],
                 message_type,
                 message_body,
             )
@@ -757,7 +339,7 @@ class AmazonEchoApi:
         self._volume_states = await self._media_handler.get_device_volumes()
         await self._emit_volume_state_event()
         self._media_states = await self._media_handler.sync_media_state(
-            self._final_devices
+            self._device_handler.devices
         )
         await self._emit_media_state_event()
         return self._media_states
