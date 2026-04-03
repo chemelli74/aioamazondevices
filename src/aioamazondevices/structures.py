@@ -50,6 +50,10 @@ class AmazonDevice:
     notifications_supported: bool
     notifications: dict[str, AmazonSchedule]
     media_player_supported: bool
+    locale: str | None
+    supported_locales: list[str] | None
+    device_timezone: str | None
+    device_country: str | None
 
 
 class AmazonSequenceType(StrEnum):
