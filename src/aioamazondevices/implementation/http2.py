@@ -1,7 +1,10 @@
-"""Support for Amazon devices."""
+"""HTTP2 Support for Amazon devices."""
 
 import asyncio
 import contextlib
+import re
+from email.parser import BytesParser
+from email.policy import default
 from http import HTTPMethod, HTTPStatus
 from ssl import SSLContext, create_default_context
 from typing import Any, cast
@@ -26,6 +29,15 @@ from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateD
 from aioamazondevices.structures import AmazonPushMessage
 from aioamazondevices.utils import _LOGGER
 
+_BOUNDARY_RE = re.compile(r'boundary="?([^";,]+)"?', re.IGNORECASE)
+
+
+def _parse_boundary(content_type: str) -> bytes | None:
+    match = _BOUNDARY_RE.search(content_type)
+    if not match:
+        return None
+    return f"--{match.group(1).strip()}".encode()
+
 
 class AmazonHTTP2Client:
     """Amazon push HTTP2 messages."""
@@ -46,6 +58,7 @@ class AmazonHTTP2Client:
         self._task: asyncio.Task[None] | None = None
         self._stop_event = asyncio.Event()
         self._pending_push_tasks: set[asyncio.Task[None]] = set()
+        self._ssl_context: SSLContext | None = None
 
     async def start_thread(self) -> None:
         """Start the background task."""
@@ -59,23 +72,16 @@ class AmazonHTTP2Client:
         """Stop the background task gracefully."""
         self._stop_event.set()
 
-        if self.is_connected():
+        for task in self._pending_push_tasks:
+            task.cancel()
+
+        if self._http2_client and not self._http2_client.is_closed:
             await self._http2_client.aclose()
 
         if self._task:
             self._task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-
-        if self._pending_push_tasks:
-            for t in list(self._pending_push_tasks):
-                t.cancel()
-            await asyncio.gather(*self._pending_push_tasks, return_exceptions=True)
-            self._pending_push_tasks.clear()
-
-    def is_connected(self) -> bool:
-        """Return True if HTTP/2 connection is active."""
-        return hasattr(self, "_http2_client") and not self._http2_client.is_closed
 
     async def _register_device_capabilities(self) -> None:
         """Register device capabilities."""
@@ -98,103 +104,136 @@ class AmazonHTTP2Client:
         _LOGGER.debug("Device capabilities registered successfully")
 
     async def _get_avs_directives(self) -> None:
-        """Get AVS directives and reconnect on disconnect."""
+        """Maintain AVS directive stream loop."""
         if not self._login_stored_data:
             _LOGGER.warning("No login data available, cannot get directives")
             return
 
         while not self._stop_event.is_set():
-            refreshed_token, _ = await self._http_wrapper.refresh_data(
-                REFRESH_ACCESS_TOKEN
-            )
-            if not refreshed_token:
-                _LOGGER.warning("Failed to refresh access token, cannot get directives")
+            if not await self._ensure_ready():
                 await asyncio.sleep(self.reconnect_delay)
                 continue
 
-            if not self._login_stored_data.get(DEVICE_CAPABILITIES_REGISTERED, False):
-                _LOGGER.debug("Device capabilities not set, registering now.")
-                await self._register_device_capabilities()
-
-            await self._http2_init_client()
-
             try:
-                _LOGGER.debug("Starting AVS Directives stream")
-                access_token = self._login_stored_data["access_token"]
-                async with self._http2_client.stream(
-                    "GET",
-                    (f"{self._http2_site()}/v{HTTP2_DIRECTIVES_VERSION}/directives"),
-                    headers={
-                        "Authorization": f"Bearer {access_token}",
-                        "Accept": "text/event-stream",
-                        "Accept-Encoding": "gzip",
-                    },
-                ) as response:
-                    _LOGGER.debug(
-                        "AVS Directives response status: %s [%s]",
-                        response.status_code,
-                        response.http_version,
-                    )
-                    async for chunk in response.aiter_text():
-                        if self._stop_event.is_set():
-                            break
-                        _LOGGER.debug("AVS Directives chunk: %s", chunk)
-                        if chunk.startswith("-----"):
-                            _LOGGER.debug("Pinging...")
-                            await self._ping()
-                            continue
-
-                        chunk_json = await self._extract_json_from_chunk(chunk)
-                        updates_node = chunk_json["directive"]["payload"][
-                            "renderingUpdates"
-                        ][0]
-                        chunk_type = updates_node["resourceId"]
-                        chunk_payload = updates_node.get("resourceMetadata", {}).get(
-                            "payload", {}
-                        )
-                        chunk_device = chunk_payload.get("dopplerId", {}).get(
-                            "deviceSerialNumber"
-                        )
-
-                        if chunk_type not in AmazonPushMessage._value2member_map_:
-                            _LOGGER.warning(
-                                "Unknown HTTP2 push message from device %s: %s",
-                                chunk_device,
-                                chunk_type,
-                            )
-                            continue
-
-                        _LOGGER.debug(
-                            "Detected push type <%s> on device <%s>",
-                            chunk_type,
-                            chunk_device,
-                        )
-
-                        # Skip double NotificationChange pushes
-                        # (we assume even version numbers are duplicates)
-                        if (
-                            chunk_type == AmazonPushMessage.NotificationChange.value
-                            and chunk_payload.get("notificationVersion", 2) % 2 == 0
-                        ):
-                            continue
-
-                        task = asyncio.create_task(
-                            self.on_push_event.send(chunk_type, chunk_payload)
-                        )
-                        self._pending_push_tasks.add(task)
-                        task.add_done_callback(self._pending_push_tasks.discard)
-
-                _LOGGER.debug("AVS Directives stream closed")
-            except httpx.RemoteProtocolError as excp:
-                _LOGGER.debug("HTTP2 disconnection detected: %s", excp)
-            except httpx.HTTPError as excp:
-                _LOGGER.warning("HTTP2 error detected: %s", excp)
+                await self._stream_and_process()
+            except httpx.RemoteProtocolError as exc:
+                _LOGGER.debug("HTTP2 disconnection detected: %s", exc)
+            except httpx.HTTPError as exc:
+                _LOGGER.warning("HTTP2 error detected: %s", exc)
 
             if not self._stop_event.is_set():
-                _LOGGER.debug(
-                    "Reconnecting to HTTP2 endpoint in %s seconds", self.reconnect_delay
-                )
+                _LOGGER.debug("Reconnecting in %s seconds", self.reconnect_delay)
                 await asyncio.sleep(self.reconnect_delay)
+
+    async def _ensure_ready(self) -> bool:
+        """Ensure token, device registration, and HTTP2 client are ready."""
+        refreshed_token, _ = await self._http_wrapper.refresh_data(REFRESH_ACCESS_TOKEN)
+
+        if not refreshed_token:
+            _LOGGER.warning("Failed to refresh access token")
+            return False
+
+        if not self._login_stored_data.get(DEVICE_CAPABILITIES_REGISTERED, False):
+            _LOGGER.debug("Registering device capabilities")
+            await self._register_device_capabilities()
+
+        await self._http2_init_client()
+        return True
+
+    async def _stream_and_process(self) -> None:
+        """Open stream and process incoming directives."""
+        _LOGGER.debug("Starting AVS Directives stream")
+
+        access_token = self._login_stored_data["access_token"]
+
+        async with self._http2_client.stream(
+            "GET",
+            f"{self._http2_site()}/v{HTTP2_DIRECTIVES_VERSION}/directives",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Accept": "multipart/related",
+                "Accept-Encoding": "gzip",
+            },
+        ) as response:
+            _LOGGER.debug(
+                "AVS Directives response status: %s [%s]",
+                response.status_code,
+                response.http_version,
+            )
+
+            if response.status_code in (
+                HTTPStatus.UNAUTHORIZED,
+                HTTPStatus.FORBIDDEN,
+            ):
+                raise CannotAuthenticate
+
+            boundary = _parse_boundary(response.headers.get("content-type", ""))
+            if boundary is None:
+                _LOGGER.warning("Missing multipart boundary")
+                return
+
+            buffer = bytearray()
+
+            async for chunk in response.aiter_bytes():
+                if self._stop_event.is_set():
+                    break
+
+                buffer.extend(chunk)
+
+                while True:
+                    idx = buffer.find(boundary)
+                    if idx == -1:
+                        break
+
+                    part = buffer[:idx]
+                    del buffer[: idx + len(boundary)]
+
+                    await self._handle_part(part.strip())
+
+        _LOGGER.debug("AVS Directives stream closed")
+
+    async def _handle_part(self, part: bytes) -> None:
+        """Process a single multipart section."""
+        if not part:
+            await self._ping()
+            return
+
+        chunk_json = self._extract_json_from_part(part)
+
+        try:
+            updates_node = chunk_json["directive"]["payload"]["renderingUpdates"][0]
+        except (KeyError, IndexError):
+            _LOGGER.warning("Malformed directive payload")
+            return
+
+        chunk_type = updates_node["resourceId"]
+        payload = updates_node.get("resourceMetadata", {}).get("payload", {})
+        device = payload.get("dopplerId", {}).get("deviceSerialNumber")
+
+        if chunk_type not in AmazonPushMessage._value2member_map_:
+            _LOGGER.warning(
+                "Unknown HTTP2 push message from device %s: %s",
+                device,
+                chunk_type,
+            )
+            return
+
+        # Skip duplicate NotificationChange pushes
+        if (
+            chunk_type == AmazonPushMessage.NotificationChange.value
+            and payload.get("notificationVersion", 2) % 2 == 0
+        ):
+            return
+
+        _LOGGER.debug(
+            "Detected push type <%s> on device <%s>",
+            chunk_type,
+            device,
+        )
+
+        task = asyncio.create_task(self.on_push_event.send(chunk_type, payload))
+        self._pending_push_tasks.add(task)
+        task.add_done_callback(self._pending_push_tasks.discard)
 
     def _string_recursive_parse(
         self, obj: dict[str, Any] | str | list[Any]
@@ -207,38 +246,36 @@ class AmazonHTTP2Client:
             return [self._string_recursive_parse(i) for i in obj]
 
         try:
-            parsed = orjson.loads(obj)
-            return self._string_recursive_parse(parsed)
+            return self._string_recursive_parse(orjson.loads(obj))
         except orjson.JSONDecodeError:
             return obj
 
-    async def _extract_json_from_chunk(self, chunk: str) -> dict[str, Any]:
-        """Extract JSON from chunk."""
-        # split header and body
-        body = chunk.split("\r\n\r\n", 1)[1]
+    def _extract_json_from_part(self, part: bytes) -> dict[str, Any]:
+        """Extract JSON using MIME parser."""
+        msg = BytesParser(policy=default).parsebytes(part + b"\r\n")
 
-        # remove potential boundary terminator
-        if "\r\n--------" in body:
-            body = body.split("\r\n--------", 1)[0]
+        if msg.get_content_type() != "application/json":
+            raise ValueError("Unexpected content-type")
 
-        # parse top-level JSON
-        top_level_json = orjson.loads(body)
+        body = msg.get_payload(decode=True)
+        if body is None:
+            raise ValueError("No payload")
 
-        # recursively parse strings inside JSON
-        json_chunk = self._string_recursive_parse(top_level_json)
-
-        return cast("dict[str,Any]", json_chunk)
+        parsed = orjson.loads(body)
+        return cast("dict[str, Any]", self._string_recursive_parse(parsed))
 
     async def _http2_init_client(self) -> None:
         """Create HTTP2 client session."""
-        if hasattr(self, "_http2_client"):
+        if hasattr(self, "_http2_client") and not self._http2_client.is_closed:
             await self._http2_client.aclose()
 
-        ssl_context = await self._build_ssl_context_async()
+        if self._ssl_context is None:
+            self._ssl_context = await asyncio.to_thread(create_default_context)
+
         self._http2_client = httpx.AsyncClient(
             http2=True,
             timeout=httpx.Timeout(None),
-            verify=ssl_context,
+            verify=self._ssl_context,
         )
         _LOGGER.debug("Initialized HTTP2 client")
 
@@ -276,6 +313,3 @@ class AmazonHTTP2Client:
             raise CannotAuthenticate(
                 "Detected ping 403, please check your credentials and region"
             )
-
-    async def _build_ssl_context_async(self) -> SSLContext:
-        return await asyncio.to_thread(create_default_context)
