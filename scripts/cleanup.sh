@@ -19,13 +19,6 @@ for file in .dmypy.json dmypy.json; do
     [ -f "$file" ] && rm -f "$file"
 done
 
-# ----- Virtual environments -----
-echo "Removing virtual environments..."
-deactivate 2>/dev/null || true
-for venv in .venv venv env ENV env.bak venv.bak; do
-    [ -d "$venv" ] && rm -rf "$venv"
-done
-
 # ----- Build artifacts -----
 echo "Removing build artifacts..."
 for build in .Python build develop-eggs dist downloads eggs .eggs lib lib64 parts sdist var wheels share/python-wheels target out site docs/_build *.egg-info *.egg; do
