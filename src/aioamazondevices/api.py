@@ -32,7 +32,7 @@ from .structures import (
     AmazonDevice,
     AmazonMediaControls,
     AmazonMediaState,
-    AmazonMusicSource,
+    AmazonMusicProvider,
     AmazonPushMessage,
     AmazonSequenceType,
     AmazonVolumeState,
@@ -133,6 +133,11 @@ class AmazonEchoApi:
         """Return login."""
         return self._login
 
+    @property
+    def music_providers(self) -> dict[str, AmazonMusicProvider] | None:
+        """Return music providers."""
+        return self._media_handler.music_providers
+
     async def get_devices_data(
         self,
     ) -> dict[str, AmazonDevice]:
@@ -145,6 +150,7 @@ class AmazonEchoApi:
             )
             # Request base device data
             await self._device_handler.get_base_devices()
+            await self._media_handler.update_music_providers()
             self._last_devices_refresh = datetime.now(UTC)
 
         # Only refresh endpoint data if we have no endpoints yet
@@ -231,11 +237,16 @@ class AmazonEchoApi:
         self,
         device: AmazonDevice,
         search_phrase: str,
-        music_source: AmazonMusicSource,
+        provider_id: str,
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
+        if self._media_handler.music_providers is None:
+            raise ValueError("Music providers have not been initialised.")
+        if not self._media_handler.music_providers.get(provider_id):
+            raise ValueError(f"{provider_id} is not available as a music provider")
+
         await self._sequence_handler.send_message(
-            device, AmazonSequenceType.Music, search_phrase, music_source
+            device, AmazonSequenceType.Music, search_phrase, provider_id
         )
 
     async def call_alexa_text_command(
@@ -293,6 +304,7 @@ class AmazonEchoApi:
         device: AmazonDevice,
         message_type: str,
         message_body: str,
+        music_provider_id: str | None = None,
     ) -> None:
         """Call Alexa command per cluster member."""
         for cluster_member in device.device_cluster_members:
@@ -300,6 +312,7 @@ class AmazonEchoApi:
                 self._device_handler.devices[cluster_member],
                 message_type,
                 message_body,
+                music_provider_id,
             )
 
     async def update_routines(self) -> None:
