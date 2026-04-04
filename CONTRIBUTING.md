@@ -46,10 +46,10 @@ Ready to contribute? Here's how to set yourself up for local development.
    $ git clone git@github.com:your_name_here/aioamazondevices.git
    ```
 
-3. Install the project dependencies with [Poetry](https://python-poetry.org):
+3. Install the project dependencies with [uv](https://docs.astral.sh/uv/):
 
    ```shell
-   $ poetry install
+   $ uv sync --group dev
    ```
 
 4. Create a branch for local development:
@@ -63,19 +63,21 @@ Ready to contribute? Here's how to set yourself up for local development.
 5. When you're done making changes, check that your changes pass our tests:
 
    ```shell
-   $ poetry run pytest
+   $ uv run pytest
    ```
 
-6. Linting is done through [pre-commit](https://pre-commit.com). Provided you have the tool installed globally, you can run them all as one-off:
+6. Linting is done through [prek](https://pypi.org/project/prek/). You can run them all as one-off:
 
    ```shell
-   $ pre-commit run -a
+   $ uv tool install prek
+   $ prek run --all-files
    ```
 
    Or better, install the hooks once and have them run automatically each time you commit:
 
    ```shell
-   $ pre-commit install
+   $ prek install
+   $ prek install --hook-type commit-msg
    ```
 
 7. Commit your changes and push your branch to GitHub:
@@ -86,7 +88,7 @@ Ready to contribute? Here's how to set yourself up for local development.
    $ git push origin name-of-your-bugfix-or-feature
    ```
 
-   Note: the commit message should follow [the conventional commits](https://www.conventionalcommits.org). We run [`commitlint` on CI](https://github.com/marketplace/actions/commit-linter) to validate it, and if you've installed pre-commit hooks at the previous step, the message will be checked at commit time.
+   Note: the commit message should follow [the conventional commits](https://www.conventionalcommits.org). We run [`commitlint` on CI](https://github.com/marketplace/actions/commit-linter) to validate it, and if you've installed prek hooks in the previous step, the message will be checked at commit time.
 
 8. Submit a pull request through the GitHub website or using the GitHub CLI (if you have it installed):
 

@@ -1,5 +1,33 @@
 # Changelog
 
+## v13.3.2 (2026-04-01)
+
+### Bug fixes
+
+- Hardcode data for fire tv cube (3rd generation) ([`dc75675`](https://github.com/chemelli74/aioamazondevices/commit/dc75675d90f3eefc15563eb1f44d8129a9197e33))
+
+
+### Refactoring
+
+- Sort devices by type ([`9a7754c`](https://github.com/chemelli74/aioamazondevices/commit/9a7754c845c00f8b47a2ac2f845511427cc77cfe))
+- Move graphql error parser to utils ([`d075e75`](https://github.com/chemelli74/aioamazondevices/commit/d075e75b07c38542ede6ad5f15e7daaca891bfc6))
+
+
+### Build system
+
+- Bump pygments from 2.19.2 to 2.20.0 ([`11ce004`](https://github.com/chemelli74/aioamazondevices/commit/11ce0047739e6a7f5d5f5dc0f57220d29ea2306b))
+- Bump aiohttp from 3.13.3 to 3.13.4 ([`327a56f`](https://github.com/chemelli74/aioamazondevices/commit/327a56f49e4ff05fe6870bf03e5a89a670a38348))
+- Bump anyio from 4.12.1 to 4.13.0 ([`5ef9eb8`](https://github.com/chemelli74/aioamazondevices/commit/5ef9eb842f229a288e8391b4b653dc152b1542d2))
+- Bump codecov/codecov-action from 5 to 6 ([`56c8453`](https://github.com/chemelli74/aioamazondevices/commit/56c8453c1c7eeba30f6a5280f339d829349f64ee))
+
+
+## v13.3.1 (2026-03-25)
+
+### Bug fixes
+
+- Old devices have no 'alexaenabledmetadata' ([`97309ee`](https://github.com/chemelli74/aioamazondevices/commit/97309eef3309048001d15e5298aff7759df6dbf4))
+
+
 ## v13.3.0 (2026-03-24)
 
 ### Features

@@ -4,12 +4,19 @@
 # Stop on errors
 set -e
 
-POETRY_VERSION="2.3.2" # renovate: depName=poetry datasource=pypi
+# Use copy mode for UV to avoid hardlink warnings on different filesystems
+export UV_LINK_MODE=copy
 
-poetry self update "$POETRY_VERSION"
-poetry env use python3
-poetry sync --with dev
-poetry run pre-commit install
-poetry run pre-commit install --hook-type commit-msg
-cd
+UV_VERSION="0.8.22" # renovate: depName=uv datasource=pypi
+
+if ! uv --version 2>/dev/null | grep -q "$UV_VERSION"; then
+    pipx install "uv==$UV_VERSION"
+fi
+if ! prek --version 2>/dev/null; then
+    uv tool install prek
+fi
+uv sync --frozen --group dev
+prek install --overwrite
+prek install --hook-type commit-msg --overwrite
+
 npm install @commitlint/config-conventional
