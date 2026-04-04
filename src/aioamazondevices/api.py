@@ -24,6 +24,7 @@ from .const.metadata import (
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
+from .implementation.http2 import AmazonHTTP2Client
 from .implementation.notification import AmazonNotificationHandler
 from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
@@ -32,6 +33,7 @@ from .structures import (
     AmazonMediaControls,
     AmazonMediaState,
     AmazonMusicSource,
+    AmazonPushMessage,
     AmazonSequenceType,
     AmazonVolumeState,
 )
@@ -95,7 +97,13 @@ class AmazonEchoApi:
         )
 
         self._dnd_handler = AmazonDnDHandler(
-            http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
+        self._http2_client = AmazonHTTP2Client(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
         )
 
         self._media_handler = AmazonMediaHandler(
@@ -111,6 +119,9 @@ class AmazonEchoApi:
 
         self._volume_states: dict[str, AmazonVolumeState] = {}
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
+
+        self._http2_client.on_push_event.append(self._http2_push_event_handler)
+        self._http2_client.on_push_event.freeze()
 
     @property
     def domain(self) -> str:
@@ -161,6 +172,30 @@ class AmazonEchoApi:
         )
 
         return self._device_handler.devices
+
+    async def start_http2_thread(self) -> None:
+        """Start HTTP2 background thread."""
+        await self._http2_client.start_thread()
+
+    async def stop_http2_thread(self) -> None:
+        """Stop HTTP2 background thread."""
+        await self._http2_client.stop_thread()
+
+    async def _http2_push_event_handler(
+        self, event_type: str, payload: dict[str, Any]
+    ) -> None:
+        _LOGGER.debug("Event - %s : Payload - %s", event_type, payload)
+        if event_type == AmazonPushMessage.VolumeChange.value:
+            serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
+            if serial:
+                self._volume_states[serial] = AmazonVolumeState(
+                    payload.get("volumeSetting"), bool(payload.get("isMuted"))
+                )
+            await self._emit_volume_state_event()
+            return
+        if event_type == AmazonPushMessage.AudioPlayerState.value:
+            await self.sync_media_state()
+            return
 
     async def call_alexa_speak(
         self,
@@ -311,8 +346,10 @@ class AmazonEchoApi:
 
     async def _emit_media_state_event(self) -> None:
         """Emit media state data to subscribers."""
-        await self.on_media_state_event.send(self._media_states)
+        if self.on_media_state_event.frozen:
+            await self.on_media_state_event.send(self._media_states)
 
     async def _emit_volume_state_event(self) -> None:
         """Emit volume event to subscribers."""
-        await self.on_volume_state_event.send(self._volume_states)
+        if self.on_volume_state_event.frozen:
+            await self.on_volume_state_event.send(self._volume_states)

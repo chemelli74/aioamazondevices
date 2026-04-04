@@ -33,6 +33,7 @@ REQUEST_AGENT = {
 REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
 REFRESH_AUTH_COOKIES = "auth_cookies"
 
+URI_CAPABILITIES = "/v1/devices/@self/capabilities"
 URI_DEVICE_VOLUMES = "/api/devices/deviceType/dsn/audio/v1/allDeviceVolumes"
 URI_DEVICES = "/api/devices-v2/device"
 URI_DND_STATUS_ALL = "/api/dnd/device-status-list"
@@ -42,3 +43,7 @@ URI_MEDIA_STATE = "/api/np/list-media-sessions"
 URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 URI_NOTIFICATIONS = "/api/notifications"
 URI_SIGNIN = "/ap/signin"
+
+HTTP2_SITE = "https://alexa.{region}.gateway.devices.a2z.com"
+HTTP2_DIRECTIVES_VERSION = "20160207"
+HTTP2_RECONNECT_DELAY = 5  # seconds
