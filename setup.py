@@ -1,6 +1,7 @@
 """Setup module for aioamazondevices."""
 
-# This is a shim to allow GitHub to detect the package, build is done with poetry
+# This is a shim to allow GitHub to detect the package
+# Build metadata is in pyproject.toml
 # Taken from https://github.com/Textualize/rich
 
 import setuptools
