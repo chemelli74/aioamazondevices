@@ -21,7 +21,7 @@ done
 
 # ----- Build artifacts -----
 echo "Removing build artifacts..."
-for build in .Python build develop-eggs dist downloads eggs .eggs lib lib64 parts sdist var wheels share/python-wheels target out site docs/_build *.egg-info *.egg; do
+for build in .Python build develop-eggs dist downloads eggs .eggs lib lib64 parts sdist var wheels share/python-wheels target out site docs/_build *.egg; do
     [ -e "$build" ] && rm -rf "$build"
 done
 
@@ -30,6 +30,7 @@ for file in .installed.cfg MANIFEST; do
 done
 
 find . -type f \( -name '*.so' -o -name '*.manifest' -o -name '*.spec' \) -delete
+find . -type d -name "*.egg-info" -exec rm -rf {} +
 
 # ----- IDE / project folders -----
 echo "Removing IDE folders..."
@@ -57,11 +58,22 @@ for runtime_dir in instance .webassets-cache .scrapy; do
     [ -d "$runtime_dir" ] && rm -rf "$runtime_dir"
 done
 
-for runtime_file in celerybeat-schedule celerybeat.pid db.sqlite3 db.sqlite3-journal pip-log.txt pip-delete-this-directory.txt local_settings.py .env; do
+for runtime_file in celerybeat-schedule celerybeat.pid db.sqlite3 db.sqlite3-journal pip-log.txt pip-delete-this-directory.txt; do
     [ -e "$runtime_file" ] && rm -rf "$runtime_file"
 done
 
 find . -type f \( -name '*.mo' -o -name '*.pot' -o -name '*.log' \) -delete
+
+# ----- Local config files -----
+if [ -f .env ] || [ -f local_settings.py ]; then
+    echo ""
+    read -p "Do you want to purge local config files (.env, local_settings.py)? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo "Removing local config files..."
+        rm -f .env local_settings.py
+    fi
+fi
 
 # ----- Node.js -----
 echo "Removing Node.js..."
