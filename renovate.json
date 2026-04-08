@@ -59,7 +59,7 @@
       "customType": "regex",
       "fileMatch": ["(^|/)pyproject\\.toml$"],
       "matchStrings": [
-        "build_command\\s*=\\s*\"python -m pip install \\\"uv==(?<currentValue>[^\"]+)\\\" && uv build\""
+        "build_command\\s*=\\s*\"python -m pip install \\\\\\\"uv==(?<currentValue>[^\\\\\"]+)\\\\\\\" && uv build\""
       ],
       "depNameTemplate": "uv",
       "datasourceTemplate": "pypi"
