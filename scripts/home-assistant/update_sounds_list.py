@@ -9,10 +9,11 @@ import orjson
 
 # URL of the JSON file: https://alexa.amazon.it/api/behaviors/entities?skillId=amzn1.ask.1p.sound
 # need authentication in order to be downloaded
-local_json_filename = "scripts/downloaded_sounds_list.json"
-destination_python_filename = "src/aioamazondevices/sounds.py"
-destination_strings_filename = "scripts/ha/sounds_strings.json"
-destination_services_filename = "scripts/ha/sounds_services.yaml"
+folder_path = Path(__file__).parent
+local_json_filename = folder_path / "downloaded_sounds_list.json"
+destination_python_filename = folder_path / "../../src/aioamazondevices/sounds.py"
+destination_strings_filename = folder_path / "sounds_strings.json"
+destination_services_filename = folder_path / "sounds_services.yaml"
 
 _LOADED_DATA_TYPE = list[dict[str, Any]]
 _PROCESSED_DATA_TYPE = dict[str, str]
