@@ -43,6 +43,7 @@ DEVICE_TYPES_TO_IGNORE: list[str] = [
     "A1X5IB2CRN3E8G",  # Fitbit Versa 3 - issue #651
     "A21Z3CGI8UIP0F",  # Denon AVR-X1600H - issue #253
     "A23ZD3FSVQM5EE",  # Sony headset WH-1000XM2 - issue #326
+    "A28X5U5THTXXM1",  # Jabra Elite 85t - issue #670
     "A2IJJ9QXVOSYK0",  # JBL TUNE770NC - issue #391
     "A2M9HB23M9MSSM",  # Smartwatch Amazfit Bip U Pro - issue #507
     "A2QDHDQIWC2LTG",  # Echo Buds (Left) - issue #515
