@@ -7,6 +7,7 @@ SPEAKER_GROUP_FAMILY = "WHA"
 DEVICE_TYPE_AQM = "AEZME1X38KDRA"
 DEVICE_TYPE_CUBE_GEN3 = "A2JKHJ0PX4J3L3"
 DEVICE_TYPE_SPEAKER_GROUP = "A3C9PE6TNYLTCH"
+DEVICE_TYPE_STEREO_PAIR = "AP1F6KUH00XPV"
 
 DEVICE_TYPES_HARDCODED_METADATA: dict[str, dict[str, str]] = {
     DEVICE_TYPE_AQM: {
@@ -19,6 +20,10 @@ DEVICE_TYPES_HARDCODED_METADATA: dict[str, dict[str, str]] = {
     },
     DEVICE_TYPE_SPEAKER_GROUP: {
         "model": "Speaker Group",
+        "manufacturer": "Amazon",
+    },
+    DEVICE_TYPE_STEREO_PAIR: {
+        "model": "Stereo Pair",
         "manufacturer": "Amazon",
     },
 }
