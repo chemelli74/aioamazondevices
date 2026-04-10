@@ -34,6 +34,7 @@ DEVICE_TYPES_TO_IGNORE: list[str] = [
     "A14AIWB3T3AS1Z",  # Samsung Soundbar HW-Q950A - issue #603
     "A15ERDAKK5HQQG",  # unsupported Sonos devices - issue #257
     "A18BI6KPKDOEI4",  # ecobee4 Smart Thermostat with Built-in Alexa - issue #199
+    "A189LTZOO5ZTGA",  # Sony headset WH-1000XM5 - issue #664
     "A1L4KDRIILU6N9",  # Sony headset WH-CH700N - issue #345
     "A1NPP2J03FTS0I",  # Eero Pro 6 - issue #602
     "A1NQ0LXWBGVQS9",  # Samsung 2012 QLED TV - issue #660
