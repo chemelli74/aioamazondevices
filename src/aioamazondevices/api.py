@@ -123,9 +123,9 @@ class AmazonEchoApi:
         return self._login
 
     @property
-    def music_providers(self) -> dict[str, AmazonMusicProvider] | None:
+    async def music_providers(self) -> dict[str, AmazonMusicProvider]:
         """Return music providers."""
-        return self._media_handler.music_providers
+        return await self._media_handler.music_providers
 
     async def _refresh_basic_data(self) -> None:
         """Refresh base data if interval has passed."""
@@ -213,9 +213,7 @@ class AmazonEchoApi:
         provider_id: str,
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
-        if self._media_handler.music_providers is None:
-            raise ValueError("Music providers have not been initialised.")
-        if not self._media_handler.music_providers.get(provider_id):
+        if not (await self._media_handler.music_providers).get(provider_id):
             raise ValueError(f"{provider_id} is not available as a music provider")
 
         await self._sequence_handler.send_message(

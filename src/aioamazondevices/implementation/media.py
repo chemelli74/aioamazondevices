@@ -33,11 +33,13 @@ class AmazonMediaHandler:
         """Initialize AmazonMediaHandler class."""
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
-        self._music_providers: dict[str, AmazonMusicProvider] | None = None
+        self._music_providers: dict[str, AmazonMusicProvider]
 
     @property
-    def music_providers(self) -> dict[str, AmazonMusicProvider] | None:
+    async def music_providers(self) -> dict[str, AmazonMusicProvider]:
         """Return music providers."""
+        if not self._music_providers:
+            await self.update_music_providers()
         return self._music_providers
 
     async def get_device_volumes(self) -> dict[str, AmazonVolumeState]:
