@@ -5,15 +5,21 @@ from http import HTTPMethod
 from typing import Any
 
 from aioamazondevices.const.http import (
+    ARRAY_WRAPPER,
+    HTTP_CONTENT_TYPE_STREAM,
     URI_DEVICE_VOLUMES,
     URI_MEDIA_STATE,
+    URI_MUSIC_PROVIDERS,
 )
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import (
     AmazonDevice,
     AmazonMediaState,
+    AmazonMusicProvider,
+    AmazonSequenceType,
     AmazonVolumeState,
 )
+from aioamazondevices.utils import _LOGGER
 
 
 class AmazonMediaHandler:
@@ -28,6 +34,14 @@ class AmazonMediaHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
         self._device_volumes: dict[str, AmazonVolumeState] = {}
+        self._music_providers: dict[str, AmazonMusicProvider]
+
+    @property
+    async def music_providers(self) -> dict[str, AmazonMusicProvider]:
+        """Return music providers."""
+        if not self._music_providers:
+            await self.update_music_providers()
+        return self._music_providers
 
     async def get_device_volumes(self) -> dict[str, AmazonVolumeState]:
         """Get all device volumes."""
@@ -145,3 +159,30 @@ class AmazonMediaHandler:
             )
 
         return media_states
+
+    async def update_music_providers(self) -> None:
+        """Update availables music providers."""
+        url = f"https://alexa.amazon.{self._session_state_data.domain}{URI_MUSIC_PROVIDERS}"
+        _, resp = await self._http_wrapper.session_request(
+            method=HTTPMethod.GET, url=url
+        )
+        provider_json = await self._http_wrapper.response_to_json(
+            resp, "music providers", content_type=HTTP_CONTENT_TYPE_STREAM
+        )
+        _LOGGER.debug(
+            "Music providers data received: %s",
+            provider_json,
+        )
+        self._music_providers = {
+            provider["id"]: AmazonMusicProvider(
+                provider_id=provider["id"],
+                provider_name=provider["displayName"],
+                availability=provider["availability"],
+                default_provider=provider["providerData"].get("isDefaultMusicProvider"),
+            )
+            for provider in provider_json[ARRAY_WRAPPER]
+            if AmazonSequenceType.Music in provider["supportedProperties"]
+            and provider.get("id")
+            and provider["displayName"]
+            and provider["availability"] == "AVAILABLE"
+        }

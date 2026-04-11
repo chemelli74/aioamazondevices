@@ -25,7 +25,7 @@ repos:
           - --fix
       - id: ruff-format
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.13.9
+    rev: v4.13.10
     hooks:
       - id: commitizen
         stages: [commit-msg]
@@ -35,7 +35,7 @@ repos:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.8.1
+    rev: v3.8.2
     hooks:
       - id: prettier
         args: ["--tab-width", "2"]
