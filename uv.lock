@@ -9,7 +9,6 @@ source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
     { name = "beautifulsoup4" },
-    { name = "colorlog" },
     { name = "langcodes" },
     { name = "orjson" },
     { name = "python-dateutil" },
@@ -18,6 +17,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "anyio" },
+    { name = "colorlog" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "types-python-dateutil" },
@@ -27,7 +27,6 @@ dev = [
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.12.7" },
     { name = "beautifulsoup4" },
-    { name = "colorlog" },
     { name = "langcodes" },
     { name = "orjson", specifier = ">=3.10,<4" },
     { name = "python-dateutil" },
@@ -36,6 +35,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "anyio", specifier = ">=4" },
+    { name = "colorlog" },
     { name = "pytest", specifier = ">=9.0,<10" },
     { name = "pytest-cov", specifier = ">=5,<8" },
     { name = "types-python-dateutil", specifier = ">=2.9.0.20260323,<3" },
