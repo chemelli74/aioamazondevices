@@ -7,6 +7,7 @@ SPEAKER_GROUP_FAMILY = "WHA"
 DEVICE_TYPE_AQM = "AEZME1X38KDRA"
 DEVICE_TYPE_CUBE_GEN3 = "A2JKHJ0PX4J3L3"
 DEVICE_TYPE_SPEAKER_GROUP = "A3C9PE6TNYLTCH"
+DEVICE_TYPE_STEREO_PAIR = "AP1F6KUH00XPV"
 
 DEVICE_TYPES_HARDCODED_METADATA: dict[str, dict[str, str]] = {
     DEVICE_TYPE_AQM: {
@@ -21,6 +22,10 @@ DEVICE_TYPES_HARDCODED_METADATA: dict[str, dict[str, str]] = {
         "model": "Speaker Group",
         "manufacturer": "Amazon",
     },
+    DEVICE_TYPE_STEREO_PAIR: {
+        "model": "Stereo Pair",
+        "manufacturer": "Amazon",
+    },
 }
 
 DEVICE_TYPES_TO_IGNORE: list[str] = [
@@ -29,6 +34,7 @@ DEVICE_TYPES_TO_IGNORE: list[str] = [
     "A14AIWB3T3AS1Z",  # Samsung Soundbar HW-Q950A - issue #603
     "A15ERDAKK5HQQG",  # unsupported Sonos devices - issue #257
     "A18BI6KPKDOEI4",  # ecobee4 Smart Thermostat with Built-in Alexa - issue #199
+    "A189LTZOO5ZTGA",  # Sony headset WH-1000XM5 - issue #664
     "A1L4KDRIILU6N9",  # Sony headset WH-CH700N - issue #345
     "A1NPP2J03FTS0I",  # Eero Pro 6 - issue #602
     "A1NQ0LXWBGVQS9",  # Samsung 2012 QLED TV - issue #660
@@ -37,6 +43,7 @@ DEVICE_TYPES_TO_IGNORE: list[str] = [
     "A1X5IB2CRN3E8G",  # Fitbit Versa 3 - issue #651
     "A21Z3CGI8UIP0F",  # Denon AVR-X1600H - issue #253
     "A23ZD3FSVQM5EE",  # Sony headset WH-1000XM2 - issue #326
+    "A28X5U5THTXXM1",  # Jabra Elite 85t - issue #670
     "A2IJJ9QXVOSYK0",  # JBL TUNE770NC - issue #391
     "A2M9HB23M9MSSM",  # Smartwatch Amazfit Bip U Pro - issue #507
     "A2QDHDQIWC2LTG",  # Echo Buds (Left) - issue #515

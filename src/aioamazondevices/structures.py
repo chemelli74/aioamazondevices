@@ -19,6 +19,16 @@ class AmazonDeviceSensor:
 
 
 @dataclass
+class AmazonMusicProvider:
+    """Music Provider class."""
+
+    provider_id: str
+    provider_name: str
+    availability: str
+    default_provider: bool
+
+
+@dataclass
 class AmazonSchedule:
     """Amazon schedule class."""
 
@@ -65,13 +75,6 @@ class AmazonSequenceType(StrEnum):
     Volume = "Alexa.DeviceControls.Volume"
     Stop = "Alexa.DeviceControls.Stop"
     Routines = "Pseudo.Type.Routines"
-
-
-class AmazonMusicSource(StrEnum):
-    """Amazon music sources."""
-
-    Radio = "TUNEIN"
-    AmazonMusic = "AMAZON_MUSIC"
 
 
 class AmazonMediaControls(StrEnum):
@@ -150,6 +153,6 @@ class AmazonSequenceNode:
 
     message_type: str
     message_body: str | float | None
-    message_source: AmazonMusicSource | None
+    music_provider_id: str | None
     device: AmazonDevice
     operation_node: dict[str, Any]

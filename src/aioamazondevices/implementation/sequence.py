@@ -14,7 +14,6 @@ from aioamazondevices.exceptions import CannotConnect
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import (
     AmazonDevice,
-    AmazonMusicSource,
     AmazonSequenceNode,
     AmazonSequenceType,
 )
@@ -96,11 +95,11 @@ class AmazonSequenceHandler:
 
         """
         # list will be in the order nodes were added
-        # group by message type, body and source to find similar operations
+        # group by message type, body and music provider id to find similar operations
         # then wrap in parallel node if for different devices
         for _, group_iter in groupby(
             sequences,
-            key=lambda x: (x.message_type, x.message_body, x.message_source),
+            key=lambda x: (x.message_type, x.message_body, x.music_provider_id),
         ):
             group = list(group_iter)
             if len(group) > 1 and len(
@@ -118,7 +117,7 @@ class AmazonSequenceHandler:
         device: AmazonDevice,
         message_type: str,
         message_body: str | float | None = None,
-        message_source: AmazonMusicSource | None = None,
+        music_provider_id: str | None = None,
     ) -> dict[str, Any]:
         """Build operation node JSON payload for message."""
         if not self._session_state_data.login_stored_data:
@@ -196,7 +195,7 @@ class AmazonSequenceHandler:
                 **base_payload,
                 "searchPhrase": message_body,
                 "sanitizedSearchPhrase": message_body,
-                "musicProviderId": message_source,
+                "musicProviderId": music_provider_id,
             }
         elif message_type == AmazonSequenceType.TextCommand:
             payload = {
@@ -246,17 +245,17 @@ class AmazonSequenceHandler:
         device: AmazonDevice,
         message_type: str,
         message_body: str | float | None = None,
-        message_source: AmazonMusicSource | None = None,
+        music_provider_id: str | None = None,
     ) -> None:
         """Parse and enqueue message to specific device."""
         node = self._build_operation_node(
-            device, message_type, message_body, message_source
+            device, message_type, message_body, music_provider_id
         )
         await self._enqueue_sequence(
             AmazonSequenceNode(
                 message_type=message_type,
                 message_body=message_body,
-                message_source=message_source,
+                music_provider_id=music_provider_id,
                 device=device,
                 operation_node=node,
             )
