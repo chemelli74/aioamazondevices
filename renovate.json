@@ -1,5 +1,9 @@
 {
   "extends": ["github>browniebroke/renovate-configs:python"],
+  "dependencyDashboardApproval": false,
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0,
+  "branchConcurrentLimit": 0,
   "customManagers": [
     {
       "customType": "regex",
@@ -13,9 +17,49 @@
     },
     {
       "customType": "regex",
+      "fileMatch": ["(^|/)\\.github/workflows/ci\\.yml$"],
+      "matchStrings": [
+        "(?<indentation>[ \\t]*)-\\s*\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=python\\s+datasource=python-version"
+      ],
+      "depNameTemplate": "python",
+      "datasourceTemplate": "python-version",
+      "autoReplaceStringTemplate": "{{{indentation}}}- \"{{{newValue}}}\" # renovate: depName=python datasource=python-version"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["(^|/)\\.github/workflows/ci\\.yml$"],
+      "matchStrings": [
+        "(?<indentation>[ \\t]*)python-version:\\s*\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=python\\s+datasource=python-version"
+      ],
+      "depNameTemplate": "python",
+      "datasourceTemplate": "python-version",
+      "autoReplaceStringTemplate": "{{{indentation}}}python-version: \"{{{newValue}}}\" # renovate: depName=python datasource=python-version"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["(^|/)\\.devcontainer/devcontainer\\.json$"],
+      "matchStrings": [
+        "\"image\":\\s*\"mcr\\.microsoft\\.com/devcontainers/python:(?<prefix>[^-]+)-(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "python",
+      "datasourceTemplate": "python-version",
+      "autoReplaceStringTemplate": "\"image\": \"mcr.microsoft.com/devcontainers/python:1-{{{newValue}}}\""
+    },
+    {
+      "customType": "regex",
       "fileMatch": ["(^|/)pyproject\\.toml$"],
       "matchStrings": [
-        "build_command\\s*=\\s*\"pipx install \\\"uv==(?<currentValue>[^\"]+)\\\" && uv build\""
+        "\"Programming Language :: Python :: (?<currentValue>[^\"]+)\",\\s*#\\s+renovate:\\s+depName=python\\s+datasource=python-version"
+      ],
+      "depNameTemplate": "python",
+      "datasourceTemplate": "python-version",
+      "autoReplaceStringTemplate": "\"Programming Language :: Python :: {{{newValue}}}\", # renovate: depName=python datasource=python-version"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["(^|/)pyproject\\.toml$"],
+      "matchStrings": [
+        "build_command\\s*=\\s*\"python -m pip install \\\\\\\"uv==(?<currentValue>[^\\\\\"]+)\\\\\\\" && uv build\""
       ],
       "depNameTemplate": "uv",
       "datasourceTemplate": "pypi"

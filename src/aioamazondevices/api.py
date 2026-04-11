@@ -111,7 +111,7 @@ class AmazonEchoApi:
         )
 
         initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
-        self._last_devices_refresh: datetime = initial_time
+        self._last_daily_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
 
         self._media_states: dict[str, AmazonMediaState] = {}
@@ -133,19 +133,20 @@ class AmazonEchoApi:
         """Return login."""
         return self._login
 
-    async def get_devices_data(
-        self,
-    ) -> dict[str, AmazonDevice]:
-        """Get Amazon devices data."""
-        delta_devices = datetime.now(UTC) - self._last_devices_refresh
-        if delta_devices >= timedelta(days=1):
+    async def _refresh_basic_data(self) -> None:
+        """Refresh base data if interval has passed."""
+        delta_daily = datetime.now(UTC) - self._last_daily_refresh
+        if delta_daily >= timedelta(days=1):
             _LOGGER.debug(
                 "Refreshing devices data after %s",
-                str(timedelta(minutes=round(delta_devices.total_seconds() / 60))),
+                str(timedelta(minutes=round(delta_daily.total_seconds() / 60))),
             )
             # Request base device data
             await self._device_handler.get_base_devices()
-            self._last_devices_refresh = datetime.now(UTC)
+            # Request routine data
+            await self._sequence_handler.update_routines()
+
+            self._last_daily_refresh = datetime.now(UTC)
 
         # Only refresh endpoint data if we have no endpoints yet
         delta_endpoints = datetime.now(UTC) - self._last_endpoint_refresh
@@ -161,6 +162,13 @@ class AmazonEchoApi:
             # Set device endpoint data
             await self._device_handler.set_device_endpoints_data()
             self._last_endpoint_refresh = datetime.now(UTC)
+
+    async def get_devices_data(
+        self,
+    ) -> dict[str, AmazonDevice]:
+        """Get Amazon devices data."""
+        # Perform a refresh to ensure your data is as up-to-date as possible.
+        await self._refresh_basic_data()
 
         dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
         notifications = await self._notification_handler.get_notifications()
