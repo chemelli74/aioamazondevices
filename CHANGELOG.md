@@ -1,5 +1,32 @@
 # Changelog
 
+## v13.4.0 (2026-04-11)
+
+### Features
+
+- Get supported music providers ([`e4565ed`](https://github.com/chemelli74/aioamazondevices/commit/e4565ed75a305ef8efc12cbd5d1e31719da3d1ee))
+
+
+### Refactoring
+
+- Internal method to clarify refresh job ([`f77d4da`](https://github.com/chemelli74/aioamazondevices/commit/f77d4da4f32c750a580411c31cb92b61dfd00f7e))
+- Device and sensor implementation ([`93434e5`](https://github.com/chemelli74/aioamazondevices/commit/93434e5e8187b1613fe48fd752984e1ab8125f4c))
+
+
+### Build system
+
+- Allow uv updated in pyproject.toml ([`b7ea4cb`](https://github.com/chemelli74/aioamazondevices/commit/b7ea4cbb7d122ea8c39c7227ef66819f5e131672))
+- Improve environment ([`221a16e`](https://github.com/chemelli74/aioamazondevices/commit/221a16e8e6c512bf788162ae13279b99d50c64fb))
+- Improved scripts ([`745f60e`](https://github.com/chemelli74/aioamazondevices/commit/745f60ea7e0c2099b3d2cc96ee960920864ff7e7))
+- Switch from pre-commit to prek ([`1b9cd13`](https://github.com/chemelli74/aioamazondevices/commit/1b9cd13e876d2348e934c55122e10e2d7d67160e))
+- Switch from poetry to uv ([`0aa2050`](https://github.com/chemelli74/aioamazondevices/commit/0aa20504881ea2acde45dce48cde2516bf564e18))
+
+
+### Documentation
+
+- Fix python badge ([`08621e6`](https://github.com/chemelli74/aioamazondevices/commit/08621e6b43de6678779e5de7b791584f75a5b9b4))
+
+
 ## v13.3.2 (2026-04-01)
 
 ### Bug fixes
