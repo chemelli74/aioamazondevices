@@ -360,7 +360,7 @@ async def tests(
     if args.tests.get("06_test_music", True):
         print("Available music providers:")
         _default_music_provider = AmazonMusicProvider("None", "None", "None", False)
-        _providers = api.music_providers or {}
+        _providers = await api.music_providers or {}
         for provider in _providers.values():
             if provider.default_provider:
                 _default_music_provider = provider
