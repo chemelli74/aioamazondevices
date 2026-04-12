@@ -48,7 +48,12 @@ version_variables = [
     "src/aioamazondevices/__init__.py:__version__",
 ]
 # Keep this version in sync with scripts/setup.sh and .github/workflows/ci.yml.
-build_command = "python -m pip install \"uv==0.11.6\" && uv build"
+build_command = """
+    python -m pip install \"uv==0.11.6\"
+    uv lock --upgrade-package "$PACKAGE_NAME"
+    git add uv.lock
+    uv build
+"""
 
 [tool.semantic_release.changelog]
 exclude_commit_patterns = [
