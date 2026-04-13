@@ -425,9 +425,9 @@ async def tests(
         if not args.routine_name:
             print("No routine name provided, skipping routine test")
             return
-        # Update routines list before running one
-        await api.update_routines()
-        await api.call_routine(device_single, args.routine_name)
+        # Note: Routine name must be exact, otherwise it will not be found and executed
+        print(f"Executing routine '{args.routine_name}'")
+        await api.call_routine(args.routine_name)
 
 
 def set_logging() -> None:
