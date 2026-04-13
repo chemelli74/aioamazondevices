@@ -28,6 +28,11 @@ class AmazonSequenceHandler:
         self._session_state_data = session_state_data
         self._routines: dict[str, Any] = {}
 
+    @property
+    def routines(self) -> list[str]:
+        """Return routines."""
+        return list(self._routines.keys())
+
     async def send_message(
         self,
         device: AmazonDevice,
