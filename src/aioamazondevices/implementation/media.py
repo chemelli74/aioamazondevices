@@ -33,6 +33,7 @@ class AmazonMediaHandler:
         """Initialize AmazonMediaHandler class."""
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
+        self._device_volumes: dict[str, AmazonVolumeState] = {}
         self._music_providers: dict[str, AmazonMusicProvider]
 
     @property
@@ -49,17 +50,40 @@ class AmazonMediaHandler:
             url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICE_VOLUMES}",
         )
 
-        _volumes: dict[str, AmazonVolumeState] = {}
-
         json_data = await self._http_wrapper.response_to_json(
             raw_resp, "device volumes"
         )
         for device_volume_data in json_data.get("volumes", []):
-            _volumes[device_volume_data["dsn"]] = AmazonVolumeState(
+            self._device_volumes[device_volume_data["dsn"]] = AmazonVolumeState(
                 device_volume_data["speakerVolume"], device_volume_data["speakerMuted"]
             )
 
-        return _volumes
+        return self._device_volumes
+
+    async def set_device_volume(self, device: AmazonDevice, volume: int) -> None:
+        """Set device volume."""
+        if not self._device_volumes:
+            await self.get_device_volumes()
+        dev_volume = self._device_volumes.get(device.serial_number)
+        if not dev_volume:
+            raise ValueError(
+                f"Device <{device.serial_number}> not found in device volumes"
+            )
+        diff = volume - (dev_volume.volume or 0)
+        payload = {
+            "dsn": device.serial_number,
+            "deviceType": device.device_type,
+            "amount": diff,
+            "volume": volume,
+            "muted": True,
+            "synchronous": True,
+        }
+        await self._http_wrapper.session_request(
+            method=HTTPMethod.PUT,
+            url=f"https://alexa.amazon.{self._session_state_data.domain}/api/devices/{device.device_type}/{device.serial_number}/audio/v2/speakerVolume",
+            input_data=payload,
+            json_data=True,
+        )
 
     async def _get_media_states(self, device: AmazonDevice) -> dict[str, Any]:
         """Get media state for devices.
