@@ -120,6 +120,8 @@ class AmazonEchoApi:
         self._volume_states: dict[str, AmazonVolumeState] = {}
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
 
+        self.on_eq_state_event = Signal[str](self)
+
         self._http2_client.on_push_event.append(self._http2_push_event_handler)
         self._http2_client.on_push_event.freeze()
 
@@ -214,6 +216,11 @@ class AmazonEchoApi:
             return
         if event_type == AmazonPushMessage.AudioPlayerState.value:
             await self.sync_media_state()
+            return
+        if event_type == AmazonPushMessage.EqualizerStateChange.value:
+            serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
+            if serial:
+                await self._emit_eq_state_event(serial)
             return
 
     async def call_alexa_speak(
@@ -376,3 +383,8 @@ class AmazonEchoApi:
         """Emit volume event to subscribers."""
         if self.on_volume_state_event.frozen:
             await self.on_volume_state_event.send(self._volume_states)
+
+    async def _emit_eq_state_event(self, serial_num: str) -> None:
+        """Emit EQ event to subscribers."""
+        if self.on_eq_state_event.frozen:
+            await self.on_eq_state_event.send(serial_num)
