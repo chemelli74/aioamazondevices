@@ -35,6 +35,14 @@ class AmazonDeviceHandler:
         return self._final_devices
 
     @property
+    def default_device(self) -> AmazonDevice:
+        """Return the default device."""
+        for device in self._final_devices.values():
+            if device.online:
+                return device
+        raise ValueError("No online devices found")
+
+    @property
     def endpoints(self) -> dict[str, str]:
         """Return the endpoints mapping."""
         return self._endpoints
