@@ -1,5 +1,12 @@
 # Changelog
 
+## v13.4.2 (2026-04-14)
+
+### Bug fixes
+
+- Batch sequence operations ([`8daa1c7`](https://github.com/chemelli74/aioamazondevices/commit/8daa1c745913756e5b4ee7d96182c2b80f574ede))
+
+
 ## v13.4.1 (2026-04-13)
 
 ### Bug fixes
