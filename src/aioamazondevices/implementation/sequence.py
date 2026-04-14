@@ -50,6 +50,11 @@ class AmazonSequenceHandler:
         self._batch_pending = False
         self._tasks: set[asyncio.Task[None]] = set()
 
+    @property
+    def routines(self) -> list[str]:
+        """Return routines."""
+        return list(self._routines.keys())
+
     async def _post_sequences(self, sequences: list[AmazonSequenceNode]) -> None:
         """Send batched sequence operations to Amazon API.
 
