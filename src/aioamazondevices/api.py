@@ -123,6 +123,11 @@ class AmazonEchoApi:
         return self._login
 
     @property
+    def routines(self) -> list[str]:
+        """Return routines."""
+        return self._sequence_handler.routines
+
+    @property
     async def music_providers(self) -> dict[str, AmazonMusicProvider]:
         """Return music providers."""
         return await self._media_handler.music_providers
@@ -252,12 +257,13 @@ class AmazonEchoApi:
 
     async def call_routine(
         self,
-        device: AmazonDevice,
         routine_name: str,
     ) -> None:
         """Call routine."""
+        # Routines are not device specific
+        # but a device is needed to call them anyway.
         await self._call_alexa_command_per_cluster_member(
-            device,
+            self._device_handler.default_device,
             AmazonSequenceType.Routines,
             routine_name,
         )
