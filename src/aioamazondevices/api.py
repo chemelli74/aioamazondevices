@@ -307,9 +307,7 @@ class AmazonEchoApi:
         """Set device volume."""
         if not (VOLUME_MIN <= volume <= VOLUME_MAX):
             raise ValueError(f"Volume must be between {VOLUME_MIN} and {VOLUME_MAX}")
-        await self._call_alexa_command_per_cluster_member(
-            device, AmazonSequenceType.Volume, str(volume)
-        )
+        await self._media_handler.set_device_volume(device, volume)
 
     async def _call_alexa_command_per_cluster_member(
         self,
