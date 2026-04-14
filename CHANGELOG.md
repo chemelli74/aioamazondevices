@@ -1,5 +1,12 @@
 # Changelog
 
+## v13.4.1 (2026-04-13)
+
+### Bug fixes
+
+- Improve routine management ([`291b4ca`](https://github.com/chemelli74/aioamazondevices/commit/291b4ca171d925db36b5a58ee977dc0b358e397d))
+
+
 ## v13.4.0 (2026-04-11)
 
 ### Features

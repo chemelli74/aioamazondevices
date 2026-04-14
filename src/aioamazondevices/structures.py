@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
+from typing import Any
 
 
 @dataclass
@@ -144,3 +145,14 @@ class AmazonPushMessage(StrEnum):
 
     # Lists
     ItemChange = "PUSH_LIST_ITEM_CHANGE"
+
+
+@dataclass
+class AmazonSequenceNode:
+    """Amazon sequence node used in routines."""
+
+    message_type: str
+    message_body: str | float | None
+    music_provider_id: str | None
+    device: AmazonDevice
+    operation_node: dict[str, Any]
