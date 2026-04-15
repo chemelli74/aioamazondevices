@@ -117,7 +117,6 @@ class AmazonEchoApi:
         self._media_states: dict[str, AmazonMediaState] = {}
         self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
 
-        self._volume_states: dict[str, AmazonVolumeState] = {}
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
 
         self._http2_client.on_push_event.append(self._http2_push_event_handler)
@@ -207,8 +206,11 @@ class AmazonEchoApi:
         if event_type == AmazonPushMessage.VolumeChange.value:
             serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
             if serial:
-                self._volume_states[serial] = AmazonVolumeState(
-                    payload.get("volumeSetting"), bool(payload.get("isMuted"))
+                self._media_handler.update_device_volume(
+                    serial,
+                    AmazonVolumeState(
+                        payload.get("volumeSetting"), bool(payload.get("isMuted"))
+                    ),
                 )
             await self._emit_volume_state_event()
             return
@@ -359,7 +361,7 @@ class AmazonEchoApi:
         This will be called at startup to sync media state of all devices
         and can be called later to refresh media state.
         """
-        self._volume_states = await self._media_handler.get_device_volumes()
+        await self._media_handler.get_device_volumes()
         await self._emit_volume_state_event()
         self._media_states = await self._media_handler.sync_media_state(
             self._device_handler.devices
@@ -375,4 +377,4 @@ class AmazonEchoApi:
     async def _emit_volume_state_event(self) -> None:
         """Emit volume event to subscribers."""
         if self.on_volume_state_event.frozen:
-            await self.on_volume_state_event.send(self._volume_states)
+            await self.on_volume_state_event.send(self._media_handler.device_volumes)

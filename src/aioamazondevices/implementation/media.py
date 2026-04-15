@@ -43,6 +43,19 @@ class AmazonMediaHandler:
             await self.update_music_providers()
         return self._music_providers
 
+    @property
+    async def device_volumes(self) -> dict[str, AmazonVolumeState]:
+        """Return device volumes."""
+        if not self._device_volumes:
+            await self.get_device_volumes()
+        return self._device_volumes
+
+    def update_device_volume(
+        self, device_serial_number: str, volume_state: AmazonVolumeState
+    ) -> None:
+        """Update device volume."""
+        self._device_volumes[device_serial_number] = volume_state
+
     async def get_device_volumes(self) -> dict[str, AmazonVolumeState]:
         """Get all device volumes."""
         _, raw_resp = await self._http_wrapper.session_request(
