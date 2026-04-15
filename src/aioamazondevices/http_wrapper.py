@@ -391,6 +391,11 @@ class AmazonHttpWrapper:
 
         raw_content = await resp.read()
 
+        if resp.status == HTTPStatus.REQUEST_TIMEOUT:
+            _LOGGER.warning(
+                "Timeout on %s but response was %s", url, raw_content.decode("utf-8")
+            )
+
         if self._save_to_file:
             await self._save_to_file(
                 raw_content.decode("utf-8"),
