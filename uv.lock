@@ -4,7 +4,11 @@ requires-python = ">=3.12"
 
 [[package]]
 name = "aioamazondevices"
+<<<<<<< HEAD
 version = "13.5.0"
+=======
+version = "13.4.2"
+>>>>>>> 456c578 (chore: uv.lock)
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
