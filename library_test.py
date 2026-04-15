@@ -26,6 +26,7 @@ from aioamazondevices.exceptions import (
 from aioamazondevices.structures import (
     AmazonDevice,
     AmazonMediaControls,
+    AmazonMediaState,
     AmazonMusicProvider,
 )
 
@@ -34,6 +35,7 @@ SAVE_PATH_DATE = datetime.now(UTC).strftime("%Y-%m-%d-%H-%M-%S")
 HTML_EXTENSION = ".html"
 BIN_EXTENSION = ".bin"
 RAW_EXTENSION = ".raw"
+media_states: dict[str, AmazonMediaState] = {}
 
 
 async def get_arguments() -> tuple[ArgumentParser, Namespace]:
@@ -211,6 +213,9 @@ async def main() -> None:
         save_to_file=save_to_file,
     )
 
+    api.on_media_state_event.append(media_state_event_handler)
+    api.on_media_state_event.freeze()
+
     try:
         try:
             if login_data_stored:
@@ -283,6 +288,12 @@ async def main() -> None:
 
     print("Closing session")
     await client_session.close()
+
+
+async def media_state_event_handler(media_state: dict[str, AmazonMediaState]) -> None:
+    """Handle pushed media state changed events."""
+    global media_states  # noqa: PLW0603
+    media_states = media_state
 
 
 async def tests(
@@ -423,7 +434,9 @@ async def tests(
         await api.send_media_command(device_single, AmazonMediaControls.Next)
         await wait_action_complete(15)
 
-        media_states = await api.sync_media_state()
+        await api.sync_media_state()
+        await wait_action_complete()
+
         for device in devices.values():
             media_state = media_states.get(device.serial_number)
             if media_state:
