@@ -156,3 +156,14 @@ class AmazonSequenceNode:
     music_provider_id: str | None
     device: AmazonDevice
     operation_node: dict[str, Any]
+
+
+@dataclass
+class AmazonVocalRecords:
+    """Amazon vocal records."""
+
+    timestamp: int
+    utterance_type: str
+    intent: str
+    title: str
+    sub_title: str
