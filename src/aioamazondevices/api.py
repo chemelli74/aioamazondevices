@@ -17,7 +17,7 @@ from .const.http import (
     CSRF_A2Z,
     DEFAULT_SITE,
     REFRESH_ACCESS_TOKEN,
-    URI_HISTORY,
+    URI_HISTORY_DATA,
     URI_MEDIA_CONTROL,
 )
 from .const.metadata import (
@@ -180,7 +180,8 @@ class AmazonEchoApi:
         query_string = f"startTime={int(start_time)}&endTime={int(end_time)}"
         _, raw_res = await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=f"https://www.amazon.{self._session_state_data.domain}{URI_HISTORY}?{query_string}",
+            url=f"https://www.amazon.{self._session_state_data.domain}{URI_HISTORY_DATA}?{query_string}",
+            input_data={"previousRequestToken": None},
             json_data=True,
             extended_headers={
                 "Authorization": f"Bearer {access_token}",

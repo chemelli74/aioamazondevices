@@ -6,12 +6,10 @@ import hashlib
 import secrets
 import uuid
 from datetime import UTC, datetime, timedelta
-from html import unescape
 from http import HTTPMethod, HTTPStatus
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
-import orjson
 from bs4 import BeautifulSoup, Tag
 from multidict import MultiDictProxy
 from yarl import URL
@@ -27,6 +25,7 @@ from .const.http import (
     FE_SITE,
     REFRESH_AUTH_COOKIES,
     URI_DEVICES,
+    URI_HISTORY_FRONTEND,
     URI_SIGNIN,
 )
 from .const.metadata import MAX_CUSTOMER_ACCOUNT_RETRIES
@@ -475,24 +474,12 @@ class AmazonLogin:
         """Find anti-csrftoken-a2z token."""
         bs_resp, _ = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://www.amazon.{self._session_state_data.domain}",
+            url=f"https://www.amazon.{self._session_state_data.domain}{URI_HISTORY_FRONTEND}",
         )
-        for tag in bs_resp.find_all(attrs={"data-a-modal": True}):
-            data_modal = tag.get("data-a-modal")
-            if data_modal and CSRF_A2Z in data_modal:
-                try:
-                    data_modal_clean = unescape(str(data_modal))
-                    data_json = orjson.loads(data_modal_clean)
-                    ajax_headers = data_json.get("ajaxHeaders", {})
-                    if CSRF_A2Z in ajax_headers:
-                        self._session_state_data.login_stored_data[CSRF_A2Z] = (
-                            ajax_headers[CSRF_A2Z]
-                        )
-                        return
-                except ValueError as exp:
-                    _LOGGER.error("Error extracting anti-csrftoken-a2z token")
-                    raise CannotRetrieveData(
-                        "Cannot extract anti-csrftoken-a2z token"
-                    ) from exp
-
+        token_meta = bs_resp.find("meta", attrs={"name": "csrf-token"})
+        if isinstance(token_meta, Tag):
+            token = token_meta.get("content")
+            if token:
+                self._session_state_data.login_stored_data[CSRF_A2Z] = token
+                return
         raise CannotRetrieveData("Cannot find anti-csrftoken-a2z token")
