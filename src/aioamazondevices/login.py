@@ -6,10 +6,12 @@ import hashlib
 import secrets
 import uuid
 from datetime import UTC, datetime, timedelta
+from html import unescape
 from http import HTTPMethod, HTTPStatus
 from typing import Any, cast
 from urllib.parse import parse_qs, urlencode
 
+import orjson
 from bs4 import BeautifulSoup, Tag
 from multidict import MultiDictProxy
 from yarl import URL
@@ -20,6 +22,7 @@ from .const.http import (
     AMAZON_CLIENT_OS,
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
+    CSRF_A2Z,
     DEFAULT_SITE,
     FE_SITE,
     REFRESH_AUTH_COOKIES,
@@ -264,6 +267,7 @@ class AmazonLogin:
         await self._domain_refresh_auth_cookies()
 
         await self.obtain_account_customer_id()
+        await self.obtain_anti_csrftoken_a2z()
 
         self._session_state_data.login_stored_data.update(
             {"site": f"https://www.amazon.{self._session_state_data.domain}"}
@@ -359,6 +363,7 @@ class AmazonLogin:
         )
 
         await self.obtain_account_customer_id()
+        await self.obtain_anti_csrftoken_a2z()
 
         return self._session_state_data.login_stored_data
 
@@ -465,3 +470,29 @@ class AmazonLogin:
                         return
         if not self._session_state_data.account_customer_id:
             raise CannotRetrieveData("Cannot find account owner customer ID")
+
+    async def obtain_anti_csrftoken_a2z(self) -> None:
+        """Find anti-csrftoken-a2z token."""
+        bs_resp, _ = await self._http_wrapper.session_request(
+            method=HTTPMethod.GET,
+            url=f"https://www.amazon.{self._session_state_data.domain}",
+        )
+        for tag in bs_resp.find_all(attrs={"data-a-modal": True}):
+            data_modal = tag.get("data-a-modal")
+            if data_modal and CSRF_A2Z in data_modal:
+                try:
+                    data_modal_clean = unescape(str(data_modal))
+                    data_json = orjson.loads(data_modal_clean)
+                    ajax_headers = data_json.get("ajaxHeaders", {})
+                    if CSRF_A2Z in ajax_headers:
+                        self._session_state_data.login_stored_data[CSRF_A2Z] = (
+                            ajax_headers[CSRF_A2Z]
+                        )
+                        return
+                except ValueError as exp:
+                    _LOGGER.error("Error extracting anti-csrftoken-a2z token")
+                    raise CannotRetrieveData(
+                        "Cannot extract anti-csrftoken-a2z token"
+                    ) from exp
+
+        raise CannotRetrieveData("Cannot find anti-csrftoken-a2z token")

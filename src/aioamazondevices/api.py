@@ -14,7 +14,10 @@ from aioamazondevices.implementation.sensor import AmazonSensorHandler
 
 from . import __version__
 from .const.http import (
+    CSRF_A2Z,
     DEFAULT_SITE,
+    REFRESH_ACCESS_TOKEN,
+    URI_HISTORY,
     URI_MEDIA_CONTROL,
 )
 from .const.metadata import (
@@ -163,12 +166,40 @@ class AmazonEchoApi:
             await self._device_handler.set_device_endpoints_data()
             self._last_endpoint_refresh = datetime.now(UTC)
 
+    async def _vocal_history(self) -> dict[str, Any]:
+        """Request vocal history data."""
+        await self._http_wrapper.refresh_data(REFRESH_ACCESS_TOKEN)
+        access_token = self._session_state_data.login_stored_data[REFRESH_ACCESS_TOKEN]
+        csrf_a2z_token = self._session_state_data.login_stored_data[CSRF_A2Z]
+
+        start_time = (
+            datetime.now(UTC).replace(hour=12, minute=0, second=0, microsecond=0)
+            - timedelta(days=7)
+        ).timestamp() * 1000
+        end_time = datetime.now(UTC).timestamp() * 1000
+        query_string = f"startTime={int(start_time)}&endTime={int(end_time)}"
+        _, raw_res = await self._http_wrapper.session_request(
+            method=HTTPMethod.POST,
+            url=f"https://www.amazon.{self._session_state_data.domain}{URI_HISTORY}?{query_string}",
+            json_data=True,
+            extended_headers={
+                "Authorization": f"Bearer {access_token}",
+                "Anti-Csrftoken-A2z": csrf_a2z_token,
+            },
+        )
+        history = await self._http_wrapper.response_to_json(raw_res)
+        _LOGGER.debug("History data: %s", history)
+        return history
+
     async def get_devices_data(
         self,
     ) -> dict[str, AmazonDevice]:
         """Get Amazon devices data."""
         # Perform a refresh to ensure your data is as up-to-date as possible.
         await self._refresh_basic_data()
+
+        vocal_history = await self._vocal_history()
+        _LOGGER.debug("Vocal history data retrieved: %s", vocal_history)
 
         dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
         notifications = await self._notification_handler.get_notifications()

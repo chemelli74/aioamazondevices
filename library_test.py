@@ -10,6 +10,7 @@ from argparse import ArgumentParser, Namespace
 from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any, cast
+from urllib.parse import urlparse
 
 import orjson
 from aiohttp import ClientSession
@@ -135,8 +136,14 @@ async def save_to_file(
     )
 
     if url.startswith("http"):
-        url_split = url.split("/")
-        base_filename = f"{url_split[3]}-{url_split[4].split('?')[0]}"
+        # For URLs like http://www.amazon.it or http://www.amazon.it/
+        parsed = urlparse(url)
+        # Remove empty segments and query/fragment
+        path_parts = [part for part in parsed.path.split("/") if part]
+        if path_parts:
+            base_filename = "-".join([parsed.netloc, *path_parts])
+        else:
+            base_filename = parsed.netloc or "main_page"
     else:
         base_filename = url
     fullpath = Path(output_dir, base_filename + extension)
