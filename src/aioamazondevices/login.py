@@ -20,12 +20,10 @@ from .const.http import (
     AMAZON_CLIENT_OS,
     AMAZON_DEVICE_SOFTWARE_VERSION,
     AMAZON_DEVICE_TYPE,
-    CSRF_A2Z,
     DEFAULT_SITE,
     FE_SITE,
     REFRESH_AUTH_COOKIES,
     URI_DEVICES,
-    URI_HISTORY_FRONTEND,
     URI_SIGNIN,
 )
 from .const.metadata import MAX_CUSTOMER_ACCOUNT_RETRIES
@@ -266,7 +264,6 @@ class AmazonLogin:
         await self._domain_refresh_auth_cookies()
 
         await self.obtain_account_customer_id()
-        await self.obtain_anti_csrftoken_a2z()
 
         self._session_state_data.login_stored_data.update(
             {"site": f"https://www.amazon.{self._session_state_data.domain}"}
@@ -362,7 +359,6 @@ class AmazonLogin:
         )
 
         await self.obtain_account_customer_id()
-        await self.obtain_anti_csrftoken_a2z()
 
         return self._session_state_data.login_stored_data
 
@@ -469,17 +465,3 @@ class AmazonLogin:
                         return
         if not self._session_state_data.account_customer_id:
             raise CannotRetrieveData("Cannot find account owner customer ID")
-
-    async def obtain_anti_csrftoken_a2z(self) -> None:
-        """Find anti-csrftoken-a2z token."""
-        bs_resp, _ = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET,
-            url=f"https://www.amazon.{self._session_state_data.domain}{URI_HISTORY_FRONTEND}",
-        )
-        token_meta = bs_resp.find("meta", attrs={"name": "csrf-token"})
-        if isinstance(token_meta, Tag):
-            token = token_meta.get("content")
-            if token:
-                self._session_state_data.login_stored_data[CSRF_A2Z] = token
-                return
-        raise CannotRetrieveData("Cannot find anti-csrftoken-a2z token")
