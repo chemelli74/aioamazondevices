@@ -104,6 +104,7 @@ class AmazonMediaHandler:
         # the endpoint needs a device type / serial but returns all sessions
         media_sessions = await self._get_media_states(next(iter(devices.values())))
         if not media_sessions:
+            self._media_states = {}
             return
 
         for device in devices.values():
