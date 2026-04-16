@@ -31,12 +31,7 @@ from aioamazondevices.structures import AmazonPushMessage
 from aioamazondevices.utils import _LOGGER
 
 _BOUNDARY_RE = re.compile(r'boundary="?([^";,]+)"?', re.IGNORECASE)
-
-
-def _parse_boundary(content_type: str) -> bytes | None:
-    if not (match := _BOUNDARY_RE.search(content_type)):
-        return None
-    return f"--{match.group(1).strip()}".encode()
+_MAX_BUFFER_SIZE = 512 * 1024  # 512KB
 
 
 class AmazonHTTP2Client:
@@ -162,7 +157,7 @@ class AmazonHTTP2Client:
             ):
                 raise CannotAuthenticate
 
-            boundary = _parse_boundary(response.headers.get("content-type", ""))
+            boundary = self._parse_boundary(response.headers.get("content-type", ""))
             if boundary is None:
                 _LOGGER.warning("Missing multipart boundary")
                 return
@@ -175,7 +170,7 @@ class AmazonHTTP2Client:
 
                 buffer.extend(chunk)
 
-                if len(buffer) > 512 * 1024:  # 512KB limit to prevent memory issues
+                if len(buffer) > _MAX_BUFFER_SIZE:
                     _LOGGER.error("Buffer exceeded maximum size, forcing reconnect")
                     return
 
@@ -206,11 +201,11 @@ class AmazonHTTP2Client:
         try:
             updates_nodes = chunk_json["directive"]["payload"]["renderingUpdates"]
         except (KeyError, IndexError):
-            _LOGGER.warning("Malformed directive payload")
+            _LOGGER.warning("Malformed directive payload: %s", chunk_json)
             return
 
-        # in practce all messages seem to contain only a single update
-        # but this is an array so loop over results
+        # All observed messages appear to contain only one update
+        # but this is treated as an array to ensure we iterate over all results
         for updates_node in updates_nodes:
             push_event_type = updates_node.get("resourceId", "No resourceId")
             payload = updates_node.get("resourceMetadata", {}).get("payload", {})
@@ -232,7 +227,7 @@ class AmazonHTTP2Client:
                 continue
 
             _LOGGER.debug(
-                "Detected push type <%s> on device <%s>",
+                "Detected push event type <%s> on device <%s>",
                 push_event_type,
                 device,
             )
@@ -264,8 +259,7 @@ class AmazonHTTP2Client:
         if msg.get_content_type() != "application/json":
             raise ValueError("Unexpected content-type")
 
-        body = msg.get_payload(decode=True)
-        if body is None:
+        if (body := msg.get_payload(decode=True)) is None:
             raise ValueError("No payload")
 
         parsed = orjson.loads(body)
@@ -327,3 +321,8 @@ class AmazonHTTP2Client:
             _LOGGER.error("No access token available, cannot get bearer token")
             return ""
         return str(token)
+
+    def _parse_boundary(self, content_type: str) -> bytes | None:
+        if not (match := _BOUNDARY_RE.search(content_type)):
+            return None
+        return f"--{match.group(1).strip()}".encode()
