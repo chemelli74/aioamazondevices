@@ -195,37 +195,40 @@ class AmazonHTTP2Client:
         chunk_json = self._extract_json_from_part(part)
 
         try:
-            updates_node = chunk_json["directive"]["payload"]["renderingUpdates"][0]
+            updates_nodes = chunk_json["directive"]["payload"]["renderingUpdates"]
         except (KeyError, IndexError):
             _LOGGER.warning("Malformed directive payload")
             return
 
-        chunk_type = updates_node["resourceId"]
-        payload = updates_node.get("resourceMetadata", {}).get("payload", {})
-        device = payload.get("dopplerId", {}).get("deviceSerialNumber")
+        # in practce all messages seem to contain only a single update
+        # but this is an array so loop over results
+        for updates_node in updates_nodes:
+            push_event_type = updates_node["resourceId"]
+            payload = updates_node.get("resourceMetadata", {}).get("payload", {})
+            device = payload.get("dopplerId", {}).get("deviceSerialNumber")
 
-        if chunk_type not in AmazonPushMessage._value2member_map_:
-            _LOGGER.warning(
-                "Unknown HTTP2 push message from device %s: %s",
+            if push_event_type not in AmazonPushMessage._value2member_map_:
+                _LOGGER.warning(
+                    "Unknown HTTP2 push message from device %s: %s",
+                    device,
+                    push_event_type,
+                )
+                return
+
+            # Skip duplicate NotificationChange pushes
+            if (
+                push_event_type == AmazonPushMessage.NotificationChange.value
+                and payload.get("notificationVersion", 2) % 2 == 0
+            ):
+                return
+
+            _LOGGER.debug(
+                "Detected push type <%s> on device <%s>",
+                push_event_type,
                 device,
-                chunk_type,
             )
-            return
 
-        # Skip duplicate NotificationChange pushes
-        if (
-            chunk_type == AmazonPushMessage.NotificationChange.value
-            and payload.get("notificationVersion", 2) % 2 == 0
-        ):
-            return
-
-        _LOGGER.debug(
-            "Detected push type <%s> on device <%s>",
-            chunk_type,
-            device,
-        )
-
-        await self.on_push_event.send(chunk_type, payload)
+            await self.on_push_event.send(push_event_type, payload)
 
     def _string_recursive_parse(
         self, obj: dict[str, Any] | str | list[Any]
