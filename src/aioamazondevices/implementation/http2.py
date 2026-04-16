@@ -7,7 +7,7 @@ from email.parser import BytesParser
 from email.policy import default
 from http import HTTPMethod, HTTPStatus
 from ssl import SSLContext, create_default_context
-from typing import Any, cast
+from typing import Any, Self, cast
 
 import httpx
 import orjson
@@ -41,17 +41,29 @@ class AmazonHTTP2Client:
         self,
         http_wrapper: AmazonHttpWrapper,
         session_state_data: AmazonSessionStateData,
+        ssl_context: SSLContext,
     ) -> None:
         """Initialize Amazon HTTP2 client class."""
         self._http_wrapper = http_wrapper
         self._session_state_data = session_state_data
 
-        self._http2_client: httpx.AsyncClient | None = None
+        self._http2_client = httpx.AsyncClient(
+            http2=True,
+            timeout=httpx.Timeout(None),
+            verify=ssl_context,
+        )
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
 
         self._task: asyncio.Task[None] | None = None
         self._stop_event = asyncio.Event()
-        self._ssl_context: SSLContext | None = None
+
+    @classmethod
+    async def create(
+        cls, http_wrapper: AmazonHttpWrapper, session_state_data: AmazonSessionStateData
+    ) -> Self:
+        """Create an instance of AmazonHTTP2Client."""
+        ssl_context = await asyncio.to_thread(create_default_context)
+        return cls(http_wrapper, session_state_data, ssl_context)
 
     async def start_thread(self) -> None:
         """Start the background task."""
@@ -70,7 +82,7 @@ class AmazonHTTP2Client:
             with contextlib.suppress(asyncio.CancelledError):
                 await self._task
 
-        if self._http2_client and not self._http2_client.is_closed:
+        if not self._http2_client.is_closed:
             await self._http2_client.aclose()
 
     async def _register_device_capabilities(self) -> None:
@@ -125,16 +137,11 @@ class AmazonHTTP2Client:
             _LOGGER.debug("Registering device capabilities")
             await self._register_device_capabilities()
 
-        await self._http2_init_client()
         return True
 
     async def _stream_and_process(self) -> None:
         """Open stream and process incoming directives."""
         _LOGGER.debug("Starting AVS Directives stream")
-
-        if not self._http2_client:
-            _LOGGER.error("HTTP2 client not initialized, cannot stream directives")
-            return
 
         async with self._http2_client.stream(
             "GET",
@@ -265,21 +272,6 @@ class AmazonHTTP2Client:
         parsed = orjson.loads(body)
         return cast("dict[str, Any]", self._string_recursive_parse(parsed))
 
-    async def _http2_init_client(self) -> None:
-        """Create HTTP2 client session."""
-        if self._http2_client and not self._http2_client.is_closed:
-            await self._http2_client.aclose()
-
-        if self._ssl_context is None:
-            self._ssl_context = await asyncio.to_thread(create_default_context)
-
-        self._http2_client = httpx.AsyncClient(
-            http2=True,
-            timeout=httpx.Timeout(None),
-            verify=self._ssl_context,
-        )
-        _LOGGER.debug("Initialized HTTP2 client")
-
     def _http2_site(self) -> str:
         """Get HTTP2 site."""
         region = self._session_state_data.login_stored_data["customer_info"][
@@ -289,10 +281,6 @@ class AmazonHTTP2Client:
 
     async def _ping(self) -> None:
         """Ping."""
-        if not self._http2_client:
-            _LOGGER.error("HTTP2 client not initialized, cannot ping")
-            return
-
         response = await self._http2_client.post(
             f"{self._http2_site()}/ping",
             headers={

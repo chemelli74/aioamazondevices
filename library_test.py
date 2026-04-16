@@ -306,6 +306,7 @@ async def main() -> None:
         await tests(args, api, devices)
 
     print("Closing session")
+    await api.stop_http2_thread()
     await client_session.close()
 
 

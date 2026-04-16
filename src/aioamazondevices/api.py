@@ -101,10 +101,7 @@ class AmazonEchoApi:
             session_state_data=self._session_state_data,
         )
 
-        self._http2_client = AmazonHTTP2Client(
-            http_wrapper=self._http_wrapper,
-            session_state_data=self._session_state_data,
-        )
+        self._http2_client: AmazonHTTP2Client
 
         self._media_handler = AmazonMediaHandler(
             http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
@@ -119,9 +116,6 @@ class AmazonEchoApi:
 
         self._volume_states: dict[str, AmazonVolumeState] = {}
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
-
-        self._http2_client.on_push_event.append(self._http2_push_event_handler)
-        self._http2_client.on_push_event.freeze()
 
     @property
     def domain(self) -> str:
@@ -194,6 +188,12 @@ class AmazonEchoApi:
 
     async def start_http2_thread(self) -> None:
         """Start HTTP2 background thread."""
+        self._http2_client = await AmazonHTTP2Client.create(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+        self._http2_client.on_push_event.append(self._http2_push_event_handler)
+        self._http2_client.on_push_event.freeze()
         await self._http2_client.start_thread()
 
     async def stop_http2_thread(self) -> None:
