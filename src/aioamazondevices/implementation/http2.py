@@ -33,8 +33,7 @@ _BOUNDARY_RE = re.compile(r'boundary="?([^";,]+)"?', re.IGNORECASE)
 
 
 def _parse_boundary(content_type: str) -> bytes | None:
-    match = _BOUNDARY_RE.search(content_type)
-    if not match:
+    if not (match := _BOUNDARY_RE.search(content_type)):
         return None
     return f"--{match.group(1).strip()}".encode()
 
@@ -54,10 +53,8 @@ class AmazonHTTP2Client:
         self._http2_client: httpx.AsyncClient
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
 
-        self.reconnect_delay = HTTP2_RECONNECT_DELAY
         self._task: asyncio.Task[None] | None = None
         self._stop_event = asyncio.Event()
-        self._pending_push_tasks: set[asyncio.Task[None]] = set()
         self._ssl_context: SSLContext | None = None
 
     async def start_thread(self) -> None:
@@ -71,9 +68,6 @@ class AmazonHTTP2Client:
     async def stop_thread(self) -> None:
         """Stop the background task gracefully."""
         self._stop_event.set()
-
-        for task in self._pending_push_tasks:
-            task.cancel()
 
         if self._http2_client and not self._http2_client.is_closed:
             await self._http2_client.aclose()
@@ -111,7 +105,7 @@ class AmazonHTTP2Client:
 
         while not self._stop_event.is_set():
             if not await self._ensure_ready():
-                await asyncio.sleep(self.reconnect_delay)
+                await asyncio.sleep(HTTP2_RECONNECT_DELAY)
                 continue
 
             try:
@@ -122,8 +116,8 @@ class AmazonHTTP2Client:
                 _LOGGER.warning("HTTP2 error detected: %s", exc)
 
             if not self._stop_event.is_set():
-                _LOGGER.debug("Reconnecting in %s seconds", self.reconnect_delay)
-                await asyncio.sleep(self.reconnect_delay)
+                _LOGGER.debug("Reconnecting in %s seconds", HTTP2_RECONNECT_DELAY)
+                await asyncio.sleep(HTTP2_RECONNECT_DELAY)
 
     async def _ensure_ready(self) -> bool:
         """Ensure token, device registration, and HTTP2 client are ready."""
@@ -231,9 +225,7 @@ class AmazonHTTP2Client:
             device,
         )
 
-        task = asyncio.create_task(self.on_push_event.send(chunk_type, payload))
-        self._pending_push_tasks.add(task)
-        task.add_done_callback(self._pending_push_tasks.discard)
+        await self.on_push_event.send(chunk_type, payload)
 
     def _string_recursive_parse(
         self, obj: dict[str, Any] | str | list[Any]
@@ -286,7 +278,7 @@ class AmazonHTTP2Client:
             return ""
 
         region = self._login_stored_data["customer_info"]["home_region"]
-        return HTTP2_SITE.replace("{region}", region)
+        return HTTP2_SITE.format(region=region)
 
     async def _ping(self) -> None:
         """Ping."""
