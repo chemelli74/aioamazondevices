@@ -48,9 +48,9 @@ class AmazonHTTP2Client:
     ) -> None:
         """Initialize Amazon HTTP2 client class."""
         self._http_wrapper = http_wrapper
-        self._login_stored_data = session_state_data.login_stored_data
+        self._session_state_data = session_state_data
 
-        self._http2_client: httpx.AsyncClient
+        self._http2_client: httpx.AsyncClient | None = None
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
 
         self._task: asyncio.Task[None] | None = None
@@ -84,9 +84,7 @@ class AmazonHTTP2Client:
             url=f"https://api.amazonalexa.com/{URI_CAPABILITIES}",
             input_data=DEVICE_CAPABILITIES,
             json_data=True,
-            extended_headers={
-                "Authorization": f"Bearer {self._login_stored_data['access_token']}"
-            },
+            extended_headers={"Authorization": f"Bearer {self.get_bearer_token()}"},
         )
 
         if raw_resp.status != HTTPStatus.NO_CONTENT:
@@ -94,12 +92,14 @@ class AmazonHTTP2Client:
                 f"Register capabilities returned {raw_resp.status} (expected 204)"
             )
 
-        self._login_stored_data[DEVICE_CAPABILITIES_REGISTERED] = True
+        self._session_state_data.login_stored_data[DEVICE_CAPABILITIES_REGISTERED] = (
+            True
+        )
         _LOGGER.debug("Device capabilities registered successfully")
 
     async def _get_avs_directives(self) -> None:
         """Maintain AVS directive stream loop."""
-        if not self._login_stored_data:
+        if not self._session_state_data.login_stored_data:
             _LOGGER.warning("No login data available, cannot get directives")
             return
 
@@ -127,7 +127,9 @@ class AmazonHTTP2Client:
             _LOGGER.warning("Failed to refresh access token")
             return False
 
-        if not self._login_stored_data.get(DEVICE_CAPABILITIES_REGISTERED, False):
+        if not self._session_state_data.login_stored_data.get(
+            DEVICE_CAPABILITIES_REGISTERED, False
+        ):
             _LOGGER.debug("Registering device capabilities")
             await self._register_device_capabilities()
 
@@ -138,13 +140,15 @@ class AmazonHTTP2Client:
         """Open stream and process incoming directives."""
         _LOGGER.debug("Starting AVS Directives stream")
 
-        access_token = self._login_stored_data["access_token"]
+        if not self._http2_client:
+            _LOGGER.error("HTTP2 client not initialized, cannot stream directives")
+            return
 
         async with self._http2_client.stream(
             "GET",
             f"{self._http2_site()}/v{HTTP2_DIRECTIVES_VERSION}/directives",
             headers={
-                "Authorization": f"Bearer {access_token}",
+                "Authorization": f"Bearer {self.get_bearer_token()}",
                 "Accept": "multipart/related",
                 "Accept-Encoding": "gzip",
             },
@@ -258,7 +262,7 @@ class AmazonHTTP2Client:
 
     async def _http2_init_client(self) -> None:
         """Create HTTP2 client session."""
-        if hasattr(self, "_http2_client") and not self._http2_client.is_closed:
+        if self._http2_client and not self._http2_client.is_closed:
             await self._http2_client.aclose()
 
         if self._ssl_context is None:
@@ -273,23 +277,28 @@ class AmazonHTTP2Client:
 
     def _http2_site(self) -> str:
         """Get HTTP2 site."""
-        if not self._login_stored_data:
+        if not self._session_state_data.login_stored_data:
             _LOGGER.debug("No login data available, cannot get HTTP2 site")
             return ""
 
-        region = self._login_stored_data["customer_info"]["home_region"]
+        region = self._session_state_data.login_stored_data["customer_info"][
+            "home_region"
+        ]
         return HTTP2_SITE.format(region=region)
 
     async def _ping(self) -> None:
         """Ping."""
-        if not self._login_stored_data:
+        if not self._session_state_data.login_stored_data:
             _LOGGER.warning("No login data available, cannot get directives")
+            return
+        if not self._http2_client:
+            _LOGGER.error("HTTP2 client not initialized, cannot ping")
             return
 
         response = await self._http2_client.post(
             f"{self._http2_site()}/ping",
             headers={
-                "Authorization": f"Bearer {self._login_stored_data['access_token']}",
+                "Authorization": f"Bearer {self.get_bearer_token()}",
             },
         )
         _LOGGER.debug(
@@ -305,3 +314,9 @@ class AmazonHTTP2Client:
             raise CannotAuthenticate(
                 "Detected ping 403, please check your credentials and region"
             )
+
+    def get_bearer_token(self) -> str | None:
+        """Get current bearer token."""
+        if not self._session_state_data.login_stored_data:
+            return None
+        return self._session_state_data.login_stored_data.get("access_token")
