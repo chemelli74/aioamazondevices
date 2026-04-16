@@ -12,6 +12,7 @@ from typing import Any, cast
 import httpx
 import orjson
 from aiosignal import Signal
+from orjson import JSONDecodeError
 
 from aioamazondevices.capabilities import (
     DEVICE_CAPABILITIES,
@@ -196,7 +197,11 @@ class AmazonHTTP2Client:
             await self._ping()
             return
 
-        chunk_json = self._extract_json_from_part(part)
+        try:
+            chunk_json = self._extract_json_from_part(part)
+        except (ValueError, JSONDecodeError) as exc:
+            _LOGGER.warning("Failed to parse multipart section: %s", part, exc_info=exc)
+            return
 
         try:
             updates_nodes = chunk_json["directive"]["payload"]["renderingUpdates"]
@@ -207,7 +212,7 @@ class AmazonHTTP2Client:
         # in practce all messages seem to contain only a single update
         # but this is an array so loop over results
         for updates_node in updates_nodes:
-            push_event_type = updates_node["resourceId"]
+            push_event_type = updates_node.get("resourceId", "No resourceId")
             payload = updates_node.get("resourceMetadata", {}).get("payload", {})
             device = payload.get("dopplerId", {}).get("deviceSerialNumber")
 
@@ -217,14 +222,14 @@ class AmazonHTTP2Client:
                     device,
                     push_event_type,
                 )
-                return
+                continue
 
             # Skip duplicate NotificationChange pushes
             if (
                 push_event_type == AmazonPushMessage.NotificationChange.value
                 and payload.get("notificationVersion", 2) % 2 == 0
             ):
-                return
+                continue
 
             _LOGGER.debug(
                 "Detected push type <%s> on device <%s>",
@@ -244,10 +249,13 @@ class AmazonHTTP2Client:
         if isinstance(obj, list):
             return [self._string_recursive_parse(i) for i in obj]
 
-        try:
-            return self._string_recursive_parse(orjson.loads(obj))
-        except orjson.JSONDecodeError:
-            return obj
+        if isinstance(obj, str) and obj.startswith(("{", "[")):
+            try:
+                return self._string_recursive_parse(orjson.loads(obj))
+            except orjson.JSONDecodeError:
+                return obj
+
+        return obj
 
     def _extract_json_from_part(self, part: bytes) -> dict[str, Any]:
         """Extract JSON using MIME parser."""
