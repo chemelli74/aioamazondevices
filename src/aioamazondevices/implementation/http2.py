@@ -174,6 +174,10 @@ class AmazonHTTP2Client:
 
                 buffer.extend(chunk)
 
+                if len(buffer) > 512 * 1024:  # 512KB limit to prevent memory issues
+                    _LOGGER.error("Buffer exceeded maximum size, forcing reconnect")
+                    return
+
                 while True:
                     idx = buffer.find(boundary)
                     if idx == -1:
