@@ -11,7 +11,6 @@ from typing import Any, cast
 import httpx
 import orjson
 from aiosignal import Signal
-from orjson import JSONDecodeError
 
 from aioamazondevices.capabilities import (
     DEVICE_CAPABILITIES,
@@ -216,7 +215,7 @@ class AmazonHTTP2Client:
 
         try:
             chunk_json = self._extract_json_from_part(part)
-        except (ValueError, JSONDecodeError) as exc:
+        except (ValueError, orjson.JSONDecodeError) as exc:
             _LOGGER.warning(
                 "Failed to parse multipart section: %s",
                 part.decode("utf-8", errors="replace"),
