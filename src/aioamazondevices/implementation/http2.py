@@ -229,6 +229,10 @@ class AmazonHTTP2Client:
             _LOGGER.warning("Malformed directive payload: %s", chunk_json)
             return
 
+        if not isinstance(updates_nodes, list):
+            _LOGGER.warning("Malformed renderingUpdates payload: %s", updates_nodes)
+            return
+
         # All observed messages appear to contain only one update
         # but this is treated as an array to ensure we iterate over all results
         for updates_node in updates_nodes:
