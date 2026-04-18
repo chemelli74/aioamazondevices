@@ -181,7 +181,9 @@ class AmazonHTTP2Client:
                     f"Directives stream returned {response.status_code}"
                 )
 
-            boundary = self._parse_boundary(response.headers.get("content-type", ""))
+            boundary = AmazonHTTP2Client._parse_boundary(
+                response.headers.get("content-type", "")
+            )
             if boundary is None:
                 _LOGGER.warning("Missing multipart boundary")
                 return
@@ -438,7 +440,8 @@ class AmazonHTTP2Client:
             raise CannotAuthenticate("No access token available")
         return str(token)
 
-    def _parse_boundary(self, content_type: str) -> bytes | None:
+    @staticmethod
+    def _parse_boundary(content_type: str) -> bytes | None:
         """Extract the boundary delimiter from a Content-Type header value.
 
         Returns the full delimiter bytes (with '--' prefix) ready for use
