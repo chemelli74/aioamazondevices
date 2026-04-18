@@ -282,19 +282,22 @@ class AmazonHTTP2Client:
 
             await self.on_push_event.send(push_event_type, payload)
 
+    @staticmethod
     def _string_recursive_parse(
-        self, obj: dict[str, Any] | str | list[Any]
+        obj: dict[str, Any] | str | list[Any],
     ) -> dict[str, Any] | list[Any] | str:
         """Recursively parse strings inside dicts/lists if they are valid JSON."""
         if isinstance(obj, dict):
-            return {k: self._string_recursive_parse(v) for k, v in obj.items()}
+            return {
+                k: AmazonHTTP2Client._string_recursive_parse(v) for k, v in obj.items()
+            }
 
         if isinstance(obj, list):
-            return [self._string_recursive_parse(i) for i in obj]
+            return [AmazonHTTP2Client._string_recursive_parse(i) for i in obj]
 
         if isinstance(obj, str) and obj.startswith(("{", "[")):
             try:
-                return self._string_recursive_parse(orjson.loads(obj))
+                return AmazonHTTP2Client._string_recursive_parse(orjson.loads(obj))
             except orjson.JSONDecodeError:
                 return obj
 
@@ -311,7 +314,7 @@ class AmazonHTTP2Client:
             raise ValueError("No payload")
 
         parsed = orjson.loads(body)
-        return cast("dict[str, Any]", self._string_recursive_parse(parsed))
+        return cast("dict[str, Any]", AmazonHTTP2Client._string_recursive_parse(parsed))
 
     def _http2_site(self) -> str:
         """Get HTTP2 site."""
