@@ -265,13 +265,7 @@ class AmazonHTTP2Client:
             _LOGGER.warning("Malformed push payload: %s", rendering_update)
             return None
 
-        doppler_id = payload.get("dopplerId")
-        if not isinstance(doppler_id, dict):
-            _LOGGER.warning(
-                "Missing or invalid dopplerId in payload: %s", rendering_update
-            )
-            return None
-
+        doppler_id = payload.get("dopplerId") or {}
         device_serial = doppler_id.get("deviceSerialNumber")
 
         if not AmazonHTTP2Client._is_known_event_type(push_event_type):
