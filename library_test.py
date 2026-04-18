@@ -1,6 +1,7 @@
 """Test script for aioamazondevices library."""
 
 import asyncio
+import contextlib
 import getpass
 import json
 import logging
@@ -252,67 +253,72 @@ async def main() -> None:
             raise
     except AmazonError:
         await client_session.close()
+        await _httpx_client.aclose()
         sys.exit(2)
 
     print("Logged-in.")
 
-    print("-" * 20)
-    print("Login data:", login_data)
-    print("-" * 20)
-
-    await save_to_file(login_data, "output-login-data")
-
-    print("-" * 20)
-    print("Starting HTTP2 background thread")
-    print("-" * 20)
-    await api.start_http2_processing(_httpx_client)
-
-    print("-" * 20)
     try:
-        devices = await api.get_devices_data()
-    except (CannotAuthenticate, CannotConnect, CannotRegisterDevice) as exc:
-        print(exc)
+        print("-" * 20)
+        print("Login data:", login_data)
+        print("-" * 20)
+
+        await save_to_file(login_data, "output-login-data")
+
+        print("-" * 20)
+        print("Starting HTTP2 background thread")
+        print("-" * 20)
+        await api.start_http2_processing(_httpx_client)
+
+        print("-" * 20)
+        try:
+            devices = await api.get_devices_data()
+        except (CannotAuthenticate, CannotConnect, CannotRegisterDevice) as exc:
+            print(exc)
+            await client_session.close()
+            sys.exit(3)
+
+        print("Devices count  :", len(devices))
+        print("-" * 20)
+        print("Devices full details:", devices)
+        print("-" * 20)
+        print("Devices summary:")
+        dev_index = 1
+        for device in devices.values():
+            print(f"{dev_index}. Device {device.account_name}:")
+            print(f"   Online: {device.online}")
+            print(f"   Device manufacturer: {device.manufacturer}")
+            print(f"   Device model: {device.model}")
+            print(f"   Device hardware version: {device.hardware_version}")
+            print(f"   Device software version: {device.software_version}")
+            print(f"   Device sensors: {len(device.sensors)}")
+            print(f"   Device notifications: {len(device.notifications)}")
+            dev_index += 1
+        print("-" * 20)
+
+        if not devices:
+            print("!!! Warning: No devices found !!!")
+            await client_session.close()
+            sys.exit(0)
+
+        await save_to_file(devices, "output-devices")
+        print("Check above file for full devices details")
+        print("-" * 20)
+
+        print("Waiting for CTRL-C...")
+        await wait_until_ctrl_c()
+
+        if not args.test:
+            print("!!! No testing requested, exiting !!!")
+        else:
+            await tests(args, api, devices)
+
+    finally:
+        print("Closing session")
+        with contextlib.suppress(Exception):
+            await api.stop_http2_processing()
         await client_session.close()
-        sys.exit(3)
-
-    print("Devices count  :", len(devices))
-    print("-" * 20)
-    print("Devices full details:", devices)
-    print("-" * 20)
-    print("Devices summary:")
-    dev_index = 1
-    for device in devices.values():
-        print(f"{dev_index}. Device {device.account_name}:")
-        print(f"   Online: {device.online}")
-        print(f"   Device manufacturer: {device.manufacturer}")
-        print(f"   Device model: {device.model}")
-        print(f"   Device hardware version: {device.hardware_version}")
-        print(f"   Device software version: {device.software_version}")
-        print(f"   Device sensors: {len(device.sensors)}")
-        print(f"   Device notifications: {len(device.notifications)}")
-        dev_index += 1
-    print("-" * 20)
-
-    if not devices:
-        print("!!! Warning: No devices found !!!")
-        await client_session.close()
-        sys.exit(0)
-
-    await save_to_file(devices, "output-devices")
-    print("Check above file for full devices details")
-    print("-" * 20)
-
-    print("Waiting for CTRL-C...")
-    await wait_until_ctrl_c()
-
-    if not args.test:
-        print("!!! No testing requested, exiting !!!")
-    else:
-        await tests(args, api, devices)
-
-    print("Closing session")
-    await api.stop_http2_processing()
-    await client_session.close()
+        await _httpx_client.aclose()
 
 
 async def tests(
