@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 from http import HTTPMethod
 from typing import Any
 
+import httpx
 from aiohttp import ClientSession
 from aiosignal import Signal
 
@@ -186,11 +187,18 @@ class AmazonEchoApi:
 
         return self._device_handler.devices
 
-    async def start_http2_thread(self) -> None:
-        """Start HTTP2 background thread."""
-        self._http2_client = await AmazonHTTP2Client.create(
+    async def start_http2_thread(self, httpx_client: httpx.AsyncClient = None) -> None:
+        """Start HTTP2 background thread.
+
+        httpx client must have http2 enabled and a timeout of None to
+        allow for long-lived connections.
+        """
+        if httpx_client is None:
+            httpx_client = httpx.AsyncClient(http2=True, timeout=httpx.Timeout(None))
+        self._http2_client = AmazonHTTP2Client(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
+            httpx_client=httpx_client,
         )
         self._http2_client.on_push_event.append(self._http2_push_event_handler)
         self._http2_client.on_push_event.freeze()

@@ -12,6 +12,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any, cast
 
+import httpx
 import orjson
 from aiohttp import ClientSession
 from anyio import Path
@@ -218,6 +219,10 @@ async def main() -> None:
         args.password = getpass.getpass("Password: ")
 
     client_session = ClientSession()
+    _httpx_client = httpx.AsyncClient(
+        http2=True,
+        timeout=httpx.Timeout(None),
+    )
 
     api = AmazonEchoApi(
         client_session=client_session,
@@ -260,7 +265,7 @@ async def main() -> None:
     print("-" * 20)
     print("Starting HTTP2 background thread")
     print("-" * 20)
-    await api.start_http2_thread()
+    await api.start_http2_thread(_httpx_client)
 
     print("-" * 20)
     try:

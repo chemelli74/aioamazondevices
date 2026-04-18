@@ -6,8 +6,7 @@ import re
 from email.parser import BytesParser
 from email.policy import default
 from http import HTTPMethod, HTTPStatus
-from ssl import SSLContext, create_default_context
-from typing import Any, Self, cast
+from typing import Any, cast
 
 import httpx
 import orjson
@@ -44,31 +43,19 @@ class AmazonHTTP2Client:
         self,
         http_wrapper: AmazonHttpWrapper,
         session_state_data: AmazonSessionStateData,
-        ssl_context: SSLContext,
+        httpx_client: httpx.AsyncClient,
     ) -> None:
         """Initialize Amazon HTTP2 client class."""
         self._http_wrapper = http_wrapper
         self._session_state_data = session_state_data
 
-        self._http2_client = httpx.AsyncClient(
-            http2=True,
-            timeout=httpx.Timeout(None),
-            verify=ssl_context,
-        )
+        self._http2_client = httpx_client
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
 
         self._stream_task: asyncio.Task[None] | None = None
         self._ping_task: asyncio.Task[None] | None = None
         self._stop_event = asyncio.Event()
         self._connected_event = asyncio.Event()
-
-    @classmethod
-    async def create(
-        cls, http_wrapper: AmazonHttpWrapper, session_state_data: AmazonSessionStateData
-    ) -> Self:
-        """Create an instance of AmazonHTTP2Client."""
-        ssl_context = await asyncio.to_thread(create_default_context)
-        return cls(http_wrapper, session_state_data, ssl_context)
 
     async def start_thread(self) -> None:
         """Start the background stream and ping tasks."""
