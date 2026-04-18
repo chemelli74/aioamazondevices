@@ -31,7 +31,10 @@ from aioamazondevices.structures import AmazonPushMessage
 from aioamazondevices.utils import _LOGGER
 
 _BOUNDARY_RE = re.compile(r'boundary="?([^";,]+)"?', re.IGNORECASE)
-_MAX_BUFFER_SIZE = 512 * 1024  # 512KB
+_MAX_BUFFER_SIZE = 512 * 1024  # 512 KB
+_PING_INTERVAL = 280
+# How long to wait for the stream to open before the ping loop retries.
+_OPEN_TIMEOUT = 30
 
 
 class AmazonHTTP2Client:
@@ -54,8 +57,10 @@ class AmazonHTTP2Client:
         )
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
 
-        self._task: asyncio.Task[None] | None = None
+        self._stream_task: asyncio.Task[None] | None = None
+        self._ping_task: asyncio.Task[None] | None = None
         self._stop_event = asyncio.Event()
+        self._connected_event = asyncio.Event()
 
     @classmethod
     async def create(
@@ -66,21 +71,27 @@ class AmazonHTTP2Client:
         return cls(http_wrapper, session_state_data, ssl_context)
 
     async def start_thread(self) -> None:
-        """Start the background task."""
-        if self._task and not self._task.done():
+        """Start the background stream and ping tasks."""
+        if self._stream_task and not self._stream_task.done():
             return
 
         self._stop_event.clear()
-        self._task = asyncio.create_task(self._get_avs_directives())
+        self._connected_event.clear()
+        self._stream_task = asyncio.create_task(
+            self._get_avs_directives(), name="avs-stream"
+        )
+        self._ping_task = asyncio.create_task(self._ping_loop(), name="avs-ping")
 
     async def stop_thread(self) -> None:
-        """Stop the background task gracefully."""
+        """Stop all background tasks gracefully."""
         self._stop_event.set()
+        self._connected_event.clear()
 
-        if self._task:
-            self._task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await self._task
+        for task in (self._stream_task, self._ping_task):
+            if task and not task.done():
+                task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await task
 
         if not self._http2_client.is_closed:
             await self._http2_client.aclose()
@@ -108,6 +119,8 @@ class AmazonHTTP2Client:
     async def _get_avs_directives(self) -> None:
         """Maintain AVS directive stream loop."""
         while not self._stop_event.is_set():
+            self._connected_event.clear()
+
             if not await self._ensure_ready():
                 await asyncio.sleep(HTTP2_RECONNECT_DELAY)
                 continue
@@ -124,7 +137,7 @@ class AmazonHTTP2Client:
                 await asyncio.sleep(HTTP2_RECONNECT_DELAY)
 
     async def _ensure_ready(self) -> bool:
-        """Ensure token, device registration, and HTTP2 client are ready."""
+        """Ensure token and device registration are ready."""
         refreshed_token, _ = await self._http_wrapper.refresh_data(REFRESH_ACCESS_TOKEN)
 
         if not refreshed_token:
@@ -162,12 +175,17 @@ class AmazonHTTP2Client:
                 HTTPStatus.UNAUTHORIZED,
                 HTTPStatus.FORBIDDEN,
             ):
-                raise CannotAuthenticate
+                raise CannotAuthenticate(
+                    f"Directives stream returned {response.status_code}"
+                )
 
             boundary = self._parse_boundary(response.headers.get("content-type", ""))
             if boundary is None:
                 _LOGGER.warning("Missing multipart boundary")
                 return
+
+            # Stream confirmed open — allow the ping loop to start firing.
+            self._connected_event.set()
 
             buffer = bytearray()
 
@@ -192,22 +210,28 @@ class AmazonHTTP2Client:
                     await self._handle_part(part.strip())
 
         _LOGGER.debug("AVS Directives stream closed")
+        self._connected_event.clear()
 
     async def _handle_part(self, part: bytes) -> None:
         """Process a single multipart section."""
         if not part:
-            await self._ping()
+            with contextlib.suppress(Exception):
+                await self._ping()
             return
 
         try:
             chunk_json = self._extract_json_from_part(part)
         except (ValueError, JSONDecodeError) as exc:
-            _LOGGER.warning("Failed to parse multipart section: %s", part, exc_info=exc)
+            _LOGGER.warning(
+                "Failed to parse multipart section: %s",
+                part.decode("utf-8", errors="replace"),
+                exc_info=exc,
+            )
             return
 
         try:
             updates_nodes = chunk_json["directive"]["payload"]["renderingUpdates"]
-        except (KeyError, IndexError):
+        except (KeyError, TypeError):
             _LOGGER.warning("Malformed directive payload: %s", chunk_json)
             return
 
@@ -220,9 +244,10 @@ class AmazonHTTP2Client:
 
             if push_event_type not in AmazonPushMessage._value2member_map_:
                 _LOGGER.warning(
-                    "Unknown HTTP2 push message from device %s: %s",
+                    "Unknown HTTP2 push message from device %s: %s\n\n%s",
                     device,
                     push_event_type,
+                    chunk_json,
                 )
                 continue
 
@@ -264,7 +289,7 @@ class AmazonHTTP2Client:
         msg = BytesParser(policy=default).parsebytes(part + b"\r\n")
 
         if msg.get_content_type() != "application/json":
-            raise ValueError("Unexpected content-type")
+            raise ValueError(f"Unexpected content-type: {msg.get_content_type()!r}")
 
         if (body := msg.get_payload(decode=True)) is None:
             raise ValueError("No payload")
@@ -279,38 +304,73 @@ class AmazonHTTP2Client:
         ]
         return HTTP2_SITE.format(region=region)
 
+    async def _ping_loop(self) -> None:
+        """Send periodic keepalive pings independent of server-side frames.
+
+        The loop waits for _connected_event before its first ping so it
+        never fires while the stream is still being established or while
+        a reconnect is in progress.
+        """
+        while not self._stop_event.is_set():
+            try:
+                await asyncio.wait_for(
+                    self._connected_event.wait(), timeout=_OPEN_TIMEOUT
+                )
+            except TimeoutError:
+                continue  # not connected yet — loop back and wait again
+
+            await asyncio.sleep(_PING_INTERVAL)
+
+            if self._stop_event.is_set():
+                break
+            if not self._connected_event.is_set():
+                # Disconnected during the sleep — skip ping, let the stream
+                # task reconnect.
+                continue
+
+            try:
+                await self._ping()
+            except CannotAuthenticate:
+                _LOGGER.warning("HTTP2: Ping auth failure")
+                self._connected_event.clear()
+            except Exception as exc:  # noqa: BLE001
+                _LOGGER.debug("HTTP2: Ping error (will retry): %s", exc)
+
     async def _ping(self) -> None:
-        """Ping."""
+        """POST a keepalive to the AVS /ping endpoint."""
+        if self._http2_client.is_closed:
+            return
+
         response = await self._http2_client.post(
             f"{self._http2_site()}/ping",
-            headers={
-                "Authorization": f"Bearer {self._get_bearer_token()}",
-            },
+            headers={"Authorization": f"Bearer {self._get_bearer_token()}"},
         )
-        _LOGGER.debug(
-            "Received response: %s:%s",
-            response.status_code,
-            response.text,
-        )
+        _LOGGER.debug("HTTP2: Ping -> %s", response.status_code)
+
         if response.status_code in (
             HTTPStatus.FORBIDDEN,
             HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
             HTTPStatus.UNAUTHORIZED,
         ):
             raise CannotAuthenticate(
-                "Detected ping 403, please check your credentials and region"
+                f"Ping returned {response.status_code}; check credentials and region"
             )
 
     def _get_bearer_token(self) -> str:
-        """Get current bearer token."""
+        """Return the current access token."""
         if not (
             token := self._session_state_data.login_stored_data.get("access_token")
         ):
-            _LOGGER.error("No access token available, cannot get bearer token")
+            _LOGGER.error("No access token available")
             return ""
         return str(token)
 
     def _parse_boundary(self, content_type: str) -> bytes | None:
+        """Extract the boundary delimiter from a Content-Type header value.
+
+        Returns the full delimiter bytes (with '--' prefix) ready for use
+        with bytes.find().
+        """
         if not (match := _BOUNDARY_RE.search(content_type)):
             return None
         return f"--{match.group(1).strip()}".encode()
