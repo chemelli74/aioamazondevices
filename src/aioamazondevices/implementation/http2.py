@@ -176,28 +176,36 @@ class AmazonHTTP2Client:
 
             buffer = bytearray()
 
-            async for chunk in response.aiter_bytes():
-                if self._stop_event.is_set():
-                    break
-
-                buffer.extend(chunk)
-
-                if len(buffer) > _MAX_BUFFER_SIZE:
-                    _LOGGER.error("Buffer exceeded maximum size, forcing reconnect")
-                    return
-
-                while True:
-                    idx = buffer.find(boundary)
-                    if idx == -1:
+            try:
+                async for chunk in response.aiter_bytes():
+                    if self._stop_event.is_set():
                         break
 
-                    part = buffer[:idx]
-                    del buffer[: idx + len(boundary)]
+                    buffer.extend(chunk)
 
-                    await self._handle_part(part.strip())
+                    if len(buffer) > _MAX_BUFFER_SIZE:
+                        _LOGGER.error("Buffer exceeded maximum size, forcing reconnect")
+                        return
 
-        _LOGGER.debug("AVS Directives stream closed")
-        self._connected_event.clear()
+                    while True:
+                        idx = buffer.find(boundary)
+                        if idx == -1:
+                            break
+
+                        part = buffer[:idx]
+                        del buffer[: idx + len(boundary)]
+
+                        try:
+                            await self._handle_part(part.strip())
+                        except AttributeError as exc:
+                            _LOGGER.warning(
+                                "Error processing multipart section: %s",
+                                part.decode("utf-8", errors="replace"),
+                                exc_info=exc,
+                            )
+            finally:
+                _LOGGER.debug("AVS Directives stream closed")
+                self._connected_event.clear()
 
     async def _handle_part(self, part: bytes) -> None:
         """Process a single multipart section."""
