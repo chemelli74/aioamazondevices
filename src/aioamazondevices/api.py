@@ -187,19 +187,16 @@ class AmazonEchoApi:
 
         return self._device_handler.devices
 
-    async def start_http2_thread(
-        self, httpx_client: httpx.AsyncClient | None = None
-    ) -> None:
+    async def start_http2_processing(self, httpx_client: httpx.AsyncClient) -> None:
         """Start HTTP2 background thread.
 
         httpx client must have http2 enabled and a timeout of None to
         allow for long-lived connections.
+        Caller is responsible for ensuring its properly configured and closed after use.
         """
         if self._http2_client:
             _LOGGER.warning("HTTP2 thread is already running.")
             return
-        if httpx_client is None:
-            httpx_client = httpx.AsyncClient(http2=True, timeout=httpx.Timeout(None))
         self._http2_client = AmazonHTTP2Client(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
@@ -207,12 +204,12 @@ class AmazonEchoApi:
         )
         self._http2_client.on_push_event.append(self._http2_push_event_handler)
         self._http2_client.on_push_event.freeze()
-        await self._http2_client.start_thread()
+        await self._http2_client.start_processing()
 
-    async def stop_http2_thread(self) -> None:
+    async def stop_http2_processing(self) -> None:
         """Stop HTTP2 background thread."""
         if self._http2_client:
-            await self._http2_client.stop_thread()
+            await self._http2_client.stop_processing()
 
     async def _http2_push_event_handler(
         self, event_type: str, payload: dict[str, Any]

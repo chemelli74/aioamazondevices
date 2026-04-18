@@ -56,7 +56,7 @@ class AmazonHTTP2Client:
         self._stop_event = asyncio.Event()
         self._connected_event = asyncio.Event()
 
-    async def start_thread(self) -> None:
+    async def start_processing(self) -> None:
         """Start the background stream and ping tasks."""
         if self._stream_task and not self._stream_task.done():
             return
@@ -68,7 +68,7 @@ class AmazonHTTP2Client:
         )
         self._ping_task = asyncio.create_task(self._ping_loop(), name="avs-ping")
 
-    async def stop_thread(self) -> None:
+    async def stop_processing(self) -> None:
         """Stop all background tasks gracefully."""
         self._stop_event.set()
         self._connected_event.clear()
@@ -78,9 +78,6 @@ class AmazonHTTP2Client:
                 task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
                     await task
-
-        if not self._http2_client.is_closed:
-            await self._http2_client.aclose()
 
     async def _register_device_capabilities(self) -> None:
         """Register device capabilities."""

@@ -265,7 +265,7 @@ async def main() -> None:
     print("-" * 20)
     print("Starting HTTP2 background thread")
     print("-" * 20)
-    await api.start_http2_thread(_httpx_client)
+    await api.start_http2_processing(_httpx_client)
 
     print("-" * 20)
     try:
@@ -311,7 +311,7 @@ async def main() -> None:
         await tests(args, api, devices)
 
     print("Closing session")
-    await api.stop_http2_thread()
+    await api.stop_http2_processing()
     await client_session.close()
 
 
