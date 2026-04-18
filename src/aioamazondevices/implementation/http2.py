@@ -2,7 +2,7 @@
 
 import asyncio
 import contextlib
-import re
+from email.message import EmailMessage
 from email.parser import BytesParser
 from email.policy import default
 from http import HTTPMethod, HTTPStatus
@@ -23,12 +23,16 @@ from aioamazondevices.const.http import (
     REFRESH_ACCESS_TOKEN,
     URI_CAPABILITIES,
 )
-from aioamazondevices.exceptions import CannotAuthenticate, CannotRegisterDevice
+from aioamazondevices.exceptions import (
+    CannotAuthenticate,
+    CannotConnect,
+    CannotRegisterDevice,
+    CannotRetrieveData,
+)
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonPushMessage
 from aioamazondevices.utils import _LOGGER
 
-_BOUNDARY_RE = re.compile(r'boundary="?([^";,]+)"?', re.IGNORECASE)
 _MAX_BUFFER_SIZE = 512 * 1024  # 512 KB
 _PING_INTERVAL = 280
 # How long to wait for the stream to open before the ping loop retries.
@@ -121,7 +125,13 @@ class AmazonHTTP2Client:
 
     async def _ensure_ready(self) -> bool:
         """Ensure token and device registration are ready."""
-        refreshed_token, _ = await self._http_wrapper.refresh_data(REFRESH_ACCESS_TOKEN)
+        try:
+            refreshed_token, _ = await self._http_wrapper.refresh_data(
+                REFRESH_ACCESS_TOKEN
+            )
+        except (CannotConnect, CannotRetrieveData) as exc:
+            _LOGGER.warning("Failed to refresh access token: %s", exc)
+            return False
 
         if not refreshed_token:
             _LOGGER.warning("Failed to refresh access token")
@@ -131,7 +141,11 @@ class AmazonHTTP2Client:
             DEVICE_CAPABILITIES_REGISTERED, False
         ):
             _LOGGER.debug("Registering device capabilities")
-            await self._register_device_capabilities()
+            try:
+                await self._register_device_capabilities()
+            except (CannotConnect, CannotRetrieveData) as exc:
+                _LOGGER.warning("Failed to register device capabilities: %s", exc)
+                return False
 
         return True
 
@@ -191,14 +205,7 @@ class AmazonHTTP2Client:
                         part = buffer[:idx]
                         del buffer[: idx + len(boundary)]
 
-                        try:
-                            await self._handle_part(part.strip())
-                        except AttributeError as exc:
-                            _LOGGER.warning(
-                                "Error processing multipart section: %s",
-                                part.decode("utf-8", errors="replace"),
-                                exc_info=exc,
-                            )
+                        await self._handle_part(part.strip())
             finally:
                 _LOGGER.debug("AVS Directives stream closed")
                 self._connected_event.clear()
@@ -233,8 +240,22 @@ class AmazonHTTP2Client:
         # All observed messages appear to contain only one update
         # but this is treated as an array to ensure we iterate over all results
         for updates_node in updates_nodes:
-            push_event_type = updates_node.get("resourceId", "No resourceId")
-            payload = updates_node.get("resourceMetadata", {}).get("payload", {})
+            if not isinstance(updates_node, dict):
+                _LOGGER.warning("Malformed rendering update node: %s", updates_node)
+                continue
+            push_event_type = updates_node.get("resourceId")
+            if not push_event_type:
+                _LOGGER.warning("Missing resourceId in update node: %s", updates_node)
+                continue
+            resource_metadata = updates_node.get("resourceMetadata", {})
+            if not isinstance(resource_metadata, dict):
+                _LOGGER.warning("Malformed resourceMetadata: %s", resource_metadata)
+                continue
+
+            payload = resource_metadata.get("payload", {})
+            if not isinstance(payload, dict):
+                _LOGGER.warning("Malformed push payload: %s", payload)
+                continue
             device = payload.get("dopplerId", {}).get("deviceSerialNumber")
 
             if push_event_type not in AmazonPushMessage._value2member_map_:
@@ -357,7 +378,7 @@ class AmazonHTTP2Client:
             token := self._session_state_data.login_stored_data.get("access_token")
         ):
             _LOGGER.error("No access token available")
-            return ""
+            raise CannotAuthenticate("No access token available")
         return str(token)
 
     def _parse_boundary(self, content_type: str) -> bytes | None:
@@ -366,6 +387,8 @@ class AmazonHTTP2Client:
         Returns the full delimiter bytes (with '--' prefix) ready for use
         with bytes.find().
         """
-        if not (match := _BOUNDARY_RE.search(content_type)):
+        msg = EmailMessage()
+        msg["Content-Type"] = content_type
+        if not (boundary := msg.get_boundary()):
             return None
-        return f"--{match.group(1).strip()}".encode()
+        return f"--{boundary}".encode()
