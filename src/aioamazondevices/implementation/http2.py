@@ -194,8 +194,11 @@ class AmazonHTTP2Client:
             buffer = bytearray()
 
             try:
+                _LOGGER.debug("iterating over response chunks")
                 async for chunk in response.aiter_bytes():
+                    _LOGGER.debug("Received chunk of size %s", len(chunk))
                     if self._stop_event.is_set():
+                        _LOGGER.debug("Stop event set, breaking chunk iteration")
                         break
 
                     buffer.extend(chunk)
@@ -205,8 +208,13 @@ class AmazonHTTP2Client:
                         return
 
                     while True:
+                        _LOGGER.debug(
+                            "Checking buffer : %s",
+                            buffer.decode("utf-8", errors="replace"),
+                        )
                         idx = buffer.find(boundary)
                         if idx == -1:
+                            _LOGGER.debug("Boundary not found in buffer yet")
                             break
 
                         part = buffer[:idx]
@@ -219,27 +227,37 @@ class AmazonHTTP2Client:
 
     async def _handle_part(self, part: bytes) -> None:
         """Process a single multipart section."""
+        _LOGGER.debug("Handle part - %s", part.decode("utf-8", errors="replace"))
         if not part:
+            _LOGGER.debug("Empty part received, sending ping to keep connection alive")
             with contextlib.suppress(Exception):
                 await self._ping()
             return
 
         chunk_json = AmazonHTTP2Client._extract_json_from_part(part)
         if chunk_json is None:
+            _LOGGER.warning("Failed to extract JSON from part, skipping")
             return
 
         rendering_updates = AmazonHTTP2Client._extract_rendering_updates(chunk_json)
         if rendering_updates is None:
+            _LOGGER.warning("Failed to extract rendering updates, skipping")
             return
 
+        _LOGGER.debug("Processing %s rendering updates", len(rendering_updates))
         # All observed messages only contain one update but it is presented
         # as an array so iterate over all results in case that ever changes.
         for rendering_update in rendering_updates:
             result = AmazonHTTP2Client._process_rendering_update(rendering_update)
             if result is None:
+                _LOGGER.warning("Failed to process rendering update, skipping")
                 continue
             push_event_type, payload = result
+            _LOGGER.debug(
+                "Emitting push event <%s> with payload: %s", push_event_type, payload
+            )
             await self.on_push_event.send(push_event_type, payload)
+            _LOGGER.debug("Push event <%s> emitted successfully", push_event_type)
 
     @staticmethod
     def _process_rendering_update(  # noqa: PLR0911
