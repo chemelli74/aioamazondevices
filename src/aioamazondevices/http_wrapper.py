@@ -259,11 +259,6 @@ class AmazonHttpWrapper:
             input_data=data,
             json_data=False,
         )
-        _LOGGER.debug(
-            "Refresh data response %s with payload %s",
-            raw_resp.status,
-            orjson.dumps(data),
-        )
 
         if raw_resp.status != HTTPStatus.OK:
             _LOGGER.debug("Failed to refresh data")
