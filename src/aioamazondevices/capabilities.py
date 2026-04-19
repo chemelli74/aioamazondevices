@@ -165,7 +165,7 @@ DEVICE_CAPABILITIES = {
             },
             "type": "AlexaInterface",
             "interface": "Alexa.InteractionMode",
-            "version": "1.0",
+            "version": "1.1",
         },
         {
             "type": "AlexaInterface",
@@ -183,7 +183,7 @@ DEVICE_CAPABILITIES = {
             "version": "0.2",
             "interface": "Alexa.Launcher",
         },
-        {"interface": "System", "version": "1.0", "type": "AlexaInterface"},
+        {"interface": "System", "version": "1.4", "type": "AlexaInterface"},
         {
             "interface": "Alexa.IOComponents",
             "type": "AlexaInterface",
@@ -195,14 +195,23 @@ DEVICE_CAPABILITIES = {
             "version": "1.0",
         },
         {
-            "version": "1.0",
             "type": "AlexaInterface",
             "interface": "Alexa.Mobile.Push",
+            "version": "1.1",
+            "configurations": {
+                "supportedEventFormats": [
+                    {"name": "smarthome-events", "version": "1.0.0"},
+                    {"name": "motion-events", "version": "1.0.0"},
+                    {"name": "alexa-events", "version": "1.0.0"},
+                    {"name": "acoustic-events", "version": "1.0.0"},
+                    {"name": "guard-events", "version": "1.0.0"},
+                ]
+            },
         },
         {
             "type": "AlexaInterface",
             "interface": "InteractionModel",
-            "version": "1.1",
+            "version": "1.2",
         },
         {
             "interface": "Alexa.PlaylistController",
@@ -244,5 +253,11 @@ DEVICE_CAPABILITIES = {
             "type": "AlexaInterface",
             "version": "1.0",
         },
+        {
+            "type": "AlexaInterface",
+            "interface": "Alexa.Notifications.Multipart",
+            "version": "1.0",
+        },
+        {"type": "AlexaInterface", "interface": "Alexa.DeviceLogs", "version": "1.0"},
     ],
 }

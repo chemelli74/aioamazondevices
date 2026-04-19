@@ -268,6 +268,30 @@ class AmazonHTTP2Client:
         doppler_id = payload.get("dopplerId") or {}
         device_serial = doppler_id.get("deviceSerialNumber")
 
+        if rendering_update.get("route", "xxx") == "EventBus:AlexaMobile::FDAL":
+            metadata = rendering_update.get("resourceMetadata", {})
+            metric = metadata.get("metricName")
+            payload = metadata.get("payload", {})
+            entity = payload.get("entity", {})
+            endpoint_id = entity.get("id")
+            data = payload.get("data", {})
+            features = data.get("features", {})
+            for feature in features:
+                properties = feature.get("properties", {})
+                for property_details in properties:
+                    name = property_details.get("name")
+                    value = (
+                        property_details.get("value")
+                        or property_details.get("rangeValue")
+                        or property_details.get("toggleStateValue")
+                    )
+                    _LOGGER.info(
+                        "Metric: %s, Endpoint: %s, Property: %s, Value: %s",
+                        metric,
+                        endpoint_id,
+                        name,
+                        value,
+                    )
         if not AmazonHTTP2Client._is_known_event_type(push_event_type):
             _LOGGER.warning(
                 "Unknown HTTP2 push message from device %s: %s\n\n%s",
