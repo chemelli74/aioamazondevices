@@ -146,6 +146,9 @@ class AmazonPushMessage(StrEnum):
     # Lists
     ItemChange = "PUSH_LIST_ITEM_CHANGE"
 
+    # Matter
+    MatterDeviceFound = "MATTER_SETUP_NOTIFICATION"
+
 
 @dataclass
 class AmazonSequenceNode:
