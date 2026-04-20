@@ -87,7 +87,7 @@ class AmazonHTTP2Client:
         """Register device capabilities."""
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.PUT,
-            url=f"https://api.amazonalexa.com/{URI_CAPABILITIES}",
+            url=f"https://api.amazonalexa.com{URI_CAPABILITIES}",
             input_data=DEVICE_CAPABILITIES,
             json_data=True,
             extended_headers={"Authorization": f"Bearer {self._get_bearer_token()}"},
