@@ -35,7 +35,6 @@ SAVE_PATH_DATE = datetime.now(UTC).strftime("%Y-%m-%d-%H-%M-%S")
 HTML_EXTENSION = ".html"
 BIN_EXTENSION = ".bin"
 RAW_EXTENSION = ".raw"
-media_states: dict[str, AmazonMediaState] = {}
 
 
 async def get_arguments() -> tuple[ArgumentParser, Namespace]:
