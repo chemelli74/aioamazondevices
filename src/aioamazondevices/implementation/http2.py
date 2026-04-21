@@ -428,7 +428,9 @@ class AmazonHTTP2Client:
     def _get_bearer_token(self) -> str:
         """Return the current access token."""
         if not (
-            token := self._session_state_data.login_stored_data.get("access_token")
+            token := self._session_state_data.login_stored_data.get(
+                REFRESH_ACCESS_TOKEN
+            )
         ):
             _LOGGER.error("No access token available")
             raise CannotAuthenticate("No access token available")
