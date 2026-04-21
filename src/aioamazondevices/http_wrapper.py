@@ -410,7 +410,7 @@ class AmazonHttpWrapper:
                 _LOGGER.debug("JSON '%s' data: %s", description, scrub_fields(data))
             return cast("dict[str, Any]", data)
         except ContentTypeError as exc:
-            if raw_resp.url.path == "/ap/signin":
+            if raw_resp.url.path == URI_SIGNIN:
                 # content was not JSON and user has been redirected
                 # to signin page
                 raise CannotAuthenticate(
