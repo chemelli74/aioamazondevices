@@ -33,7 +33,7 @@ class AmazonMediaHandler:
         """Initialize AmazonMediaHandler class."""
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
-        self._music_providers: dict[str, AmazonMusicProvider]
+        self._music_providers: dict[str, AmazonMusicProvider] = {}
         self._device_volumes: dict[str, AmazonVolumeState] = {}
         self._media_states: dict[str, AmazonMediaState] = {}
 
@@ -42,7 +42,7 @@ class AmazonMediaHandler:
         """Return music providers."""
         if not self._music_providers:
             await self.update_music_providers()
-        return self._music_providers or {}
+        return self._music_providers
 
     @property
     async def device_volumes(self) -> dict[str, AmazonVolumeState]:
@@ -54,7 +54,7 @@ class AmazonMediaHandler:
     @property
     async def media_states(self) -> dict[str, AmazonMediaState]:
         """Return media states."""
-        return self._media_states or {}
+        return self._media_states
 
     async def sync_device_volumes(self) -> None:
         """Sync all device volumes."""
