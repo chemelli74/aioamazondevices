@@ -1,5 +1,12 @@
 # Changelog
 
+## v13.4.3 (2026-04-19)
+
+### Bug fixes
+
+- No routine configured ([`192dbd0`](https://github.com/chemelli74/aioamazondevices/commit/192dbd09c1cef7c0c4de13fce9b005f00e338835))
+
+
 ## v13.4.2 (2026-04-14)
 
 ### Bug fixes
