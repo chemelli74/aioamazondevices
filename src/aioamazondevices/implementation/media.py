@@ -100,7 +100,7 @@ class AmazonMediaHandler:
 
     async def sync_media_state(self, devices: dict[str, AmazonDevice]) -> None:
         """Sync media states."""
-        _media_states = {}
+        media_states = {}
         # the endpoint needs a device type / serial but returns all sessions
         media_sessions = await self._get_media_states(next(iter(devices.values())))
         if not media_sessions:
@@ -119,7 +119,7 @@ class AmazonMediaHandler:
             str_media_progress = now_playing.get("progress", {}).get("mediaProgress")
             transport = now_playing.get("transport", {})
             provider = now_playing.get("provider", {})
-            _media_states[serial_number] = AmazonMediaState(
+            media_states[serial_number] = AmazonMediaState(
                 player_state=now_playing.get("playerState"),
                 now_playing_url=now_playing.get("mainArt", {}).get("largeUrl"),
                 now_playing_title=now_playing.get("infoText", {}).get("title"),
@@ -147,7 +147,7 @@ class AmazonMediaHandler:
                 media_provider_url=provider.get("providerLogo", {}).get("url"),
             )
 
-        self._media_states = _media_states
+        self._media_states = media_states
 
     async def update_music_providers(self) -> None:
         """Update availables music providers."""
