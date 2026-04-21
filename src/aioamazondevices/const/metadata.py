@@ -83,6 +83,8 @@ ALEXA_INFO_SKILLS = [
     "Alexa.GoodNight.Play",
 ]
 
+SEQUENCE_BATCH_DELAY = 0.3  # seconds
+
 MAX_CUSTOMER_ACCOUNT_RETRIES = 3
 
 VOLUME_MAX = 100

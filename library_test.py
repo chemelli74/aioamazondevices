@@ -315,7 +315,6 @@ async def tests(
         await api.set_device_volume(device_single, 100)
         await wait_action_complete(1)
 
-    if args.tests.get("02_test_speak", True):
         print(
             "Sending message via 'Alexa.Speak' at 100% volume to:",
             device_single.account_name,
@@ -337,6 +336,18 @@ async def tests(
             device_single, "Test Speak message at 30% from new library"
         )
         await wait_action_complete()
+
+    if args.tests.get("02_test_speak", True):
+        print(
+            "Sending multiple messages via 'Alexa.Speak' to:",
+            device_single.account_name,
+        )
+        # sequences should be batched into a single call
+        await api.call_alexa_speak(device_single, "Test Speak message from new library")
+        await api.call_alexa_speak(device_single, "Test Speak 2 from new library")
+        await api.call_alexa_speak(device_single, "Test Speak 3 from new library")
+
+        await wait_action_complete(10)
 
     if args.tests.get("03_test_announcement", True):
         print(
@@ -425,9 +436,10 @@ async def tests(
         if not args.routine_name:
             print("No routine name provided, skipping routine test")
             return
-        # Update routines list before running one
-        await api.update_routines()
-        await api.call_routine(device_single, args.routine_name)
+        # Note: Routine name must be exact, otherwise it will not be found and executed
+        print(f"Executing routine '{args.routine_name}'")
+        await api.call_routine(args.routine_name)
+        await wait_action_complete(10)
 
 
 def set_logging() -> None:
