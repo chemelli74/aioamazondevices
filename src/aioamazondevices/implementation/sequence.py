@@ -308,6 +308,6 @@ class AmazonSequenceHandler:
         )
         self._routines = {
             routine["name"]: routine["sequence"]
-            for routine in resp_json[ARRAY_WRAPPER]
+            for routine in resp_json.get(ARRAY_WRAPPER, [])
             if routine["status"] == "ENABLED"
         }
