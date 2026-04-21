@@ -410,6 +410,12 @@ class AmazonHttpWrapper:
                 _LOGGER.debug("JSON '%s' data: %s", description, scrub_fields(data))
             return cast("dict[str, Any]", data)
         except ContentTypeError as exc:
+            if raw_resp.url.path == URI_SIGNIN:
+                # content was not JSON and user has been redirected
+                # to signin page
+                raise CannotAuthenticate(
+                    "Authentication failed, check credentials"
+                ) from exc
             raise ValueError("Response not in JSON format") from exc
         except orjson.JSONDecodeError as exc:
             raise ValueError("Response with corrupted JSON format") from exc
