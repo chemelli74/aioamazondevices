@@ -195,6 +195,15 @@ async def wait_action_complete(sleep: int = 5) -> None:
 
 async def main() -> None:
     """Run main."""
+    media_states: dict[str, AmazonMediaState] = {}
+
+    async def media_state_event_handler(
+        media_state: dict[str, AmazonMediaState],
+    ) -> None:
+        """Handle pushed media state changed events."""
+        media_states.clear()
+        media_states.update(media_state)
+
     _, args = await get_arguments()
 
     login_data_stored = await read_from_file(args.login_data_file)
@@ -284,20 +293,17 @@ async def main() -> None:
     if not args.test:
         print("!!! No testing requested, exiting !!!")
     else:
-        await tests(args, api, devices)
+        await tests(args, api, devices, media_states)
 
     print("Closing session")
     await client_session.close()
 
 
-async def media_state_event_handler(media_state: dict[str, AmazonMediaState]) -> None:
-    """Handle pushed media state changed events."""
-    global media_states  # noqa: PLW0603
-    media_states = media_state
-
-
 async def tests(
-    args: Namespace, api: AmazonEchoApi, devices: dict[str, AmazonDevice]
+    args: Namespace,
+    api: AmazonEchoApi,
+    devices: dict[str, AmazonDevice],
+    media_states: dict[str, AmazonMediaState],
 ) -> None:
     """Run tests."""
     print("*" * 20)
