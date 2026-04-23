@@ -162,8 +162,8 @@ class AmazonSequenceNode:
 
 
 @dataclass
-class AmazonVocalRecords:
-    """Amazon vocal records."""
+class AmazonVocalRecord:
+    """Amazon vocal record."""
 
     timestamp: int
     utterance_type: str
