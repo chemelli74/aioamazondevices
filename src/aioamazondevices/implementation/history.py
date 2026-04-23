@@ -72,7 +72,7 @@ class AmazonHistoryHandler:
         _LOGGER.debug("Vocal history data: %s", history)
         return history
 
-    async def vocal_history(self) -> dict[str, Any]:
+    async def vocal_history(self) -> dict[str, AmazonVocalRecord]:
         """Get vocal history."""
         history_json = await self._vocal_history_json()
 
