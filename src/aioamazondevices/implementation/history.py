@@ -1,4 +1,4 @@
-"""Module to handle Alexa do not disturb setting."""
+"""Module to handle Alexa vocal history setting."""
 
 from datetime import UTC, datetime, timedelta
 from http import HTTPMethod
@@ -7,13 +7,14 @@ from typing import Any
 from bs4 import Tag
 
 from aioamazondevices.const.http import (
+    CSRF_A2Z,
     REFRESH_ACCESS_TOKEN,
     URI_HISTORY_DATA,
     URI_HISTORY_FRONTEND,
 )
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import AmazonVocalRecords
+from aioamazondevices.structures import AmazonVocalRecord
 from aioamazondevices.utils import _LOGGER
 
 
@@ -64,7 +65,7 @@ class AmazonHistoryHandler:
             json_data=True,
             extended_headers={
                 "Authorization": f"Bearer {access_token}",
-                "Anti-Csrftoken-A2z": self._csrf_a2z_token,
+                CSRF_A2Z: self._csrf_a2z_token,
             },
         )
         history = await self._http_wrapper.response_to_json(raw_res)
@@ -75,7 +76,7 @@ class AmazonHistoryHandler:
         """Get vocal history."""
         history_json = await self._vocal_history_json()
 
-        records: dict[str, AmazonVocalRecords] = {}
+        records: dict[str, AmazonVocalRecord] = {}
         for record in history_json["alexaHistoryRecords"]:
             _LOGGER.debug("Processing vocal history record: %s", record)
             serial = record["deviceInfo"]["deviceSerialNumber"]
@@ -88,9 +89,9 @@ class AmazonHistoryHandler:
             ]:
                 continue
             timestamp = record["timestamp"]
-            new_record = AmazonVocalRecords(
+            new_record = AmazonVocalRecord(
                 timestamp=timestamp,
-                utterance_type=record["utteranceType"],
+                utterance_type=utterance_type,
                 intent=record["intent"],
                 title=record["title"],
                 sub_title=record["subTitle"],
