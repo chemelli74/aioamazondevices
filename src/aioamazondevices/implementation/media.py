@@ -33,7 +33,9 @@ class AmazonMediaHandler:
         """Initialize AmazonMediaHandler class."""
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
-        self._music_providers: dict[str, AmazonMusicProvider]
+        self._music_providers: dict[str, AmazonMusicProvider] = {}
+        self._device_volumes: dict[str, AmazonVolumeState] = {}
+        self._media_states: dict[str, AmazonMediaState] = {}
 
     @property
     async def music_providers(self) -> dict[str, AmazonMusicProvider]:
@@ -42,8 +44,26 @@ class AmazonMediaHandler:
             await self.update_music_providers()
         return self._music_providers
 
-    async def get_device_volumes(self) -> dict[str, AmazonVolumeState]:
-        """Get all device volumes."""
+    @property
+    async def device_volumes(self) -> dict[str, AmazonVolumeState]:
+        """Return device volumes."""
+        if not self._device_volumes:
+            await self.sync_device_volumes()
+        return self._device_volumes
+
+    @property
+    async def media_states(self) -> dict[str, AmazonMediaState]:
+        """Return media states."""
+        return self._media_states
+
+    def update_cached_device_volume(
+        self, device_serial: str, volume: AmazonVolumeState
+    ) -> None:
+        """Update cached device volume."""
+        self._device_volumes[device_serial] = volume
+
+    async def sync_device_volumes(self) -> None:
+        """Sync all device volumes."""
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
             url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICE_VOLUMES}",
@@ -59,7 +79,7 @@ class AmazonMediaHandler:
                 device_volume_data["speakerVolume"], device_volume_data["speakerMuted"]
             )
 
-        return _volumes
+        self._device_volumes = _volumes
 
     async def _get_media_states(self, device: AmazonDevice) -> dict[str, Any]:
         """Get media state for devices.
@@ -84,15 +104,14 @@ class AmazonMediaHandler:
 
         return media_sessions
 
-    async def sync_media_state(
-        self, devices: dict[str, AmazonDevice]
-    ) -> dict[str, AmazonMediaState]:
-        """Return all media state."""
+    async def sync_media_state(self, devices: dict[str, AmazonDevice]) -> None:
+        """Sync media states."""
         media_states = {}
         # the endpoint needs a device type / serial but returns all sessions
         media_sessions = await self._get_media_states(next(iter(devices.values())))
         if not media_sessions:
-            return {}
+            self._media_states = {}
+            return
 
         for device in devices.values():
             if not device.media_player_supported:
@@ -134,7 +153,7 @@ class AmazonMediaHandler:
                 media_provider_url=provider.get("providerLogo", {}).get("url"),
             )
 
-        return media_states
+        self._media_states = media_states
 
     async def update_music_providers(self) -> None:
         """Update availables music providers."""

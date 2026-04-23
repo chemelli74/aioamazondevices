@@ -29,6 +29,7 @@ from aioamazondevices.exceptions import (
 from aioamazondevices.structures import (
     AmazonDevice,
     AmazonMediaControls,
+    AmazonMediaState,
     AmazonMusicProvider,
 )
 
@@ -211,6 +212,15 @@ async def wait_action_complete(sleep: int = 5) -> None:
 
 async def main() -> None:
     """Run main."""
+    media_states: dict[str, AmazonMediaState] = {}
+
+    async def media_state_event_handler(
+        media_state: dict[str, AmazonMediaState],
+    ) -> None:
+        """Handle pushed media state changed events."""
+        media_states.clear()
+        media_states.update(media_state)
+
     _, args = await get_arguments()
 
     login_data_stored = await read_from_file(args.login_data_file)
@@ -232,6 +242,9 @@ async def main() -> None:
         login_data=login_data_stored,
         save_to_file=save_to_file,
     )
+
+    api.on_media_state_event.append(media_state_event_handler)
+    api.on_media_state_event.freeze()
 
     try:
         try:
@@ -311,7 +324,7 @@ async def main() -> None:
         if not args.test:
             print("!!! No testing requested, exiting !!!")
         else:
-            await tests(args, api, devices)
+            await tests(args, api, devices, media_states)
 
     finally:
         print("Closing session")
@@ -322,7 +335,10 @@ async def main() -> None:
 
 
 async def tests(
-    args: Namespace, api: AmazonEchoApi, devices: dict[str, AmazonDevice]
+    args: Namespace,
+    api: AmazonEchoApi,
+    devices: dict[str, AmazonDevice],
+    media_states: dict[str, AmazonMediaState],
 ) -> None:
     """Run tests."""
     print("*" * 20)
@@ -459,7 +475,9 @@ async def tests(
         await api.send_media_command(device_single, AmazonMediaControls.Next)
         await wait_action_complete(15)
 
-        media_states = await api.sync_media_state()
+        await api.sync_media_state()
+        await wait_action_complete()
+
         for device in devices.values():
             media_state = media_states.get(device.serial_number)
             if media_state:
