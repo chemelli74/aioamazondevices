@@ -24,6 +24,7 @@ from .const.metadata import (
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
+from .implementation.history import AmazonHistoryHandler
 from .implementation.notification import AmazonNotificationHandler
 from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
@@ -95,11 +96,18 @@ class AmazonEchoApi:
         )
 
         self._dnd_handler = AmazonDnDHandler(
-            http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
         )
 
         self._media_handler = AmazonMediaHandler(
-            http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
+        self._history_handler = AmazonHistoryHandler(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
         )
 
         initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
@@ -166,6 +174,9 @@ class AmazonEchoApi:
         """Get Amazon devices data."""
         # Perform a refresh to ensure your data is as up-to-date as possible.
         await self._refresh_basic_data()
+
+        vocal_history = await self._history_handler.vocal_history()
+        _LOGGER.debug("Vocal history data retrieved: %s", vocal_history)
 
         dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
         notifications = await self._notification_handler.get_notifications()

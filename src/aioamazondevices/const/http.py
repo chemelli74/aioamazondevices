@@ -24,6 +24,7 @@ DEFAULT_HEADERS = {
     "Accept-Encoding": "gzip",
     "Connection": "keep-alive",
 }
+CSRF_A2Z = "anti-csrftoken-a2z"
 CSRF_COOKIE = "csrf"
 REQUEST_AGENT = {
     "Amazon": f"AmazonWebView/AmazonAlexa/{AMAZON_APP_VERSION}/iOS/{AMAZON_CLIENT_OS}/iPhone",  # noqa: E501
@@ -37,6 +38,8 @@ URI_DEVICE_VOLUMES = "/api/devices/deviceType/dsn/audio/v1/allDeviceVolumes"
 URI_DEVICES = "/api/devices-v2/device"
 URI_DND_STATUS_ALL = "/api/dnd/device-status-list"
 URI_DND_STATUS_DEVICE = "/api/dnd/status"
+URI_HISTORY_DATA = "/alexa-privacy/apd/rah/alexa-history-records-v2"
+URI_HISTORY_FRONTEND = "/alexa-privacy/apd/rvh"
 URI_MEDIA_CONTROL = "/api/np/command"
 URI_MEDIA_STATE = "/api/np/list-media-sessions"
 URI_MUSIC_PROVIDERS = "/api/behaviors/entities?skillId=amzn1.ask.1p.music"
