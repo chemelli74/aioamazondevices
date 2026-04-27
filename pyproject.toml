@@ -49,7 +49,7 @@ version_variables = [
 ]
 # Keep this version in sync with scripts/setup.sh and .github/workflows/ci.yml.
 build_command = """
-    python -m pip install \"uv==0.11.7\"
+    python -m pip install \"uv==0.11.8\"
     uv lock --upgrade-package "$PACKAGE_NAME"
     git add uv.lock
     uv build
