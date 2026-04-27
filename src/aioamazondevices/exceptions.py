@@ -1,4 +1,4 @@
-"""Comelit SimpleHome library exceptions."""
+"""AIOAmazonDevices library exceptions."""
 
 from __future__ import annotations
 
@@ -24,4 +24,4 @@ class CannotRegisterDevice(AmazonError):
 
 
 class WrongMethod(AmazonError):
-    """Exception raised when the wrong login metho is used."""
+    """Exception raised when the wrong login method is used."""
