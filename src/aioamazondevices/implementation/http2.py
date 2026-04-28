@@ -123,7 +123,11 @@ class AmazonHTTP2Client:
         if task.cancelled():
             return
         if exc := task.exception() and self.on_http_error.frozen():
-            self.on_http_error.send(exc)
+            # Needs to be something other than ValueError
+            exc_details = ValueError(f"Task {task.get_name()} Failed")
+            exc_details.__cause__ = exc
+            self.on_http_error.send(exc_details)
+            await self._cancel_tasks()
 
     async def _cancel_tasks(self) -> None:
         for task in (self._stream_task, self._ping_task):
