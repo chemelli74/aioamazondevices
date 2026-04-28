@@ -261,25 +261,25 @@ class AmazonHTTP2Client:
                 await self._ping()
             return
 
-        chunk_json = AmazonHTTP2Client._extract_json_from_part(part)
+        chunk_json = AmazonHTTP2Client.extract_json_from_part(part)
         if chunk_json is None:
             return
 
-        rendering_updates = AmazonHTTP2Client._extract_rendering_updates(chunk_json)
+        rendering_updates = AmazonHTTP2Client.extract_rendering_updates(chunk_json)
         if rendering_updates is None:
             return
 
         # All observed messages only contain one update but it is presented
         # as an array so iterate over all results in case that ever changes.
         for rendering_update in rendering_updates:
-            result = AmazonHTTP2Client._process_rendering_update(rendering_update)
+            result = AmazonHTTP2Client.process_rendering_update(rendering_update)
             if result is None:
                 continue
             push_event_type, payload = result
             await self.on_push_event.send(push_event_type, payload)
 
     @staticmethod
-    def _process_rendering_update(  # noqa: PLR0911
+    def process_rendering_update(  # noqa: PLR0911
         rendering_update: object,
     ) -> tuple[str, dict[str, Any]] | None:
         """Process a single rendering update node."""
@@ -305,7 +305,7 @@ class AmazonHTTP2Client:
         doppler_id = payload.get("dopplerId") or {}
         device_serial = doppler_id.get("deviceSerialNumber")
 
-        if not AmazonHTTP2Client._is_known_event_type(push_event_type):
+        if not AmazonHTTP2Client.is_known_event_type(push_event_type):
             _LOGGER.warning(
                 "Unknown HTTP2 push message from device %s: %s\n\n%s",
                 device_serial,
@@ -314,7 +314,7 @@ class AmazonHTTP2Client:
             )
             return None
 
-        if AmazonHTTP2Client._is_duplicate_notification(push_event_type, payload):
+        if AmazonHTTP2Client.is_duplicate_notification(push_event_type, payload):
             return None
 
         _LOGGER.debug(
@@ -325,7 +325,7 @@ class AmazonHTTP2Client:
         return push_event_type, payload
 
     @staticmethod
-    def _extract_rendering_updates(
+    def extract_rendering_updates(
         chunk_json: dict[str, Any],
     ) -> list[dict[str, Any]] | None:
         """Extract renderingUpdates list from directive payload."""
@@ -342,12 +342,12 @@ class AmazonHTTP2Client:
         return updates_nodes
 
     @staticmethod
-    def _is_known_event_type(push_event_type: str) -> bool:
+    def is_known_event_type(push_event_type: str) -> bool:
         """Check if the push event type is known."""
         return push_event_type in AmazonPushMessage._value2member_map_
 
     @staticmethod
-    def _is_duplicate_notification(
+    def is_duplicate_notification(
         push_event_type: str, payload: dict[str, Any]
     ) -> bool:
         """Filter duplicate NotificationChange events.
@@ -365,28 +365,28 @@ class AmazonHTTP2Client:
         )
 
     @staticmethod
-    def _string_recursive_parse(
+    def string_recursive_parse(
         obj: dict[str, Any] | str | list[Any],
     ) -> dict[str, Any] | list[Any] | str:
         """Recursively parse strings inside dicts/lists if they are valid JSON."""
         if isinstance(obj, dict):
             return {
-                k: AmazonHTTP2Client._string_recursive_parse(v) for k, v in obj.items()
+                k: AmazonHTTP2Client.string_recursive_parse(v) for k, v in obj.items()
             }
 
         if isinstance(obj, list):
-            return [AmazonHTTP2Client._string_recursive_parse(i) for i in obj]
+            return [AmazonHTTP2Client.string_recursive_parse(i) for i in obj]
 
         if isinstance(obj, str) and obj.startswith(("{", "[")):
             try:
-                return AmazonHTTP2Client._string_recursive_parse(orjson.loads(obj))
+                return AmazonHTTP2Client.string_recursive_parse(orjson.loads(obj))
             except orjson.JSONDecodeError:
                 return obj
 
         return obj
 
     @staticmethod
-    def _extract_json_from_part(part: bytes) -> dict[str, Any] | None:
+    def extract_json_from_part(part: bytes) -> dict[str, Any] | None:
         """Extract JSON using MIME parser."""
 
         def _validate_content_type(content_type: str) -> None:
@@ -407,7 +407,7 @@ class AmazonHTTP2Client:
             body = _get_payload(msg)
             parsed = orjson.loads(body)
             return cast(
-                "dict[str, Any]", AmazonHTTP2Client._string_recursive_parse(parsed)
+                "dict[str, Any]", AmazonHTTP2Client.string_recursive_parse(parsed)
             )
         except (TypeError, ValueError, orjson.JSONDecodeError) as exc:
             _LOGGER.warning(
