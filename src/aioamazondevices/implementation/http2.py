@@ -82,6 +82,7 @@ class AmazonHTTP2Client:
 
         self._stream_task: asyncio.Task[None] | None = None
         self._ping_task: asyncio.Task[None] | None = None
+        self._background_tasks: set[asyncio.Task[None]] = set()
         self._stop_event = asyncio.Event()
         self._connected_event = asyncio.Event()
         self._process_lock = asyncio.Lock()
@@ -122,12 +123,13 @@ class AmazonHTTP2Client:
     async def _on_task_done(self, task: asyncio.Task[None]) -> None:
         if task.cancelled():
             return
-        if exc := task.exception() and self.on_http_error.frozen():
+        if (exc := task.exception()) and self.on_http_error.frozen():
             # Needs to be something other than ValueError
             exc_details = ValueError(f"Task {task.get_name()} Failed")
             exc_details.__cause__ = exc
-            self.on_http_error.send(exc_details)
-            await self._cancel_tasks()
+            signal_task = asyncio.create_task(self.on_http_error.send(exc_details))
+            self._background_tasks.add(signal_task)
+            signal_task.add_done_callback(self._background_tasks.discard)
 
     async def _cancel_tasks(self) -> None:
         for task in (self._stream_task, self._ping_task):
