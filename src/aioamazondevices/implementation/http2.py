@@ -356,9 +356,10 @@ class AmazonHTTP2Client:
         """
         notification_version = payload.get("notificationVersion", 2)
         if not isinstance(notification_version, int):
-            raise TypeError(
-                f"Check on notification_version got {type(notification_version)}"
+            _LOGGER.warning(
+                f"Unexpected notification_version of {type(notification_version)}"
             )
+            return False
         return (
             push_event_type == AmazonPushMessage.NotificationChange.value
             and notification_version % 2 == 0
