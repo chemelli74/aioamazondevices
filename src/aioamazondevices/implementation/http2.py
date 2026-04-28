@@ -39,6 +39,31 @@ _PING_INTERVAL = 280
 _OPEN_TIMEOUT = 30
 
 
+class AvsDirectiveStreamParser:
+    """Parse the raw bytes in AVS Directives into chunks."""
+
+    def __init__(self, boundary: bytes) -> None:
+        """Create AVS Directive stream parser."""
+        self._boundary = boundary
+        self._buffer = bytearray()
+
+    def feed(self, chunk: bytes) -> list[bytes]:
+        """Feed received input into buffer and parse."""
+        self._buffer.extend(chunk)
+        if len(self._buffer) > _MAX_BUFFER_SIZE:
+            raise BufferError("buffer exceeded")
+
+        parts: list[bytes] = []
+        while True:
+            idx = self._buffer.find(self._boundary)
+            if idx == -1:
+                break
+            part = bytes(self._buffer[:idx]).strip()
+            del self._buffer[: idx + len(self._boundary)]
+            parts.append(part)
+        return parts
+
+
 class AmazonHTTP2Client:
     """Amazon push HTTP2 messages."""
 
@@ -62,8 +87,19 @@ class AmazonHTTP2Client:
 
     async def start_processing(self) -> None:
         """Start the background stream and ping tasks."""
-        if self._stream_task and not self._stream_task.done():
+        if (
+            self._stream_task
+            and not self._stream_task.done()
+            and self._ping_task
+            and not self._ping_task.done()
+        ):
+            _LOGGER.debug(
+                "Trying to start http2 processing but both tasks already running"
+            )
             return
+
+        # at most one task is running so cancel any running tasks
+        await self._cancel_tasks()
 
         self._stop_event.clear()
         self._connected_event.clear()
@@ -77,6 +113,9 @@ class AmazonHTTP2Client:
         self._stop_event.set()
         self._connected_event.clear()
 
+        await self._cancel_tasks()
+
+    async def _cancel_tasks(self) -> None:
         for task in (self._stream_task, self._ping_task):
             if task and not task.done():
                 task.cancel()
@@ -199,28 +238,18 @@ class AmazonHTTP2Client:
             # Stream confirmed open — allow the ping loop to start firing.
             self._connected_event.set()
 
-            buffer = bytearray()
+            avs_stream_parser = AvsDirectiveStreamParser(boundary)
 
             try:
                 async for chunk in response.aiter_bytes():
                     if self._stop_event.is_set():
                         break
 
-                    buffer.extend(chunk)
-
-                    if len(buffer) > _MAX_BUFFER_SIZE:
-                        _LOGGER.error("Buffer exceeded maximum size, forcing reconnect")
-                        return
-
-                    while True:
-                        idx = buffer.find(boundary)
-                        if idx == -1:
-                            break
-
-                        part = buffer[:idx]
-                        del buffer[: idx + len(boundary)]
-
-                        await self._handle_part(part.strip())
+                    for part in avs_stream_parser.feed(chunk):
+                        await self._handle_part(part)
+            except BufferError:
+                _LOGGER.error("Buffer exceeded maximum size, forcing reconnect")
+                return
             finally:
                 _LOGGER.debug("AVS Directives stream closed")
                 self._connected_event.clear()
@@ -325,9 +354,14 @@ class AmazonHTTP2Client:
 
         Observed behavior: even notificationVersion values are duplicates.
         """
+        notification_version = payload.get("notificationVersion", 2)
+        if not isinstance(notification_version, int):
+            raise TypeError(
+                f"Check on notification_version got {type(notification_version)}"
+            )
         return (
             push_event_type == AmazonPushMessage.NotificationChange.value
-            and payload.get("notificationVersion", 2) % 2 == 0
+            and notification_version % 2 == 0
         )
 
     @staticmethod
