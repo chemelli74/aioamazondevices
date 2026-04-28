@@ -207,6 +207,7 @@ class AmazonEchoApi:
         """Stop HTTP2 background thread."""
         if self._http2_client:
             await self._http2_client.stop_processing()
+            self._http2_client = None
 
     async def _http2_push_event_handler(
         self, event_type: str, payload: dict[str, Any]

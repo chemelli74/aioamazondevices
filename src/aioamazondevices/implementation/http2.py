@@ -80,8 +80,13 @@ class AmazonHTTP2Client:
         for task in (self._stream_task, self._ping_task):
             if task and not task.done():
                 task.cancel()
-                with contextlib.suppress(asyncio.CancelledError):
+                try:
                     await task
+                except asyncio.CancelledError:
+                    if (
+                        current_task := asyncio.current_task()
+                    ) and current_task.cancelling():
+                        raise
 
     async def _register_device_capabilities(self) -> None:
         """Register device capabilities."""
@@ -108,19 +113,22 @@ class AmazonHTTP2Client:
         while not self._stop_event.is_set():
             self._connected_event.clear()
 
-            if not (
-                await self._refresh_token()
-                and await self._check_device_capabilities_registered()
-            ):
-                await asyncio.sleep(HTTP2_RECONNECT_DELAY)
-                continue
-
             try:
+                if not (
+                    await self._refresh_token()
+                    and await self._check_device_capabilities_registered()
+                ):
+                    await asyncio.sleep(HTTP2_RECONNECT_DELAY)
+                    continue
+
                 await self._stream_and_process()
             except httpx.RemoteProtocolError as exc:
                 _LOGGER.debug("HTTP2 disconnection detected: %s", exc)
             except httpx.HTTPError as exc:
                 _LOGGER.warning("HTTP2 error detected: %s", exc)
+            except Exception:
+                _LOGGER.exception("Unexpected error getting AVS directive")
+                raise
 
             if not self._stop_event.is_set():
                 _LOGGER.debug("Reconnecting in %s seconds", HTTP2_RECONNECT_DELAY)
@@ -346,19 +354,28 @@ class AmazonHTTP2Client:
     @staticmethod
     def _extract_json_from_part(part: bytes) -> dict[str, Any] | None:
         """Extract JSON using MIME parser."""
-        msg = BytesParser(policy=default).parsebytes(part + b"\r\n")
 
-        if msg.get_content_type() != "application/json":
-            raise ValueError(f"Unexpected content-type: {msg.get_content_type()!r}")
+        def _validate_content_type(content_type: str) -> None:
+            if content_type != "application/json":
+                raise ValueError(f"Unexpected content-type: {content_type!r}")
 
-        if (body := msg.get_payload(decode=True)) is None:
-            raise ValueError("No payload")
+        def _get_payload(msg: EmailMessage) -> bytes:
+            payload = msg.get_payload(decode=True)
+            if payload is None:
+                raise ValueError("No payload")
+            if not isinstance(payload, bytes):
+                raise TypeError(f"Expected bytes payload, got {type(payload)!r}")
+            return payload
+
         try:
+            msg = BytesParser(policy=default).parsebytes(part + b"\r\n")
+            _validate_content_type(msg.get_content_type())
+            body = _get_payload(msg)
             parsed = orjson.loads(body)
             return cast(
                 "dict[str, Any]", AmazonHTTP2Client._string_recursive_parse(parsed)
             )
-        except (ValueError, orjson.JSONDecodeError) as exc:
+        except (TypeError, ValueError, orjson.JSONDecodeError) as exc:
             _LOGGER.warning(
                 "Failed to parse multipart section: %s",
                 part.decode("utf-8", errors="replace"),
