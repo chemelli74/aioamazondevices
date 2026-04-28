@@ -1,7 +1,6 @@
 """HTTP2 Support for Amazon devices."""
 
 import asyncio
-import contextlib
 from email.message import EmailMessage
 from email.parser import BytesParser
 from email.policy import default
@@ -257,8 +256,7 @@ class AmazonHTTP2Client:
     async def _handle_part(self, part: bytes) -> None:
         """Process a single multipart section."""
         if not part:
-            with contextlib.suppress(Exception):
-                await self._ping()
+            _LOGGER.debug("Handled empty part.")
             return
 
         chunk_json = AmazonHTTP2Client.extract_json_from_part(part)
