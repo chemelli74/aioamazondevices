@@ -78,6 +78,7 @@ class AmazonHTTP2Client:
 
         self._http2_client = httpx_client
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
+        self.on_http_error: Signal[BaseException] = Signal(self)
 
         self._stream_task: asyncio.Task[None] | None = None
         self._ping_task: asyncio.Task[None] | None = None
@@ -107,7 +108,9 @@ class AmazonHTTP2Client:
             self._stream_task = asyncio.create_task(
                 self._get_avs_directives(), name="avs-stream"
             )
+            self._stream_task.add_done_callback(self._on_task_done)
             self._ping_task = asyncio.create_task(self._ping_loop(), name="avs-ping")
+            self._ping_task.add_done_callback(self._on_task_done)
 
     async def stop_processing(self) -> None:
         """Stop all background tasks gracefully."""
@@ -115,6 +118,12 @@ class AmazonHTTP2Client:
             self._stop_event.set()
             self._connected_event.clear()
             await self._cancel_tasks()
+
+    async def _on_task_done(self, task: asyncio.Task[None]) -> None:
+        if task.cancelled():
+            return
+        if exc := task.exception() and self.on_http_error.frozen():
+            self.on_http_error.send(exc)
 
     async def _cancel_tasks(self) -> None:
         for task in (self._stream_task, self._ping_task):
