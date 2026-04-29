@@ -47,7 +47,12 @@ class AvsDirectiveStreamParser:
         self._buffer = bytearray()
 
     def feed(self, chunk: bytes) -> list[bytes]:
-        """Feed received input into buffer and parse."""
+        """Feed received input into buffer and parse.
+
+        Raises:
+            BufferError: if buffer exceeds _MAX_BUFFER_SIZE
+
+        """
         self._buffer.extend(chunk)
         if len(self._buffer) > _MAX_BUFFER_SIZE:
             raise BufferError("buffer exceeded")
@@ -121,6 +126,7 @@ class AmazonHTTP2Client:
             await self._cancel_tasks()
 
     async def _on_task_done(self, task: asyncio.Task[None]) -> None:
+        """Check task completion for errors and propagate."""
         if task.cancelled():
             return
         if (exc := task.exception()) and self.on_http2_error.frozen():

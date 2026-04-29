@@ -212,6 +212,11 @@ class AmazonEchoApi:
             self._http2_client = None
 
     async def _http2_error_handler(self, exc: Exception) -> None:
+        """Receives exceptions that occurred in stream or ping tasks.
+
+        Subscribers should ensure :func:`stop_http2_processing` is called after
+        processing the exception to ensure tasks are cleaned up.
+        """
         _LOGGER.exception(exc)
         # handle / propagate here ??
 
