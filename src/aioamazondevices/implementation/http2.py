@@ -33,6 +33,7 @@ from aioamazondevices.structures import AmazonPushMessage
 from aioamazondevices.utils import _LOGGER
 
 _MAX_BUFFER_SIZE = 512 * 1024  # 512 KB
+_MAX_JSON_PARSE_DEPTH = 10
 _PING_INTERVAL = 280
 # How long to wait for the stream to open before the ping loop retries.
 _OPEN_TIMEOUT = 30
@@ -368,20 +369,31 @@ class AmazonHTTP2Client:
 
     @staticmethod
     def string_recursive_parse(
-        obj: dict[str, Any] | str | list[Any],
+        obj: dict[str, Any] | str | list[Any], _depth: int = 0
     ) -> dict[str, Any] | list[Any] | str:
-        """Recursively parse strings inside dicts/lists if they are valid JSON."""
+        """Recursively parse strings inside dicts/lists if they are valid JSON.
+
+        A max depth is applied to avoid resource issues with deeply nested JSON.
+        """
+        if _depth >= _MAX_JSON_PARSE_DEPTH:
+            return obj
+
         if isinstance(obj, dict):
             return {
-                k: AmazonHTTP2Client.string_recursive_parse(v) for k, v in obj.items()
+                k: AmazonHTTP2Client.string_recursive_parse(v, _depth + 1)
+                for k, v in obj.items()
             }
 
         if isinstance(obj, list):
-            return [AmazonHTTP2Client.string_recursive_parse(i) for i in obj]
+            return [
+                AmazonHTTP2Client.string_recursive_parse(i, _depth + 1) for i in obj
+            ]
 
         if isinstance(obj, str) and obj.startswith(("{", "[")):
             try:
-                return AmazonHTTP2Client.string_recursive_parse(orjson.loads(obj))
+                return AmazonHTTP2Client.string_recursive_parse(
+                    orjson.loads(obj), _depth + 1
+                )
             except orjson.JSONDecodeError:
                 return obj
 
