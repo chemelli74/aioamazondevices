@@ -374,6 +374,7 @@ class AmazonHTTP2Client:
         """Recursively parse strings inside dicts/lists if they are valid JSON.
 
         A max depth is applied to avoid resource issues with deeply nested JSON.
+        This should only be used with trusted sources to avoid resource exhaustion.
         """
         if _depth >= _MAX_JSON_PARSE_DEPTH:
             return obj
