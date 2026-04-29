@@ -78,7 +78,7 @@ class AmazonHTTP2Client:
 
         self._http2_client = httpx_client
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
-        self.on_http_error: Signal[BaseException] = Signal(self)
+        self.on_http2_error: Signal[Exception] = Signal(self)
 
         self._stream_task: asyncio.Task[None] | None = None
         self._ping_task: asyncio.Task[None] | None = None
@@ -123,11 +123,11 @@ class AmazonHTTP2Client:
     async def _on_task_done(self, task: asyncio.Task[None]) -> None:
         if task.cancelled():
             return
-        if (exc := task.exception()) and self.on_http_error.frozen():
+        if (exc := task.exception()) and self.on_http2_error.frozen():
             # Needs to be something other than ValueError
             exc_details = ValueError(f"Task {task.get_name()} Failed")
             exc_details.__cause__ = exc
-            signal_task = asyncio.create_task(self.on_http_error.send(exc_details))
+            signal_task = asyncio.create_task(self.on_http2_error.send(exc_details))
             self._background_tasks.add(signal_task)
             signal_task.add_done_callback(self._background_tasks.discard)
 

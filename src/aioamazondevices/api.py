@@ -201,8 +201,8 @@ class AmazonEchoApi:
         )
         self._http2_client.on_push_event.append(self._http2_push_event_handler)
         self._http2_client.on_push_event.freeze()
-        self._http2_client.on_http_error.append(self._http2_error_handler)
-        self._http2_client.on_http_error.freeze()
+        self._http2_client.on_http2_error.append(self._http2_error_handler)
+        self._http2_client.on_http2_error.freeze()
         await self._http2_client.start_processing()
 
     async def stop_http2_processing(self) -> None:
@@ -211,7 +211,7 @@ class AmazonEchoApi:
             await self._http2_client.stop_processing()
             self._http2_client = None
 
-    async def _http2_error_handler(self, exc: BaseException) -> None:
+    async def _http2_error_handler(self, exc: Exception) -> None:
         _LOGGER.exception(exc)
         # handle / propagate here ??
 
