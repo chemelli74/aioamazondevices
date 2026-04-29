@@ -237,8 +237,9 @@ class AmazonHTTP2Client:
             )
 
             if response.status_code in (
-                HTTPStatus.UNAUTHORIZED,
                 HTTPStatus.FORBIDDEN,
+                HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
+                HTTPStatus.UNAUTHORIZED,
             ):
                 raise CannotAuthenticate(
                     f"Directives stream returned {response.status_code}"
@@ -372,7 +373,7 @@ class AmazonHTTP2Client:
         notification_version = payload.get("notificationVersion", 2)
         if not isinstance(notification_version, int):
             _LOGGER.warning(
-                f"Unexpected notification_version of {type(notification_version)}"
+                "Unexpected notification_version of %s", type(notification_version)
             )
             return False
         return (

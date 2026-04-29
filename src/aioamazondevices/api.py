@@ -223,7 +223,7 @@ class AmazonEchoApi:
             serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
             if serial:
                 volume = AmazonVolumeState(
-                    payload.get("volumeSetting"), bool(payload.get("isMuted"))
+                    payload.get("volumeSetting"), payload.get("isMuted")
                 )
                 self._media_handler.update_cached_device_volume(serial, volume)
             await self._emit_volume_state_event()
