@@ -117,7 +117,7 @@ class AmazonVolumeState:
     """Amazon volume state."""
 
     volume: int | None
-    is_muted: bool
+    is_muted: bool | None
 
 
 class AmazonPushMessage(StrEnum):

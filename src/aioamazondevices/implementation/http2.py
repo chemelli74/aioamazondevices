@@ -222,8 +222,9 @@ class AmazonHTTP2Client:
             )
 
             if response.status_code in (
-                HTTPStatus.UNAUTHORIZED,
                 HTTPStatus.FORBIDDEN,
+                HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
+                HTTPStatus.UNAUTHORIZED,
             ):
                 raise CannotAuthenticate(
                     f"Directives stream returned {response.status_code}"
