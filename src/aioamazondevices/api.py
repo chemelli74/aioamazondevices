@@ -56,7 +56,7 @@ class AmazonEchoApi:
         | None = None,
     ) -> None:
         """Initialize the scanner."""
-        _LOGGER.debug("Initialize library v%s", __version__)
+        _LOGGER.debug("Initialize library v%s - testing-4", __version__)
 
         # Check if there is a previous login, otherwise use default (US)
         site = login_data.get("site", DEFAULT_SITE) if login_data else DEFAULT_SITE
