@@ -23,6 +23,7 @@ classifiers = [
 dependencies = [
 "aiohttp (>=3.12.7)",
 "beautifulsoup4",
+"httpx[http2]",
 "langcodes",
 "orjson (>=3.10,<4)",
 "python-dateutil",

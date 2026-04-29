@@ -10,6 +10,7 @@ from aioamazondevices.const.http import ARRAY_WRAPPER
 _LOGGER = logging.getLogger(__package__)
 
 TO_REDACT = {
+    "access_token",
     "address",
     "address1",
     "address2",
@@ -25,8 +26,10 @@ TO_REDACT = {
     "password",
     "postalCode",
     "searchCustomerId",
+    "source_token",
     "state",
     "street",
+    "token",
     "user_id",
 }
 

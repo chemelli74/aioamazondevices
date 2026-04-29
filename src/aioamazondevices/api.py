@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 from http import HTTPMethod
 from typing import Any
 
+import httpx
 from aiohttp import ClientSession
 from aiosignal import Signal
 
@@ -24,6 +25,7 @@ from .const.metadata import (
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
+from .implementation.http2 import AmazonHTTP2Client
 from .implementation.notification import AmazonNotificationHandler
 from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
@@ -32,6 +34,7 @@ from .structures import (
     AmazonMediaControls,
     AmazonMediaState,
     AmazonMusicProvider,
+    AmazonPushMessage,
     AmazonSequenceType,
     AmazonVolumeState,
 )
@@ -95,8 +98,11 @@ class AmazonEchoApi:
         )
 
         self._dnd_handler = AmazonDnDHandler(
-            http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
         )
+
+        self._http2_client: AmazonHTTP2Client | None = None
 
         self._media_handler = AmazonMediaHandler(
             http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
@@ -177,6 +183,48 @@ class AmazonEchoApi:
         )
 
         return self._device_handler.devices
+
+    async def start_http2_processing(self, httpx_client: httpx.AsyncClient) -> None:
+        """Start HTTP2 background thread.
+
+        httpx client must have http2 enabled and a timeout of None to
+        allow for long-lived connections.
+        Caller is responsible for ensuring its properly configured and closed after use.
+        """
+        if self._http2_client:
+            _LOGGER.warning("HTTP2 thread is already running.")
+            return
+        self._http2_client = AmazonHTTP2Client(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+            httpx_client=httpx_client,
+        )
+        self._http2_client.on_push_event.append(self._http2_push_event_handler)
+        self._http2_client.on_push_event.freeze()
+        await self._http2_client.start_processing()
+
+    async def stop_http2_processing(self) -> None:
+        """Stop HTTP2 background thread."""
+        if self._http2_client:
+            await self._http2_client.stop_processing()
+            self._http2_client = None
+
+    async def _http2_push_event_handler(
+        self, event_type: str, payload: dict[str, Any]
+    ) -> None:
+        _LOGGER.debug("Event - %s : Payload - %s", event_type, payload)
+        if event_type == AmazonPushMessage.VolumeChange.value:
+            serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
+            if serial:
+                volume = AmazonVolumeState(
+                    payload.get("volumeSetting"), payload.get("isMuted")
+                )
+                self._media_handler.update_cached_device_volume(serial, volume)
+            await self._emit_volume_state_event()
+            return
+        if event_type == AmazonPushMessage.AudioPlayerState.value:
+            await self.sync_media_state()
+            return
 
     async def call_alexa_speak(
         self,
