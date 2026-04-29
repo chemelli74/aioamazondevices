@@ -328,7 +328,7 @@ class AmazonHTTP2Client:
     @staticmethod
     def extract_rendering_updates(
         chunk_json: dict[str, Any],
-    ) -> list[dict[str, Any]] | None:
+    ) -> list[object] | None:
         """Extract renderingUpdates list from directive payload."""
         try:
             updates_nodes = chunk_json["directive"]["payload"]["renderingUpdates"]
