@@ -1,4 +1,4 @@
-"""aioamazondevices devices."""
+"""Devices constants for Amazon devices."""
 
 from .http import AMAZON_DEVICE_TYPE
 

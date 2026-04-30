@@ -1,4 +1,4 @@
-"""Module to handle Alexa media."""
+"""Media module for Amazon devices."""
 
 from datetime import UTC, datetime
 from http import HTTPMethod

@@ -1,4 +1,4 @@
-"""Support for Amazon sensors."""
+"""Sensor module for Amazon devices."""
 
 from http import HTTPMethod
 from typing import Any
