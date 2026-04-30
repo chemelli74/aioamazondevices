@@ -7,10 +7,12 @@ set -e
 # Use copy mode for UV to avoid hardlink warnings on different filesystems
 export UV_LINK_MODE=copy
 
-UV_VERSION="0.11.7" # renovate: depName=uv datasource=pypi
+UV_VERSION="0.11.8" # renovate: depName=uv datasource=pypi
 
-if ! uv --version 2>/dev/null | grep -q "$UV_VERSION"; then
+if ! uv --version 2>/dev/null; then
     pipx install "uv==$UV_VERSION"
+elif ! uv --version 2>/dev/null | grep -q "$UV_VERSION"; then
+    pipx upgrade "uv==$UV_VERSION"
 fi
 if ! prek --version 2>/dev/null; then
     uv tool install prek
