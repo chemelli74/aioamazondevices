@@ -5,9 +5,12 @@ import re
 from collections.abc import Collection
 from typing import Any
 
+import orjson
+
 from aioamazondevices.const.http import ARRAY_WRAPPER
 
 _LOGGER = logging.getLogger(__package__)
+_MAX_JSON_PARSE_DEPTH = 10
 
 TO_REDACT = {
     "access_token",
@@ -140,3 +143,29 @@ async def format_graphql_error(graphql_response: dict[str, Any]) -> bool:
     path = error[0].get("path", "Unknown path")
     _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
     return True
+
+
+def string_recursive_parse(
+    obj: dict[str, Any] | str | list[Any], _depth: int = 0
+) -> dict[str, Any] | list[Any] | str:
+    """Recursively parse strings inside dicts/lists if they are valid JSON.
+
+    A max depth is applied to avoid resource issues with deeply nested JSON.
+    This should only be used with trusted sources to avoid resource exhaustion.
+    """
+    if _depth >= _MAX_JSON_PARSE_DEPTH:
+        return obj
+
+    if isinstance(obj, dict):
+        return {k: string_recursive_parse(v, _depth + 1) for k, v in obj.items()}
+
+    if isinstance(obj, list):
+        return [string_recursive_parse(i, _depth + 1) for i in obj]
+
+    if isinstance(obj, str) and obj.startswith(("{", "[")):
+        try:
+            return string_recursive_parse(orjson.loads(obj), _depth + 1)
+        except orjson.JSONDecodeError:
+            return obj
+
+    return obj

@@ -1,14 +1,10 @@
 """HTTP2 Support for Amazon devices."""
 
 import asyncio
-from email.message import EmailMessage
-from email.parser import BytesParser
-from email.policy import default
 from http import HTTPMethod, HTTPStatus
-from typing import Any, cast
+from typing import Any
 
 import httpx
-import orjson
 from aiosignal import Signal
 
 from aioamazondevices.capabilities import (
@@ -29,14 +25,102 @@ from aioamazondevices.exceptions import (
     CannotRetrieveData,
 )
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
+from aioamazondevices.implementation.email import (
+    email_extract_json_from_part,
+    email_parse_boundary_delimiter,
+)
 from aioamazondevices.structures import AmazonPushMessage
 from aioamazondevices.utils import _LOGGER
 
 _MAX_BUFFER_SIZE = 512 * 1024  # 512 KB
-_MAX_JSON_PARSE_DEPTH = 10
 _PING_INTERVAL = 280
 # How long to wait for the stream to open before the ping loop retries.
 _OPEN_TIMEOUT = 30
+
+
+def _extract_rendering_updates(
+    chunk_json: dict[str, Any],
+) -> list[object] | None:
+    """Extract renderingUpdates list from directive payload."""
+    try:
+        updates_nodes = chunk_json["directive"]["payload"]["renderingUpdates"]
+    except (KeyError, TypeError):
+        _LOGGER.warning("Malformed directive payload: %s", chunk_json)
+        return None
+
+    if not isinstance(updates_nodes, list):
+        _LOGGER.warning("Malformed renderingUpdates payload: %s", updates_nodes)
+        return None
+
+    return updates_nodes
+
+
+def _is_duplicate_notification(push_event_type: str, payload: dict[str, Any]) -> bool:
+    """Filter duplicate NotificationChange events.
+
+    Observed behavior: even notificationVersion values are duplicates.
+    """
+    notification_version = payload.get("notificationVersion", 2)
+    if not isinstance(notification_version, int):
+        _LOGGER.warning(
+            "Unexpected notification_version of %s", type(notification_version)
+        )
+        return False
+    return (
+        push_event_type == AmazonPushMessage.NotificationChange.value
+        and notification_version % 2 == 0
+    )
+
+
+def _is_known_event_type(push_event_type: str) -> bool:
+    """Check if the push event type is known."""
+    return push_event_type in AmazonPushMessage._value2member_map_
+
+
+def _process_rendering_update(  # noqa: PLR0911
+    rendering_update: object,
+) -> tuple[str, dict[str, Any]] | None:
+    """Process a single rendering update node."""
+    if not isinstance(rendering_update, dict):
+        _LOGGER.warning("Malformed rendering update node: %s", rendering_update)
+        return None
+
+    push_event_type = rendering_update.get("resourceId")
+    if not push_event_type:
+        _LOGGER.warning("Missing resourceId in update node: %s", rendering_update)
+        return None
+
+    resource_metadata = rendering_update.get("resourceMetadata")
+    if not isinstance(resource_metadata, dict):
+        _LOGGER.warning("Malformed resourceMetadata: %s", rendering_update)
+        return None
+
+    payload = resource_metadata.get("payload")
+    if not isinstance(payload, dict):
+        _LOGGER.warning("Malformed push payload: %s", rendering_update)
+        return None
+
+    doppler_id = payload.get("dopplerId") or {}
+    device_serial = doppler_id.get("deviceSerialNumber")
+
+    if not _is_known_event_type(push_event_type):
+        _LOGGER.warning(
+            "Unknown HTTP2 push message from device %s: %s\n\n%s",
+            device_serial,
+            push_event_type,
+            rendering_update,
+        )
+        return None
+
+    if _is_duplicate_notification(push_event_type, payload):
+        return None
+
+    _LOGGER.debug(
+        "Detected push event type <%s> on device <%s>",
+        push_event_type,
+        device_serial,
+    )
+    return push_event_type, payload
 
 
 class AvsDirectiveStreamParser:
@@ -231,7 +315,7 @@ class AmazonHTTP2Client:
                     f"Directives stream returned {response.status_code}"
                 )
 
-            boundary = AmazonHTTP2Client._parse_boundary(
+            boundary = email_parse_boundary_delimiter(
                 response.headers.get("content-type", "")
             )
             if boundary is None:
@@ -263,174 +347,22 @@ class AmazonHTTP2Client:
             _LOGGER.debug("Handled empty part.")
             return
 
-        chunk_json = AmazonHTTP2Client.extract_json_from_part(part)
+        chunk_json = email_extract_json_from_part(part)
         if chunk_json is None:
             return
 
-        rendering_updates = AmazonHTTP2Client.extract_rendering_updates(chunk_json)
+        rendering_updates = _extract_rendering_updates(chunk_json)
         if rendering_updates is None:
             return
 
         # All observed messages only contain one update but it is presented
         # as an array so iterate over all results in case that ever changes.
         for rendering_update in rendering_updates:
-            result = AmazonHTTP2Client.process_rendering_update(rendering_update)
+            result = _process_rendering_update(rendering_update)
             if result is None:
                 continue
             push_event_type, payload = result
             await self.on_push_event.send(push_event_type, payload)
-
-    @staticmethod
-    def process_rendering_update(  # noqa: PLR0911
-        rendering_update: object,
-    ) -> tuple[str, dict[str, Any]] | None:
-        """Process a single rendering update node."""
-        if not isinstance(rendering_update, dict):
-            _LOGGER.warning("Malformed rendering update node: %s", rendering_update)
-            return None
-
-        push_event_type = rendering_update.get("resourceId")
-        if not push_event_type:
-            _LOGGER.warning("Missing resourceId in update node: %s", rendering_update)
-            return None
-
-        resource_metadata = rendering_update.get("resourceMetadata")
-        if not isinstance(resource_metadata, dict):
-            _LOGGER.warning("Malformed resourceMetadata: %s", rendering_update)
-            return None
-
-        payload = resource_metadata.get("payload")
-        if not isinstance(payload, dict):
-            _LOGGER.warning("Malformed push payload: %s", rendering_update)
-            return None
-
-        doppler_id = payload.get("dopplerId") or {}
-        device_serial = doppler_id.get("deviceSerialNumber")
-
-        if not AmazonHTTP2Client.is_known_event_type(push_event_type):
-            _LOGGER.warning(
-                "Unknown HTTP2 push message from device %s: %s\n\n%s",
-                device_serial,
-                push_event_type,
-                rendering_update,
-            )
-            return None
-
-        if AmazonHTTP2Client.is_duplicate_notification(push_event_type, payload):
-            return None
-
-        _LOGGER.debug(
-            "Detected push event type <%s> on device <%s>",
-            push_event_type,
-            device_serial,
-        )
-        return push_event_type, payload
-
-    @staticmethod
-    def extract_rendering_updates(
-        chunk_json: dict[str, Any],
-    ) -> list[object] | None:
-        """Extract renderingUpdates list from directive payload."""
-        try:
-            updates_nodes = chunk_json["directive"]["payload"]["renderingUpdates"]
-        except (KeyError, TypeError):
-            _LOGGER.warning("Malformed directive payload: %s", chunk_json)
-            return None
-
-        if not isinstance(updates_nodes, list):
-            _LOGGER.warning("Malformed renderingUpdates payload: %s", updates_nodes)
-            return None
-
-        return updates_nodes
-
-    @staticmethod
-    def is_known_event_type(push_event_type: str) -> bool:
-        """Check if the push event type is known."""
-        return push_event_type in AmazonPushMessage._value2member_map_
-
-    @staticmethod
-    def is_duplicate_notification(
-        push_event_type: str, payload: dict[str, Any]
-    ) -> bool:
-        """Filter duplicate NotificationChange events.
-
-        Observed behavior: even notificationVersion values are duplicates.
-        """
-        notification_version = payload.get("notificationVersion", 2)
-        if not isinstance(notification_version, int):
-            _LOGGER.warning(
-                "Unexpected notification_version of %s", type(notification_version)
-            )
-            return False
-        return (
-            push_event_type == AmazonPushMessage.NotificationChange.value
-            and notification_version % 2 == 0
-        )
-
-    @staticmethod
-    def string_recursive_parse(
-        obj: dict[str, Any] | str | list[Any], _depth: int = 0
-    ) -> dict[str, Any] | list[Any] | str:
-        """Recursively parse strings inside dicts/lists if they are valid JSON.
-
-        A max depth is applied to avoid resource issues with deeply nested JSON.
-        This should only be used with trusted sources to avoid resource exhaustion.
-        """
-        if _depth >= _MAX_JSON_PARSE_DEPTH:
-            return obj
-
-        if isinstance(obj, dict):
-            return {
-                k: AmazonHTTP2Client.string_recursive_parse(v, _depth + 1)
-                for k, v in obj.items()
-            }
-
-        if isinstance(obj, list):
-            return [
-                AmazonHTTP2Client.string_recursive_parse(i, _depth + 1) for i in obj
-            ]
-
-        if isinstance(obj, str) and obj.startswith(("{", "[")):
-            try:
-                return AmazonHTTP2Client.string_recursive_parse(
-                    orjson.loads(obj), _depth + 1
-                )
-            except orjson.JSONDecodeError:
-                return obj
-
-        return obj
-
-    @staticmethod
-    def extract_json_from_part(part: bytes) -> dict[str, Any] | None:
-        """Extract JSON using MIME parser."""
-
-        def _validate_content_type(content_type: str) -> None:
-            if content_type != "application/json":
-                raise ValueError(f"Unexpected content-type: {content_type!r}")
-
-        def _get_payload(msg: EmailMessage) -> bytes:
-            payload = msg.get_payload(decode=True)
-            if payload is None:
-                raise ValueError("No payload")
-            if not isinstance(payload, bytes):
-                raise TypeError(f"Expected bytes payload, got {type(payload)!r}")
-            return payload
-
-        try:
-            msg = BytesParser(policy=default).parsebytes(part + b"\r\n")
-            _validate_content_type(msg.get_content_type())
-            body = _get_payload(msg)
-            parsed = orjson.loads(body)
-            return cast(
-                "dict[str, Any]", AmazonHTTP2Client.string_recursive_parse(parsed)
-            )
-        except (TypeError, ValueError, orjson.JSONDecodeError) as exc:
-            _LOGGER.warning(
-                "Failed to parse multipart section: %s",
-                part.decode("utf-8", errors="replace"),
-                exc_info=exc,
-            )
-            return None
 
     def _http2_site(self) -> str:
         """Get HTTP2 site."""
@@ -501,16 +433,3 @@ class AmazonHTTP2Client:
             _LOGGER.error("No access token available")
             raise CannotAuthenticate("No access token available")
         return str(token)
-
-    @staticmethod
-    def _parse_boundary(content_type: str) -> bytes | None:
-        """Extract the boundary delimiter from a Content-Type header value.
-
-        Returns the full delimiter bytes (with '--' prefix) ready for use
-        with bytes.find().
-        """
-        msg = EmailMessage()
-        msg["Content-Type"] = content_type
-        if not (boundary := msg.get_boundary()):
-            return None
-        return f"--{boundary}".encode()
