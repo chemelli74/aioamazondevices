@@ -1,4 +1,4 @@
-"""Support for Amazon devices."""
+"""Main module for Amazon devices."""
 
 from collections.abc import Callable, Coroutine
 from datetime import UTC, datetime, timedelta

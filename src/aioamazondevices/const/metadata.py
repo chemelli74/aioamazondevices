@@ -1,4 +1,4 @@
-"""aioamazondevices Additional entities const."""
+"""Metadata constants for Amazon devices."""
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 

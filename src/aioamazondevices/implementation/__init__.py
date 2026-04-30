@@ -1,1 +1,1 @@
-"""aioamazondevices implementation package."""
+"""Amazon devices implementation package."""

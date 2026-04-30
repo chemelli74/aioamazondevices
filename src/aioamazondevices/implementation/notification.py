@@ -1,4 +1,4 @@
-"""Module to handle Alexa notifications."""
+"""Notification module for Amazon devices."""
 
 from datetime import datetime, timedelta
 from http import HTTPMethod

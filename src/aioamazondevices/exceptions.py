@@ -1,4 +1,4 @@
-"""AIOAmazonDevices library exceptions."""
+"""Exceptions module for Amazon devices."""
 
 from __future__ import annotations
 

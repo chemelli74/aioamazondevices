@@ -1,4 +1,4 @@
-"""Support for Amazon login."""
+"""Login module for Amazon devices."""
 
 import asyncio
 import base64
