@@ -3,7 +3,7 @@
 from email.message import EmailMessage
 from email.parser import BytesParser
 from email.policy import default
-from typing import Any, cast
+from typing import Any
 
 import orjson
 
@@ -25,12 +25,16 @@ def email_extract_json_from_part(part: bytes) -> dict[str, Any] | None:
             raise TypeError(f"Expected bytes payload, got {type(payload)!r}")
         return payload
 
+    def _validate_json_object(parsed: Any) -> dict[str, Any]:  # noqa: ANN401
+        if not isinstance(parsed, dict):
+            raise TypeError(f"Expected JSON object, got {type(parsed)!r}")
+        return parsed
+
     try:
         msg = BytesParser(policy=default).parsebytes(part + b"\r\n")
         _validate_content_type(msg.get_content_type())
         body = _get_payload(msg)
-        parsed = orjson.loads(body)
-        return cast("dict[str, Any]", string_recursive_parse(parsed))
+        parsed = _validate_json_object(string_recursive_parse(orjson.loads(body)))
     except (TypeError, ValueError, orjson.JSONDecodeError) as exc:
         _LOGGER.warning(
             "Failed to parse multipart section: %s",
@@ -38,6 +42,8 @@ def email_extract_json_from_part(part: bytes) -> dict[str, Any] | None:
             exc_info=exc,
         )
         return None
+    else:
+        return parsed
 
 
 def email_parse_boundary_delimiter(content_type: str) -> bytes | None:
