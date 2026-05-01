@@ -1,4 +1,4 @@
-"""aioamazondevices HTTP wrapper module."""
+"""HTTP wrapper module for Amazon devices."""
 
 import asyncio
 import base64

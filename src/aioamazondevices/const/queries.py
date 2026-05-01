@@ -1,4 +1,4 @@
-"""aioamazondevices GraphQL queries."""
+"""GraphQL queries for Amazon devices."""
 
 QUERY_DEVICE_DATA = """
 query getDevicesBaseData {

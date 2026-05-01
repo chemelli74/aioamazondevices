@@ -1,4 +1,4 @@
-"""aioamazondevices: schedules."""
+"""Schedules constants for Amazon devices."""
 
 NOTIFICATION_ALARM = "Alarm"
 NOTIFICATION_MUSIC_ALARM = "MusicAlarm"

@@ -1,4 +1,4 @@
-"""Module to handle Alexa do not disturb setting."""
+"""Do not disturb module for Amazon devices."""
 
 from http import HTTPMethod
 

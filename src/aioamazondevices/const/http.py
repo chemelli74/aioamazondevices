@@ -1,4 +1,4 @@
-"""aioamazondevices HTTP const."""
+"""HTTP constants for Amazon devices."""
 
 HTTP_ERROR_199 = 199
 HTTP_ERROR_299 = 299

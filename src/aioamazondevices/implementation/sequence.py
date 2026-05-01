@@ -1,4 +1,4 @@
-"""Module to handle Alexa sequence operations."""
+"""Sequence module for Amazon devices."""
 
 import asyncio
 from collections.abc import Generator

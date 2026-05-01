@@ -1,4 +1,4 @@
-"""Support for Amazon devices."""
+"""Main module for Amazon devices."""
 
 import asyncio
 from collections.abc import Callable, Coroutine

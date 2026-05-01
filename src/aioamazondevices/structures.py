@@ -1,4 +1,4 @@
-"""aioamazondevices structures module."""
+"""Structures module for Amazon devices."""
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -20,7 +20,7 @@ class AmazonDeviceSensor:
 
 @dataclass
 class AmazonMusicProvider:
-    """Music Provider class."""
+    """Music provider class."""
 
     provider_id: str
     provider_name: str
