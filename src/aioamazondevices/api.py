@@ -1,5 +1,6 @@
 """Support for Amazon devices."""
 
+import asyncio
 from collections.abc import Callable, Coroutine
 from datetime import UTC, datetime, timedelta
 from http import HTTPMethod
@@ -184,8 +185,14 @@ class AmazonEchoApi:
 
         return self._device_handler.devices
 
-    async def start_http2_processing(self, httpx_client: httpx.AsyncClient) -> None:
+    async def start_http2_processing(
+        self, httpx_client: httpx.AsyncClient
+    ) -> asyncio.Task[None]:
         """Start HTTP2 background thread.
+
+        returns as Task so callers can decide how to handle it.
+        awaiting task will block until http2 processing is stopped or errors
+        to capture errors without blocking, callers can add a done callback to the task.
 
         httpx client must have http2 enabled and a timeout of None to
         allow for long-lived connections.
@@ -193,7 +200,7 @@ class AmazonEchoApi:
         """
         if self._http2_client:
             _LOGGER.warning("HTTP2 thread is already running.")
-            return
+            raise RuntimeError("HTTP2 thread is already running.")
         self._http2_client = AmazonHTTP2Client(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
@@ -201,7 +208,7 @@ class AmazonEchoApi:
         )
         self._http2_client.on_push_event.append(self._http2_push_event_handler)
         self._http2_client.on_push_event.freeze()
-        await self._http2_client.start_processing()
+        return await self._http2_client.start_processing()
 
     async def stop_http2_processing(self) -> None:
         """Stop HTTP2 background thread."""

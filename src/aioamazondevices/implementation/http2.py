@@ -1,6 +1,7 @@
 """HTTP2 Support for Amazon devices."""
 
 import asyncio
+import contextlib
 from http import HTTPMethod, HTTPStatus
 from typing import Any
 
@@ -164,54 +165,40 @@ class AmazonHTTP2Client:
         self._http2_client = httpx_client
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
 
-        self._stream_task: asyncio.Task[None] | None = None
-        self._ping_task: asyncio.Task[None] | None = None
+        self._run_task: asyncio.Task[None] | None = None
         self._stop_event = asyncio.Event()
         self._connected_event = asyncio.Event()
         self._process_lock = asyncio.Lock()
 
-    async def start_processing(self) -> None:
-        """Start the background stream and ping tasks."""
+    async def start_processing(self) -> asyncio.Task[None]:
+        """Start background processing. Returns the task to the caller."""
         async with self._process_lock:
-            if (
-                self._stream_task
-                and not self._stream_task.done()
-                and self._ping_task
-                and not self._ping_task.done()
-            ):
+            if self._run_task and not self._run_task.done():
                 _LOGGER.debug(
-                    "Trying to start http2 processing but both tasks already running"
+                    "Trying to start http2 processing but task already running"
                 )
-                return
-
-            # at most one task is running so cancel any running tasks
-            await self._cancel_tasks()
+                return self._run_task
 
             self._stop_event.clear()
             self._connected_event.clear()
-            self._stream_task = asyncio.create_task(
-                self._get_avs_directives(), name="avs-stream"
-            )
-            self._ping_task = asyncio.create_task(self._ping_loop(), name="avs-ping")
+            self._run_task = asyncio.create_task(self._run_tasks(), name="amazon-http2")
+            return self._run_task
 
     async def stop_processing(self) -> None:
         """Stop all background tasks gracefully."""
         async with self._process_lock:
             self._stop_event.set()
             self._connected_event.clear()
-            await self._cancel_tasks()
+            if self._run_task and not self._run_task.done():
+                self._run_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError, Exception):
+                    await self._run_task
 
-    async def _cancel_tasks(self) -> None:
-        for task in (self._stream_task, self._ping_task):
-            if task and not task.done():
-                task.cancel()
-                try:
-                    await task
-                except asyncio.CancelledError:
-                    if (
-                        current_task := asyncio.current_task()
-                    ) and current_task.cancelling():
-                        raise
+    async def _run_tasks(self) -> None:
+        """Run stream and ping tasks until stopped or an unhandled exception occurs."""
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(self._get_avs_directives(), name="avs-stream")
+            tg.create_task(self._ping_loop(), name="avs-ping")
 
     async def _register_device_capabilities(self) -> None:
         """Register device capabilities."""
