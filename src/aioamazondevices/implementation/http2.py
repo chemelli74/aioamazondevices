@@ -349,7 +349,17 @@ class AmazonHTTP2Client:
             if result is None:
                 continue
             push_event_type, payload = result
-            await self.on_push_event.send(push_event_type, payload)
+            try:
+                await self.on_push_event.send(push_event_type, payload)
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:  # noqa: BLE001
+                _LOGGER.exception(
+                    "Error processing push event type <%s>: %s",
+                    push_event_type,
+                    payload,
+                    exc_info=exc,
+                )
 
     def _http2_site(self) -> str:
         """Get HTTP2 site."""
