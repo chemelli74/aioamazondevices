@@ -281,7 +281,14 @@ async def main() -> None:
         print("-" * 20)
         print("Starting HTTP2 background thread")
         print("-" * 20)
-        await api.start_http2_processing(_httpx_client)
+        http2_task = await api.start_http2_processing(_httpx_client)
+
+        def _on_http2_task_done(task: asyncio.Task[None]) -> None:
+            if not task.cancelled() and task.exception():
+                print("HTTP2 processing task ended with exception:")
+                print(task.exception())
+
+        http2_task.add_done_callback(_on_http2_task_done)
 
         print("-" * 20)
         try:
