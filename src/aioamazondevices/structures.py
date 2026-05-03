@@ -68,18 +68,18 @@ class AmazonSequenceType(StrEnum):
     """Amazon sequence types."""
 
     Announcement = "AlexaAnnouncement"
-    Speak = "Alexa.Speak"
-    Sound = "Alexa.Sound"
-    Music = "Alexa.Music.PlaySearchPhrase"
-    TextCommand = "Alexa.TextCommand"
-    LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
-    Volume = "Alexa.DeviceControls.Volume"
-    Stop = "Alexa.DeviceControls.Stop"
-    Routines = "Pseudo.Type.Routines"
-    FireTVPause = "Alexa.Operation.FireTV.PauseVideo"
-    FireTVResume = "Alexa.Operation.FireTV.ResumeVideo"
     FireTVHome = "Alexa.Operation.FireTV.NavigateHome"
+    FireTVPause = "Alexa.Operation.FireTV.PauseVideo"
     FireTVPlay = "Alexa.Operation.Video.PlaySearchPhrase"
+    FireTVResume = "Alexa.Operation.FireTV.ResumeVideo"
+    LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
+    Music = "Alexa.Music.PlaySearchPhrase"
+    Routines = "Pseudo.Type.Routines"
+    Sound = "Alexa.Sound"
+    Speak = "Alexa.Speak"
+    Stop = "Alexa.DeviceControls.Stop"
+    TextCommand = "Alexa.TextCommand"
+    Volume = "Alexa.DeviceControls.Volume"
 
 
 class AmazonMediaControls(StrEnum):

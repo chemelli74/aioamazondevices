@@ -278,13 +278,13 @@ class AmazonEchoApi:
         )
 
     async def call_alexa_firetv_home(self, device: AmazonDevice) -> None:
-        """Call Alexa.Operation.FireTV.NavigateHome to go homne on Fire TV."""
+        """Call Alexa.Operation.FireTV.NavigateHome to go home on Fire TV."""
         await self._call_alexa_command_per_cluster_member(
             device, AmazonSequenceType.FireTVHome, ""
         )
 
     async def call_alexa_video(self, device: AmazonDevice, search_phrase: str) -> None:
-        """Call Alexa.Music.PlaySearchPhrase to play music."""
+        """Call Alexa.Music.PlaySearchPhrase to play video."""
         await self._sequence_handler.send_message(
             device, AmazonSequenceType.FireTVPlay, search_phrase
         )
