@@ -25,12 +25,12 @@ from aioamazondevices.exceptions import (
     CannotRetrieveData,
 )
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.implementation.email import (
-    email_extract_json_from_part,
-    email_parse_boundary_delimiter,
-)
 from aioamazondevices.structures import AmazonPushMessage
-from aioamazondevices.utils import _LOGGER
+from aioamazondevices.utils import (
+    _LOGGER,
+    http2_extract_json_from_part,
+    http2_parse_boundary_delimiter,
+)
 
 _MAX_BUFFER_SIZE = 512 * 1024  # 512 KB
 _PING_INTERVAL = 280
@@ -312,7 +312,7 @@ class AmazonHTTP2Client:
                     f"Directives stream returned {response.status_code}"
                 )
 
-            boundary = email_parse_boundary_delimiter(
+            boundary = http2_parse_boundary_delimiter(
                 response.headers.get("content-type", "")
             )
             if boundary is None:
@@ -344,7 +344,7 @@ class AmazonHTTP2Client:
             _LOGGER.debug("Handled empty part.")
             return
 
-        chunk_json = email_extract_json_from_part(part)
+        chunk_json = http2_extract_json_from_part(part)
         if chunk_json is None:
             return
 
