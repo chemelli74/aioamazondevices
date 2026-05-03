@@ -1,7 +1,6 @@
 """HTTP2 Support for Amazon devices."""
 
 import asyncio
-import contextlib
 from http import HTTPMethod, HTTPStatus
 from typing import Any
 
@@ -191,8 +190,15 @@ class AmazonHTTP2Client:
             self._connected_event.clear()
             if self._run_task and not self._run_task.done():
                 self._run_task.cancel()
-                with contextlib.suppress(asyncio.CancelledError, Exception):
+                try:
                     await self._run_task
+                except asyncio.CancelledError:
+                    if (t := asyncio.current_task()) and t.cancelling():
+                        raise
+                except Exception as exc:  # noqa: BLE001
+                    _LOGGER.exception("Error while stopping http2 processing: %s", exc)
+                finally:
+                    self._run_task = None
 
     async def _run_tasks(self) -> None:
         """Run stream and ping tasks until stopped or an unhandled exception occurs."""
