@@ -198,16 +198,15 @@ class AmazonEchoApi:
         allow for long-lived connections.
         Caller is responsible for ensuring its properly configured and closed after use.
         """
-        if self._http2_client:
-            _LOGGER.warning("HTTP2 thread is already running.")
-            raise RuntimeError("HTTP2 thread is already running.")
-        self._http2_client = AmazonHTTP2Client(
-            http_wrapper=self._http_wrapper,
-            session_state_data=self._session_state_data,
-            httpx_client=httpx_client,
-        )
-        self._http2_client.on_push_event.append(self._http2_push_event_handler)
-        self._http2_client.on_push_event.freeze()
+        if not self._http2_client:
+            self._http2_client = AmazonHTTP2Client(
+                http_wrapper=self._http_wrapper,
+                session_state_data=self._session_state_data,
+                httpx_client=httpx_client,
+            )
+            self._http2_client.on_push_event.append(self._http2_push_event_handler)
+            self._http2_client.on_push_event.freeze()
+
         return await self._http2_client.start_processing()
 
     async def stop_http2_processing(self) -> None:
