@@ -229,7 +229,8 @@ class AmazonEchoApi:
             await self._emit_volume_state_event()
             return
         if event_type == AmazonPushMessage.AudioPlayerState.value:
-            await self.sync_media_state()
+            await self._media_handler.sync_media_state(self._device_handler.devices)
+            await self._emit_media_state_event()
             return
 
     async def call_alexa_speak(
