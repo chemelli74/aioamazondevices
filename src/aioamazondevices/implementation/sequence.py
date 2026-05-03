@@ -142,6 +142,10 @@ class AmazonSequenceHandler:
             "locale": self._session_state_data.language,
             "customerId": self._session_state_data.account_customer_id,
         }
+        fire_tv_base_payload = {
+            "customerId": self._session_state_data.account_customer_id,
+            "deviceAccountId": device.device_account_id,
+        }
 
         if message_type == AmazonSequenceType.Speak:
             payload = {
@@ -235,6 +239,18 @@ class AmazonSequenceHandler:
                     },
                 ],
                 "skillId": "amzn1.ask.1p.alexadevicecontrols",
+            }
+        elif message_type in [
+            AmazonSequenceType.FireTVPlay,
+            AmazonSequenceType.FireTVPause,
+            AmazonSequenceType.FireTVHome,
+        ]:
+            payload = {**fire_tv_base_payload}
+        elif message_type == AmazonSequenceType.FireTVPlay:
+            payload = {
+                **fire_tv_base_payload,
+                "searchPhrase": message_body,
+                "sanitizedSearchPhrase": message_body,
             }
         else:
             raise ValueError(f"Message type <{message_type}> is not recognised")

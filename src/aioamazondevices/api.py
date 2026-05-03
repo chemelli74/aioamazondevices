@@ -265,6 +265,30 @@ class AmazonEchoApi:
             routine_name,
         )
 
+    async def call_alexa_firetv_pause(self, device: AmazonDevice) -> None:
+        """Call Alexa.Operation.FireTV.PauseVideo to pause Fire TV."""
+        await self._call_alexa_command_per_cluster_member(
+            device, AmazonSequenceType.FireTVPause, ""
+        )
+
+    async def call_alexa_firetv_resume(self, device: AmazonDevice) -> None:
+        """Call Alexa.Operation.FireTV.ResumeVideo to resume Fire TV."""
+        await self._call_alexa_command_per_cluster_member(
+            device, AmazonSequenceType.FireTVResume, ""
+        )
+
+    async def call_alexa_firetv_home(self, device: AmazonDevice) -> None:
+        """Call Alexa.Operation.FireTV.NavigateHome to go homne on Fire TV."""
+        await self._call_alexa_command_per_cluster_member(
+            device, AmazonSequenceType.FireTVHome, ""
+        )
+
+    async def call_alexa_video(self, device: AmazonDevice, search_phrase: str) -> None:
+        """Call Alexa.Music.PlaySearchPhrase to play music."""
+        await self._sequence_handler.send_message(
+            device, AmazonSequenceType.FireTVPlay, search_phrase
+        )
+
     async def set_device_volume(self, device: AmazonDevice, volume: int) -> None:
         """Set device volume."""
         if not (VOLUME_MIN <= volume <= VOLUME_MAX):

@@ -85,6 +85,7 @@ class AmazonDeviceHandler:
             final_devices_list[serial_number] = AmazonDevice(
                 account_name=account_name,
                 capabilities=capabilities,
+                device_account_id=device["deviceAccountId"],
                 device_family=device["deviceFamily"],
                 device_type=device["deviceType"],
                 device_owner_customer_id=device["deviceOwnerCustomerId"],
@@ -231,6 +232,7 @@ class AmazonDeviceHandler:
             self._final_devices[aqm_serial_number] = AmazonDevice(
                 account_name=aqm_endpoint["friendlyNameObject"]["value"]["text"],
                 capabilities=[],
+                device_account_id=None,
                 device_family="AIR_QUALITY_MONITOR",
                 device_type=aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
                     "deviceType"
