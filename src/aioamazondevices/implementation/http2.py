@@ -195,8 +195,10 @@ class AmazonHTTP2Client:
                 except asyncio.CancelledError:
                     if (t := asyncio.current_task()) and t.cancelling():
                         raise
-                except Exception as exc:  # noqa: BLE001
-                    _LOGGER.exception("Error while stopping http2 processing: %s", exc)
+                except Exception:  # noqa: BLE001
+                    _LOGGER.exception(
+                        "Error while stopping http2 processing", exc_info=True
+                    )
                 finally:
                     self._run_task = None
 
@@ -245,7 +247,9 @@ class AmazonHTTP2Client:
             except httpx.HTTPError as exc:
                 _LOGGER.warning("HTTP2 error detected: %s", exc)
             except Exception:
-                _LOGGER.exception("Unexpected error getting AVS directive")
+                _LOGGER.exception(
+                    "Unexpected error getting AVS directive", exc_info=True
+                )
                 raise
 
             if not self._stop_event.is_set():
@@ -359,12 +363,12 @@ class AmazonHTTP2Client:
                 await self.on_push_event.send(push_event_type, payload)
             except asyncio.CancelledError:
                 raise
-            except Exception as exc:  # noqa: BLE001
+            except Exception:  # noqa: BLE001
                 _LOGGER.exception(
                     "Error processing push event type <%s>: %s",
                     push_event_type,
                     payload,
-                    exc_info=exc,
+                    exc_info=True,
                 )
 
     def _http2_site(self) -> str:
@@ -403,8 +407,8 @@ class AmazonHTTP2Client:
             except CannotAuthenticate:
                 _LOGGER.warning("HTTP2: Ping auth failure")
                 self._connected_event.clear()
-            except Exception as exc:  # noqa: BLE001
-                _LOGGER.debug("HTTP2: Ping error (will retry): %s", exc)
+            except Exception:  # noqa: BLE001
+                _LOGGER.exception("HTTP2: Ping error (will retry)", exc_info=True)
 
     async def _ping(self) -> None:
         """POST a keepalive to the AVS /ping endpoint."""

@@ -35,11 +35,11 @@ def email_extract_json_from_part(part: bytes) -> dict[str, Any] | None:
         _validate_content_type(msg.get_content_type())
         body = _get_payload(msg)
         parsed = _validate_json_object(string_recursive_parse(orjson.loads(body)))
-    except (TypeError, ValueError, orjson.JSONDecodeError) as exc:
+    except (TypeError, ValueError, orjson.JSONDecodeError):
         _LOGGER.warning(
             "Failed to parse multipart section: %s",
             part.decode("utf-8", errors="replace"),
-            exc_info=exc,
+            exc_info=True,
         )
         return None
     else:
