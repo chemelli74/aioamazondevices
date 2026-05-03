@@ -60,16 +60,18 @@ def _is_duplicate_notification(push_event_type: str, payload: dict[str, Any]) ->
 
     Observed behavior: even notificationVersion values are duplicates.
     """
-    notification_version = payload.get("notificationVersion", 2)
+    if push_event_type != AmazonPushMessage.NotificationChange.value:
+        return False
+
+    # Ignore AmazonPushMessage.NotificationChange duplicates
+    # where notificationVersion is even
+    notification_version = payload.get("notificationVersion", 1)
     if not isinstance(notification_version, int):
         _LOGGER.warning(
-            "Unexpected notification_version of %s", type(notification_version)
+            "Unexpected type of notification_version: %s", type(notification_version)
         )
         return False
-    return (
-        push_event_type == AmazonPushMessage.NotificationChange.value
-        and notification_version % 2 == 0
-    )
+    return notification_version % 2 == 0
 
 
 def _is_known_event_type(push_event_type: str) -> bool:
