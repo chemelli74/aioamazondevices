@@ -26,8 +26,8 @@ class AmazonSensorHandler:
 
     def __init__(
         self,
-        session_state_data: AmazonSessionStateData,
         http_wrapper: AmazonHttpWrapper,
+        session_state_data: AmazonSessionStateData,
     ) -> None:
         """Initialize AmazonSensorHandler class."""
         self._session_state_data = session_state_data

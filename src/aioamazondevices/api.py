@@ -79,13 +79,13 @@ class AmazonEchoApi:
         )
 
         self._device_handler = AmazonDeviceHandler(
-            session_state_data=self._session_state_data,
             http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
         )
 
         self._sensor_handler = AmazonSensorHandler(
-            session_state_data=self._session_state_data,
             http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
         )
 
         self._notification_handler = AmazonNotificationHandler(
@@ -103,13 +103,13 @@ class AmazonEchoApi:
             session_state_data=self._session_state_data,
         )
 
-        self._http2_client: AmazonHTTP2Client | None = None
-
         self._media_handler = AmazonMediaHandler(
-            http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
         )
 
         self._device_volumes_initialized: bool = False
+        self._http2_client: AmazonHTTP2Client | None = None
 
         initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
         self._last_daily_refresh: datetime = initial_time
@@ -235,6 +235,12 @@ class AmazonEchoApi:
             await self._emit_volume_state_event()
             return
         if event_type == AmazonPushMessage.AudioPlayerState.value:
+            if not self._device_handler.devices:
+                _LOGGER.debug(
+                    "Skipping media state sync for push event because devices "
+                    "have not been loaded yet"
+                )
+                return
             await self._media_handler.sync_media_state(self._device_handler.devices)
             await self._emit_media_state_event()
             return
