@@ -198,9 +198,7 @@ class AmazonHTTP2Client:
                     if (t := asyncio.current_task()) and t.cancelling():
                         raise
                 except Exception:  # noqa: BLE001
-                    _LOGGER.exception(
-                        "Error while stopping http2 processing", exc_info=True
-                    )
+                    _LOGGER.exception("Error while stopping http2 processing")
                 finally:
                     self._run_task = None
 
@@ -249,9 +247,7 @@ class AmazonHTTP2Client:
             except httpx.HTTPError as exc:
                 _LOGGER.warning("HTTP2 error detected: %s", exc)
             except Exception:
-                _LOGGER.exception(
-                    "Unexpected error getting AVS directive", exc_info=True
-                )
+                _LOGGER.exception("Unexpected error getting AVS directive")
                 raise
 
             if not self._stop_event.is_set():
@@ -370,7 +366,6 @@ class AmazonHTTP2Client:
                     "Error processing push event type <%s>: %s",
                     push_event_type,
                     payload,
-                    exc_info=True,
                 )
 
     def _http2_site(self) -> str:
@@ -410,7 +405,7 @@ class AmazonHTTP2Client:
                 _LOGGER.warning("HTTP2: Ping auth failure")
                 self._connected_event.clear()
             except Exception:  # noqa: BLE001
-                _LOGGER.exception("HTTP2: Ping error (will retry)", exc_info=True)
+                _LOGGER.exception("HTTP2: Ping error (will retry)")
 
     async def _ping(self) -> None:
         """POST a keepalive to the AVS /ping endpoint."""
