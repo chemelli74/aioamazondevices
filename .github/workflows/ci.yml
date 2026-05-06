@@ -7,7 +7,7 @@ on:
   pull_request:
 
 env:
-  UV_VERSION: "0.11.9" # renovate: depName=uv datasource=pypi
+  UV_VERSION: "0.11.10" # renovate: depName=uv datasource=pypi
 
 permissions: write-all
 
