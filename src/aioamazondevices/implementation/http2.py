@@ -294,6 +294,7 @@ class AmazonHTTP2Client:
                 "Accept": "multipart/related",
                 "Accept-Encoding": "gzip",
             },
+            timeout=httpx.Timeout(None),
         ) as response:
             _LOGGER.debug(
                 "AVS Directives response status: %s [%s]",
@@ -415,6 +416,7 @@ class AmazonHTTP2Client:
         response = await self._http2_client.post(
             f"{self._http2_site()}/ping",
             headers={"Authorization": f"Bearer {self._get_bearer_token()}"},
+            timeout=httpx.Timeout(30),
         )
         _LOGGER.debug("HTTP2: Ping -> %s", response.status_code)
 
