@@ -230,10 +230,7 @@ async def main() -> None:
         args.password = getpass.getpass("Password: ")
 
     client_session = ClientSession()
-    _httpx_client = httpx.AsyncClient(
-        http2=True,
-        timeout=httpx.Timeout(None),
-    )
+    _httpx_client = httpx.AsyncClient(http2=True)
 
     api = AmazonEchoApi(
         client_session=client_session,
