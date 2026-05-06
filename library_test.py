@@ -230,7 +230,7 @@ async def main() -> None:
         args.password = getpass.getpass("Password: ")
 
     client_session = ClientSession()
-    _httpx_client = httpx.AsyncClient(http2=True)
+    httpx_client = httpx.AsyncClient(http2=True)
 
     api = AmazonEchoApi(
         client_session=client_session,
@@ -263,7 +263,7 @@ async def main() -> None:
             raise
     except AmazonError:
         await client_session.close()
-        await _httpx_client.aclose()
+        await httpx_client.aclose()
         sys.exit(2)
 
     print("Logged-in.")
@@ -276,24 +276,11 @@ async def main() -> None:
         await save_to_file(login_data, "output-login-data")
 
         print("-" * 20)
-        print("Starting HTTP2 background thread")
-        print("-" * 20)
-        http2_task = await api.start_http2_processing(_httpx_client)
-
-        def _on_http2_task_done(task: asyncio.Task[None]) -> None:
-            if not task.cancelled() and task.exception():
-                print("HTTP2 processing task ended with exception:")
-                print(task.exception())
-
-        http2_task.add_done_callback(_on_http2_task_done)
-
-        print("-" * 20)
         try:
             devices = await api.get_devices_data()
         except (CannotAuthenticate, CannotConnect, CannotRegisterDevice) as exc:
             print(exc)
-            await client_session.close()
-            sys.exit(3)
+            sys.exit(3)  # cleanup in finally
 
         print("Devices count  :", len(devices))
         print("-" * 20)
@@ -315,14 +302,29 @@ async def main() -> None:
 
         if not devices:
             print("!!! Warning: No devices found !!!")
-            await client_session.close()
-            sys.exit(0)
+            sys.exit(0)  # cleanup in finally
 
         await save_to_file(devices, "output-devices")
         print("Check above file for full devices details")
         print("-" * 20)
 
         print("Waiting for CTRL-C...")
+        await wait_until_ctrl_c()
+
+        print("-" * 20)
+        print("Starting HTTP2 background thread")
+        print("CTRL-C to move on to tests")
+        print("-" * 20)
+
+        http2_task = await api.start_http2_processing(httpx_client)
+
+        def _on_http2_task_done(task: asyncio.Task[None]) -> None:
+            if not task.cancelled() and task.exception():
+                print("HTTP2 processing task ended with exception:")
+                print(task.exception())
+
+        http2_task.add_done_callback(_on_http2_task_done)
+
         await wait_until_ctrl_c()
 
         if not args.test:
@@ -335,7 +337,7 @@ async def main() -> None:
         with contextlib.suppress(Exception):
             await api.stop_http2_processing()
         await client_session.close()
-        await _httpx_client.aclose()
+        await httpx_client.aclose()
 
 
 async def tests(
