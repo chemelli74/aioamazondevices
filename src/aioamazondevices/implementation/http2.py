@@ -204,9 +204,17 @@ class AmazonHTTP2Client:
 
     async def _run_tasks(self) -> None:
         """Run stream and ping tasks until stopped or an unhandled exception occurs."""
-        async with asyncio.TaskGroup() as tg:
-            tg.create_task(self._get_avs_directives(), name="avs-stream")
-            tg.create_task(self._ping_loop(), name="avs-ping")
+        while not self._stop_event.is_set():
+            try:
+                async with asyncio.TaskGroup() as tg:
+                    tg.create_task(self._get_avs_directives(), name="avs-stream")
+                    tg.create_task(self._ping_loop(), name="avs-ping")
+            except* httpx.TimeoutException:
+                _LOGGER.warning(
+                    "HTTP2: Ping timeout, reconnecting in %s seconds",
+                    HTTP2_RECONNECT_DELAY,
+                )
+                await asyncio.sleep(HTTP2_RECONNECT_DELAY)
 
     async def _register_device_capabilities(self) -> None:
         """Register device capabilities."""
@@ -404,7 +412,10 @@ class AmazonHTTP2Client:
                 await self._ping()
             except CannotAuthenticate:
                 _LOGGER.warning("HTTP2: Ping auth failure")
-                self._connected_event.clear()
+                raise
+            except httpx.TimeoutException:
+                _LOGGER.warning("HTTP2: Ping timeout, forcing reconnect")
+                raise
             except Exception:  # noqa: BLE001
                 _LOGGER.exception("HTTP2: Ping error (will retry)")
 
