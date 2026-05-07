@@ -1,5 +1,23 @@
 # Changelog
 
+## v13.5.0 (2026-05-07)
+
+### Features
+
+- Add server-sent-events via http2 ([`7345dad`](https://github.com/chemelli74/aioamazondevices/commit/7345dad57320d3512aff9c811316204973d27e1b))
+
+
+### Build system
+
+- Fix uv upgrade ([`a64b7f9`](https://github.com/chemelli74/aioamazondevices/commit/a64b7f920d5ac84c5fd3cfb1c2cf553eefb926f1))
+- Auto-update uv.lock ([`1be7b3b`](https://github.com/chemelli74/aioamazondevices/commit/1be7b3befc85f30cacf77196f90d053169dd8f67))
+
+
+### Refactoring
+
+- Store media state in handler ([`856aa9c`](https://github.com/chemelli74/aioamazondevices/commit/856aa9c03d9abd02b68d628c22aabd8b9a01e68a))
+
+
 ## v13.4.3 (2026-04-19)
 
 ### Bug fixes
