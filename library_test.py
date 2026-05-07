@@ -308,12 +308,8 @@ async def main() -> None:
         print("Check above file for full devices details")
         print("-" * 20)
 
-        print("Waiting for CTRL-C...")
-        await wait_until_ctrl_c()
-
-        print("-" * 20)
+        print()
         print("Starting HTTP2 background thread")
-        print("CTRL-C to move on to tests")
         print("-" * 20)
 
         http2_task = await api.start_http2_processing(httpx_client)
@@ -325,12 +321,15 @@ async def main() -> None:
 
         http2_task.add_done_callback(_on_http2_task_done)
 
-        await wait_until_ctrl_c()
+        await wait_action_complete()
 
         if not args.test:
-            print("!!! No testing requested, exiting !!!")
+            print("!!! No testing requested !!!")
         else:
             await tests(args, api, devices, media_states)
+
+        print("Press CTRL-C to exit")
+        await wait_until_ctrl_c()
 
     finally:
         print("Closing session")
