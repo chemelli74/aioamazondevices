@@ -56,6 +56,12 @@ class AmazonMediaHandler:
         """Return media states."""
         return self._media_states
 
+    def update_cached_device_volume(
+        self, device_serial: str, volume: AmazonVolumeState
+    ) -> None:
+        """Update cached device volume."""
+        self._device_volumes[device_serial] = volume
+
     async def sync_device_volumes(self) -> None:
         """Sync all device volumes."""
         _, raw_resp = await self._http_wrapper.session_request(
