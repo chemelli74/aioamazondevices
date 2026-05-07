@@ -102,8 +102,6 @@ class AmazonEchoApi:
         self._dnd_handler = AmazonDnDHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
-            http_wrapper=self._http_wrapper,
-            session_state_data=self._session_state_data,
         )
 
         self._media_handler = AmazonMediaHandler(
