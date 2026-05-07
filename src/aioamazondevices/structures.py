@@ -117,7 +117,7 @@ class AmazonVolumeState:
     """Amazon volume state."""
 
     volume: int | None
-    is_muted: bool
+    is_muted: bool | None
 
 
 class AmazonPushMessage(StrEnum):
@@ -145,6 +145,9 @@ class AmazonPushMessage(StrEnum):
 
     # Lists
     ItemChange = "PUSH_LIST_ITEM_CHANGE"
+
+    # Matter
+    MatterDeviceFound = "MATTER_SETUP_NOTIFICATION"
 
 
 @dataclass

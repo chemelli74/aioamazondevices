@@ -1,10 +1,12 @@
 """Main module for Amazon devices."""
 
+import asyncio
 from collections.abc import Callable, Coroutine
 from datetime import UTC, datetime, timedelta
 from http import HTTPMethod
 from typing import Any
 
+import httpx
 from aiohttp import ClientSession
 from aiosignal import Signal
 
@@ -24,6 +26,7 @@ from .const.metadata import (
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
+from .implementation.http2 import AmazonHTTP2Client
 from .implementation.notification import AmazonNotificationHandler
 from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
@@ -32,10 +35,11 @@ from .structures import (
     AmazonMediaControls,
     AmazonMediaState,
     AmazonMusicProvider,
+    AmazonPushMessage,
     AmazonSequenceType,
     AmazonVolumeState,
 )
-from .utils import _LOGGER
+from .utils import _LOGGER, scrub_fields
 
 
 class AmazonEchoApi:
@@ -75,13 +79,13 @@ class AmazonEchoApi:
         )
 
         self._device_handler = AmazonDeviceHandler(
-            session_state_data=self._session_state_data,
             http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
         )
 
         self._sensor_handler = AmazonSensorHandler(
-            session_state_data=self._session_state_data,
             http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
         )
 
         self._notification_handler = AmazonNotificationHandler(
@@ -95,12 +99,17 @@ class AmazonEchoApi:
         )
 
         self._dnd_handler = AmazonDnDHandler(
-            http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
         )
 
         self._media_handler = AmazonMediaHandler(
-            http_wrapper=self._http_wrapper, session_state_data=self._session_state_data
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
         )
+
+        self._device_volumes_initialized: bool = False
+        self._http2_client: AmazonHTTP2Client | None = None
 
         initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
         self._last_daily_refresh: datetime = initial_time
@@ -177,6 +186,64 @@ class AmazonEchoApi:
         )
 
         return self._device_handler.devices
+
+    async def start_http2_processing(
+        self, httpx_client: httpx.AsyncClient
+    ) -> asyncio.Task[None]:
+        """Start HTTP2 background processing.
+
+        returns as Task so callers can decide how to handle it.
+        awaiting task will block until http2 processing is stopped or errors
+        to capture errors without blocking, callers can add a done callback to the task.
+
+        httpx client must have http2 enabled and a timeout of None to
+        allow for long-lived connections.
+        Caller is responsible for ensuring its properly configured and closed after use.
+        """
+        if not self._http2_client:
+            self._http2_client = AmazonHTTP2Client(
+                http_wrapper=self._http_wrapper,
+                session_state_data=self._session_state_data,
+                httpx_client=httpx_client,
+            )
+            self._http2_client.on_push_event.append(self._http2_push_event_handler)
+            self._http2_client.on_push_event.freeze()
+
+        return await self._http2_client.start_processing()
+
+    async def stop_http2_processing(self) -> None:
+        """Stop HTTP2 background processing."""
+        if self._http2_client:
+            await self._http2_client.stop_processing()
+            self._http2_client = None
+
+    async def _http2_push_event_handler(
+        self, event_type: str, payload: dict[str, Any]
+    ) -> None:
+        _LOGGER.debug("Event - %s : Payload - %s", event_type, scrub_fields(payload))
+        if event_type == AmazonPushMessage.VolumeChange.value:
+            # Ensure initial full sync happens before applying incremental updates
+            if not self._device_volumes_initialized:
+                await self._media_handler.sync_device_volumes()
+                self._device_volumes_initialized = True
+            serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
+            if serial:
+                volume = AmazonVolumeState(
+                    payload.get("volumeSetting"), payload.get("isMuted")
+                )
+                self._media_handler.update_cached_device_volume(serial, volume)
+            await self._emit_volume_state_event()
+            return
+        if event_type == AmazonPushMessage.AudioPlayerState.value:
+            if not self._device_handler.devices:
+                _LOGGER.debug(
+                    "Skipping media state sync for push event because devices "
+                    "have not been loaded yet"
+                )
+                return
+            await self._media_handler.sync_media_state(self._device_handler.devices)
+            await self._emit_media_state_event()
+            return
 
     async def call_alexa_speak(
         self,
@@ -324,6 +391,7 @@ class AmazonEchoApi:
         and can be called later to refresh media state.
         """
         await self._media_handler.sync_device_volumes()
+        self._device_volumes_initialized = True
         await self._emit_volume_state_event()
         await self._media_handler.sync_media_state(self._device_handler.devices)
         await self._emit_media_state_event()

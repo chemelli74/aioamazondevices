@@ -1,6 +1,6 @@
 [project]
 name = "aioamazondevices"
-version = "13.4.3"
+version = "13.5.0"
 requires-python = ">=3.12"
 description = "Python library to control Amazon devices"
 authors = [
@@ -23,6 +23,7 @@ classifiers = [
 dependencies = [
 "aiohttp (>=3.12.7)",
 "beautifulsoup4",
+"httpx[http2]",
 "langcodes",
 "orjson (>=3.10,<4)",
 "python-dateutil",
