@@ -370,7 +370,7 @@ class AmazonHTTP2Client:
         for rendering_update in rendering_updates:
             result = _process_rendering_update(rendering_update)
             if result is None:
-                _LOGGER.warning(
+                _LOGGER.debug(
                     "Failed to process rendering update: %s", rendering_update
                 )
                 continue
