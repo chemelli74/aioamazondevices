@@ -114,7 +114,12 @@ def _process_rendering_update(  # noqa: PLR0911
         )
         return None
 
-    if _is_duplicate_notification(push_event_type, payload):
+    if event_version := _is_duplicate_notification(push_event_type, payload):
+        _LOGGER.debug(
+            "Duplicate notificationVersion %s for device %s, ignoring",
+            event_version,
+            device_serial,
+        )
         return None
 
     _LOGGER.debug(
@@ -253,7 +258,7 @@ class AmazonHTTP2Client:
             except httpx.RemoteProtocolError as exc:
                 _LOGGER.debug("HTTP2 disconnection detected: %s", exc)
             except httpx.HTTPError as exc:
-                _LOGGER.warning("HTTP2 error detected: %s", exc)
+                _LOGGER.warning("HTTP2 error detected: %s", exc, exc_info=True)
             except Exception:
                 _LOGGER.exception("Unexpected error getting AVS directive")
                 raise
@@ -364,6 +369,9 @@ class AmazonHTTP2Client:
         for rendering_update in rendering_updates:
             result = _process_rendering_update(rendering_update)
             if result is None:
+                _LOGGER.warning(
+                    "Failed to process rendering update: %s", rendering_update
+                )
                 continue
             push_event_type, payload = result
             try:
