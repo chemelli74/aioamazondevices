@@ -114,11 +114,12 @@ def _process_rendering_update(  # noqa: PLR0911
         )
         return None
 
-    if event_version := _is_duplicate_notification(push_event_type, payload):
+    if _is_duplicate_notification(push_event_type, payload):
         _LOGGER.debug(
-            "Duplicate notificationVersion %s for device %s, ignoring",
-            event_version,
+            "Ignoring duplicate push '%s' for device %s: %s",
+            push_event_type,
             device_serial,
+            payload,
         )
         return None
 
