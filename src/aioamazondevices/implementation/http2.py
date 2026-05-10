@@ -61,6 +61,7 @@ def _is_duplicate_notification(push_event_type: str, payload: dict[str, Any]) ->
     Observed behavior: even notificationVersion values are duplicates.
     """
     if push_event_type != AmazonPushMessage.NotificationChange.value:
+        _LOGGER.debug("Not checking for duplicates on push type <%s>", push_event_type)
         return False
 
     # Ignore AmazonPushMessage.NotificationChange duplicates
@@ -71,7 +72,14 @@ def _is_duplicate_notification(push_event_type: str, payload: dict[str, Any]) ->
             "Unexpected type of notification_version: %s", type(notification_version)
         )
         return False
-    return notification_version % 2 == 0
+
+    is_duplicate = notification_version % 2 == 0
+    _LOGGER.debug(
+        "Checking for duplicate NotificationChange: version=%s, is_duplicate=%s",
+        notification_version,
+        is_duplicate,
+    )
+    return is_duplicate
 
 
 def _is_known_event_type(push_event_type: str) -> bool:
@@ -115,12 +123,6 @@ def _process_rendering_update(  # noqa: PLR0911
         return None
 
     if _is_duplicate_notification(push_event_type, payload):
-        _LOGGER.debug(
-            "Ignoring duplicate push '%s' for device %s: %s",
-            push_event_type,
-            device_serial,
-            payload,
-        )
         return None
 
     _LOGGER.debug(
