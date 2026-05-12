@@ -7,7 +7,7 @@ set -e
 # Use copy mode for UV to avoid hardlink warnings on different filesystems
 export UV_LINK_MODE=copy
 
-UV_VERSION="0.11.13" # renovate: depName=uv datasource=pypi
+UV_VERSION="0.11.14" # renovate: depName=uv datasource=pypi
 
 if ! uv --version 2>/dev/null; then
     pipx install "uv==$UV_VERSION"
