@@ -55,15 +55,11 @@ def _extract_rendering_updates(
     return updates_nodes
 
 
-def _is_duplicate_notification(push_event_type: str, payload: dict[str, Any]) -> bool:
+def _is_notification_change_duplicate(payload: dict[str, Any]) -> bool:
     """Filter duplicate NotificationChange events.
 
     Observed behavior: even notificationVersion values are duplicates.
     """
-    if push_event_type != AmazonPushMessage.NotificationChange.value:
-        _LOGGER.debug("Not checking for duplicates on push type <%s>", push_event_type)
-        return False
-
     # Ignore AmazonPushMessage.NotificationChange duplicates
     # where notificationVersion is even
     notification_version = payload.get("notificationVersion", 1)
@@ -122,7 +118,10 @@ def _process_rendering_update(  # noqa: PLR0911
         )
         return None
 
-    if _is_duplicate_notification(push_event_type, payload):
+    if (
+        push_event_type == AmazonPushMessage.NotificationChange.value
+        and _is_notification_change_duplicate(payload)
+    ):
         return None
 
     _LOGGER.debug(
