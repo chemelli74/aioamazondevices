@@ -38,6 +38,7 @@ from .structures import (
     AmazonMusicProvider,
     AmazonPushMessage,
     AmazonSequenceType,
+    AmazonVocalRecord,
     AmazonVolumeState,
 )
 from .utils import _LOGGER, scrub_fields
@@ -115,6 +116,7 @@ class AmazonEchoApi:
         )
 
         self._device_volumes_initialized: bool = False
+        self._voice_history_initialized: bool = False
         self._http2_client: AmazonHTTP2Client | None = None
 
         initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
@@ -123,6 +125,7 @@ class AmazonEchoApi:
 
         self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
+        self.on_history_event = Signal[dict[str, AmazonVocalRecord]](self)
 
     @property
     def domain(self) -> str:
@@ -152,15 +155,16 @@ class AmazonEchoApi:
                 "Refreshing devices data after %s",
                 str(timedelta(minutes=round(delta_daily.total_seconds() / 60))),
             )
-            # Request base device data
+            # Request various data that doesn't change that often
             await self._device_handler.get_base_devices()
             await self._media_handler.update_music_providers()
-            # Request routine data
             await self._sequence_handler.update_routines()
+            await self._history_handler.update_vocal_history_token()
 
             self._last_daily_refresh = datetime.now(UTC)
 
         # Only refresh endpoint data if we have no endpoints yet
+        # or if it's been a while since the last refresh
         delta_endpoints = datetime.now(UTC) - self._last_endpoint_refresh
         endpoint_refresh_needed = delta_endpoints >= timedelta(days=1)
         endpoints_recently_checked = delta_endpoints < timedelta(minutes=30)
@@ -181,9 +185,6 @@ class AmazonEchoApi:
         """Get Amazon devices data."""
         # Perform a refresh to ensure your data is as up-to-date as possible.
         await self._refresh_basic_data()
-
-        vocal_history = await self._history_handler.vocal_history()
-        _LOGGER.debug("Vocal history data retrieved: %s", vocal_history)
 
         dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
         notifications = await self._notification_handler.get_notifications()
@@ -235,6 +236,9 @@ class AmazonEchoApi:
             if not self._device_volumes_initialized:
                 await self._media_handler.sync_device_volumes()
                 self._device_volumes_initialized = True
+            if not self._voice_history_initialized:
+                await self._history_handler.get_vocal_history()
+                self._voice_history_initialized = True
             serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
             if serial:
                 volume = AmazonVolumeState(
@@ -242,6 +246,7 @@ class AmazonEchoApi:
                 )
                 self._media_handler.update_cached_device_volume(serial, volume)
             await self._emit_volume_state_event()
+            await self._emit_history_event()
             return
         if event_type == AmazonPushMessage.AudioPlayerState.value:
             if not self._device_handler.devices:
@@ -252,6 +257,7 @@ class AmazonEchoApi:
                 return
             await self._media_handler.sync_media_state(self._device_handler.devices)
             await self._emit_media_state_event()
+            await self._emit_history_event()
             return
 
     async def call_alexa_speak(
@@ -417,4 +423,12 @@ class AmazonEchoApi:
             _LOGGER.debug("Emitting volume state event to subscribers")
             await self.on_volume_state_event.send(
                 await self._media_handler.device_volumes
+            )
+
+    async def _emit_history_event(self) -> None:
+        """Emit vocal history event to subscribers."""
+        if self.on_history_event.frozen:
+            _LOGGER.warning("Emitting vocal history event to subscribers")
+            await self.on_history_event.send(
+                await self._history_handler.get_vocal_history()
             )

@@ -31,24 +31,10 @@ class AmazonHistoryHandler:
         self._http_wrapper = http_wrapper
         self._csrf_a2z_token: str = ""
 
-    async def _obtain_anti_csrftoken_a2z(self) -> None:
-        """Find anti-csrftoken-a2z token."""
-        bs_resp, _ = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET,
-            url=f"https://www.amazon.{self._session_state_data.domain}{URI_HISTORY_FRONTEND}",
-        )
-        token_meta = bs_resp.find("meta", attrs={"name": "csrf-token"})
-        if isinstance(token_meta, Tag):
-            token = token_meta.get("content")
-            if token:
-                self._csrf_a2z_token = str(token)
-                return
-        raise CannotRetrieveData("Cannot find anti-csrftoken-a2z token")
-
     async def _vocal_history_json(self) -> dict[str, Any]:
         """Request vocal history data."""
         if not self._csrf_a2z_token:
-            await self._obtain_anti_csrftoken_a2z()
+            await self.update_vocal_history_token()
         await self._http_wrapper.refresh_data(REFRESH_ACCESS_TOKEN)
         access_token = self._session_state_data.login_stored_data[REFRESH_ACCESS_TOKEN]
 
@@ -72,7 +58,7 @@ class AmazonHistoryHandler:
         _LOGGER.debug("Vocal history data: %s", history)
         return history
 
-    async def vocal_history(self) -> dict[str, AmazonVocalRecord]:
+    async def get_vocal_history(self) -> dict[str, AmazonVocalRecord]:
         """Get vocal history."""
         history_json = await self._vocal_history_json()
 
@@ -101,3 +87,17 @@ class AmazonHistoryHandler:
                 records[serial] = new_record
 
         return records
+
+    async def update_vocal_history_token(self) -> None:
+        """Find anti-csrftoken-a2z token."""
+        bs_resp, _ = await self._http_wrapper.session_request(
+            method=HTTPMethod.GET,
+            url=f"https://www.amazon.{self._session_state_data.domain}{URI_HISTORY_FRONTEND}",
+        )
+        token_meta = bs_resp.find("meta", attrs={"name": "csrf-token"})
+        if isinstance(token_meta, Tag):
+            token = token_meta.get("content")
+            if token:
+                self._csrf_a2z_token = str(token)
+                return
+        raise CannotRetrieveData("Cannot find anti-csrftoken-a2z token")
