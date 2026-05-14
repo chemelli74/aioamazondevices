@@ -1,6 +1,7 @@
 """HTTP2 Support for Amazon devices."""
 
 import asyncio
+from collections.abc import Callable, Coroutine
 from http import HTTPMethod, HTTPStatus
 from typing import Any
 
@@ -165,6 +166,7 @@ class AmazonHTTP2Client:
         http_wrapper: AmazonHttpWrapper,
         session_state_data: AmazonSessionStateData,
         httpx_client: httpx.AsyncClient,
+        on_reauth_required: Callable[[], Coroutine[Any, Any, None]] | None = None,
     ) -> None:
         """Initialize Amazon HTTP2 client class."""
         self._http_wrapper = http_wrapper
@@ -172,6 +174,8 @@ class AmazonHTTP2Client:
 
         self._http2_client = httpx_client
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
+
+        self._on_reauth_required = on_reauth_required
 
         self._run_task: asyncio.Task[None] | None = None
         self._stop_event = asyncio.Event()
@@ -210,17 +214,49 @@ class AmazonHTTP2Client:
                     self._run_task = None
 
     async def _run_tasks(self) -> None:
-        """Run stream and ping tasks until stopped or an unhandled exception occurs."""
         while not self._stop_event.is_set():
+            reauth_required = False
+            restart_required = False
             try:
                 async with asyncio.TaskGroup() as tg:
                     tg.create_task(self._get_avs_directives(), name="avs-stream")
                     tg.create_task(self._ping_loop(), name="avs-ping")
-            except* httpx.TimeoutException:
-                _LOGGER.warning(
-                    "HTTP2: Ping timeout, reconnecting in %s seconds",
-                    HTTP2_RECONNECT_DELAY,
-                )
+
+            except* CannotAuthenticate as auth_exc_group:
+                for auth_exc in auth_exc_group.exceptions:
+                    _LOGGER.error(
+                        "HTTP2 auth failure",
+                        exc_info=(type(auth_exc), auth_exc, auth_exc.__traceback__),
+                    )
+                reauth_required = True
+
+            except* (CannotConnect, httpx.TimeoutException) as connect_exc_group:
+                for connect_exc in connect_exc_group.exceptions:
+                    _LOGGER.warning(
+                        "HTTP2 connection failure, reconnecting in %s seconds",
+                        HTTP2_RECONNECT_DELAY,
+                        exc_info=(
+                            type(connect_exc),
+                            connect_exc,
+                            connect_exc.__traceback__,
+                        ),
+                    )
+                restart_required = True
+
+            except* Exception as eg:  # noqa: BLE001
+                for e in eg.exceptions:
+                    _LOGGER.error(
+                        "Unexpected HTTP2 failure, reconnecting in %s seconds",
+                        HTTP2_RECONNECT_DELAY,
+                        exc_info=(type(e), e, e.__traceback__),
+                    )
+                restart_required = True
+
+            if reauth_required:
+                if self._on_reauth_required:
+                    await self._on_reauth_required()
+                break
+            if restart_required:
                 await asyncio.sleep(HTTP2_RECONNECT_DELAY)
 
     async def _register_device_capabilities(self) -> None:
