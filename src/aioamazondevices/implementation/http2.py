@@ -55,14 +55,11 @@ def _extract_rendering_updates(
     return updates_nodes
 
 
-def _is_duplicate_notification(push_event_type: str, payload: dict[str, Any]) -> bool:
+def _is_notification_change_duplicate(payload: dict[str, Any]) -> bool:
     """Filter duplicate NotificationChange events.
 
     Observed behavior: even notificationVersion values are duplicates.
     """
-    if push_event_type != AmazonPushMessage.NotificationChange.value:
-        return False
-
     # Ignore AmazonPushMessage.NotificationChange duplicates
     # where notificationVersion is even
     notification_version = payload.get("notificationVersion", 1)
@@ -71,7 +68,14 @@ def _is_duplicate_notification(push_event_type: str, payload: dict[str, Any]) ->
             "Unexpected type of notification_version: %s", type(notification_version)
         )
         return False
-    return notification_version % 2 == 0
+
+    is_duplicate = notification_version % 2 == 0
+    _LOGGER.debug(
+        "Checking for duplicate NotificationChange: version=%s, is_duplicate=%s",
+        notification_version,
+        is_duplicate,
+    )
+    return is_duplicate
 
 
 def _is_known_event_type(push_event_type: str) -> bool:
@@ -114,7 +118,10 @@ def _process_rendering_update(  # noqa: PLR0911
         )
         return None
 
-    if _is_duplicate_notification(push_event_type, payload):
+    if (
+        push_event_type == AmazonPushMessage.NotificationChange.value
+        and _is_notification_change_duplicate(payload)
+    ):
         return None
 
     _LOGGER.debug(
@@ -253,7 +260,7 @@ class AmazonHTTP2Client:
             except httpx.RemoteProtocolError as exc:
                 _LOGGER.debug("HTTP2 disconnection detected: %s", exc)
             except httpx.HTTPError as exc:
-                _LOGGER.warning("HTTP2 error detected: %s", exc)
+                _LOGGER.warning("HTTP2 error detected: %s", exc, exc_info=True)
             except Exception:
                 _LOGGER.exception("Unexpected error getting AVS directive")
                 raise
@@ -364,6 +371,9 @@ class AmazonHTTP2Client:
         for rendering_update in rendering_updates:
             result = _process_rendering_update(rendering_update)
             if result is None:
+                _LOGGER.debug(
+                    "Failed to process rendering update: %s", rendering_update
+                )
                 continue
             push_event_type, payload = result
             try:
