@@ -1,5 +1,12 @@
 # Changelog
 
+## v13.5.1 (2026-05-14)
+
+### Bug fixes
+
+- Enhance logging ([`a66d30a`](https://github.com/chemelli74/aioamazondevices/commit/a66d30a1e3424bf15f8115f35199a1693d139ea5))
+
+
 ## v13.5.0 (2026-05-07)
 
 ### Features

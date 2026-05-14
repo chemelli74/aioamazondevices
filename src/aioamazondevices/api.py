@@ -408,11 +408,13 @@ class AmazonEchoApi:
     async def _emit_media_state_event(self) -> None:
         """Emit media state data to subscribers."""
         if self.on_media_state_event.frozen:
+            _LOGGER.debug("Emitting media state event to subscribers")
             await self.on_media_state_event.send(await self._media_handler.media_states)
 
     async def _emit_volume_state_event(self) -> None:
         """Emit volume event to subscribers."""
         if self.on_volume_state_event.frozen:
+            _LOGGER.debug("Emitting volume state event to subscribers")
             await self.on_volume_state_event.send(
                 await self._media_handler.device_volumes
             )
