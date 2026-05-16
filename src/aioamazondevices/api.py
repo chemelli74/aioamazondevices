@@ -143,6 +143,24 @@ class AmazonEchoApi:
         return self._sequence_handler.routines
 
     @property
+    def default_device(self) -> AmazonDevice:
+        """Return default device."""
+        if self._default_device:
+            return self._default_device
+
+        # Get first online device as default if no default device has been set yet
+        for device in self._device_handler.devices.values():
+            if device.online:
+                return device
+
+        raise ValueError("No online devices found")
+
+    @default_device.setter
+    def default_device(self, device: AmazonDevice) -> None:
+        """Set default device."""
+        self._default_device = device
+
+    @property
     async def music_providers(self) -> dict[str, AmazonMusicProvider]:
         """Return music providers."""
         return await self._media_handler.music_providers
@@ -344,7 +362,7 @@ class AmazonEchoApi:
         # Routines are not device specific
         # but a device is needed to call them anyway.
         await self._call_alexa_command_per_cluster_member(
-            self._device_handler.default_device,
+            self._default_device,
             AmazonSequenceType.Routines,
             routine_name,
         )
