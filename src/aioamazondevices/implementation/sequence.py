@@ -134,6 +134,17 @@ class AmazonSequenceHandler:
 
         if message_type == AmazonSequenceType.Routines:
             payload = self._routines[str(message_body)].get("startNode")
+            if sequence := payload.get("sequence"):
+                _LOGGER.debug(
+                    "Updating routine sequence with device details for %s",
+                    device.account_name,
+                )
+                sequence["startNode"]["operationPayload"]["deviceSerialNumber"] = (
+                    device.serial_number
+                )
+                sequence["startNode"]["operationPayload"]["deviceType"] = (
+                    device.device_type
+                )
             return payload
 
         base_payload = {
