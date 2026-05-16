@@ -1,5 +1,17 @@
 # Changelog
 
+## v13.6.0 (2026-05-16)
+
+### Features
+
+- Voice history ([`2e5c468`](https://github.com/chemelli74/aioamazondevices/commit/2e5c4682ca713f42bfbc5fbef0956dc950075bbe))
+
+
+### Refactoring
+
+- Move http2 restart into library ([`b306fd4`](https://github.com/chemelli74/aioamazondevices/commit/b306fd4cf4c355e8a6c15a6c6e3bcc6e1dfe1d4b))
+
+
 ## v13.5.1 (2026-05-14)
 
 ### Bug fixes
