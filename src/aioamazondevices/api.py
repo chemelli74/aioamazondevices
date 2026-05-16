@@ -198,7 +198,9 @@ class AmazonEchoApi:
         return self._device_handler.devices
 
     async def start_http2_processing(
-        self, httpx_client: httpx.AsyncClient
+        self,
+        httpx_client: httpx.AsyncClient,
+        on_reauth_required: Callable[[], Coroutine[Any, Any, None]] | None = None,
     ) -> asyncio.Task[None]:
         """Start HTTP2 background processing.
 
@@ -215,6 +217,7 @@ class AmazonEchoApi:
                 http_wrapper=self._http_wrapper,
                 session_state_data=self._session_state_data,
                 httpx_client=httpx_client,
+                on_reauth_required=on_reauth_required,
             )
             self._http2_client.on_push_event.append(self._http2_push_event_handler)
             self._http2_client.on_push_event.freeze()
