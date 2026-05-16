@@ -1,5 +1,12 @@
 # Changelog
 
+## v13.7.0 (2026-05-16)
+
+### Features
+
+- Add default_device setter ([`cbdf8d7`](https://github.com/chemelli74/aioamazondevices/commit/cbdf8d71d5b77d5ec2d5cb1ce1f64ecc8ae13b89))
+
+
 ## v13.6.0 (2026-05-16)
 
 ### Features
