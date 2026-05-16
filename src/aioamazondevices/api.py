@@ -43,6 +43,8 @@ from .structures import (
 )
 from .utils import _LOGGER, scrub_fields
 
+BACKEND_REFRESH_WAIT_SECONDS = 2
+
 
 class AmazonEchoApi:
     """Queries Amazon for Echo devices."""
@@ -433,7 +435,7 @@ class AmazonEchoApi:
         This will be called at startup to sync history state of all devices
         and can be called later to refresh history state.
         """
-        await asyncio.sleep(2)  # delay to allow time for history to update
+        await asyncio.sleep(BACKEND_REFRESH_WAIT_SECONDS)
         await self._history_handler.get_vocal_history()
 
     async def _emit_history_event(self) -> None:
