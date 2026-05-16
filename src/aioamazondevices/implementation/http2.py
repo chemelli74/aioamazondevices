@@ -232,31 +232,18 @@ class AmazonHTTP2Client:
 
             except* CannotAuthenticate as auth_exc_group:
                 for auth_exc in auth_exc_group.exceptions:
-                    _LOGGER.error(
+                    _LOGGER.warning(
                         "HTTP2 auth failure",
                         exc_info=(type(auth_exc), auth_exc, auth_exc.__traceback__),
                     )
                 reauth_required = True
 
-            except* (CannotConnect, httpx.TimeoutException) as connect_exc_group:
-                for connect_exc in connect_exc_group.exceptions:
+            except* Exception as exc_group:  # noqa: BLE001
+                for exc in exc_group.exceptions:
                     _LOGGER.warning(
-                        "HTTP2 connection failure, reconnecting in %s seconds",
+                        "HTTP2 failure, reconnecting in %s seconds",
                         delay,
-                        exc_info=(
-                            type(connect_exc),
-                            connect_exc,
-                            connect_exc.__traceback__,
-                        ),
-                    )
-                restart_required = True
-
-            except* Exception as eg:  # noqa: BLE001
-                for e in eg.exceptions:
-                    _LOGGER.error(
-                        "Unexpected HTTP2 failure, reconnecting in %s seconds",
-                        delay,
-                        exc_info=(type(e), e, e.__traceback__),
+                        exc_info=(type(exc), exc, exc.__traceback__),
                     )
                 restart_required = True
 
