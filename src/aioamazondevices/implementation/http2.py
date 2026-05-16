@@ -216,6 +216,7 @@ class AmazonHTTP2Client:
                     self._run_task = None
 
     async def _run_tasks(self) -> None:
+        """Run stream and ping tasks until stopped or an unhandled exception occurs."""
         self._reconnect_attempt = 0
         while not self._stop_event.is_set():
             # exponential backoff with a max of 10 minutes between reconnect attempts
