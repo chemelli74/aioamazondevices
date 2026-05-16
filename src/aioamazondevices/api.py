@@ -159,7 +159,6 @@ class AmazonEchoApi:
             await self._device_handler.get_base_devices()
             await self._media_handler.update_music_providers()
             await self._sequence_handler.update_routines()
-            await self._history_handler.update_vocal_history_token()
 
             self._last_daily_refresh = datetime.now(UTC)
 
@@ -428,10 +427,19 @@ class AmazonEchoApi:
                 await self._media_handler.device_volumes
             )
 
+    async def sync_history_state(self) -> None:
+        """Sync history state.
+
+        This will be called at startup to sync history state of all devices
+        and can be called later to refresh history state.
+        """
+        await asyncio.sleep(2)  # delay to allow time for history to update
+        await self._history_handler.get_vocal_history()
+
     async def _emit_history_event(self) -> None:
         """Emit vocal history event to subscribers."""
         if self.on_history_event.frozen:
-            _LOGGER.warning("Emitting vocal history event to subscribers")
+            _LOGGER.debug("Emitting vocal history event to subscribers")
             await self.on_history_event.send(
                 await self._history_handler.get_vocal_history()
             )
