@@ -38,7 +38,13 @@ class AmazonHistoryHandler:
         """Request vocal history data."""
         if not self._csrf_a2z_token:
             await self.update_vocal_history_token()
-        await self._http_wrapper.refresh_data(REFRESH_ACCESS_TOKEN)
+
+        refresh_successful, _ = await self._http_wrapper.refresh_data(
+            REFRESH_ACCESS_TOKEN
+        )
+        if not refresh_successful:
+            _LOGGER.warning("Access token refresh failed")
+
         access_token = self._session_state_data.login_stored_data[REFRESH_ACCESS_TOKEN]
 
         start_time = (
