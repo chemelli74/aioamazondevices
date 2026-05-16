@@ -2,6 +2,7 @@
 
 import asyncio
 from collections.abc import Generator
+from copy import deepcopy
 from http import HTTPMethod
 from itertools import groupby
 from typing import Any
@@ -133,8 +134,8 @@ class AmazonSequenceHandler:
         payload: dict[str, Any]
 
         if message_type == AmazonSequenceType.Routines:
-            payload = self._routines[str(message_body)].get("startNode")
-            if sequence := payload.get("sequence"):
+            payload = deepcopy(self._routines[str(message_body)].get("startNode"))
+            if payload and (sequence := payload.get("sequence")):
                 _LOGGER.debug(
                     "Updating routine sequence with device details for %s",
                     device.account_name,
