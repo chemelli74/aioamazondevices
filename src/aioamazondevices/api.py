@@ -61,6 +61,8 @@ class AmazonEchoApi:
         """Initialize the scanner."""
         _LOGGER.debug("Initialize library v%s", __version__)
 
+        self._default_device: AmazonDevice | None = None
+
         # Check if there is a previous login, otherwise use default (US)
         site = login_data.get("site", DEFAULT_SITE) if login_data else DEFAULT_SITE
         _LOGGER.debug("Using site: %s", site)
@@ -362,7 +364,7 @@ class AmazonEchoApi:
         # Routines are not device specific
         # but a device is needed to call them anyway.
         await self._call_alexa_command_per_cluster_member(
-            self._default_device,
+            self.default_device,
             AmazonSequenceType.Routines,
             routine_name,
         )
