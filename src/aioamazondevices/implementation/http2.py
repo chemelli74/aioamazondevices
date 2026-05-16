@@ -182,6 +182,8 @@ class AmazonHTTP2Client:
         self._connected_event = asyncio.Event()
         self._process_lock = asyncio.Lock()
 
+        self._reconnect_attempt: int = 0
+
     async def start_processing(self) -> asyncio.Task[None]:
         """Start background processing. Returns the task to the caller."""
         async with self._process_lock:
@@ -214,7 +216,12 @@ class AmazonHTTP2Client:
                     self._run_task = None
 
     async def _run_tasks(self) -> None:
+        self._reconnect_attempt = 0
         while not self._stop_event.is_set():
+            # exponential backoff with a max of 10 minutes between reconnect attempts
+            # the backoff resets after a successful ping
+            delay = min(HTTP2_RECONNECT_DELAY * (2**self._reconnect_attempt), 600)
+
             reauth_required = False
             restart_required = False
             try:
@@ -234,7 +241,7 @@ class AmazonHTTP2Client:
                 for connect_exc in connect_exc_group.exceptions:
                     _LOGGER.warning(
                         "HTTP2 connection failure, reconnecting in %s seconds",
-                        HTTP2_RECONNECT_DELAY,
+                        delay,
                         exc_info=(
                             type(connect_exc),
                             connect_exc,
@@ -247,7 +254,7 @@ class AmazonHTTP2Client:
                 for e in eg.exceptions:
                     _LOGGER.error(
                         "Unexpected HTTP2 failure, reconnecting in %s seconds",
-                        HTTP2_RECONNECT_DELAY,
+                        delay,
                         exc_info=(type(e), e, e.__traceback__),
                     )
                 restart_required = True
@@ -257,7 +264,8 @@ class AmazonHTTP2Client:
                     await self._on_reauth_required()
                 break
             if restart_required:
-                await asyncio.sleep(HTTP2_RECONNECT_DELAY)
+                await asyncio.sleep(delay)
+                self._reconnect_attempt += 1
 
     async def _register_device_capabilities(self) -> None:
         """Register device capabilities."""
@@ -485,6 +493,9 @@ class AmazonHTTP2Client:
             raise CannotAuthenticate(
                 f"Ping returned {response.status_code}; check credentials and region"
             )
+
+        # Reset backoff after healthy ping
+        self._reconnect_attempt = 0
 
     def _get_bearer_token(self) -> str:
         """Return the current access token."""
