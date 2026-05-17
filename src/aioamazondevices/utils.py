@@ -224,11 +224,11 @@ def string_recursive_parse(
     return obj
 
 
-def replace_placeholders(
+def replace_routine_placeholders(
     obj: dict[str, Any],
     device: AmazonDevice,
 ) -> dict[str, Any]:
-    """Recursively replace placeholder values in a dict with actual device details."""
+    """Replace placeholder values in a routine payload with actual device details."""
 
     def _replace(
         value: dict[str, Any] | str | list[Any],
