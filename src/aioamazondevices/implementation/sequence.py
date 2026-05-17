@@ -18,7 +18,7 @@ from aioamazondevices.structures import (
     AmazonSequenceNode,
     AmazonSequenceType,
 )
-from aioamazondevices.utils import _LOGGER
+from aioamazondevices.utils import _LOGGER, replace_placeholders
 
 
 class AmazonSequenceHandler:
@@ -134,28 +134,13 @@ class AmazonSequenceHandler:
         payload: dict[str, Any]
 
         if message_type == AmazonSequenceType.Routines:
-            payload = deepcopy(self._routines[str(message_body)].get("startNode"))
-            _LOGGER.debug(
-                "Routine sequence for %s with payload %s",
-                device.account_name,
-                payload,
-            )
-            if payload and (sequence := payload.get("sequence")):
+            if payload := deepcopy(self._routines[str(message_body)].get("startNode")):
                 _LOGGER.debug(
-                    "Updating routine sequence with device details for %s",
-                    device.account_name,
-                )
-                sequence["startNode"]["operationPayload"]["deviceSerialNumber"] = (
-                    device.serial_number
-                )
-                sequence["startNode"]["operationPayload"]["deviceType"] = (
-                    device.device_type
-                )
-                _LOGGER.debug(
-                    "Updated routine sequence for %s with payload %s",
+                    "Routine sequence for %s with payload %s",
                     device.account_name,
                     payload,
                 )
+                payload = replace_placeholders(payload, device)
             return payload
 
         base_payload = {
