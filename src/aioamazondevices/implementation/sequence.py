@@ -135,6 +135,11 @@ class AmazonSequenceHandler:
 
         if message_type == AmazonSequenceType.Routines:
             payload = deepcopy(self._routines[str(message_body)].get("startNode"))
+            _LOGGER.debug(
+                "Routine sequence for %s with payload %s",
+                device.account_name,
+                payload,
+            )
             if payload and (sequence := payload.get("sequence")):
                 _LOGGER.debug(
                     "Updating routine sequence with device details for %s",
@@ -145,6 +150,11 @@ class AmazonSequenceHandler:
                 )
                 sequence["startNode"]["operationPayload"]["deviceType"] = (
                     device.device_type
+                )
+                _LOGGER.debug(
+                    "Updated routine sequence for %s with payload %s",
+                    device.account_name,
+                    payload,
                 )
             return payload
 
