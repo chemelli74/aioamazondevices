@@ -2,9 +2,22 @@
 
 from http import HTTPMethod
 
-from aioamazondevices.const.http import URI_LISTS
+from aioamazondevices.const.http import URI_TODO
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import ListInfo, ListItem, ListItemStatus, ListType
+
+
+def is_item_complete(list_item: ListItem) -> bool:
+    """Check if a list item is complete.
+
+    Args:
+        list_item: The list item to check.
+
+    Returns:
+        True if the list item is complete, False otherwise.
+
+    """
+    return list_item.status == ListItemStatus.COMPLETE
 
 
 class AmazonToDoHandler:
@@ -37,7 +50,7 @@ class AmazonToDoHandler:
         """
         _, raw_resp = await self._http_wrapper.session_request(
             HTTPMethod.POST,
-            f"{self._base_url}{URI_LISTS}/fetch",
+            f"{self._base_url}{URI_TODO}/fetch",
             input_data={},
             json_data=True,
         )
@@ -51,7 +64,9 @@ class AmazonToDoHandler:
             ListInfo(
                 id=list_info["listId"],
                 list_type=ListType(list_info["listType"]),
-                custom_list_name=list_info.get("listName"),
+                name=list_info["listName"]
+                if list_info["listType"] == ListType.CUSTOM
+                else list_info["listType"].capitalize(),
             )
             for list_info in list_info_list
         ]
@@ -65,30 +80,12 @@ class AmazonToDoHandler:
                    Defaults to 100 which is the maximum allowed by the API.
 
         Returns:
-            A list of shopping list items.
-
-        """
-        list_items, _ = await self.get_list_items_check_has_more(list_id, limit)
-        return list_items
-
-    async def get_list_items_check_has_more(
-        self, list_id: str, limit: int = 100
-    ) -> tuple[list[ListItem], bool]:
-        """Fetch all items from a specified Alexa shopping list.
-
-        Args:
-            list_id: The ID of the list to fetch items from.
-            limit: The number of items to fetch in each batch.
-                   Defaults to 100 which is the maximum allowed by the API.
-
-        Returns:
-            A tuple of the list of shopping list items and a boolean indicating
-            whether there are more items.
+            A list of list items.
 
         """
         _, raw_resp = await self._http_wrapper.session_request(
             HTTPMethod.POST,
-            f"{self._base_url}{URI_LISTS}/{list_id}/items/fetch?limit={limit}",
+            f"{self._base_url}{URI_TODO}/{list_id}/items/fetch?limit={limit}",
             input_data={},
             json_data=True,
         )
@@ -97,17 +94,15 @@ class AmazonToDoHandler:
 
         item_info_list = response_json.get("itemInfoList", [])
 
-        list_items = [
+        return [
             ListItem(
                 id=item_info["itemId"],
-                original_name=item_info["itemName"],
+                name=item_info["itemName"],
                 status=ListItemStatus(item_info["itemStatus"]),
                 version=item_info["version"],
             )
             for item_info in item_info_list
         ]
-
-        return list_items, response_json.get("nextToken") is not None
 
     async def set_item_checked_status(
         self, list_id: str, item_id: str, checked: bool, version: int
@@ -125,7 +120,7 @@ class AmazonToDoHandler:
         """
         await self._http_wrapper.session_request(
             HTTPMethod.PUT,
-            f"{self._base_url}{URI_LISTS}/{list_id}/items/{item_id}?version={version}",
+            f"{self._base_url}{URI_TODO}/{list_id}/items/{item_id}?version={version}",
             input_data={
                 "itemAttributesToUpdate": [
                     {
@@ -150,7 +145,7 @@ class AmazonToDoHandler:
         """
         await self._http_wrapper.session_request(
             HTTPMethod.POST,
-            f"{self._base_url}{URI_LISTS}/{list_id}/items",
+            f"{self._base_url}{URI_TODO}/{list_id}/items",
             input_data={
                 "items": [
                     {
@@ -175,7 +170,7 @@ class AmazonToDoHandler:
         """
         await self._http_wrapper.session_request(
             HTTPMethod.DELETE,
-            f"{self._base_url}{URI_LISTS}/{list_id}/items/{item_id}?version={version}",
+            f"{self._base_url}{URI_TODO}/{list_id}/items/{item_id}?version={version}",
             input_data={},
             json_data=True,
         )
@@ -196,7 +191,7 @@ class AmazonToDoHandler:
         """
         await self._http_wrapper.session_request(
             HTTPMethod.PUT,
-            f"{self._base_url}{URI_LISTS}/{list_id}/items/{item_id}?version={version}",
+            f"{self._base_url}{URI_TODO}/{list_id}/items/{item_id}?version={version}",
             input_data={
                 "itemAttributesToUpdate": [{"type": "itemName", "value": new_name}],
                 "itemAttributesToRemove": [],
