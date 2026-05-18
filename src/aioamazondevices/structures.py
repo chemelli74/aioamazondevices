@@ -170,3 +170,72 @@ class AmazonVocalRecord:
     intent: str
     title: str
     sub_title: str
+
+
+class ListType(StrEnum):
+    """Amazon list types."""
+
+    SHOP = "SHOP"
+    TODO = "TODO"
+    CUSTOM = "CUSTOM"
+
+
+@dataclass
+class ListInfo:
+    """Amazon list info."""
+
+    id: str
+    list_type: ListType
+    custom_list_name: str | None
+
+    @property
+    def name(self) -> str:
+        """Get the name of the list.
+
+        If the list type is custom, return the custom list name.
+        Otherwise, return the capitalized value of the list type.
+
+        Returns:
+            The name of the list.
+
+        """
+        if self.list_type == ListType.CUSTOM and self.custom_list_name is not None:
+            return self.custom_list_name
+        return self.list_type.value.capitalize()
+
+
+class ListItemStatus(StrEnum):
+    """Amazon list item statuses."""
+
+    ACTIVE = "ACTIVE"
+    COMPLETE = "COMPLETE"
+
+
+@dataclass
+class ListItem:
+    """Amazon list item."""
+
+    id: str
+    status: ListItemStatus
+    original_name: str
+    version: int
+
+    @property
+    def name(self) -> str:
+        """Get the name of the list item with the first letter capitalized.
+
+        Returns:
+            Name of the list item with the first letter capitalized.
+
+        """
+        return self.original_name[0].upper() + self.original_name[1:]
+
+    @property
+    def is_complete(self) -> bool:
+        """Check if the list item is marked as complete.
+
+        Returns:
+            True if the list item is marked as complete, otherwise False.
+
+        """
+        return self.status == ListItemStatus.COMPLETE
