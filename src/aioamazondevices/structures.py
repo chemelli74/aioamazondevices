@@ -228,7 +228,7 @@ class ListItem:
             Name of the list item with the first letter capitalized.
 
         """
-        return self.original_name[0].upper() + self.original_name[1:]
+        return self.original_name.capitalize()
 
     @property
     def is_complete(self) -> bool:
