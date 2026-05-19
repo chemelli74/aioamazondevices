@@ -36,7 +36,6 @@ class AmazonToDoHandler:
 
         self.lists: list[ListInfo] = []
         self.all_items: dict[str, list[ListItem]] = {}
-        self.all_items_lookup: dict[str, dict[str, ListItem]] = {}
 
     async def get_lists(self) -> list[ListInfo]:
         """Fetch all available Alexa shopping lists.
@@ -97,7 +96,9 @@ class AmazonToDoHandler:
         return [
             ListItem(
                 id=item_info["itemId"],
-                name=item_info["itemName"],
+                name=(item_info["itemName"][0].upper() + item_info["itemName"][1:])
+                if item_info["itemName"]
+                else "",
                 status=ListItemStatus(item_info["itemStatus"]),
                 version=item_info["version"],
             )
@@ -203,7 +204,7 @@ class AmazonToDoHandler:
         """Update the lists."""
         self.lists = await self.get_lists()
 
-    async def update_all_items(self, list_id: str | None = None) -> None:
+    async def sync_all_items(self, list_id: str | None = None) -> None:
         """Update all items of all lists or a single list."""
         list_ids = (
             [list_info.id for list_info in self.lists] if list_id is None else [list_id]
@@ -211,6 +212,3 @@ class AmazonToDoHandler:
 
         for current_list_id in list_ids:
             self.all_items[current_list_id] = await self.get_list_items(current_list_id)
-            self.all_items_lookup[current_list_id] = {
-                item.id: item for item in self.all_items[current_list_id]
-            }

@@ -136,6 +136,7 @@ class AmazonEchoApi:
         self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
         self.on_history_event = Signal[dict[str, AmazonVocalRecord]](self)
+        self.on_todo_event = Signal[dict[str, list[ListItem]]](self)
 
     @property
     def domain(self) -> str:
@@ -161,11 +162,6 @@ class AmazonEchoApi:
     def todo_list_items(self) -> dict[str, list[ListItem]]:
         """Return all list items."""
         return self._todo_handler.all_items
-
-    @property
-    def todo_list_items_lookup(self) -> dict[str, dict[str, ListItem]]:
-        """Return all list items lookup."""
-        return self._todo_handler.all_items_lookup
 
     @property
     def default_device(self) -> AmazonDevice:
@@ -228,8 +224,6 @@ class AmazonEchoApi:
         """Get Amazon devices data."""
         # Perform a refresh to ensure your data is as up-to-date as possible.
         await self._refresh_basic_data()
-
-        await self._todo_handler.update_all_items()
 
         dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
         notifications = await self._notification_handler.get_notifications()
@@ -306,6 +300,11 @@ class AmazonEchoApi:
             await self._media_handler.sync_media_state(self._device_handler.devices)
             await self._emit_media_state_event()
             await self._emit_history_event()
+            return
+        if event_type == AmazonPushMessage.ItemChange.value:
+            list_id = payload.get("listId")
+            await self._todo_handler.sync_all_items(list_id=list_id)
+            await self._emit_todo_event(list_id=list_id)
             return
 
     async def call_alexa_speak(
@@ -473,6 +472,19 @@ class AmazonEchoApi:
                 await self._media_handler.device_volumes
             )
 
+    async def _emit_todo_event(self, list_id: str | None = None) -> None:
+        """Emit todo event to subscribers."""
+        if self.on_todo_event.frozen:
+            _LOGGER.debug("Emitting todo event to subscribers")
+
+            if list_id:
+                # Only send the list which was actually updated
+                all_items = {list_id: self._todo_handler.all_items.get(list_id, [])}
+            else:
+                all_items = self._todo_handler.all_items
+
+            await self.on_todo_event.send(all_items)
+
     async def sync_history_state(self) -> dict[str, AmazonVocalRecord]:
         """Sync history state.
 
@@ -513,6 +525,7 @@ class AmazonEchoApi:
         """Rename ToDo list item."""
         await self._todo_handler.rename_item(list_id, item_id, new_name, version)
 
-    async def update_todo_list_items(self, list_id: str | None = None) -> None:
-        """Update all ToDo list items."""
-        await self._todo_handler.update_all_items(list_id=list_id)
+    async def sync_todo_list_items(self, list_id: str | None = None) -> None:
+        """Sync all ToDo list items."""
+        await self._todo_handler.sync_all_items(list_id=list_id)
+        await self._emit_todo_event(list_id=list_id)
