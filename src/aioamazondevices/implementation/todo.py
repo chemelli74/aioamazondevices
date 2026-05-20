@@ -20,6 +20,11 @@ def is_item_complete(list_item: ListItem) -> bool:
     return list_item.status == ListItemStatus.COMPLETE
 
 
+def _capitalize_first_letter(text: str) -> str:
+    """Capitalize the first letter of a string."""
+    return (text[0].upper() + text[1:]) if text else ""
+
+
 class AmazonToDoHandler:
     """Class to handle Amazon sensor functionality."""
 
@@ -96,9 +101,7 @@ class AmazonToDoHandler:
         return [
             ListItem(
                 id=item_info["itemId"],
-                name=(item_info["itemName"][0].upper() + item_info["itemName"][1:])
-                if item_info["itemName"]
-                else "",
+                name=_capitalize_first_letter(item_info["itemName"]),
                 status=ListItemStatus(item_info["itemStatus"]),
                 version=item_info["version"],
             )
