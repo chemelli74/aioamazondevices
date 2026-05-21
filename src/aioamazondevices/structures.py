@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 
 
 @dataclass
@@ -172,28 +172,13 @@ class AmazonVocalRecord:
     sub_title: str
 
 
-class ListType(StrEnum):
-    """Amazon list types."""
-
-    SHOP = "SHOP"
-    TODO = "TODO"
-    CUSTOM = "CUSTOM"
-
-
 @dataclass
 class ListInfo:
     """Amazon list info."""
 
     id: str
-    list_type: ListType
+    list_type: Literal["SHOP", "CUSTOM", "TODO"]
     name: str
-
-
-class ListItemStatus(StrEnum):
-    """Amazon list item statuses."""
-
-    ACTIVE = "ACTIVE"
-    COMPLETE = "COMPLETE"
 
 
 @dataclass
@@ -201,6 +186,6 @@ class ListItem:
     """Amazon list item."""
 
     id: str
-    status: ListItemStatus
+    status: Literal["ACTIVE", "COMPLETE"]
     name: str
     version: int

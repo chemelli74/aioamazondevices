@@ -3,8 +3,13 @@
 from http import HTTPMethod
 
 from aioamazondevices.const.http import URI_TODO
+from aioamazondevices.const.todo import (
+    LIST_ITEM_STATUS_ACTIVE,
+    LIST_ITEM_STATUS_COMPLETE,
+    LIST_TYPE_CUSTOM,
+)
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import ListInfo, ListItem, ListItemStatus, ListType
+from aioamazondevices.structures import ListInfo, ListItem
 
 
 def is_item_complete(list_item: ListItem) -> bool:
@@ -17,7 +22,7 @@ def is_item_complete(list_item: ListItem) -> bool:
         True if the list item is complete, False otherwise.
 
     """
-    return list_item.status == ListItemStatus.COMPLETE
+    return list_item.status == LIST_ITEM_STATUS_COMPLETE
 
 
 def _capitalize_first_letter(text: str) -> str:
@@ -39,8 +44,18 @@ class AmazonToDoHandler:
 
         self._base_url = f"https://www.amazon.{self._session_state_data.domain}"
 
-        self.lists: list[ListInfo] = []
-        self.all_items: dict[str, list[ListItem]] = {}
+        self._lists: list[ListInfo] = []
+        self._all_items: dict[str, list[ListItem]] = {}
+
+    @property
+    def lists(self) -> list[ListInfo]:
+        """Return the cached list of ListInfo objects."""
+        return self._lists
+
+    @property
+    def all_items(self) -> dict[str, list[ListItem]]:
+        """Return the cached dictionary of all list items."""
+        return self._all_items
 
     async def get_lists(self) -> list[ListInfo]:
         """Fetch all available Alexa shopping lists.
@@ -67,9 +82,9 @@ class AmazonToDoHandler:
         return [
             ListInfo(
                 id=list_info["listId"],
-                list_type=ListType(list_info["listType"]),
+                list_type=list_info["listType"],
                 name=list_info["listName"]
-                if list_info["listType"] == ListType.CUSTOM
+                if list_info["listType"] == LIST_TYPE_CUSTOM
                 else list_info["listType"].capitalize(),
             )
             for list_info in list_info_list
@@ -102,7 +117,7 @@ class AmazonToDoHandler:
             ListItem(
                 id=item_info["itemId"],
                 name=_capitalize_first_letter(item_info["itemName"]),
-                status=ListItemStatus(item_info["itemStatus"]),
+                status=item_info["itemStatus"],
                 version=item_info["version"],
             )
             for item_info in item_info_list
@@ -129,9 +144,9 @@ class AmazonToDoHandler:
                 "itemAttributesToUpdate": [
                     {
                         "type": "itemStatus",
-                        "value": ListItemStatus.COMPLETE.value
+                        "value": LIST_ITEM_STATUS_COMPLETE
                         if checked
-                        else ListItemStatus.ACTIVE.value,
+                        else LIST_ITEM_STATUS_ACTIVE,
                     }
                 ],
                 "itemAttributesToRemove": [],
@@ -205,13 +220,17 @@ class AmazonToDoHandler:
 
     async def update_lists(self) -> None:
         """Update the lists."""
-        self.lists = await self.get_lists()
+        self._lists = await self.get_lists()
 
     async def sync_all_items(self, list_id: str | None = None) -> None:
         """Update all items of all lists or a single list."""
         list_ids = (
-            [list_info.id for list_info in self.lists] if list_id is None else [list_id]
+            [list_info.id for list_info in self._lists]
+            if list_id is None
+            else [list_id]
         )
 
         for current_list_id in list_ids:
-            self.all_items[current_list_id] = await self.get_list_items(current_list_id)
+            self._all_items[current_list_id] = await self.get_list_items(
+                current_list_id
+            )
