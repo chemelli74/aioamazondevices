@@ -123,13 +123,20 @@ class AmazonNotificationHandler:
         # Current time
         actual_time = datetime.now(tz=tzinfo)
         # Reference start date
-        today_midnight = actual_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        reference_start_date = actual_time.replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
         # Reference time (1 minute ago to avoid edge cases)
         now_reference = actual_time - timedelta(minutes=1)
 
         # Schedule data
         original_date = schedule.get("originalDate")
         original_time = schedule.get("originalTime")
+
+        if original_date:
+            reference_start_date = parse(original_date).replace(
+                hour=0, minute=0, second=0, microsecond=0, tzinfo=tzinfo
+            )
 
         recurring_rules: list[str] = []
         if schedule.get("rRuleData"):
@@ -146,7 +153,7 @@ class AmazonNotificationHandler:
                     rule = await self._add_hours_minutes(recurring_rule, original_time)
 
                     # `after` may return None when no next occurrence exists.
-                    candidate = rrulestr(rule, dtstart=today_midnight).after(
+                    candidate = rrulestr(rule, dtstart=reference_start_date).after(
                         now_reference, True
                     )
                     if candidate is not None:
@@ -173,7 +180,7 @@ class AmazonNotificationHandler:
                 )
 
                 # `after` may return None when no next occurrence exists.
-                candidate = rrulestr(rule, dtstart=today_midnight).after(
+                candidate = rrulestr(rule, dtstart=reference_start_date).after(
                     now_reference, True
                 )
                 if candidate is not None:
