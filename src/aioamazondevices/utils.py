@@ -11,6 +11,7 @@ from typing import Any
 import orjson
 
 from aioamazondevices.const.http import ARRAY_WRAPPER
+from aioamazondevices.structures import AmazonDevice
 
 _LOGGER = logging.getLogger(__package__)
 _MAX_JSON_PARSE_DEPTH = 10
@@ -221,3 +222,37 @@ def string_recursive_parse(
             return obj
 
     return obj
+
+
+def replace_routine_placeholders(
+    obj: dict[str, Any],
+    device: AmazonDevice,
+) -> dict[str, Any]:
+    """Replace placeholder values in a routine payload with actual device details."""
+
+    def _replace(
+        value: dict[str, Any] | str | list[Any],
+    ) -> dict[str, Any] | str | list[Any]:
+
+        if isinstance(value, dict):
+            return {k: _replace(v) for k, v in value.items()}
+
+        if isinstance(value, list):
+            return [_replace(i) for i in value]
+
+        if isinstance(value, str):
+            if value in (
+                "ALEXA_CURRENT_DSN",
+                "<$Trigger.Alexa.Trigger.Alarms.NotificationStopped.$.payload.object.device.deviceSerialNumber$>",
+            ):
+                return device.serial_number
+
+            if value in (
+                "ALEXA_CURRENT_DEVICE_TYPE",
+                "<$Trigger.Alexa.Trigger.Alarms.NotificationStopped.$.payload.object.device.productId$>",
+            ):
+                return device.device_type
+
+        return value
+
+    return {k: _replace(v) for k, v in obj.items()}

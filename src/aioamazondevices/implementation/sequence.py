@@ -2,6 +2,7 @@
 
 import asyncio
 from collections.abc import Generator
+from copy import deepcopy
 from http import HTTPMethod
 from itertools import groupby
 from typing import Any
@@ -17,7 +18,7 @@ from aioamazondevices.structures import (
     AmazonSequenceNode,
     AmazonSequenceType,
 )
-from aioamazondevices.utils import _LOGGER
+from aioamazondevices.utils import _LOGGER, replace_routine_placeholders
 
 
 class AmazonSequenceHandler:
@@ -133,7 +134,9 @@ class AmazonSequenceHandler:
         payload: dict[str, Any]
 
         if message_type == AmazonSequenceType.Routines:
-            payload = self._routines[str(message_body)].get("startNode")
+            if payload := deepcopy(self._routines[str(message_body)].get("startNode")):
+                _LOGGER.debug("Replacing routine sequence placeholders")
+                payload = replace_routine_placeholders(payload, device)
             return payload
 
         base_payload = {
