@@ -3,13 +3,8 @@
 from http import HTTPMethod
 
 from aioamazondevices.const.http import URI_TODO
-from aioamazondevices.const.todo import (
-    LIST_ITEM_STATUS_ACTIVE,
-    LIST_ITEM_STATUS_COMPLETE,
-    LIST_TYPE_CUSTOM,
-)
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import ListInfo, ListItem
+from aioamazondevices.structures import ListInfo, ListItem, ListItemStatus, ListType
 
 
 def is_item_complete(list_item: ListItem) -> bool:
@@ -22,7 +17,7 @@ def is_item_complete(list_item: ListItem) -> bool:
         True if the list item is complete, False otherwise.
 
     """
-    return list_item.status == LIST_ITEM_STATUS_COMPLETE
+    return list_item.status == ListItemStatus.COMPLETE
 
 
 def _capitalize_first_letter(text: str) -> str:
@@ -67,7 +62,7 @@ class AmazonToDoHandler:
         _, raw_resp = await self._http_wrapper.session_request(
             HTTPMethod.POST,
             f"{self._base_url}{URI_TODO}/fetch",
-            input_data=None,
+            input_data={},
             json_data=True,
         )
 
@@ -81,7 +76,7 @@ class AmazonToDoHandler:
                 id=list_info["listId"],
                 list_type=list_info["listType"],
                 name=list_info["listName"]
-                if list_info["listType"] == LIST_TYPE_CUSTOM
+                if list_info["listType"] == ListType.CUSTOM
                 else list_info["listType"].capitalize(),
             )
             for list_info in list_info_list
@@ -141,9 +136,9 @@ class AmazonToDoHandler:
                 "itemAttributesToUpdate": [
                     {
                         "type": "itemStatus",
-                        "value": LIST_ITEM_STATUS_COMPLETE
+                        "value": ListItemStatus.COMPLETE.value
                         if checked
-                        else LIST_ITEM_STATUS_ACTIVE,
+                        else ListItemStatus.ACTIVE.value,
                     }
                 ],
                 "itemAttributesToRemove": [],
