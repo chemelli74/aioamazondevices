@@ -57,11 +57,8 @@ class AmazonToDoHandler:
         """Return the cached dictionary of all list items."""
         return self._all_items
 
-    async def get_lists(self) -> list[ListInfo]:
-        """Fetch all available Alexa shopping lists.
-
-        Returns:
-            A list of shopping list information objects.
+    async def update_lists(self) -> None:
+        """Fetch all available Alexa shopping lists and stores it.
 
         Raises:
             Exception: If the API request fails.
@@ -70,7 +67,7 @@ class AmazonToDoHandler:
         _, raw_resp = await self._http_wrapper.session_request(
             HTTPMethod.POST,
             f"{self._base_url}{URI_TODO}/fetch",
-            input_data={},
+            input_data=None,
             json_data=True,
         )
 
@@ -79,7 +76,7 @@ class AmazonToDoHandler:
         )
         list_info_list = response_json["listInfoList"]
 
-        return [
+        self._lists = [
             ListInfo(
                 id=list_info["listId"],
                 list_type=list_info["listType"],
@@ -217,10 +214,6 @@ class AmazonToDoHandler:
             },
             json_data=True,
         )
-
-    async def update_lists(self) -> None:
-        """Update the lists."""
-        self._lists = await self.get_lists()
 
     async def sync_all_items(self, list_id: str | None = None) -> None:
         """Update all items of all lists or a single list."""
