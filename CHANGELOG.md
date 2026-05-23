@@ -1,5 +1,19 @@
 # Changelog
 
+## v13.7.2 (2026-05-21)
+
+### Bug fixes
+
+- Consider starting date when applying recurrence rules ([`f22e643`](https://github.com/chemelli74/aioamazondevices/commit/f22e643e2b9c610be540b2236ec018881325bf44))
+
+
+## v13.7.1 (2026-05-21)
+
+### Bug fixes
+
+- Routine asking for a device ([`b745460`](https://github.com/chemelli74/aioamazondevices/commit/b74546084a05468e3f3f39d0ba5cbbfdfb40daa7))
+
+
 ## v13.7.0 (2026-05-16)
 
 ### Features
