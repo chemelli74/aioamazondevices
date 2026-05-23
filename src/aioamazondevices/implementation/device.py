@@ -99,6 +99,7 @@ class AmazonDeviceHandler:
                 notifications_supported=_has_notification_capability,
                 notifications={},
                 media_player_supported="AUDIO_PLAYER" in capabilities,
+                communication_settings={},
             )
 
             serial_to_device_type[serial_number] = device["deviceType"]
@@ -243,6 +244,7 @@ class AmazonDeviceHandler:
                 notifications_supported=False,
                 notifications={},
                 media_player_supported=False,
+                communication_settings={},
             )
 
         return devices_endpoints

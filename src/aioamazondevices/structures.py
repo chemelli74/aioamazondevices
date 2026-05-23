@@ -61,6 +61,7 @@ class AmazonDevice:
     notifications_supported: bool
     notifications: dict[str, AmazonSchedule]
     media_player_supported: bool
+    communication_settings: dict[str, str]
 
 
 class AmazonSequenceType(StrEnum):

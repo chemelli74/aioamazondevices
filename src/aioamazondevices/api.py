@@ -10,6 +10,7 @@ import httpx
 from aiohttp import ClientSession
 from aiosignal import Signal
 
+from aioamazondevices.implementation.communication import AlexaCommunicationsHandler
 from aioamazondevices.implementation.device import AmazonDeviceHandler
 from aioamazondevices.implementation.media import AmazonMediaHandler
 from aioamazondevices.implementation.sensor import AmazonSensorHandler
@@ -117,6 +118,11 @@ class AmazonEchoApi:
             session_state_data=self._session_state_data,
         )
 
+        self._communication_handler = AlexaCommunicationsHandler(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
         self._device_volumes_initialized: bool = False
         self._voice_history_initialized: bool = False
         self._http2_client: AmazonHTTP2Client | None = None
@@ -207,11 +213,17 @@ class AmazonEchoApi:
 
         dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
         notifications = await self._notification_handler.get_notifications()
+        communications = (
+            await self._communication_handler.get_communication_preferences(
+                list(self._device_handler.devices.values())
+            )
+        )
         await self._sensor_handler.update_sensor_data(
             self._device_handler.devices,
             self._device_handler.endpoints,
             dnd_sensors,
             notifications,
+            communications,
         )
 
         return self._device_handler.devices

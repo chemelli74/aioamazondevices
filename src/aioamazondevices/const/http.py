@@ -51,3 +51,5 @@ URI_SIGNIN = "/ap/signin"
 HTTP2_SITE = "https://alexa.{region}.gateway.devices.a2z.com"
 HTTP2_DIRECTIVES_VERSION = "20160207"
 HTTP2_RECONNECT_DELAY = 5  # seconds
+
+COMM_SITE = "alexa-comms-mobile-service.amazon.com"
