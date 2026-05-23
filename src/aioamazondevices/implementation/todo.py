@@ -1,6 +1,9 @@
 """Todo list module for Amazon devices."""
 
 from http import HTTPMethod
+from typing import Any
+
+from aiohttp import ClientResponse
 
 from aioamazondevices.const.http import URI_TODO
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
@@ -52,6 +55,33 @@ class AmazonToDoHandler:
         """Return the cached dictionary of all list items."""
         return self._all_items
 
+    async def _call_lists_api(
+        self, url: str, method: HTTPMethod, input_data: dict[str, Any] | None = None
+    ) -> ClientResponse:
+        """Call the Alexa lists API.
+
+        Args:
+            url: The relative URL for the API call.
+            method: The HTTP method to use.
+            input_data: Optional dictionary containing input data for the request.
+                        Defaults to an empty dictionary if not provided, as required
+                        by the Amazon API.
+
+        Returns:
+            The raw response from the API.
+
+        """
+        if input_data is None:
+            input_data = {}  # Reqquired by API, otherwise call will be rejected
+        _, raw_response = await self._http_wrapper.session_request(
+            method,
+            f"{self._base_url}{URI_TODO}/{url}",
+            input_data=input_data,
+            json_data=True,
+        )
+
+        return raw_response
+
     async def update_lists(self) -> None:
         """Fetch all available Alexa shopping lists and stores it.
 
@@ -59,13 +89,7 @@ class AmazonToDoHandler:
             Exception: If the API request fails.
 
         """
-        _, raw_resp = await self._http_wrapper.session_request(
-            HTTPMethod.POST,
-            f"{self._base_url}{URI_TODO}/fetch",
-            input_data={},
-            json_data=True,
-        )
-
+        raw_resp = await self._call_lists_api("fetch", HTTPMethod.POST)
         response_json = await self._http_wrapper.response_to_json(
             raw_resp, "listInfoList"
         )
@@ -94,11 +118,8 @@ class AmazonToDoHandler:
             A list of list items.
 
         """
-        _, raw_resp = await self._http_wrapper.session_request(
-            HTTPMethod.POST,
-            f"{self._base_url}{URI_TODO}/{list_id}/items/fetch?limit={limit}",
-            input_data={},
-            json_data=True,
+        raw_resp = await self._call_lists_api(
+            f"{list_id}/items/fetch?limit={limit}", HTTPMethod.POST
         )
 
         response_json = await self._http_wrapper.response_to_json(raw_resp)
@@ -129,9 +150,9 @@ class AmazonToDoHandler:
                      required by the Amazon API.
 
         """
-        await self._http_wrapper.session_request(
+        await self._call_lists_api(
+            f"{list_id}/items/{item_id}?version={version}",
             HTTPMethod.PUT,
-            f"{self._base_url}{URI_TODO}/{list_id}/items/{item_id}?version={version}",
             input_data={
                 "itemAttributesToUpdate": [
                     {
@@ -143,7 +164,6 @@ class AmazonToDoHandler:
                 ],
                 "itemAttributesToRemove": [],
             },
-            json_data=True,
         )
 
     async def add_item(self, list_id: str, name: str) -> None:
@@ -154,9 +174,9 @@ class AmazonToDoHandler:
             name: The name of the item to add.
 
         """
-        await self._http_wrapper.session_request(
+        await self._call_lists_api(
+            f"{list_id}/items",
             HTTPMethod.POST,
-            f"{self._base_url}{URI_TODO}/{list_id}/items",
             input_data={
                 "items": [
                     {
@@ -165,7 +185,6 @@ class AmazonToDoHandler:
                     }
                 ]
             },
-            json_data=True,
         )
 
     async def delete_item(self, list_id: str, item_id: str, version: int) -> None:
@@ -179,11 +198,8 @@ class AmazonToDoHandler:
                      required by the Amazon API.
 
         """
-        await self._http_wrapper.session_request(
-            HTTPMethod.DELETE,
-            f"{self._base_url}{URI_TODO}/{list_id}/items/{item_id}?version={version}",
-            input_data={},
-            json_data=True,
+        await self._call_lists_api(
+            f"{list_id}/items/{item_id}?version={version}", HTTPMethod.DELETE
         )
 
     async def rename_item(
@@ -200,14 +216,13 @@ class AmazonToDoHandler:
                      required by the Amazon API.
 
         """
-        await self._http_wrapper.session_request(
+        await self._call_lists_api(
+            f"{list_id}/items/{item_id}?version={version}",
             HTTPMethod.PUT,
-            f"{self._base_url}{URI_TODO}/{list_id}/items/{item_id}?version={version}",
             input_data={
                 "itemAttributesToUpdate": [{"type": "itemName", "value": new_name}],
                 "itemAttributesToRemove": [],
             },
-            json_data=True,
         )
 
     async def sync_all_items(self, list_id: str | None = None) -> None:
