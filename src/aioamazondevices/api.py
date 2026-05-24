@@ -159,11 +159,6 @@ class AmazonEchoApi:
         return self._todo_handler.lists
 
     @property
-    def todo_list_items(self) -> dict[str, list[ListItem]]:
-        """Return all list items."""
-        return self._todo_handler.all_items
-
-    @property
     def default_device(self) -> AmazonDevice:
         """Return default device."""
         if self._default_device:
@@ -476,14 +471,9 @@ class AmazonEchoApi:
         """Emit todo event to subscribers."""
         if self.on_todo_event.frozen:
             _LOGGER.debug("Emitting todo event to subscribers")
+            items = self.get_todo_list_items(list_id=list_id)
 
-            if list_id:
-                # Only send the list which was actually updated
-                all_items = {list_id: self._todo_handler.all_items.get(list_id, [])}
-            else:
-                all_items = self._todo_handler.all_items
-
-            await self.on_todo_event.send(all_items)
+            await self.on_todo_event.send(items)
 
     async def sync_history_state(self) -> dict[str, AmazonVocalRecord]:
         """Sync history state.
@@ -526,6 +516,18 @@ class AmazonEchoApi:
         await self._todo_handler.rename_item(list_id, item_id, new_name, version)
 
     async def sync_todo_list_items(self, list_id: str | None = None) -> None:
-        """Sync all ToDo list items."""
+        """Sync ToDo list items."""
         await self._todo_handler.sync_all_items(list_id=list_id)
         await self._emit_todo_event(list_id=list_id)
+
+    def get_todo_list_items(
+        self, list_id: str | None = None
+    ) -> dict[str, list[ListItem]]:
+        """Return ToDo all list items."""
+        if list_id:
+            # Only specific list requested
+            items = {list_id: self._todo_handler.all_items.get(list_id, [])}
+        else:
+            items = self._todo_handler.all_items
+
+        return items
