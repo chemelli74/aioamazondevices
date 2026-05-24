@@ -7,7 +7,7 @@ from aiohttp import ClientResponse
 
 from aioamazondevices.const.http import URI_TODO
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import ListInfo, ListItem, ListItemStatus
+from aioamazondevices.structures import ListInfo, ListItem, ListItemStatus, ListType
 
 
 def is_item_complete(list_item: ListItem) -> bool:
@@ -95,7 +95,7 @@ class AmazonToDoHandler:
         self._lists = [
             ListInfo(
                 id=list_info["listId"],
-                list_type=list_info["listType"],
+                list_type=ListType(list_info["listType"]),
                 name=list_info.get("listName", None),
             )
             for list_info in list_info_list
