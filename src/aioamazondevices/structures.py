@@ -204,3 +204,21 @@ class ListItem:
     status: ListItemStatus
     name: str
     version: int
+
+
+class ListEventType(StrEnum):
+    """Amazon list event types."""
+
+    DELETED = "itemDeleted"
+    UPDATED = "itemUpdated"
+    CREATED = "itemCreated"
+
+
+@dataclass
+class ListEvent:
+    """Amazon list event."""
+
+    list_id: str
+    item_id: str
+    type: ListEventType
+    item: ListItem | None = None

@@ -24,7 +24,10 @@ def is_item_complete(list_item: ListItem) -> bool:
 
 
 def _capitalize_first_letter(text: str) -> str:
-    """Capitalize the first letter of a string."""
+    """Capitalize the first letter of a string.
+
+    In contrast to capitalize(), this function keeps the remaining letters untouched.
+    """
     return (text[0].upper() + text[1:]) if text else ""
 
 
@@ -43,17 +46,11 @@ class AmazonToDoHandler:
         self._base_url = f"https://www.amazon.{self._session_state_data.domain}"
 
         self._lists: list[ListInfo] = []
-        self._all_items: dict[str, list[ListItem]] = {}
 
     @property
     def lists(self) -> list[ListInfo]:
         """Return the cached list of ListInfo objects."""
         return self._lists
-
-    @property
-    def all_items(self) -> dict[str, list[ListItem]]:
-        """Return the cached dictionary of all list items."""
-        return self._all_items
 
     async def _call_lists_api(
         self, url: str, method: HTTPMethod, input_data: dict[str, Any] | None = None
@@ -222,16 +219,3 @@ class AmazonToDoHandler:
                 "itemAttributesToRemove": [],
             },
         )
-
-    async def sync_all_items(self, list_id: str | None = None) -> None:
-        """Update all items of all lists or a single list."""
-        list_ids = (
-            [list_info.id for list_info in self._lists]
-            if list_id is None
-            else [list_id]
-        )
-
-        for current_list_id in list_ids:
-            self._all_items[current_list_id] = await self.get_list_items(
-                current_list_id
-            )

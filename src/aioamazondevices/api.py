@@ -41,6 +41,8 @@ from .structures import (
     AmazonSequenceType,
     AmazonVocalRecord,
     AmazonVolumeState,
+    ListEvent,
+    ListEventType,
     ListInfo,
     ListItem,
 )
@@ -136,7 +138,7 @@ class AmazonEchoApi:
         self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
         self.on_history_event = Signal[dict[str, AmazonVocalRecord]](self)
-        self.on_todo_event = Signal[dict[str, list[ListItem]]](self)
+        self.on_todo_event = Signal[ListEvent](self)
 
     @property
     def domain(self) -> str:
@@ -297,9 +299,24 @@ class AmazonEchoApi:
             await self._emit_history_event()
             return
         if event_type == AmazonPushMessage.ItemChange.value:
-            list_id = payload.get("listId")
-            await self._todo_handler.sync_all_items(list_id=list_id)
-            await self._emit_todo_event(list_id=list_id)
+            list_id = payload["listId"]
+            item_id = payload["listItemId"]
+            list_event_type = ListEventType(payload["eventName"])
+
+            _LOGGER.info("Received ItemChange for %s: %s", list_id, list_event_type)
+
+            if list_event_type == ListEventType.DELETED:
+                list_event = ListEvent(list_id, item_id, list_event_type)
+            elif list_event_type in (ListEventType.UPDATED, ListEventType.CREATED):
+                list_items = await self.get_todo_list_items(list_id)
+
+                list_event = ListEvent(
+                    list_id, item_id, list_event_type, item=list_items[item_id]
+                )
+            else:
+                return
+
+            await self._emit_todo_event(list_event)
             return
 
     async def call_alexa_speak(
@@ -467,13 +484,11 @@ class AmazonEchoApi:
                 await self._media_handler.device_volumes
             )
 
-    async def _emit_todo_event(self, list_id: str | None = None) -> None:
+    async def _emit_todo_event(self, list_event: ListEvent) -> None:
         """Emit todo event to subscribers."""
         if self.on_todo_event.frozen:
-            _LOGGER.debug("Emitting todo event to subscribers")
-            items = self.get_todo_list_items(list_id=list_id)
-
-            await self.on_todo_event.send(items)
+            _LOGGER.debug("Emitting todo event: %s for %s", list_event)
+            await self.on_todo_event.send(list_event)
 
     async def sync_history_state(self) -> dict[str, AmazonVocalRecord]:
         """Sync history state.
@@ -515,19 +530,8 @@ class AmazonEchoApi:
         """Rename ToDo list item."""
         await self._todo_handler.rename_item(list_id, item_id, new_name, version)
 
-    async def sync_todo_list_items(self, list_id: str | None = None) -> None:
-        """Sync ToDo list items."""
-        await self._todo_handler.sync_all_items(list_id=list_id)
-        await self._emit_todo_event(list_id=list_id)
-
-    def get_todo_list_items(
-        self, list_id: str | None = None
-    ) -> dict[str, list[ListItem]]:
+    async def get_todo_list_items(self, list_id: str) -> dict[str, ListItem]:
         """Return ToDo all list items."""
-        if list_id:
-            # Only specific list requested
-            items = {list_id: self._todo_handler.all_items.get(list_id, [])}
-        else:
-            items = self._todo_handler.all_items
+        items = await self._todo_handler.get_list_items(list_id)
 
-        return items
+        return {item.id: item for item in items}
