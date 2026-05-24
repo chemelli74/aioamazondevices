@@ -186,7 +186,7 @@ class ListInfo:
 
     id: str
     list_type: ListType
-    name: str
+    name: str | None
 
 
 class ListItemStatus(StrEnum):

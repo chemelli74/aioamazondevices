@@ -7,7 +7,7 @@ from aiohttp import ClientResponse
 
 from aioamazondevices.const.http import URI_TODO
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import ListInfo, ListItem, ListItemStatus, ListType
+from aioamazondevices.structures import ListInfo, ListItem, ListItemStatus
 
 
 def is_item_complete(list_item: ListItem) -> bool:
@@ -72,7 +72,7 @@ class AmazonToDoHandler:
 
         """
         if input_data is None:
-            input_data = {}  # Reqquired by API, otherwise call will be rejected
+            input_data = {}  # Required by API, otherwise call will be rejected
         _, raw_response = await self._http_wrapper.session_request(
             method,
             f"{self._base_url}{URI_TODO}/{url}",
@@ -99,9 +99,7 @@ class AmazonToDoHandler:
             ListInfo(
                 id=list_info["listId"],
                 list_type=list_info["listType"],
-                name=list_info["listName"]
-                if list_info["listType"] == ListType.CUSTOM
-                else list_info["listType"].capitalize(),
+                name=list_info.get("listName", None),
             )
             for list_info in list_info_list
         ]
@@ -130,7 +128,7 @@ class AmazonToDoHandler:
             ListItem(
                 id=item_info["itemId"],
                 name=_capitalize_first_letter(item_info["itemName"]),
-                status=item_info["itemStatus"],
+                status=ListItemStatus(item_info["itemStatus"]),
                 version=item_info["version"],
             )
             for item_info in item_info_list
