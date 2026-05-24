@@ -7,9 +7,9 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": [
-        "(^|/)scripts/setup\\.sh$",
-        "(^|/)\\.github/workflows/ci\\.yml$"
+      "managerFilePatterns": [
+        "/(^|/)scripts/setup\\.sh$/",
+        "/(^|/)\\.github/workflows/ci\\.yml$/"
       ],
       "matchStrings": [
         "UV_VERSION\\s*[:=]\\s*\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=(?<depName>\\S+)\\s+datasource=(?<datasource>\\S+)"
@@ -17,7 +17,9 @@
     },
     {
       "customType": "regex",
-      "fileMatch": ["(^|/)\\.github/workflows/ci\\.yml$"],
+      "managerFilePatterns": [
+        "/(^|/)\\.github/workflows/ci\\.yml$/"
+      ],
       "matchStrings": [
         "(?<indentation>[ \\t]*)-\\s*\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=python\\s+datasource=python-version"
       ],
@@ -27,7 +29,9 @@
     },
     {
       "customType": "regex",
-      "fileMatch": ["(^|/)\\.github/workflows/ci\\.yml$"],
+      "managerFilePatterns": [
+        "/(^|/)\\.github/workflows/ci\\.yml$/"
+      ],
       "matchStrings": [
         "(?<indentation>[ \\t]*)python-version:\\s*\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=python\\s+datasource=python-version"
       ],
@@ -37,7 +41,9 @@
     },
     {
       "customType": "regex",
-      "fileMatch": ["(^|/)\\.devcontainer/devcontainer\\.json$"],
+      "managerFilePatterns": [
+        "/(^|/)\\.devcontainer/devcontainer\\.json$/"
+      ],
       "matchStrings": [
         "\"image\":\\s*\"mcr\\.microsoft\\.com/devcontainers/python:(?<prefix>[^-]+)-(?<currentValue>[^\"]+)\""
       ],
@@ -47,7 +53,9 @@
     },
     {
       "customType": "regex",
-      "fileMatch": ["(^|/)pyproject\\.toml$"],
+      "managerFilePatterns": [
+        "/(^|/)pyproject\\.toml$/"
+      ],
       "matchStrings": [
         "\"Programming Language :: Python :: (?<currentValue>[^\"]+)\",\\s*#\\s+renovate:\\s+depName=python\\s+datasource=python-version"
       ],
@@ -57,7 +65,9 @@
     },
     {
       "customType": "regex",
-      "fileMatch": ["(^|/)pyproject\\.toml$"],
+      "managerFilePatterns": [
+        "/(^|/)pyproject\\.toml$/"
+      ],
       "matchStrings": [
         "build_command\\s*=\\s*\"\"\"[\\s\\S]*?python -m pip install \\\\\\\"uv==(?<currentValue>[^\\\\\"]+)\\\\\"[\\s\\S]*?\"\"\""
       ],
