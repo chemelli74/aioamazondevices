@@ -305,13 +305,18 @@ class AmazonEchoApi:
 
             _LOGGER.info("Received ItemChange for %s: %s", list_id, list_event_type)
 
-            if list_event_type == ListEventType.DELETED:
-                list_event = ListEvent(list_id, item_id, list_event_type)
-            elif list_event_type in (ListEventType.UPDATED, ListEventType.CREATED):
-                list_items = await self.get_todo_list_items(list_id)
+            if list_event_type not in ListEventType:
+                _LOGGER.warning(
+                    "Received unsupported list event type: %s", list_event_type
+                )
+                return
 
-                list_event = ListEvent(
-                    list_id, item_id, list_event_type, item=list_items[item_id]
+            items = None
+            if list_event_type != ListEventType.DELETED:
+                list_items = await self.get_todo_list_items(list_id)
+                items = list_items[item_id]
+
+            list_event = ListEvent(list_id, item_id, list_event_type, items=items)
                 )
             else:
                 return
