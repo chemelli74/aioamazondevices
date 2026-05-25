@@ -68,12 +68,10 @@ class AmazonToDoHandler:
             The raw response from the API.
 
         """
-        if input_data is None:
-            input_data = {}  # Required by API, otherwise call will be rejected
         _, raw_response = await self._http_wrapper.session_request(
             method,
             f"{self._base_url}{URI_TODO}/{url}",
-            input_data=input_data,
+            input_data=input_data or {}, # API doesn't allone 'None'
             json_data=True,
         )
 
