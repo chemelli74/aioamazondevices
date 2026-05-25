@@ -7,28 +7,12 @@ from aiohttp import ClientResponse
 
 from aioamazondevices.const.http import URI_TODO
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import ListInfo, ListItem, ListItemStatus, ListType
-
-
-def is_item_complete(list_item: ListItem) -> bool:
-    """Check if a list item is complete.
-
-    Args:
-        list_item: The list item to check.
-
-    Returns:
-        True if the list item is complete, False otherwise.
-
-    """
-    return list_item.status == ListItemStatus.COMPLETE
-
-
-def _capitalize_first_letter(text: str) -> str:
-    """Capitalize the first letter of a string.
-
-    In contrast to capitalize(), this function keeps the remaining letters untouched.
-    """
-    return (text[0].upper() + text[1:]) if text else ""
+from aioamazondevices.structures import (
+    AmazonListInfo,
+    AmazonListItem,
+    AmazonListItemStatus,
+    AmazonListType,
+)
 
 
 class AmazonToDoHandler:
@@ -45,15 +29,15 @@ class AmazonToDoHandler:
 
         self._base_url = f"https://www.amazon.{self._session_state_data.domain}"
 
-        self._lists: list[ListInfo] = []
+        self._lists: list[AmazonListInfo] = []
 
     @property
-    def lists(self) -> list[ListInfo]:
+    def lists(self) -> list[AmazonListInfo]:
         """Return the cached list of ListInfo objects."""
         return self._lists
 
     async def _call_lists_api(
-        self, url: str, method: HTTPMethod, input_data: dict[str, Any] | None = None
+        self, method: HTTPMethod, url: str, input_data: dict[str, Any] | None = None
     ) -> ClientResponse:
         """Call the Alexa lists API.
 
@@ -86,22 +70,24 @@ class AmazonToDoHandler:
             Exception: If the API request fails.
 
         """
-        raw_resp = await self._call_lists_api("fetch", HTTPMethod.POST)
+        raw_resp = await self._call_lists_api(HTTPMethod.POST, "fetch")
         response_json = await self._http_wrapper.response_to_json(
             raw_resp, "listInfoList"
         )
         list_info_list = response_json["listInfoList"]
 
         self._lists = [
-            ListInfo(
+            AmazonListInfo(
                 id=list_info["listId"],
-                list_type=ListType(list_info["listType"]),
+                list_type=AmazonListType(list_info["listType"]),
                 name=list_info.get("listName", None),
             )
             for list_info in list_info_list
         ]
 
-    async def get_list_items(self, list_id: str, limit: int = 100) -> list[ListItem]:
+    async def get_list_items(
+        self, list_id: str, limit: int = 100
+    ) -> list[AmazonListItem]:
         """Fetch all items from a specified Alexa shopping list.
 
         Args:
@@ -114,7 +100,7 @@ class AmazonToDoHandler:
 
         """
         raw_resp = await self._call_lists_api(
-            f"{list_id}/items/fetch?limit={limit}", HTTPMethod.POST
+            HTTPMethod.POST, f"{list_id}/items/fetch?limit={limit}"
         )
 
         response_json = await self._http_wrapper.response_to_json(raw_resp)
@@ -122,10 +108,10 @@ class AmazonToDoHandler:
         item_info_list = response_json.get("itemInfoList", [])
 
         return [
-            ListItem(
+            AmazonListItem(
                 id=item_info["itemId"],
-                name=_capitalize_first_letter(item_info["itemName"]),
-                status=ListItemStatus(item_info["itemStatus"]),
+                name=(item_info["itemName"]).capitalize(),
+                status=AmazonListItemStatus(item_info["itemStatus"]),
                 version=item_info["version"],
             )
             for item_info in item_info_list
@@ -146,15 +132,15 @@ class AmazonToDoHandler:
 
         """
         await self._call_lists_api(
-            f"{list_id}/items/{item_id}?version={version}",
             HTTPMethod.PUT,
+            f"{list_id}/items/{item_id}?version={version}",
             input_data={
                 "itemAttributesToUpdate": [
                     {
                         "type": "itemStatus",
-                        "value": ListItemStatus.COMPLETE.value
+                        "value": AmazonListItemStatus.COMPLETE.value
                         if checked
-                        else ListItemStatus.ACTIVE.value,
+                        else AmazonListItemStatus.ACTIVE.value,
                     }
                 ],
                 "itemAttributesToRemove": [],
@@ -170,8 +156,8 @@ class AmazonToDoHandler:
 
         """
         await self._call_lists_api(
-            f"{list_id}/items",
             HTTPMethod.POST,
+            f"{list_id}/items",
             input_data={
                 "items": [
                     {
@@ -194,7 +180,7 @@ class AmazonToDoHandler:
 
         """
         await self._call_lists_api(
-            f"{list_id}/items/{item_id}?version={version}", HTTPMethod.DELETE
+            HTTPMethod.DELETE, f"{list_id}/items/{item_id}?version={version}"
         )
 
     async def rename_item(
@@ -212,8 +198,8 @@ class AmazonToDoHandler:
 
         """
         await self._call_lists_api(
-            f"{list_id}/items/{item_id}?version={version}",
             HTTPMethod.PUT,
+            f"{list_id}/items/{item_id}?version={version}",
             input_data={
                 "itemAttributesToUpdate": [{"type": "itemName", "value": new_name}],
                 "itemAttributesToRemove": [],

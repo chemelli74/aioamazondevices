@@ -172,7 +172,7 @@ class AmazonVocalRecord:
     sub_title: str
 
 
-class ListType(StrEnum):
+class AmazonListType(StrEnum):
     """Amazon list types."""
 
     SHOP = "SHOP"
@@ -181,15 +181,15 @@ class ListType(StrEnum):
 
 
 @dataclass
-class ListInfo:
+class AmazonListInfo:
     """Amazon list info."""
 
     id: str
-    list_type: ListType
+    list_type: AmazonListType
     name: str | None
 
 
-class ListItemStatus(StrEnum):
+class AmazonListItemStatus(StrEnum):
     """Amazon list item statuses."""
 
     ACTIVE = "ACTIVE"
@@ -197,16 +197,16 @@ class ListItemStatus(StrEnum):
 
 
 @dataclass
-class ListItem:
+class AmazonListItem:
     """Amazon list item."""
 
     id: str
-    status: ListItemStatus
+    status: AmazonListItemStatus
     name: str
     version: int
 
 
-class ListEventType(StrEnum):
+class AmazonListEventType(StrEnum):
     """Amazon list event types."""
 
     DELETED = "itemDeleted"
@@ -215,10 +215,10 @@ class ListEventType(StrEnum):
 
 
 @dataclass
-class ListEvent:
+class AmazonListEvent:
     """Amazon list event."""
 
     list_id: str
     item_id: str
-    type: ListEventType
-    item: ListItem | None = None
+    type: AmazonListEventType
+    items: AmazonListItem | None = None
