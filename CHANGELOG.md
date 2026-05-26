@@ -1,5 +1,17 @@
 # Changelog
 
+## v13.8.0 (2026-05-26)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`faefee8`](https://github.com/chemelli74/aioamazondevices/commit/faefee821a2842ce9d646fc4cd3bf409bc0d7ff2))
+
+
+### Features
+
+- Implement todo lists ([`619971f`](https://github.com/chemelli74/aioamazondevices/commit/619971f3945ab21f9af40b1f85fb0a4d8b2dfa31))
+
+
 ## v13.7.2 (2026-05-21)
 
 ### Bug fixes
