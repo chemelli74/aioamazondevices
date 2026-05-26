@@ -47,6 +47,7 @@ URI_MUSIC_PROVIDERS = "/api/behaviors/entities?skillId=amzn1.ask.1p.music"
 URI_NEXUS_GRAPHQL = "/nexus/v1/graphql"
 URI_NOTIFICATIONS = "/api/notifications"
 URI_SIGNIN = "/ap/signin"
+URI_TODO = "/alexashoppinglists/api/v2/lists"
 
 HTTP2_SITE = "https://alexa.{region}.gateway.devices.a2z.com"
 HTTP2_DIRECTIVES_VERSION = "20160207"
