@@ -1,5 +1,12 @@
 # Changelog
 
+## v13.8.1 (2026-05-27)
+
+### Bug fixes
+
+- Improve filter for history records ([`cdfed8a`](https://github.com/chemelli74/aioamazondevices/commit/cdfed8a15653058417ac4e98312e777ce86c4176))
+
+
 ## v13.8.0 (2026-05-26)
 
 ### Documentation
