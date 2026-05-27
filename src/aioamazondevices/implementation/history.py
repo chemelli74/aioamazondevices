@@ -77,15 +77,21 @@ class AmazonHistoryHandler:
         records: dict[str, AmazonVocalRecord] = {}
         for record in history_json["alexaHistoryRecords"]:
             _LOGGER.debug("Processing vocal history record: %s", record)
-            serial = record["deviceInfo"]["deviceSerialNumber"]
             utterance_type = record["utteranceType"]
-            if utterance_type in [
-                "ASR_TIMEOUT",
-                "DEVICE_ARBITRATION",
-                "NO_EXPRESSED_INTENT",
-                "WAKE_WORD_ONLY",
-            ]:
+            if (
+                utterance_type
+                in [
+                    "ASR_TIMEOUT",
+                    "DEVICE_ARBITRATION",
+                    "NO_EXPRESSED_INTENT",
+                    "WAKE_WORD_ONLY",
+                ]
+                # InvokeRoutineIntent, AddToListIntent are not linked to a device
+                or record["deviceInfo"] is None
+            ):
                 continue
+
+            serial = record["deviceInfo"]["deviceSerialNumber"]
             timestamp = record["timestamp"]
             new_record = AmazonVocalRecord(
                 timestamp=timestamp,
