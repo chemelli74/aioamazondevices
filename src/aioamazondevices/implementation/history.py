@@ -78,7 +78,6 @@ class AmazonHistoryHandler:
         for record in history_json["alexaHistoryRecords"]:
             _LOGGER.debug("Processing vocal history record: %s", record)
             utterance_type = record["utteranceType"]
-            intent_type = record["intent"]
             if (
                 utterance_type
                 in [
@@ -87,7 +86,8 @@ class AmazonHistoryHandler:
                     "NO_EXPRESSED_INTENT",
                     "WAKE_WORD_ONLY",
                 ]
-                or intent_type == "InvokeRoutineIntent"
+                # InvokeRoutineIntent, AddToListIntent are not linked to a device
+                or record["deviceInfo"] is None
             ):
                 continue
 
