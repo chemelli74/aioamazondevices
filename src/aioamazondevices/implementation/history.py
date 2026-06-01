@@ -77,15 +77,15 @@ class AmazonHistoryHandler:
         records: dict[str, AmazonVocalRecord] = {}
         for record in history_json["alexaHistoryRecords"]:
             _LOGGER.debug("Processing vocal history record: %s", record)
-            utterance_type = record["utteranceType"]
+            utterance_type = record.get("utteranceType")
             if (
                 utterance_type
-                in [
+                in (
                     "ASR_TIMEOUT",
                     "DEVICE_ARBITRATION",
                     "NO_EXPRESSED_INTENT",
                     "WAKE_WORD_ONLY",
-                ]
+                )
                 # InvokeRoutineIntent, AddToListIntent are not linked to a device
                 or record["deviceInfo"] is None
             ):
@@ -95,10 +95,11 @@ class AmazonHistoryHandler:
             timestamp = record["timestamp"]
             new_record = AmazonVocalRecord(
                 timestamp=timestamp,
+                record_type=record.get("recordType", "UNKNOWN"),
                 utterance_type=utterance_type,
-                intent=record["intent"],
-                title=record["title"],
-                sub_title=record["subTitle"],
+                intent=record.get("intent"),
+                title=record.get("title"),
+                sub_title=record.get("subTitle"),
             )
             # Store only the latest record per serial number
             if serial not in records or timestamp > records[serial].timestamp:

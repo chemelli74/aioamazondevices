@@ -166,10 +166,11 @@ class AmazonVocalRecord:
     """Amazon vocal record."""
 
     timestamp: int
-    utterance_type: str
-    intent: str
+    record_type: str
+    utterance_type: str | None
+    intent: str | None
     title: str
-    sub_title: str
+    sub_title: str | None
 
 
 class AmazonListType(StrEnum):
