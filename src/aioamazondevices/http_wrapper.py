@@ -10,7 +10,7 @@ from typing import Any, cast
 
 import orjson
 from aiohttp import (
-    ClientConnectorError,
+    ClientConnectionError,
     ClientResponse,
     ClientSession,
     ContentTypeError,
@@ -340,7 +340,7 @@ class AmazonHttpWrapper:
                     headers=headers,
                 )
 
-            except (TimeoutError, ClientConnectorError) as exc:
+            except (TimeoutError, ClientConnectionError) as exc:
                 _LOGGER.warning("Connection error to %s: %s", url, repr(exc))
                 raise CannotConnect(f"Connection error during {method}") from exc
 
