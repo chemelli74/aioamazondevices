@@ -80,12 +80,12 @@ class AmazonHistoryHandler:
             utterance_type = record.get("utteranceType")
             if (
                 utterance_type
-                in (
+                in [
                     "ASR_TIMEOUT",
                     "DEVICE_ARBITRATION",
                     "NO_EXPRESSED_INTENT",
                     "WAKE_WORD_ONLY",
-                )
+                ]
                 # InvokeRoutineIntent, AddToListIntent are not linked to a device
                 or record["deviceInfo"] is None
             ):
