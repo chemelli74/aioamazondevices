@@ -169,7 +169,7 @@ class AmazonVocalRecord:
     record_type: str
     utterance_type: str | None
     intent: str | None
-    title: str
+    title: str | None
     sub_title: str | None
 
 

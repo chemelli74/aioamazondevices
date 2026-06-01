@@ -87,7 +87,7 @@ class AmazonHistoryHandler:
                     "WAKE_WORD_ONLY",
                 ]
                 # InvokeRoutineIntent, AddToListIntent are not linked to a device
-                or record["deviceInfo"] is None
+                or record.get("deviceInfo") is None
             ):
                 continue
 
