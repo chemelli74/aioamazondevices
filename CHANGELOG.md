@@ -1,5 +1,12 @@
 # Changelog
 
+## v13.8.2 (2026-06-01)
+
+### Bug fixes
+
+- Capture more request errors ([`15900ef`](https://github.com/chemelli74/aioamazondevices/commit/15900ef8ca6ef49b46b99cc49b22c5f6a9c75b08))
+
+
 ## v13.8.1 (2026-05-27)
 
 ### Bug fixes
