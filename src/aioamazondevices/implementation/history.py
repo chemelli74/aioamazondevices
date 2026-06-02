@@ -77,7 +77,8 @@ class AmazonHistoryHandler:
         records: dict[str, AmazonVocalRecord] = {}
         for record in history_json["alexaHistoryRecords"]:
             _LOGGER.debug("Processing vocal history record: %s", record)
-            utterance_type = record["utteranceType"]
+            utterance_type = record.get("utteranceType")
+            device_info = record.get("deviceInfo")
             if (
                 utterance_type
                 in [
@@ -87,16 +88,20 @@ class AmazonHistoryHandler:
                     "WAKE_WORD_ONLY",
                 ]
                 # InvokeRoutineIntent, AddToListIntent are not linked to a device
-                or record["deviceInfo"] is None
+                or device_info is None
             ):
                 continue
 
-            serial = record["deviceInfo"]["deviceSerialNumber"]
+            if isinstance(device_info, list):
+                device_info = device_info[0] if device_info else None
+            if not isinstance(device_info, dict):
+                continue
+            serial = device_info["deviceSerialNumber"]
             timestamp = record["timestamp"]
             new_record = AmazonVocalRecord(
                 timestamp=timestamp,
-                utterance_type=utterance_type,
-                intent=record["intent"],
+                history_type=utterance_type or record.get("recordType") or "Unknown",
+                intent=record.get("intent") or "Unknown",
                 title=record["title"],
                 sub_title=record["subTitle"],
             )
