@@ -96,10 +96,10 @@ class AmazonHistoryHandler:
             new_record = AmazonVocalRecord(
                 timestamp=timestamp,
                 record_type=record.get("recordType", "UNKNOWN"),
-                utterance_type=utterance_type,
-                intent=record.get("intent"),
-                title=record.get("title"),
-                sub_title=record.get("subTitle"),
+                voice_type=record.get("utteranceType") or record.get("recordType"),
+                intent=record.get("intent") or record.get("type"),
+                title=record["title"],
+                sub_title=record["subTitle"],
             )
             # Store only the latest record per serial number
             if serial not in records or timestamp > records[serial].timestamp:

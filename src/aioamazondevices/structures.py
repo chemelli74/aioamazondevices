@@ -167,10 +167,10 @@ class AmazonVocalRecord:
 
     timestamp: int
     record_type: str
-    utterance_type: str | None
-    intent: str | None
-    title: str | None
-    sub_title: str | None
+    voice_type: str
+    intent: str
+    title: str
+    sub_title: str
 
 
 class AmazonListType(StrEnum):
