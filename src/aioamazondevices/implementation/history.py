@@ -100,8 +100,10 @@ class AmazonHistoryHandler:
             timestamp = record["timestamp"]
             new_record = AmazonVocalRecord(
                 timestamp=timestamp,
-                voice_type=record.get("utteranceType") or record.get("recordType"),
-                intent=record.get("intent") or record.get("type") or "",
+                history_type=record.get("utteranceType")
+                or record.get("recordType")
+                or "Unknown",
+                intent=record.get("intent") or "Unknown",
                 title=record["title"],
                 sub_title=record["subTitle"],
             )

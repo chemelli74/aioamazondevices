@@ -166,7 +166,7 @@ class AmazonVocalRecord:
     """Amazon vocal record."""
 
     timestamp: int
-    voice_type: str
+    history_type: str
     intent: str
     title: str
     sub_title: str
