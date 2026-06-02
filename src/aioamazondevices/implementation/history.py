@@ -93,7 +93,7 @@ class AmazonHistoryHandler:
                 continue
 
             if isinstance(device_info, list):
-                device_info = device_info[0]
+                device_info = device_info[0] if device_info else None
             if not isinstance(device_info, dict):
                 continue
             serial = device_info["deviceSerialNumber"]
@@ -102,7 +102,7 @@ class AmazonHistoryHandler:
                 timestamp=timestamp,
                 record_type=record.get("recordType", "UNKNOWN"),
                 voice_type=record.get("utteranceType") or record.get("recordType"),
-                intent=record.get("intent") or record.get("type"),
+                intent=record.get("intent") or record.get("type") or "",
                 title=record["title"],
                 sub_title=record["subTitle"],
             )
