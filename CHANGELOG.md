@@ -1,5 +1,12 @@
 # Changelog
 
+## v14.0.0 (2026-06-02)
+
+### Bug fixes
+
+- Handle recordtype history records ([`fac1d01`](https://github.com/chemelli74/aioamazondevices/commit/fac1d011af169f065a1a46e8382847f7a2bd8a2d))
+
+
 ## v13.8.2 (2026-06-01)
 
 ### Bug fixes
