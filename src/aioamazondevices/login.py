@@ -253,6 +253,8 @@ class AmazonLogin:
 
     async def _register_device_capabilities(self) -> None:
         """Register device capabilities."""
+        _LOGGER.debug("Device capabilities for HTTP2: started registration")
+
         _, json_token_resp = await self._http_wrapper.refresh_data(REFRESH_ACCESS_TOKEN)
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.PUT,
@@ -269,7 +271,7 @@ class AmazonLogin:
                 f"Register capabilities returned {raw_resp.status} (expected 204)"
             )
 
-        _LOGGER.debug("Device capabilities registered successfully")
+        _LOGGER.debug("Device capabilities for HTTP2: completed registration")
 
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
