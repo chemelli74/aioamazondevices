@@ -424,7 +424,7 @@ class AmazonHTTP2Client:
         region = self._session_state_data.login_stored_data["customer_info"][
             "home_region"
         ]
-        region = "eu"
+        region = "na"
         return HTTP2_SITE.format(region=region)
 
     async def _ping_loop(self) -> None:
