@@ -4,7 +4,7 @@ import asyncio
 import uuid
 from collections.abc import Callable, Coroutine
 from http import HTTPMethod, HTTPStatus
-from typing import Any, cast
+from typing import Any
 
 import httpx
 import orjson
@@ -17,6 +17,7 @@ from aioamazondevices.capabilities import (
 from aioamazondevices.const.http import (
     HTTP2_DIRECTIVES_VERSION,
     HTTP2_RECONNECT_DELAY,
+    HTTP2_SITE,
     REFRESH_ACCESS_TOKEN,
     URI_CAPABILITIES,
 )
@@ -25,6 +26,7 @@ from aioamazondevices.exceptions import (
     CannotConnect,
     CannotRegisterDevice,
     CannotRetrieveData,
+    WrongAVSSite,
 )
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonPushMessage
@@ -174,6 +176,12 @@ class AmazonHTTP2Client:
         self._session_state_data = session_state_data
 
         self._http2_client = httpx_client
+
+        region = self._session_state_data.login_stored_data["customer_info"][
+            "home_region"
+        ]
+        self._avs_directive_site: str = HTTP2_SITE.format(region=region)
+
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
 
         self._on_reauth_required = on_reauth_required
@@ -256,11 +264,10 @@ class AmazonHTTP2Client:
                 await asyncio.sleep(delay)
                 self._reconnect_attempt += 1
 
-    async def _get_avs_site(self) -> dict[str, Any]:
-        url = (
-            f"https://bob-dispatch-prod-eu.amazon.com/{HTTP2_DIRECTIVES_VERSION}/events"
-        )
-        boundary = "2BEC4F19-5619-4320-9950-7213403EB906"
+    async def _get_avs_site(self) -> None:
+        """Attempt to extract AVS site from response body after receiving empty part."""
+        url = f"{self._avs_directive_site}/v{HTTP2_DIRECTIVES_VERSION}/events"
+        boundary = str(uuid.uuid4())
 
         metadata = {
             "context": [],
@@ -274,28 +281,47 @@ class AmazonHTTP2Client:
             },
         }
 
-        data = {"metadata": orjson.dumps(metadata).decode()}
+        metadata_json = orjson.dumps(metadata)
+
+        data = b"".join(
+            [
+                f"--{boundary}\r\n".encode(),
+                b'Content-Disposition: form-data; name="metadata"\r\n',
+                f"Content-Length: {len(metadata_json)}\r\n".encode(),
+                b"\r\n",
+                metadata_json,
+                b"\r\n",
+                f"--{boundary}--\r\n".encode(),
+            ]
+        )
 
         response = await self._http2_client.post(
             url,
             headers={
                 "Authorization": f"Bearer {self._get_bearer_token()}",
-                "Accept": f"multipart/form-data; boundary={boundary}",
-                "Accept-Encoding": "gzip",
+                "Content-Type": f"multipart/form-data; boundary={boundary}",
             },
             data=data,
         )
+        _LOGGER.debug(
+            "AVS response [status %s]: %s", response.status_code, response.text
+        )
 
-        text = response.text
-        _LOGGER.error("AVS response: %s %s", response.status_code, text)
+        if response.status_code == HTTPStatus.NO_CONTENT:
+            # If the AVS site is correct, we should get an empty response
+            return
 
-        response.raise_for_status()
+        _LOGGER.debug("Attempting to extract AVS site from response body")
 
-        try:
-            return cast("dict[str, Any]", await response.json())
-        except Exception:
-            _LOGGER.exception("Failed to parse AVS response JSON")
-            raise
+        json_extracted = response.content[
+            response.content.find(b"{") : response.content.rfind(b"}") + 1
+        ]
+        _LOGGER.debug("Extracted JSON from response: %s", json_extracted)
+
+        site = orjson.loads(json_extracted)["directive"]["payload"]["endpoint"]
+        self._avs_directive_site = site
+        _LOGGER.debug("Updated AVS directive site: %s", site)
+        raise WrongAVSSite
 
     async def _register_device_capabilities(self) -> None:
         """Register device capabilities."""
@@ -321,9 +347,6 @@ class AmazonHTTP2Client:
         """Maintain AVS directive stream loop."""
         while not self._stop_event.is_set():
             self._connected_event.clear()
-
-            site = await self._get_avs_site()
-            _LOGGER.warning("AVS site: %s", site)
 
             try:
                 if not (
@@ -378,12 +401,11 @@ class AmazonHTTP2Client:
         """Open stream and process incoming directives."""
         _LOGGER.debug("Starting AVS Directives stream")
 
-        json_reply = await self._get_avs_site()
-        site = json_reply["directive"]["payload"]["endpoint"]
-
+        url = f"{self._avs_directive_site}/v{HTTP2_DIRECTIVES_VERSION}/directives"
+        _LOGGER.debug("Connecting to AVS directives site %s", url)
         async with self._http2_client.stream(
             "GET",
-            f"{site}/{HTTP2_DIRECTIVES_VERSION}/directives",
+            url,
             headers={
                 "Authorization": f"Bearer {self._get_bearer_token()}",
                 "Accept": "multipart/related",
@@ -425,6 +447,9 @@ class AmazonHTTP2Client:
 
                     for part in avs_stream_parser.feed(chunk):
                         await self._handle_part(part)
+            except WrongAVSSite:
+                # Restarting with the correct AVS site
+                return
             except BufferError:
                 _LOGGER.error("Buffer exceeded maximum size, forcing reconnect")
                 return
@@ -436,6 +461,7 @@ class AmazonHTTP2Client:
         """Process a single multipart section."""
         if not part:
             _LOGGER.debug("Handled empty part.")
+            await self._get_avs_site()
             return
 
         chunk_json = http2_extract_json_from_part(part)
@@ -508,7 +534,7 @@ class AmazonHTTP2Client:
             return
 
         response = await self._http2_client.post(
-            f"{await self._get_avs_site()}/ping",
+            f"{self._avs_directive_site}/ping",
             headers={"Authorization": f"Bearer {self._get_bearer_token()}"},
             timeout=httpx.Timeout(30),
         )

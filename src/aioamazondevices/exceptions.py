@@ -25,3 +25,7 @@ class CannotRegisterDevice(AmazonError):
 
 class WrongMethod(AmazonError):
     """Exception raised when the wrong login method is used."""
+
+
+class WrongAVSSite(AmazonError):
+    """Exception raised when the wrong AVS site is used."""
