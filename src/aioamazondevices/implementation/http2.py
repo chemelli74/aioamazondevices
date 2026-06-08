@@ -1,11 +1,13 @@
 """HTTP2 Support for Amazon devices."""
 
 import asyncio
+import uuid
 from collections.abc import Callable, Coroutine
 from http import HTTPMethod, HTTPStatus
-from typing import Any
+from typing import Any, cast
 
 import httpx
+import orjson
 from aiosignal import Signal
 
 from aioamazondevices.capabilities import (
@@ -15,7 +17,6 @@ from aioamazondevices.capabilities import (
 from aioamazondevices.const.http import (
     HTTP2_DIRECTIVES_VERSION,
     HTTP2_RECONNECT_DELAY,
-    HTTP2_SITE,
     REFRESH_ACCESS_TOKEN,
     URI_CAPABILITIES,
 )
@@ -255,6 +256,47 @@ class AmazonHTTP2Client:
                 await asyncio.sleep(delay)
                 self._reconnect_attempt += 1
 
+    async def _get_avs_site(self) -> dict[str, Any]:
+        url = (
+            f"https://bob-dispatch-prod-eu.amazon.com/{HTTP2_DIRECTIVES_VERSION}/events"
+        )
+        boundary = "2BEC4F19-5619-4320-9950-7213403EB906"
+
+        metadata = {
+            "context": [],
+            "event": {
+                "header": {
+                    "namespace": "System",
+                    "name": "SynchronizeState",
+                    "messageId": str(uuid.uuid4()),
+                },
+                "payload": {},
+            },
+        }
+
+        data = {"metadata": orjson.dumps(metadata).decode()}
+
+        response = await self._http2_client.post(
+            url,
+            headers={
+                "Authorization": f"Bearer {self._get_bearer_token()}",
+                "Accept": f"multipart/form-data; boundary={boundary}",
+                "Accept-Encoding": "gzip",
+            },
+            data=data,
+        )
+
+        text = response.text
+        _LOGGER.error("AVS response: %s %s", response.status_code, text)
+
+        response.raise_for_status()
+
+        try:
+            return cast("dict[str, Any]", await response.json())
+        except Exception:
+            _LOGGER.exception("Failed to parse AVS response JSON")
+            raise
+
     async def _register_device_capabilities(self) -> None:
         """Register device capabilities."""
         _, raw_resp = await self._http_wrapper.session_request(
@@ -279,6 +321,9 @@ class AmazonHTTP2Client:
         """Maintain AVS directive stream loop."""
         while not self._stop_event.is_set():
             self._connected_event.clear()
+
+            site = await self._get_avs_site()
+            _LOGGER.warning("AVS site: %s", site)
 
             try:
                 if not (
@@ -333,9 +378,12 @@ class AmazonHTTP2Client:
         """Open stream and process incoming directives."""
         _LOGGER.debug("Starting AVS Directives stream")
 
+        json_reply = await self._get_avs_site()
+        site = json_reply["directive"]["payload"]["endpoint"]
+
         async with self._http2_client.stream(
             "GET",
-            f"{self._http2_site()}/v{HTTP2_DIRECTIVES_VERSION}/directives",
+            f"{site}/{HTTP2_DIRECTIVES_VERSION}/directives",
             headers={
                 "Authorization": f"Bearer {self._get_bearer_token()}",
                 "Accept": "multipart/related",
@@ -419,13 +467,6 @@ class AmazonHTTP2Client:
                     payload,
                 )
 
-    def _http2_site(self) -> str:
-        """Get HTTP2 site."""
-        region = self._session_state_data.login_stored_data["customer_info"][
-            "home_region"
-        ]
-        return HTTP2_SITE.format(region=region)
-
     async def _ping_loop(self) -> None:
         """Send periodic keepalive pings independent of server-side frames.
 
@@ -467,7 +508,7 @@ class AmazonHTTP2Client:
             return
 
         response = await self._http2_client.post(
-            f"{self._http2_site()}/ping",
+            f"{await self._get_avs_site()}/ping",
             headers={"Authorization": f"Bearer {self._get_bearer_token()}"},
             timeout=httpx.Timeout(30),
         )

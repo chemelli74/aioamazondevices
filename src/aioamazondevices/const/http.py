@@ -49,6 +49,5 @@ URI_NOTIFICATIONS = "/api/notifications"
 URI_SIGNIN = "/ap/signin"
 URI_TODO = "/alexashoppinglists/api/v2/lists"
 
-HTTP2_SITE = "https://alexa.{region}.gateway.devices.a2z.com"
-HTTP2_DIRECTIVES_VERSION = "20160207"
+HTTP2_DIRECTIVES_VERSION = "v20160207"
 HTTP2_RECONNECT_DELAY = 5  # seconds
