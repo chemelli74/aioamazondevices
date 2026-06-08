@@ -1,11 +1,13 @@
 """HTTP2 Support for Amazon devices."""
 
 import asyncio
+import uuid
 from collections.abc import Callable, Coroutine
 from http import HTTPMethod, HTTPStatus
 from typing import Any
 
 import httpx
+import orjson
 from aiosignal import Signal
 
 from aioamazondevices.capabilities import (
@@ -388,6 +390,7 @@ class AmazonHTTP2Client:
         """Process a single multipart section."""
         if not part:
             _LOGGER.debug("Handled empty part.")
+            await self._get_avs_site()
             return
 
         chunk_json = http2_extract_json_from_part(part)
@@ -424,6 +427,7 @@ class AmazonHTTP2Client:
         region = self._session_state_data.login_stored_data["customer_info"][
             "home_region"
         ]
+        region = "na"
         return HTTP2_SITE.format(region=region)
 
     async def _ping_loop(self) -> None:
@@ -495,3 +499,55 @@ class AmazonHTTP2Client:
             _LOGGER.error("No access token available")
             raise CannotAuthenticate("No access token available")
         return str(token)
+
+    async def _get_avs_site(self) -> None:
+        url = f"{self._http2_site()}/v{HTTP2_DIRECTIVES_VERSION}/events"
+        boundary = str(uuid.uuid4())
+
+        metadata = {
+            "context": [],
+            "event": {
+                "header": {
+                    "namespace": "System",
+                    "name": "SynchronizeState",
+                    "messageId": str(uuid.uuid4()),
+                },
+                "payload": {},
+            },
+        }
+
+        metadata_json = orjson.dumps(metadata)
+
+        data = b"".join(
+            [
+                f"--{boundary}\r\n".encode(),
+                b'Content-Disposition: form-data; name="metadata"\r\n',
+                f"Content-Length: {len(metadata_json)}\r\n".encode(),
+                b"\r\n",
+                metadata_json,
+                b"\r\n",
+                f"--{boundary}--\r\n".encode(),
+            ]
+        )
+
+        _LOGGER.warning(data)
+
+        response = await self._http2_client.post(
+            url,
+            headers={
+                "Authorization": f"Bearer {self._get_bearer_token()}",
+                "Content-Type": f"multipart/form-data; boundary={boundary}",
+            },
+            data=data,
+        )
+
+        text = response.text
+        _LOGGER.error("AVS response: %s %s", response.status_code, text)
+
+        response.raise_for_status()
+
+        try:
+            _LOGGER.warning(await response.json())
+        except Exception:
+            _LOGGER.exception("Failed to parse AVS response JSON")
+            raise
