@@ -33,10 +33,12 @@ class AmazonHistoryHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
         self._csrf_a2z_token: str = ""
+        self._csrf_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
 
     async def _vocal_history_json(self) -> dict[str, Any]:
         """Request vocal history data."""
-        if not self._csrf_a2z_token:
+        csrf_token_age = datetime.now(UTC) - self._csrf_time
+        if csrf_token_age >= timedelta(days=1):
             await self.update_vocal_history_token()
 
         refresh_successful, _ = await self._http_wrapper.refresh_data(
@@ -122,5 +124,6 @@ class AmazonHistoryHandler:
             token = token_meta.get("content")
             if token:
                 self._csrf_a2z_token = str(token)
+                self._csrf_time = datetime.now(UTC)
                 return
         raise CannotRetrieveData("Cannot find anti-csrftoken-a2z token")
