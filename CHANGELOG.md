@@ -1,5 +1,12 @@
 # Changelog
 
+## v14.0.3 (2026-06-10)
+
+### Bug fixes
+
+- Use the correct avs site ([`7f498f4`](https://github.com/chemelli74/aioamazondevices/commit/7f498f43b6c9fe02416a0e9d0375554a5b6ec3d8))
+
+
 ## v14.0.2 (2026-06-10)
 
 ### Bug fixes
