@@ -130,7 +130,8 @@ class AmazonEchoApi:
         self._device_volumes_initialized: bool = False
         self._http2_client: AmazonHTTP2Client | None = None
 
-        initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
+        # force initial refresh
+        initial_time = datetime.now(UTC) - timedelta(days=2)
         self._last_daily_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
 

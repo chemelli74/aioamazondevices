@@ -34,9 +34,7 @@ class AmazonHistoryHandler:
         self._http_wrapper = http_wrapper
         self._csrf_a2z_token: str = ""
         # force initial refresh
-        self._csrf_a2z_refresh_time = datetime.now(UTC) - timedelta(
-            days=2
-        ) 
+        self._csrf_a2z_refresh_time = datetime.now(UTC) - timedelta(days=2)
 
     async def _vocal_history_json(self) -> dict[str, Any]:
         """Request vocal history data."""
