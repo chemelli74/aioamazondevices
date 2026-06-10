@@ -128,10 +128,10 @@ class AmazonEchoApi:
         )
 
         self._device_volumes_initialized: bool = False
-        self._voice_history_initialized: bool = False
         self._http2_client: AmazonHTTP2Client | None = None
 
-        initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
+        # force initial refresh
+        initial_time = datetime.now(UTC) - timedelta(days=2)
         self._last_daily_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
 
@@ -275,9 +275,6 @@ class AmazonEchoApi:
             if not self._device_volumes_initialized:
                 await self._media_handler.sync_device_volumes()
                 self._device_volumes_initialized = True
-            if not self._voice_history_initialized:
-                await self._history_handler.get_vocal_history()
-                self._voice_history_initialized = True
             serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
             if serial:
                 volume = AmazonVolumeState(
@@ -285,6 +282,8 @@ class AmazonEchoApi:
                 )
                 self._media_handler.update_cached_device_volume(serial, volume)
             await self._emit_volume_state_event()
+            return
+        if event_type == AmazonPushMessage.EqualizerStateChange.value:
             await self._emit_history_event()
             return
         if event_type == AmazonPushMessage.AudioPlayerState.value:
@@ -296,7 +295,6 @@ class AmazonEchoApi:
                 return
             await self._media_handler.sync_media_state(self._device_handler.devices)
             await self._emit_media_state_event()
-            await self._emit_history_event()
             return
         if event_type == AmazonPushMessage.ItemChange.value:
             list_id = payload["listId"]
