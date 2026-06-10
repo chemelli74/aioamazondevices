@@ -1,5 +1,12 @@
 # Changelog
 
+## v14.0.1 (2026-06-10)
+
+### Bug fixes
+
+- Reduce calls to vocal history ([`8e34fba`](https://github.com/chemelli74/aioamazondevices/commit/8e34fba9f0d9b420cd80d9275388fb389ae5c54c))
+
+
 ## v14.0.0 (2026-06-02)
 
 ### Bug fixes
