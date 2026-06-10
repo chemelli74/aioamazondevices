@@ -1,11 +1,13 @@
 """HTTP2 Support for Amazon devices."""
 
 import asyncio
+import uuid
 from collections.abc import Callable, Coroutine
 from http import HTTPMethod, HTTPStatus
 from typing import Any
 
 import httpx
+import orjson
 from aiosignal import Signal
 
 from aioamazondevices.capabilities import (
@@ -24,6 +26,7 @@ from aioamazondevices.exceptions import (
     CannotConnect,
     CannotRegisterDevice,
     CannotRetrieveData,
+    UpdatedAVSSite,
 )
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonPushMessage
@@ -173,6 +176,12 @@ class AmazonHTTP2Client:
         self._session_state_data = session_state_data
 
         self._http2_client = httpx_client
+
+        region = self._session_state_data.login_stored_data["customer_info"][
+            "home_region"
+        ]
+        self._avs_directive_site: str = HTTP2_SITE.format(region=region)
+
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
 
         self._on_reauth_required = on_reauth_required
@@ -255,6 +264,73 @@ class AmazonHTTP2Client:
                 await asyncio.sleep(delay)
                 self._reconnect_attempt += 1
 
+    async def _check_avs_site(self) -> None:
+        """Check the AVS site by sending a test event.
+
+        "home_region" from the customer info is not always correct
+        so if we get a response from the wrong site attempt to extract
+        the correct site from the response and update it for future requests.
+        """
+        url = f"{self._avs_directive_site}/v{HTTP2_DIRECTIVES_VERSION}/events"
+
+        metadata = {
+            "context": [],
+            "event": {
+                "header": {
+                    "namespace": "System",
+                    "name": "SynchronizeState",
+                    "messageId": str(uuid.uuid4()),
+                },
+                "payload": {},
+            },
+        }
+
+        files = {
+            "metadata": (None, orjson.dumps(metadata), "application/json"),
+        }
+
+        response = await self._http2_client.post(
+            url,
+            headers={"Authorization": f"Bearer {self._get_bearer_token()}"},
+            files=files,
+            timeout=httpx.Timeout(30),
+        )
+        _LOGGER.debug(
+            "AVS response [status %s]: %s", response.status_code, response.text
+        )
+
+        if response.status_code == HTTPStatus.NO_CONTENT:
+            # If the AVS site is correct, we should get an empty response
+            return
+
+        _LOGGER.debug("Attempting to extract AVS site from response body")
+
+        boundary = http2_parse_boundary_delimiter(
+            response.headers.get("content-type", "")
+        )
+        if boundary is None:
+            _LOGGER.warning("Missing multipart boundary in SynchronizeState response")
+            return
+
+        parser = AvsDirectiveStreamParser(boundary)
+        parts = parser.feed(response.content)
+        chunk_json = next(
+            (http2_extract_json_from_part(p) for p in parts if p),
+            None,
+        )
+        if chunk_json is None:
+            _LOGGER.warning("Could not extract JSON from SynchronizeState response")
+            return
+
+        site = chunk_json.get("directive", {}).get("payload", {}).get("endpoint")
+        if not site:
+            _LOGGER.warning("Could not extract AVS site from SynchronizeState response")
+            return
+
+        self._avs_directive_site = site
+        _LOGGER.debug("Updated AVS directive site: %s", site)
+        raise UpdatedAVSSite
+
     async def _register_device_capabilities(self) -> None:
         """Register device capabilities."""
         _, raw_resp = await self._http_wrapper.session_request(
@@ -280,22 +356,14 @@ class AmazonHTTP2Client:
         while not self._stop_event.is_set():
             self._connected_event.clear()
 
-            try:
-                if not (
-                    await self._refresh_token()
-                    and await self._check_device_capabilities_registered()
-                ):
-                    await asyncio.sleep(HTTP2_RECONNECT_DELAY)
-                    continue
+            if not (
+                await self._refresh_token()
+                and await self._check_device_capabilities_registered()
+            ):
+                await asyncio.sleep(HTTP2_RECONNECT_DELAY)
+                continue
 
-                await self._stream_and_process()
-            except httpx.RemoteProtocolError as exc:
-                _LOGGER.debug("HTTP2 disconnection detected: %s", exc)
-            except httpx.HTTPError as exc:
-                _LOGGER.warning("HTTP2 error detected: %s", exc, exc_info=True)
-            except Exception:
-                _LOGGER.exception("Unexpected error getting AVS directive")
-                raise
+            await self._stream_and_process()
 
             if not self._stop_event.is_set():
                 _LOGGER.debug("Reconnecting in %s seconds", HTTP2_RECONNECT_DELAY)
@@ -333,9 +401,11 @@ class AmazonHTTP2Client:
         """Open stream and process incoming directives."""
         _LOGGER.debug("Starting AVS Directives stream")
 
+        url = f"{self._avs_directive_site}/v{HTTP2_DIRECTIVES_VERSION}/directives"
+        _LOGGER.debug("Connecting to AVS directives site %s", url)
         async with self._http2_client.stream(
             "GET",
-            f"{self._http2_site()}/v{HTTP2_DIRECTIVES_VERSION}/directives",
+            url,
             headers={
                 "Authorization": f"Bearer {self._get_bearer_token()}",
                 "Accept": "multipart/related",
@@ -377,6 +447,9 @@ class AmazonHTTP2Client:
 
                     for part in avs_stream_parser.feed(chunk):
                         await self._handle_part(part)
+            except UpdatedAVSSite:
+                # Restarting with the correct AVS site
+                return
             except BufferError:
                 _LOGGER.error("Buffer exceeded maximum size, forcing reconnect")
                 return
@@ -387,7 +460,8 @@ class AmazonHTTP2Client:
     async def _handle_part(self, part: bytes) -> None:
         """Process a single multipart section."""
         if not part:
-            _LOGGER.debug("Handled empty part.")
+            _LOGGER.debug("Empty part, check AVS site.")
+            await self._check_avs_site()
             return
 
         chunk_json = http2_extract_json_from_part(part)
@@ -418,13 +492,6 @@ class AmazonHTTP2Client:
                     push_event_type,
                     payload,
                 )
-
-    def _http2_site(self) -> str:
-        """Get HTTP2 site."""
-        region = self._session_state_data.login_stored_data["customer_info"][
-            "home_region"
-        ]
-        return HTTP2_SITE.format(region=region)
 
     async def _ping_loop(self) -> None:
         """Send periodic keepalive pings independent of server-side frames.
@@ -467,7 +534,7 @@ class AmazonHTTP2Client:
             return
 
         response = await self._http2_client.post(
-            f"{self._http2_site()}/ping",
+            f"{self._avs_directive_site}/ping",
             headers={"Authorization": f"Bearer {self._get_bearer_token()}"},
             timeout=httpx.Timeout(30),
         )
