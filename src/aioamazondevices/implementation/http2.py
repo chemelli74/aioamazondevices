@@ -340,22 +340,14 @@ class AmazonHTTP2Client:
         while not self._stop_event.is_set():
             self._connected_event.clear()
 
-            try:
-                if not (
-                    await self._refresh_token()
-                    and await self._check_device_capabilities_registered()
-                ):
-                    await asyncio.sleep(HTTP2_RECONNECT_DELAY)
-                    continue
+            if not (
+                await self._refresh_token()
+                and await self._check_device_capabilities_registered()
+            ):
+                await asyncio.sleep(HTTP2_RECONNECT_DELAY)
+                continue
 
-                await self._stream_and_process()
-            except httpx.RemoteProtocolError as exc:
-                _LOGGER.debug("HTTP2 disconnection detected: %s", exc)
-            except httpx.HTTPError as exc:
-                _LOGGER.warning("HTTP2 error detected: %s", exc, exc_info=True)
-            except Exception:
-                _LOGGER.exception("Unexpected error getting AVS directive")
-                raise
+            await self._stream_and_process()
 
             if not self._stop_event.is_set():
                 _LOGGER.debug("Reconnecting in %s seconds", HTTP2_RECONNECT_DELAY)
