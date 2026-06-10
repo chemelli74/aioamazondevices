@@ -305,12 +305,28 @@ class AmazonHTTP2Client:
 
         _LOGGER.debug("Attempting to extract AVS site from response body")
 
-        json_extracted = response.content[
-            response.content.find(b"{") : response.content.rfind(b"}") + 1
-        ]
-        _LOGGER.debug("Extracted JSON from response: %s", json_extracted)
+        boundary = http2_parse_boundary_delimiter(
+            response.headers.get("content-type", "")
+        )
+        if boundary is None:
+            _LOGGER.warning("Missing multipart boundary in SynchronizeState response")
+            return
 
-        site = orjson.loads(json_extracted)["directive"]["payload"]["endpoint"]
+        parser = AvsDirectiveStreamParser(boundary)
+        parts = parser.feed(response.content)
+        chunk_json = next(
+            (http2_extract_json_from_part(p) for p in parts if p),
+            None,
+        )
+        if chunk_json is None:
+            _LOGGER.warning("Could not extract JSON from SynchronizeState response")
+            return
+
+        site = chunk_json.get("directive", {}).get("payload", {}).get("endpoint")
+        if not site:
+            _LOGGER.warning("Could not extract AVS site from SynchronizeState response")
+            return
+
         self._avs_directive_site = site
         _LOGGER.debug("Updated AVS directive site: %s", site)
         raise UpdatedAVSSite
