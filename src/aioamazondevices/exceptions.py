@@ -27,5 +27,5 @@ class WrongMethod(AmazonError):
     """Exception raised when the wrong login method is used."""
 
 
-class WrongAVSSite(AmazonError):
-    """Exception raised when the wrong AVS site is used."""
+class UpdatedAVSSite(AmazonError):
+    """Exception raised when the AVS site is updated."""

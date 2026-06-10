@@ -26,7 +26,7 @@ from aioamazondevices.exceptions import (
     CannotConnect,
     CannotRegisterDevice,
     CannotRetrieveData,
-    WrongAVSSite,
+    UpdatedAVSSite,
 )
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonPushMessage
@@ -264,8 +264,13 @@ class AmazonHTTP2Client:
                 await asyncio.sleep(delay)
                 self._reconnect_attempt += 1
 
-    async def _get_avs_site(self) -> None:
-        """Attempt to extract AVS site from response body after receiving empty part."""
+    async def _check_avs_site(self) -> None:
+        """Check the AVS site by sending a test event.
+
+        "home_region" from the customer info is not always correct
+        so if we get a response from the wrong site attempt to extract
+        the correct site from the response and update it for future requests.
+        """
         url = f"{self._avs_directive_site}/v{HTTP2_DIRECTIVES_VERSION}/events"
         boundary = str(uuid.uuid4())
 
@@ -301,7 +306,8 @@ class AmazonHTTP2Client:
                 "Authorization": f"Bearer {self._get_bearer_token()}",
                 "Content-Type": f"multipart/form-data; boundary={boundary}",
             },
-            data=data,
+            content=data,
+            timeout=httpx.Timeout(30),
         )
         _LOGGER.debug(
             "AVS response [status %s]: %s", response.status_code, response.text
@@ -321,7 +327,7 @@ class AmazonHTTP2Client:
         site = orjson.loads(json_extracted)["directive"]["payload"]["endpoint"]
         self._avs_directive_site = site
         _LOGGER.debug("Updated AVS directive site: %s", site)
-        raise WrongAVSSite
+        raise UpdatedAVSSite
 
     async def _register_device_capabilities(self) -> None:
         """Register device capabilities."""
@@ -447,7 +453,7 @@ class AmazonHTTP2Client:
 
                     for part in avs_stream_parser.feed(chunk):
                         await self._handle_part(part)
-            except WrongAVSSite:
+            except UpdatedAVSSite:
                 # Restarting with the correct AVS site
                 return
             except BufferError:
@@ -460,8 +466,8 @@ class AmazonHTTP2Client:
     async def _handle_part(self, part: bytes) -> None:
         """Process a single multipart section."""
         if not part:
-            _LOGGER.debug("Handled empty part.")
-            await self._get_avs_site()
+            _LOGGER.debug("Empty part, check AVS site.")
+            await self._check_avs_site()
             return
 
         chunk_json = http2_extract_json_from_part(part)
