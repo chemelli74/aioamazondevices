@@ -272,7 +272,6 @@ class AmazonHTTP2Client:
         the correct site from the response and update it for future requests.
         """
         url = f"{self._avs_directive_site}/v{HTTP2_DIRECTIVES_VERSION}/events"
-        boundary = str(uuid.uuid4())
 
         metadata = {
             "context": [],
@@ -286,27 +285,14 @@ class AmazonHTTP2Client:
             },
         }
 
-        metadata_json = orjson.dumps(metadata)
-
-        data = b"".join(
-            [
-                f"--{boundary}\r\n".encode(),
-                b'Content-Disposition: form-data; name="metadata"\r\n',
-                f"Content-Length: {len(metadata_json)}\r\n".encode(),
-                b"\r\n",
-                metadata_json,
-                b"\r\n",
-                f"--{boundary}--\r\n".encode(),
-            ]
-        )
+        files = {
+            "metadata": (None, orjson.dumps(metadata), "application/json"),
+        }
 
         response = await self._http2_client.post(
             url,
-            headers={
-                "Authorization": f"Bearer {self._get_bearer_token()}",
-                "Content-Type": f"multipart/form-data; boundary={boundary}",
-            },
-            content=data,
+            headers={"Authorization": f"Bearer {self._get_bearer_token()}"},
+            files=files,
             timeout=httpx.Timeout(30),
         )
         _LOGGER.debug(
