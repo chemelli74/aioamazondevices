@@ -304,6 +304,8 @@ async def main() -> None:
             print(f"   Device software version: {device.software_version}")
             print(f"   Device sensors: {len(device.sensors)}")
             print(f"   Device notifications: {len(device.notifications)}")
+            print(f"   Device locale: {device.locale}")
+            print(f"   Device timezone: {device.device_timezone}")
             dev_index += 1
         print("-" * 20)
 
