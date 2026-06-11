@@ -49,7 +49,7 @@ class AlexaCommunicationsHandler:
 
         State values are All, Home and Off
         """
-        await self._set_communications_state("announcements", device, state)
+        await self._set_communications_state("dropin", device, state)
 
     async def get_communication_preferences(
         self, devices: list[AmazonDevice]
