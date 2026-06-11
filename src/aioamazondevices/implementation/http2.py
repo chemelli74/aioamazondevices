@@ -241,6 +241,36 @@ class AmazonHTTP2Client:
                     )
                 reauth_required = True
 
+            except* httpx.RemoteProtocolError as disc_exc_group:
+                for disc_exc in disc_exc_group.exceptions:
+                    _LOGGER.debug(
+                        "HTTP2 disconnection detected",
+                        exc_info=(type(disc_exc), disc_exc, disc_exc.__traceback__),
+                    )
+                restart_required = True
+
+            except* httpx.ReadError as read_exc_group:
+                for read_exc in read_exc_group.exceptions:
+                    task = asyncio.current_task()
+                    if self._stop_event.is_set() or (task and task.cancelling()):
+                        _LOGGER.debug("Stream interrupted during shutdown (expected)")
+                    else:
+                        _LOGGER.debug(
+                            "HTTP2 stream read error, reconnecting in %s seconds",
+                            delay,
+                            exc_info=(type(read_exc), read_exc, read_exc.__traceback__),
+                        )
+                        restart_required = True
+
+            except* httpx.HTTPError as http_exc_group:
+                for http_exc in http_exc_group.exceptions:
+                    _LOGGER.warning(
+                        "HTTP2 error detected, reconnecting in %s seconds",
+                        delay,
+                        exc_info=(type(http_exc), http_exc, http_exc.__traceback__),
+                    )
+                restart_required = True
+
             except* Exception as exc_group:  # noqa: BLE001
                 for exc in exc_group.exceptions:
                     _LOGGER.warning(
@@ -327,18 +357,10 @@ class AmazonHTTP2Client:
 
     async def _get_avs_directives(self) -> None:
         """Maintain AVS directive stream loop."""
-        while not self._stop_event.is_set():
-            self._connected_event.clear()
+        if not (await self._refresh_token()):
+            return
 
-            if not (await self._refresh_token()):
-                await asyncio.sleep(HTTP2_RECONNECT_DELAY)
-                continue
-
-            await self._stream_and_process()
-
-            if not self._stop_event.is_set():
-                _LOGGER.debug("Reconnecting in %s seconds", HTTP2_RECONNECT_DELAY)
-                await asyncio.sleep(HTTP2_RECONNECT_DELAY)
+        await self._stream_and_process()
 
     async def _refresh_token(self) -> bool:
         """Refresh the access token."""
