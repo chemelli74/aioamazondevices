@@ -33,11 +33,12 @@ class AmazonHistoryHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
         self._csrf_a2z_token: str = ""
+        # force initial refresh
+        self._csrf_a2z_refresh_time = datetime.now(UTC) - timedelta(days=2)
 
     async def _vocal_history_json(self) -> dict[str, Any]:
         """Request vocal history data."""
-        if not self._csrf_a2z_token:
-            await self.update_vocal_history_token()
+        await self._update_vocal_history_token()
 
         refresh_successful, _ = await self._http_wrapper.refresh_data(
             REFRESH_ACCESS_TOKEN
@@ -77,20 +78,31 @@ class AmazonHistoryHandler:
         records: dict[str, AmazonVocalRecord] = {}
         for record in history_json["alexaHistoryRecords"]:
             _LOGGER.debug("Processing vocal history record: %s", record)
-            serial = record["deviceInfo"]["deviceSerialNumber"]
-            utterance_type = record["utteranceType"]
-            if utterance_type in [
-                "ASR_TIMEOUT",
-                "DEVICE_ARBITRATION",
-                "NO_EXPRESSED_INTENT",
-                "WAKE_WORD_ONLY",
-            ]:
+            utterance_type = record.get("utteranceType")
+            device_info = record.get("deviceInfo")
+            if (
+                utterance_type
+                in [
+                    "ASR_TIMEOUT",
+                    "DEVICE_ARBITRATION",
+                    "NO_EXPRESSED_INTENT",
+                    "WAKE_WORD_ONLY",
+                ]
+                # InvokeRoutineIntent, AddToListIntent are not linked to a device
+                or device_info is None
+            ):
                 continue
+
+            if isinstance(device_info, list):
+                device_info = device_info[0] if device_info else None
+            if not isinstance(device_info, dict):
+                continue
+            serial = device_info["deviceSerialNumber"]
             timestamp = record["timestamp"]
             new_record = AmazonVocalRecord(
                 timestamp=timestamp,
-                utterance_type=utterance_type,
-                intent=record["intent"],
+                history_type=utterance_type or record.get("recordType") or "Unknown",
+                intent=record.get("intent") or "Unknown",
                 title=record["title"],
                 sub_title=record["subTitle"],
             )
@@ -100,8 +112,12 @@ class AmazonHistoryHandler:
 
         return records
 
-    async def update_vocal_history_token(self) -> None:
+    async def _update_vocal_history_token(self) -> None:
         """Find anti-csrftoken-a2z token."""
+        csrf_token_age = datetime.now(UTC) - self._csrf_a2z_refresh_time
+        if csrf_token_age < timedelta(hours=12):
+            return
+
         bs_resp, _ = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
             url=f"https://www.amazon.{self._session_state_data.domain}{URI_HISTORY_FRONTEND}",
@@ -111,5 +127,6 @@ class AmazonHistoryHandler:
             token = token_meta.get("content")
             if token:
                 self._csrf_a2z_token = str(token)
+                self._csrf_a2z_refresh_time = datetime.now(UTC)
                 return
         raise CannotRetrieveData("Cannot find anti-csrftoken-a2z token")

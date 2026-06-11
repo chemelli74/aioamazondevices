@@ -155,6 +155,13 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/lonlazer">
+                    <img src="https://avatars.githubusercontent.com/u/19411776?v=4" width="100;" alt="lonlazer"/>
+                    <br />
+                    <sub><b>Léon</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/maxmati">
                     <img src="https://avatars.githubusercontent.com/u/509560?v=4" width="100;" alt="maxmati"/>
                     <br />

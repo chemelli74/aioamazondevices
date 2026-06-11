@@ -14,6 +14,7 @@ from aioamazondevices.implementation.communication import AlexaCommunicationsHan
 from aioamazondevices.implementation.device import AmazonDeviceHandler
 from aioamazondevices.implementation.media import AmazonMediaHandler
 from aioamazondevices.implementation.sensor import AmazonSensorHandler
+from aioamazondevices.implementation.todo import AmazonToDoHandler
 
 from . import __version__
 from .const.http import (
@@ -34,6 +35,10 @@ from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
 from .structures import (
     AmazonDevice,
+    AmazonListEvent,
+    AmazonListEventType,
+    AmazonListInfo,
+    AmazonListItem,
     AmazonMediaControls,
     AmazonMediaState,
     AmazonMusicProvider,
@@ -118,22 +123,28 @@ class AmazonEchoApi:
             session_state_data=self._session_state_data,
         )
 
+        self._todo_handler = AmazonToDoHandler(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
         self._communication_handler = AlexaCommunicationsHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
         )
 
         self._device_volumes_initialized: bool = False
-        self._voice_history_initialized: bool = False
         self._http2_client: AmazonHTTP2Client | None = None
 
-        initial_time = datetime.now(UTC) - timedelta(days=2)  # force initial refresh
+        # force initial refresh
+        initial_time = datetime.now(UTC) - timedelta(days=2)
         self._last_daily_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
 
         self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
         self.on_history_event = Signal[dict[str, AmazonVocalRecord]](self)
+        self.on_todo_event = Signal[AmazonListEvent](self)
 
     @property
     def domain(self) -> str:
@@ -149,6 +160,11 @@ class AmazonEchoApi:
     def routines(self) -> list[str]:
         """Return routines."""
         return self._sequence_handler.routines
+
+    @property
+    def todo_lists(self) -> list[AmazonListInfo]:
+        """Return ToDo lists."""
+        return self._todo_handler.lists
 
     @property
     def default_device(self) -> AmazonDevice:
@@ -185,6 +201,7 @@ class AmazonEchoApi:
             await self._device_handler.get_base_devices()
             await self._media_handler.update_music_providers()
             await self._sequence_handler.update_routines()
+            await self._todo_handler.update_lists()
 
             self._last_daily_refresh = datetime.now(UTC)
 
@@ -270,9 +287,6 @@ class AmazonEchoApi:
             if not self._device_volumes_initialized:
                 await self._media_handler.sync_device_volumes()
                 self._device_volumes_initialized = True
-            if not self._voice_history_initialized:
-                await self._history_handler.get_vocal_history()
-                self._voice_history_initialized = True
             serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
             if serial:
                 volume = AmazonVolumeState(
@@ -280,6 +294,8 @@ class AmazonEchoApi:
                 )
                 self._media_handler.update_cached_device_volume(serial, volume)
             await self._emit_volume_state_event()
+            return
+        if event_type == AmazonPushMessage.EqualizerStateChange.value:
             await self._emit_history_event()
             return
         if event_type == AmazonPushMessage.AudioPlayerState.value:
@@ -291,7 +307,28 @@ class AmazonEchoApi:
                 return
             await self._media_handler.sync_media_state(self._device_handler.devices)
             await self._emit_media_state_event()
-            await self._emit_history_event()
+            return
+        if event_type == AmazonPushMessage.ItemChange.value:
+            list_id = payload["listId"]
+            item_id = payload["listItemId"]
+            list_event_type = AmazonListEventType(payload["eventName"])
+
+            _LOGGER.info("Received ItemChange for %s: %s", list_id, list_event_type)
+
+            if list_event_type not in AmazonListEventType:
+                _LOGGER.warning(
+                    "Received unsupported list event type: %s", list_event_type
+                )
+                return
+
+            items = None
+            if list_event_type != AmazonListEventType.DELETED:
+                list_items = await self.get_todo_list_items(list_id)
+                items = list_items[item_id]
+
+            list_event = AmazonListEvent(list_id, item_id, list_event_type, items=items)
+
+            await self._emit_todo_event(list_event)
             return
 
     async def call_alexa_speak(
@@ -459,6 +496,12 @@ class AmazonEchoApi:
                 await self._media_handler.device_volumes
             )
 
+    async def _emit_todo_event(self, list_event: AmazonListEvent) -> None:
+        """Emit todo event to subscribers."""
+        if self.on_todo_event.frozen:
+            _LOGGER.debug("Emitting todo event: %s", list_event)
+            await self.on_todo_event.send(list_event)
+
     async def sync_history_state(self) -> dict[str, AmazonVocalRecord]:
         """Sync history state.
 
@@ -474,3 +517,33 @@ class AmazonEchoApi:
             await self.on_history_event.send(
                 await self._history_handler.get_vocal_history()
             )
+
+    async def set_todo_list_item_checked_status(
+        self, list_id: str, item_id: str, checked: bool, version: int
+    ) -> None:
+        """Set ToDo list item checked status."""
+        await self._todo_handler.set_item_checked_status(
+            list_id, item_id, checked, version
+        )
+
+    async def add_todo_list_item(self, list_id: str, item_name: str) -> None:
+        """Add item to a ToDo list."""
+        await self._todo_handler.add_item(list_id, item_name)
+
+    async def delete_todo_list_item(
+        self, list_id: str, item_id: str, version: int
+    ) -> None:
+        """Delete item from a ToDo list."""
+        await self._todo_handler.delete_item(list_id, item_id, version)
+
+    async def rename_todo_list_item(
+        self, list_id: str, item_id: str, new_name: str, version: int
+    ) -> None:
+        """Rename ToDo list item."""
+        await self._todo_handler.rename_item(list_id, item_id, new_name, version)
+
+    async def get_todo_list_items(self, list_id: str) -> dict[str, AmazonListItem]:
+        """Return ToDo all list items."""
+        items = await self._todo_handler.get_list_items(list_id)
+
+        return {item.id: item for item in items}

@@ -1,5 +1,59 @@
 # Changelog
 
+## v14.0.3 (2026-06-10)
+
+### Bug fixes
+
+- Use the correct avs site ([`7f498f4`](https://github.com/chemelli74/aioamazondevices/commit/7f498f43b6c9fe02416a0e9d0375554a5b6ec3d8))
+
+
+## v14.0.2 (2026-06-10)
+
+### Bug fixes
+
+- Handle csrf token expiry ([`26bc18d`](https://github.com/chemelli74/aioamazondevices/commit/26bc18d279c7e8775fa38b4d5c7474541645dc6c))
+
+
+## v14.0.1 (2026-06-10)
+
+### Bug fixes
+
+- Reduce calls to vocal history ([`8e34fba`](https://github.com/chemelli74/aioamazondevices/commit/8e34fba9f0d9b420cd80d9275388fb389ae5c54c))
+
+
+## v14.0.0 (2026-06-02)
+
+### Bug fixes
+
+- Handle recordtype history records ([`fac1d01`](https://github.com/chemelli74/aioamazondevices/commit/fac1d011af169f065a1a46e8382847f7a2bd8a2d))
+
+
+## v13.8.2 (2026-06-01)
+
+### Bug fixes
+
+- Capture more request errors ([`15900ef`](https://github.com/chemelli74/aioamazondevices/commit/15900ef8ca6ef49b46b99cc49b22c5f6a9c75b08))
+
+
+## v13.8.1 (2026-05-27)
+
+### Bug fixes
+
+- Improve filter for history records ([`cdfed8a`](https://github.com/chemelli74/aioamazondevices/commit/cdfed8a15653058417ac4e98312e777ce86c4176))
+
+
+## v13.8.0 (2026-05-26)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`faefee8`](https://github.com/chemelli74/aioamazondevices/commit/faefee821a2842ce9d646fc4cd3bf409bc0d7ff2))
+
+
+### Features
+
+- Implement todo lists ([`619971f`](https://github.com/chemelli74/aioamazondevices/commit/619971f3945ab21f9af40b1f85fb0a4d8b2dfa31))
+
+
 ## v13.7.2 (2026-05-21)
 
 ### Bug fixes

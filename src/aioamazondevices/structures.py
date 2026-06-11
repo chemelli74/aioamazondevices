@@ -167,7 +167,59 @@ class AmazonVocalRecord:
     """Amazon vocal record."""
 
     timestamp: int
-    utterance_type: str
+    history_type: str
     intent: str
     title: str
     sub_title: str
+
+
+class AmazonListType(StrEnum):
+    """Amazon list types."""
+
+    SHOP = "SHOP"
+    TODO = "TODO"
+    CUSTOM = "CUSTOM"
+
+
+@dataclass
+class AmazonListInfo:
+    """Amazon list info."""
+
+    id: str
+    list_type: AmazonListType
+    name: str | None
+
+
+class AmazonListItemStatus(StrEnum):
+    """Amazon list item statuses."""
+
+    ACTIVE = "ACTIVE"
+    COMPLETE = "COMPLETE"
+
+
+@dataclass
+class AmazonListItem:
+    """Amazon list item."""
+
+    id: str
+    status: AmazonListItemStatus
+    name: str
+    version: int
+
+
+class AmazonListEventType(StrEnum):
+    """Amazon list event types."""
+
+    DELETED = "itemDeleted"
+    UPDATED = "itemUpdated"
+    CREATED = "itemCreated"
+
+
+@dataclass
+class AmazonListEvent:
+    """Amazon list event."""
+
+    list_id: str
+    item_id: str
+    type: AmazonListEventType
+    items: AmazonListItem | None = None
