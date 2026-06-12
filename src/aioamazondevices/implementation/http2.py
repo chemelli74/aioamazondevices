@@ -3,28 +3,22 @@
 import asyncio
 import uuid
 from collections.abc import Callable, Coroutine
-from http import HTTPMethod, HTTPStatus
+from http import HTTPStatus
 from typing import Any
 
 import httpx
 import orjson
 from aiosignal import Signal
 
-from aioamazondevices.capabilities import (
-    DEVICE_CAPABILITIES,
-    DEVICE_CAPABILITIES_REGISTERED,
-)
 from aioamazondevices.const.http import (
     HTTP2_DIRECTIVES_VERSION,
     HTTP2_RECONNECT_DELAY,
     HTTP2_SITE,
     REFRESH_ACCESS_TOKEN,
-    URI_CAPABILITIES,
 )
 from aioamazondevices.exceptions import (
     CannotAuthenticate,
     CannotConnect,
-    CannotRegisterDevice,
     CannotRetrieveData,
     UpdatedAVSSite,
 )
@@ -361,32 +355,9 @@ class AmazonHTTP2Client:
         _LOGGER.debug("Updated AVS directive site: %s", site)
         raise UpdatedAVSSite
 
-    async def _register_device_capabilities(self) -> None:
-        """Register device capabilities."""
-        _, raw_resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.PUT,
-            url=f"https://api.amazonalexa.com{URI_CAPABILITIES}",
-            input_data=DEVICE_CAPABILITIES,
-            json_data=True,
-            extended_headers={"Authorization": f"Bearer {self._get_bearer_token()}"},
-        )
-
-        if raw_resp.status != HTTPStatus.NO_CONTENT:
-            raise CannotRegisterDevice(
-                f"Register capabilities returned {raw_resp.status} (expected 204)"
-            )
-
-        self._session_state_data.login_stored_data[DEVICE_CAPABILITIES_REGISTERED] = (
-            True
-        )
-        _LOGGER.debug("Device capabilities registered successfully")
-
     async def _get_avs_directives(self) -> None:
         """Maintain AVS directive stream loop."""
-        if not (
-            await self._refresh_token()
-            and await self._check_device_capabilities_registered()
-        ):
+        if not (await self._refresh_token()):
             return
 
         await self._stream_and_process()
@@ -394,29 +365,15 @@ class AmazonHTTP2Client:
     async def _refresh_token(self) -> bool:
         """Refresh the access token."""
         try:
-            refreshed_token, _ = await self._http_wrapper.refresh_data(
+            refresh_successful, _ = await self._http_wrapper.refresh_data(
                 REFRESH_ACCESS_TOKEN
             )
-            if not refreshed_token:
+            if not refresh_successful:
                 _LOGGER.warning("Failed to refresh access token")
                 return False
         except (CannotConnect, CannotRetrieveData) as exc:
             _LOGGER.warning("Failed to refresh access token: %s", exc)
             return False
-        return True
-
-    async def _check_device_capabilities_registered(self) -> bool:
-        """Ensure token and device registration are ready."""
-        if not self._session_state_data.login_stored_data.get(
-            DEVICE_CAPABILITIES_REGISTERED, False
-        ):
-            _LOGGER.debug("Registering device capabilities")
-            try:
-                await self._register_device_capabilities()
-            except (CannotConnect, CannotRetrieveData) as exc:
-                _LOGGER.warning("Failed to register device capabilities: %s", exc)
-                return False
-
         return True
 
     async def _stream_and_process(self) -> None:

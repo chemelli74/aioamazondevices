@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup, Tag
 from multidict import MultiDictProxy
 from yarl import URL
 
+from .capabilities import DEVICE_CAPABILITIES
 from .const.http import (
     AMAZON_APP_NAME,
     AMAZON_APP_VERSION,
@@ -22,7 +23,9 @@ from .const.http import (
     AMAZON_DEVICE_TYPE,
     DEFAULT_SITE,
     FE_SITE,
+    REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
+    URI_CAPABILITIES,
     URI_DEVICES,
     URI_SIGNIN,
 )
@@ -248,6 +251,28 @@ class AmazonLogin:
         _LOGGER.info("Register device: %s", scrub_fields(login_data))
         return login_data
 
+    async def _register_device_capabilities(self) -> None:
+        """Register device capabilities."""
+        _LOGGER.debug("Device capabilities for HTTP2: started registration")
+
+        _, json_token_resp = await self._http_wrapper.refresh_data(REFRESH_ACCESS_TOKEN)
+        _, raw_resp = await self._http_wrapper.session_request(
+            method=HTTPMethod.PUT,
+            url=f"https://api.amazonalexa.com{URI_CAPABILITIES}",
+            input_data=DEVICE_CAPABILITIES,
+            json_data=True,
+            extended_headers={
+                "Authorization": f"Bearer {json_token_resp.get(REFRESH_ACCESS_TOKEN)}"
+            },
+        )
+
+        if raw_resp.status != HTTPStatus.NO_CONTENT:
+            raise CannotRegisterDevice(
+                f"Register capabilities returned {raw_resp.status} (expected 204)"
+            )
+
+        _LOGGER.debug("Device capabilities for HTTP2: completed registration")
+
     async def login_mode_interactive(self, otp_code: str) -> dict[str, Any]:
         """Login to Amazon interactively via OTP."""
         _LOGGER.debug(
@@ -262,6 +287,8 @@ class AmazonLogin:
         self._session_state_data.login_stored_data = login_data
 
         await self._domain_refresh_auth_cookies()
+
+        await self._register_device_capabilities()
 
         await self.obtain_account_customer_id()
 

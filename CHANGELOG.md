@@ -1,5 +1,12 @@
 # Changelog
 
+## v14.0.4 (2026-06-12)
+
+### Bug fixes
+
+- Move device capabilities registration during login ([`eb7d8d9`](https://github.com/chemelli74/aioamazondevices/commit/eb7d8d976f521a77c860d1b609b8460b4c4e3fee))
+
+
 ## v14.0.3 (2026-06-10)
 
 ### Bug fixes
