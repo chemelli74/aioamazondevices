@@ -17,9 +17,7 @@
     },
     {
       "customType": "regex",
-      "managerFilePatterns": [
-        "/(^|/)\\.github/workflows/ci\\.yml$/"
-      ],
+      "managerFilePatterns": ["/(^|/)\\.github/workflows/ci\\.yml$/"],
       "matchStrings": [
         "(?<indentation>[ \\t]*)-\\s*\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=python\\s+datasource=python-version"
       ],
@@ -29,9 +27,7 @@
     },
     {
       "customType": "regex",
-      "managerFilePatterns": [
-        "/(^|/)\\.github/workflows/ci\\.yml$/"
-      ],
+      "managerFilePatterns": ["/(^|/)\\.github/workflows/ci\\.yml$/"],
       "matchStrings": [
         "(?<indentation>[ \\t]*)python-version:\\s*\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=python\\s+datasource=python-version"
       ],
@@ -41,9 +37,7 @@
     },
     {
       "customType": "regex",
-      "managerFilePatterns": [
-        "/(^|/)\\.devcontainer/devcontainer\\.json$/"
-      ],
+      "managerFilePatterns": ["/(^|/)\\.devcontainer/devcontainer\\.json$/"],
       "matchStrings": [
         "\"image\":\\s*\"mcr\\.microsoft\\.com/devcontainers/python:(?<prefix>[^-]+)-(?<currentValue>[^\"]+)\""
       ],
@@ -53,9 +47,7 @@
     },
     {
       "customType": "regex",
-      "managerFilePatterns": [
-        "/(^|/)pyproject\\.toml$/"
-      ],
+      "managerFilePatterns": ["/(^|/)pyproject\\.toml$/"],
       "matchStrings": [
         "\"Programming Language :: Python :: (?<currentValue>[^\"]+)\",\\s*#\\s+renovate:\\s+depName=python\\s+datasource=python-version"
       ],
@@ -65,9 +57,7 @@
     },
     {
       "customType": "regex",
-      "managerFilePatterns": [
-        "/(^|/)pyproject\\.toml$/"
-      ],
+      "managerFilePatterns": ["/(^|/)pyproject\\.toml$/"],
       "matchStrings": [
         "build_command\\s*=\\s*\"\"\"[\\s\\S]*?python -m pip install \\\\\\\"uv==(?<currentValue>[^\\\\\"]+)\\\\\"[\\s\\S]*?\"\"\""
       ],
