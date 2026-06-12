@@ -2,7 +2,6 @@
 
 from .const.http import HTTP2_DIRECTIVES_VERSION
 
-DEVICE_CAPABILITIES_REGISTERED = "device_capabilities_registered"
 DEVICE_CAPABILITIES = {
     "legacyFlags": {
         "SUPPORTS_COMMS": True,
