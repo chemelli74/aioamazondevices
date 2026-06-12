@@ -3,6 +3,7 @@
 import asyncio
 import uuid
 from collections.abc import Callable, Coroutine
+from enum import Enum, auto
 from http import HTTPStatus
 from typing import Any
 
@@ -155,6 +156,13 @@ class AvsDirectiveStreamParser:
         return parts
 
 
+class _TaskAction(Enum):
+    RECONNECT = auto()
+    RECONNECT_IMMEDIATE = auto()
+    REAUTH = auto()
+    STOP = auto()
+
+
 class AmazonHTTP2Client:
     """Amazon push HTTP2 messages."""
 
@@ -198,7 +206,9 @@ class AmazonHTTP2Client:
 
             self._stop_event.clear()
             self._connected_event.clear()
-            self._run_task = asyncio.create_task(self._run_tasks(), name="amazon-http2")
+            self._run_task = asyncio.create_task(
+                self._orchestrate_tasks(), name="amazon-http2"
+            )
             return self._run_task
 
     async def stop_processing(self) -> None:
@@ -218,75 +228,104 @@ class AmazonHTTP2Client:
                 finally:
                     self._run_task = None
 
-    async def _run_tasks(self) -> None:
-        """Run stream and ping tasks until stopped or an unhandled exception occurs."""
+    async def _orchestrate_tasks(self) -> None:
+        """Run tasks and carry out appropriate next actions.
+
+        When tasks complete, perform the next action and apply exponential backoff.
+        For a reconnect this will apply the backoff and retry the tasks.
+        For a reauth, the on_reauth_required callback will be called and will exit.
+        """
         self._reconnect_attempt = 0
         while not self._stop_event.is_set():
-            # exponential backoff with a max of 10 minutes between reconnect attempts
-            # the backoff resets after a successful ping
             delay = min(HTTP2_RECONNECT_DELAY * (2**self._reconnect_attempt), 600)
+            action = await self._run_task_group(delay)
 
-            reauth_required = False
-            restart_required = False
-            try:
-                async with asyncio.TaskGroup() as tg:
-                    tg.create_task(self._get_avs_directives(), name="avs-stream")
-                    tg.create_task(self._ping_loop(), name="avs-ping")
-
-            except* CannotAuthenticate as auth_exc_group:
-                for auth_exc in auth_exc_group.exceptions:
-                    _LOGGER.warning(
-                        "HTTP2 auth failure",
-                        exc_info=(type(auth_exc), auth_exc, auth_exc.__traceback__),
-                    )
-                reauth_required = True
-
-            except* httpx.RemoteProtocolError as disc_exc_group:
-                for disc_exc in disc_exc_group.exceptions:
-                    _LOGGER.debug(
-                        "HTTP2 disconnection detected",
-                        exc_info=(type(disc_exc), disc_exc, disc_exc.__traceback__),
-                    )
-                restart_required = True
-
-            except* httpx.ReadError as read_exc_group:
-                for read_exc in read_exc_group.exceptions:
-                    task = asyncio.current_task()
-                    if self._stop_event.is_set() or (task and task.cancelling()):
-                        _LOGGER.debug("Stream interrupted during shutdown (expected)")
-                    else:
-                        _LOGGER.debug(
-                            "HTTP2 stream read error, reconnecting in %s seconds",
-                            delay,
-                            exc_info=(type(read_exc), read_exc, read_exc.__traceback__),
-                        )
-                        restart_required = True
-
-            except* httpx.HTTPError as http_exc_group:
-                for http_exc in http_exc_group.exceptions:
-                    _LOGGER.warning(
-                        "HTTP2 error detected, reconnecting in %s seconds",
-                        delay,
-                        exc_info=(type(http_exc), http_exc, http_exc.__traceback__),
-                    )
-                restart_required = True
-
-            except* Exception as exc_group:  # noqa: BLE001
-                for exc in exc_group.exceptions:
-                    _LOGGER.warning(
-                        "HTTP2 failure, reconnecting in %s seconds",
-                        delay,
-                        exc_info=(type(exc), exc, exc.__traceback__),
-                    )
-                restart_required = True
-
-            if reauth_required:
+            if action == _TaskAction.STOP:
+                break
+            if action == _TaskAction.REAUTH:
                 if self._on_reauth_required:
                     await self._on_reauth_required()
                 break
-            if restart_required:
+            if action == _TaskAction.RECONNECT:
                 await asyncio.sleep(delay)
                 self._reconnect_attempt += 1
+            # RECONNECT_IMMEDIATE: just loop back, no sleep, no backoff increment
+
+    async def _run_task_group(self, delay: float) -> _TaskAction:
+        """Run TaskGroup, handle exceptions, and determine next action.
+
+        This starts the task group with background AVS directive stream and ping loop
+        handles exceptions to determine whether to reconnect, reauthenticate, or stop.
+        """
+        reauth_required = False
+        shutting_down = False
+        reconnect = False
+
+        try:
+            async with asyncio.TaskGroup() as tg:
+                tg.create_task(self._get_avs_directives(), name="avs-stream")
+                tg.create_task(self._ping_loop(), name="avs-ping")
+
+        except* UpdatedAVSSite:
+            _LOGGER.debug("AVS site updated, restarting stream immediately")
+
+        except* CannotAuthenticate as auth_eg:
+            for auth_exc in auth_eg.exceptions:
+                _LOGGER.warning(
+                    "HTTP2 auth failure",
+                    exc_info=(type(auth_exc), auth_exc, auth_exc.__traceback__),
+                )
+            reauth_required = True
+
+        except* httpx.RemoteProtocolError as disconnect_eg:
+            for disc_exc in disconnect_eg.exceptions:
+                _LOGGER.debug(
+                    "HTTP2 disconnection detected",
+                    exc_info=(type(disc_exc), disc_exc, disc_exc.__traceback__),
+                )
+            reconnect = True
+
+        except* (httpx.ReadError, CannotConnect, CannotRetrieveData) as conn_eg:
+            task = asyncio.current_task()
+            shutting_down = self._stop_event.is_set() or bool(
+                task and task.cancelling()
+            )
+            for conn_exc in conn_eg.exceptions:
+                if shutting_down:
+                    _LOGGER.debug("Connection interrupted during shutdown (expected)")
+                else:
+                    _LOGGER.debug(
+                        "HTTP2 connection error, reconnecting in %s seconds",
+                        delay,
+                        exc_info=(type(conn_exc), conn_exc, conn_exc.__traceback__),
+                    )
+            reconnect = not shutting_down
+
+        except* httpx.HTTPError as http_eg:
+            for http_exc in http_eg.exceptions:
+                _LOGGER.warning(
+                    "HTTP2 error detected, reconnecting in %s seconds",
+                    delay,
+                    exc_info=(type(http_exc), http_exc, http_exc.__traceback__),
+                )
+            reconnect = True
+
+        except* Exception as eg:  # noqa: BLE001
+            for exc in eg.exceptions:
+                _LOGGER.warning(
+                    "HTTP2 failure, reconnecting in %s seconds",
+                    delay,
+                    exc_info=(type(exc), exc, exc.__traceback__),
+                )
+            reconnect = True
+
+        if reauth_required:
+            return _TaskAction.REAUTH
+        if shutting_down:
+            return _TaskAction.STOP
+        if reconnect:
+            return _TaskAction.RECONNECT
+        return _TaskAction.RECONNECT_IMMEDIATE
 
     async def _check_avs_site(self) -> None:
         """Check the AVS site by sending a test event.
@@ -357,24 +396,16 @@ class AmazonHTTP2Client:
 
     async def _get_avs_directives(self) -> None:
         """Maintain AVS directive stream loop."""
-        if not (await self._refresh_token()):
-            return
-
+        await self._refresh_token()
         await self._stream_and_process()
 
-    async def _refresh_token(self) -> bool:
+    async def _refresh_token(self) -> None:
         """Refresh the access token."""
-        try:
-            refresh_successful, _ = await self._http_wrapper.refresh_data(
-                REFRESH_ACCESS_TOKEN
-            )
-            if not refresh_successful:
-                _LOGGER.warning("Failed to refresh access token")
-                return False
-        except (CannotConnect, CannotRetrieveData) as exc:
-            _LOGGER.warning("Failed to refresh access token: %s", exc)
-            return False
-        return True
+        refresh_successful, _ = await self._http_wrapper.refresh_data(
+            REFRESH_ACCESS_TOKEN
+        )
+        if not refresh_successful:
+            raise CannotRetrieveData("Failed to refresh access token")
 
     async def _stream_and_process(self) -> None:
         """Open stream and process incoming directives."""
@@ -426,9 +457,6 @@ class AmazonHTTP2Client:
 
                     for part in avs_stream_parser.feed(chunk):
                         await self._handle_part(part)
-            except UpdatedAVSSite:
-                # Restarting with the correct AVS site
-                return
             except BufferError:
                 _LOGGER.error("Buffer exceeded maximum size, forcing reconnect")
                 return
@@ -463,6 +491,12 @@ class AmazonHTTP2Client:
             push_event_type, payload = result
             try:
                 await self.on_push_event.send(push_event_type, payload)
+            except CannotConnect:
+                task = asyncio.current_task()
+                if self._stop_event.is_set() or (task and task.cancelling()):
+                    _LOGGER.debug("Stream interrupted during shutdown (expected)")
+                else:
+                    raise
             except asyncio.CancelledError:
                 raise
             except Exception:  # noqa: BLE001
