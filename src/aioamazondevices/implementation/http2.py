@@ -339,7 +339,7 @@ class AmazonHTTP2Client:
             REFRESH_ACCESS_TOKEN
         )
         if not refresh_successful:
-            raise CannotRetrieveData("Failed to refresh access token")
+            _LOGGER.warning("Failed to refresh access token")
 
     async def _stream_and_process(self) -> None:
         """Open stream and process incoming directives."""
