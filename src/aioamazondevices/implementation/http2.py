@@ -302,9 +302,6 @@ class AmazonHTTP2Client:
         boundary = http2_parse_boundary_delimiter(
             response.headers.get("content-type", "")
         )
-        if boundary is None:
-            _LOGGER.warning("Missing multipart boundary in SynchronizeState response")
-            return
 
         parser = AvsDirectiveStreamParser(boundary)
         parts = parser.feed(response.content)
@@ -388,9 +385,6 @@ class AmazonHTTP2Client:
             boundary = http2_parse_boundary_delimiter(
                 response.headers.get("content-type", "")
             )
-            if boundary is None:
-                _LOGGER.warning("Missing multipart boundary")
-                return
 
             # Stream confirmed open — allow the ping loop to start firing.
             self._connected_event.set()
@@ -409,7 +403,7 @@ class AmazonHTTP2Client:
                 return
             except BufferError:
                 _LOGGER.error("Buffer exceeded maximum size, forcing reconnect")
-                return
+                raise CannotRetrieveData("Buffer exceeded maximum size") from None
             finally:
                 _LOGGER.debug("AVS Directives stream closed")
                 self._connected_event.clear()
