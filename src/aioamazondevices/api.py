@@ -64,7 +64,7 @@ class AmazonEchoApi:
         | None = None,
     ) -> None:
         """Initialize the scanner."""
-        _LOGGER.debug("Initialize library v%s", __version__)
+        _LOGGER.debug("Initialize library v%s 2026.7.0-beta.3", __version__)
 
         self._default_device: AmazonDevice | None = None
 
