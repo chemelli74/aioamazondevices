@@ -18,7 +18,6 @@ from aioamazondevices.const.http import (
 )
 from aioamazondevices.exceptions import (
     CannotAuthenticate,
-    CannotConnect,
     CannotRetrieveData,
     UpdatedAVSSite,
 )
@@ -327,29 +326,20 @@ class AmazonHTTP2Client:
         while not self._stop_event.is_set():
             self._connected_event.clear()
 
-            if not (await self._refresh_token()):
-                await asyncio.sleep(HTTP2_RECONNECT_DELAY)
-                continue
-
+            await self._refresh_token()
             await self._stream_and_process()
 
             if not self._stop_event.is_set():
                 _LOGGER.debug("Reconnecting in %s seconds", HTTP2_RECONNECT_DELAY)
                 await asyncio.sleep(HTTP2_RECONNECT_DELAY)
 
-    async def _refresh_token(self) -> bool:
+    async def _refresh_token(self) -> None:
         """Refresh the access token."""
-        try:
-            refresh_successful, _ = await self._http_wrapper.refresh_data(
-                REFRESH_ACCESS_TOKEN
-            )
-            if not refresh_successful:
-                _LOGGER.warning("Failed to refresh access token")
-                return False
-        except (CannotConnect, CannotRetrieveData) as exc:
-            _LOGGER.warning("Failed to refresh access token: %s", exc)
-            return False
-        return True
+        refresh_successful, _ = await self._http_wrapper.refresh_data(
+            REFRESH_ACCESS_TOKEN
+        )
+        if not refresh_successful:
+            raise CannotRetrieveData("Failed to refresh access token")
 
     async def _stream_and_process(self) -> None:
         """Open stream and process incoming directives."""
