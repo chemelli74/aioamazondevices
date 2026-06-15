@@ -239,6 +239,22 @@ class AmazonSequenceHandler:
                 ],
                 "skillId": "amzn1.ask.1p.alexadevicecontrols",
             }
+        elif message_type in [
+            AmazonSequenceType.FireTVHome,
+            AmazonSequenceType.FireTVPause,
+            AmazonSequenceType.FireTVPlay,
+            AmazonSequenceType.FireTVResume,
+        ]:
+            payload = {
+                "customerId": self._session_state_data.account_customer_id,
+                "deviceAccountId": device.device_account_id,
+            }
+            if message_type == AmazonSequenceType.FireTVPlay:
+                payload = {
+                    **payload,
+                    "searchPhrase": message_body,
+                    "sanitizedSearchPhrase": message_body,
+                }
         else:
             raise ValueError(f"Message type <{message_type}> is not recognised")
 

@@ -46,6 +46,7 @@ class AmazonDevice:
     capabilities: list[str]
     device_family: str
     device_type: str
+    device_account_id: str | None
     device_owner_customer_id: str
     household_device: bool
     device_cluster_members: dict[str, str | None]
@@ -67,14 +68,18 @@ class AmazonSequenceType(StrEnum):
     """Amazon sequence types."""
 
     Announcement = "AlexaAnnouncement"
-    Speak = "Alexa.Speak"
-    Sound = "Alexa.Sound"
-    Music = "Alexa.Music.PlaySearchPhrase"
-    TextCommand = "Alexa.TextCommand"
+    FireTVHome = "Alexa.Operation.FireTV.NavigateHome"
+    FireTVPause = "Alexa.Operation.FireTV.PauseVideo"
+    FireTVPlay = "Alexa.Operation.Video.PlaySearchPhrase"
+    FireTVResume = "Alexa.Operation.FireTV.ResumeVideo"
     LaunchSkill = "Alexa.Operation.SkillConnections.Launch"
-    Volume = "Alexa.DeviceControls.Volume"
-    Stop = "Alexa.DeviceControls.Stop"
+    Music = "Alexa.Music.PlaySearchPhrase"
     Routines = "Pseudo.Type.Routines"
+    Sound = "Alexa.Sound"
+    Speak = "Alexa.Speak"
+    Stop = "Alexa.DeviceControls.Stop"
+    TextCommand = "Alexa.TextCommand"
+    Volume = "Alexa.DeviceControls.Volume"
 
 
 class AmazonMediaControls(StrEnum):
