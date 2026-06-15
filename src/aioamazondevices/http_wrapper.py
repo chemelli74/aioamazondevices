@@ -38,6 +38,7 @@ from .const.http import (
     REQUEST_AGENT,
     URI_CAPABILITIES,
     URI_SIGNIN,
+    URI_TOKEN,
 )
 from .exceptions import (
     CannotAuthenticate,
@@ -73,6 +74,26 @@ class AmazonSessionStateData:
     def domain(self) -> str:
         """Return domain."""
         return self._domain
+
+    @property
+    def alexa_url(self) -> URL:
+        """Return Alexa URL."""
+        return URL.build(scheme="https", host=f"alexa.amazon.{self._domain}")
+
+    @property
+    def www_url(self) -> URL:
+        """Return WWW URL."""
+        return URL.build(scheme="https", host=f"www.amazon.{self._domain}")
+
+    @property
+    def api_url(self) -> URL:
+        """Return API URL."""
+        return URL.build(scheme="https", host="api.amazon.com")
+
+    @property
+    def api_alexa_url(self) -> URL:
+        """Return API Alexa URL."""
+        return URL.build(scheme="https", host="api.amazonalexa.com")
 
     @property
     def language(self) -> str:
@@ -255,7 +276,7 @@ class AmazonHttpWrapper:
 
         _, raw_resp = await self.session_request(
             method=HTTPMethod.POST,
-            url="https://api.amazon.com/auth/token",
+            url=URL.joinpath(self._session_state_data.api_url, URI_TOKEN),
             input_data=data,
             json_data=False,
         )
@@ -281,7 +302,7 @@ class AmazonHttpWrapper:
     async def session_request(
         self,
         method: str,
-        url: str,
+        url: URL,
         input_data: dict[str, Any] | list[dict[str, Any]] | None = None,
         json_data: bool = False,
         extended_headers: dict[str, str] | None = None,
@@ -389,7 +410,7 @@ class AmazonHttpWrapper:
         if self._save_to_file:
             await self._save_to_file(
                 raw_content.decode("utf-8"),
-                url,
+                url.human_repr(),
                 content_type,
             )
 

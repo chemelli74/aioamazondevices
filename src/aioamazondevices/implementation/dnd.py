@@ -2,6 +2,8 @@
 
 from http import HTTPMethod
 
+from yarl import URL
+
 from aioamazondevices.const.http import URI_DND_STATUS_ALL, URI_DND_STATUS_DEVICE
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
@@ -24,7 +26,7 @@ class AmazonDnDHandler:
         dnd_status: dict[str, AmazonDeviceSensor] = {}
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DND_STATUS_ALL}",
+            url=URL.joinpath(self._session_state_data.alexa_url, URI_DND_STATUS_ALL),
         )
 
         dnd_data = await self._http_wrapper.response_to_json(raw_resp, "dnd")
@@ -47,10 +49,9 @@ class AmazonDnDHandler:
             "deviceType": device.device_type,
             "enabled": enable,
         }
-        url = f"https://alexa.amazon.{self._session_state_data.domain}{URI_DND_STATUS_DEVICE}"
         await self._http_wrapper.session_request(
             method=HTTPMethod.PUT,
-            url=url,
+            url=URL.joinpath(self._session_state_data.alexa_url, URI_DND_STATUS_DEVICE),
             input_data=payload,
             json_data=True,
         )
