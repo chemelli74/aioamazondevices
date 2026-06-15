@@ -140,13 +140,20 @@ class AmazonSensorHandler:
             _LOGGER.error("Malformed sensor state data received: %s", sensors_state)
             return {}
 
+        current_serials: set[str] = set()
         for endpoint in endpoints:
             serial_number = self._endpoints[endpoint.get("endpointId")]
+            current_serials.add(serial_number)
 
             if serial_number in self._final_devices:
                 self._device_sensors[serial_number] = self._get_device_sensor_state(
                     endpoint, serial_number
                 )
+
+        # Remove stale entries for devices no longer in endpoints
+        stale_keys = set(self._device_sensors.keys()) - current_serials
+        for key in stale_keys:
+            del self._device_sensors[key]
 
         return self._device_sensors
 
