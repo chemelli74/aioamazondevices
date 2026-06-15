@@ -296,6 +296,7 @@ async def main() -> None:
         print("Devices summary:")
         dev_index = 1
         for device in devices.values():
+            device_comm_settings = dict(sorted(device.communication_settings.items()))
             print(f"{dev_index}. Device {device.account_name}:")
             print(f"   Online: {device.online}")
             print(f"   Device manufacturer: {device.manufacturer}")
@@ -304,6 +305,7 @@ async def main() -> None:
             print(f"   Device software version: {device.software_version}")
             print(f"   Device sensors: {len(device.sensors)}")
             print(f"   Device notifications: {len(device.notifications)}")
+            print(f"   Device communications: {device_comm_settings}")
             dev_index += 1
         print("-" * 20)
 
