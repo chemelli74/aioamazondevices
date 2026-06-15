@@ -34,6 +34,7 @@ class AmazonSensorHandler:
         self._http_wrapper = http_wrapper
         self._final_devices: dict[str, AmazonDevice] = {}
         self._endpoints: dict[str, str] = {}
+        self._device_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
 
     async def update_sensor_data(
         self,
@@ -102,8 +103,6 @@ class AmazonSensorHandler:
 
     async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
         """Retrieve devices sensors states."""
-        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
-
         if not self._endpoints:
             return {}
 
@@ -141,15 +140,22 @@ class AmazonSensorHandler:
             _LOGGER.error("Malformed sensor state data received: %s", sensors_state)
             return {}
 
+        current_serials: set[str] = set()
         for endpoint in endpoints:
             serial_number = self._endpoints[endpoint.get("endpointId")]
+            current_serials.add(serial_number)
 
             if serial_number in self._final_devices:
-                devices_sensors[serial_number] = self._get_device_sensor_state(
+                self._device_sensors[serial_number] = self._get_device_sensor_state(
                     endpoint, serial_number
                 )
 
-        return devices_sensors
+        # Remove stale entries for devices no longer in endpoints
+        stale_keys = set(self._device_sensors.keys()) - current_serials
+        for key in stale_keys:
+            del self._device_sensors[key]
+
+        return self._device_sensors
 
     def _get_device_sensor_state(
         self, endpoint: dict[str, Any], serial_number: str
