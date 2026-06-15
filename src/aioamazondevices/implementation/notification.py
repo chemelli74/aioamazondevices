@@ -6,6 +6,7 @@ from typing import Any
 
 from dateutil.parser import parse
 from dateutil.rrule import rrulestr
+from yarl import URL
 
 from aioamazondevices.const.devices import DEVICE_TYPES_TO_IGNORE
 from aioamazondevices.const.http import REQUEST_AGENT, URI_NOTIFICATIONS
@@ -44,7 +45,7 @@ class AmazonNotificationHandler:
         try:
             _, raw_resp = await self._http_wrapper.session_request(
                 HTTPMethod.GET,
-                url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NOTIFICATIONS}",
+                url=URL.joinpath(self._session_state_data.alexa_url, URI_NOTIFICATIONS),
                 extended_headers={"User-Agent": REQUEST_AGENT["Browser"]},
             )
         except CannotRetrieveData:
