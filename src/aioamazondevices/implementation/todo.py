@@ -27,8 +27,6 @@ class AmazonToDoHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
 
-        self._base_url = f"https://www.amazon.{self._session_state_data.domain}"
-
         self._lists: list[AmazonListInfo] = []
 
     @property
@@ -54,7 +52,7 @@ class AmazonToDoHandler:
         """
         _, raw_response = await self._http_wrapper.session_request(
             method,
-            f"{self._base_url}{URI_TODO}/{url}",
+            f"https://www.amazon.{self._session_state_data.domain}{URI_TODO}/{url}",
             input_data=input_data or {},  # API doesn't allow 'None'
             json_data=True,
         )
