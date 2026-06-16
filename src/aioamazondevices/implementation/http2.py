@@ -19,6 +19,7 @@ from aioamazondevices.const.http import (
 )
 from aioamazondevices.exceptions import (
     CannotAuthenticate,
+    CannotConnect,
     CannotRetrieveData,
     UpdatedAVSSite,
 )
@@ -258,12 +259,16 @@ class AmazonHTTP2Client:
     async def _run_tasks(self, delay: float) -> _TaskAction:
         """Run stream and ping tasks until stopped or an unhandled exception occurs."""
         reauth_required = False
-        restart_required = False
+        shutting_down = False
+        reconnect = False
 
         try:
             async with asyncio.TaskGroup() as tg:
                 tg.create_task(self._get_avs_directives(), name=_HTTP2_TASK_AVS_STREAM)
                 tg.create_task(self._ping_loop(), name=_HTTP2_TASK_AVS_PING)
+
+        except* UpdatedAVSSite:
+            _LOGGER.debug("AVS site updated, restarting stream immediately")
 
         except* CannotAuthenticate as auth_exc_group:
             for auth_exc in auth_exc_group.exceptions:
@@ -273,18 +278,53 @@ class AmazonHTTP2Client:
                 )
             reauth_required = True
 
-        except* Exception as exc_group:  # noqa: BLE001
-            for exc in exc_group.exceptions:
+        except* httpx.RemoteProtocolError as disconnect_eg:
+            for disc_exc in disconnect_eg.exceptions:
+                _LOGGER.debug(
+                    "HTTP2 disconnection detected",
+                    exc_info=(type(disc_exc), disc_exc, disc_exc.__traceback__),
+                )
+            reconnect = True
+
+        except* (httpx.ReadError, CannotConnect, CannotRetrieveData) as conn_eg:
+            task = asyncio.current_task()
+            shutting_down = self._stop_event.is_set() or bool(
+                task and task.cancelling()
+            )
+            for conn_exc in conn_eg.exceptions:
+                if shutting_down:
+                    _LOGGER.debug("Connection interrupted during shutdown (expected)")
+                else:
+                    _LOGGER.debug(
+                        "HTTP2 connection error, reconnecting in %s seconds",
+                        delay,
+                        exc_info=(type(conn_exc), conn_exc, conn_exc.__traceback__),
+                    )
+            reconnect = not shutting_down
+
+        except* httpx.HTTPError as http_eg:
+            for http_exc in http_eg.exceptions:
+                _LOGGER.warning(
+                    "HTTP2 error detected, reconnecting in %s seconds",
+                    delay,
+                    exc_info=(type(http_exc), http_exc, http_exc.__traceback__),
+                )
+            reconnect = True
+
+        except* Exception as eg:  # noqa: BLE001
+            for exc in eg.exceptions:
                 _LOGGER.warning(
                     "HTTP2 failure, reconnecting in %s seconds",
                     delay,
                     exc_info=(type(exc), exc, exc.__traceback__),
                 )
-            restart_required = True
+            reconnect = True
 
         if reauth_required:
             return _TaskAction.REAUTH
-        if restart_required:
+        if shutting_down:
+            return _TaskAction.STOP
+        if reconnect:
             return _TaskAction.RECONNECT
         return _TaskAction.RECONNECT_IMMEDIATE
 
@@ -354,15 +394,8 @@ class AmazonHTTP2Client:
 
     async def _get_avs_directives(self) -> None:
         """Maintain AVS directive stream loop."""
-        while not self._stop_event.is_set():
-            self._connected_event.clear()
-
-            await self._refresh_token()
-            await self._stream_and_process()
-
-            if not self._stop_event.is_set():
-                _LOGGER.debug("Reconnecting in %s seconds", HTTP2_RECONNECT_DELAY)
-                await asyncio.sleep(HTTP2_RECONNECT_DELAY)
+        await self._refresh_token()
+        await self._stream_and_process()
 
     async def _refresh_token(self) -> None:
         """Refresh the access token."""
@@ -370,7 +403,7 @@ class AmazonHTTP2Client:
             REFRESH_ACCESS_TOKEN
         )
         if not refresh_successful:
-            _LOGGER.warning("Failed to refresh access token")
+            raise CannotRetrieveData("Failed to refresh access token")
 
     async def _stream_and_process(self) -> None:
         """Open stream and process incoming directives."""
@@ -419,9 +452,6 @@ class AmazonHTTP2Client:
 
                     for part in avs_stream_parser.feed(chunk):
                         await self._handle_part(part)
-            except UpdatedAVSSite:
-                # Restarting with the correct AVS site
-                return
             except BufferError:
                 _LOGGER.error("Buffer exceeded maximum size, forcing reconnect")
                 raise CannotRetrieveData("Buffer exceeded maximum size") from None
