@@ -8,7 +8,12 @@ from aioamazondevices.const.devices import (
     DEVICE_TYPES_HARDCODED_METADATA,
     DEVICE_TYPES_TO_IGNORE,
 )
-from aioamazondevices.const.http import REQUEST_AGENT, URI_DEVICES, URI_NEXUS_GRAPHQL
+from aioamazondevices.const.http import (
+    REQUEST_AGENT,
+    URI_DEVICE_PREFERENCES,
+    URI_DEVICES,
+    URI_NEXUS_GRAPHQL,
+)
 from aioamazondevices.const.queries import QUERY_DEVICE_DATA
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice
@@ -51,6 +56,8 @@ class AmazonDeviceHandler:
 
         json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
 
+        all_device_prefs = await self._get_device_preferences()
+
         final_devices_list: dict[str, AmazonDevice] = {}
         serial_to_device_type: dict[str, str] = {}
         for device in json_data["devices"]:
@@ -73,6 +80,8 @@ class AmazonDeviceHandler:
                 capability in capabilities
                 for capability in ["REMINDERS", "TIMERS_AND_ALARMS"]
             )
+
+            device_prefs = all_device_prefs.get(serial_number, {})
 
             final_devices_list[serial_number] = AmazonDevice(
                 account_name=account_name,
@@ -99,6 +108,10 @@ class AmazonDeviceHandler:
                 notifications_supported=_has_notification_capability,
                 notifications={},
                 media_player_supported="AUDIO_PLAYER" in capabilities,
+                locale=device_prefs.get("locale"),
+                supported_locales=device_prefs.get("supported_locales"),
+                device_timezone=device_prefs.get("deviceTimezone"),
+                device_country=device_prefs.get("deviceCountry"),
             )
 
             serial_to_device_type[serial_number] = device["deviceType"]
@@ -243,6 +256,36 @@ class AmazonDeviceHandler:
                 notifications_supported=False,
                 notifications={},
                 media_player_supported=False,
+                locale=None,
+                supported_locales=None,
+                device_timezone=None,
+                device_country=None,
             )
 
         return devices_endpoints
+
+    async def _get_device_preferences(self) -> dict[str, Any]:
+        """Get device preferences."""
+        _, raw_resp = await self._http_wrapper.session_request(
+            method=HTTPMethod.GET,
+            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICE_PREFERENCES}",
+        )
+
+        json_data = await self._http_wrapper.response_to_json(
+            raw_resp, "Device preferences"
+        )
+
+        dev_prefs = {}
+
+        for device_prefs in json_data.get("devicePreferences", []):
+            device_serial_number = device_prefs.get("deviceSerialNumber")
+            dev_prefs[device_serial_number] = {
+                "locale": device_prefs.get("locale"),
+                "supported_locales": device_prefs.get("supportedLocales"),
+                "deviceCountry": device_prefs.get("deviceAddressModel", {}).get(
+                    "countryCode"
+                ),
+                "deviceTimezone": device_prefs.get("timeZoneId"),
+            }
+
+        return dev_prefs

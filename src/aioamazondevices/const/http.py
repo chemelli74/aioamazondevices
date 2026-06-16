@@ -35,6 +35,7 @@ REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
 REFRESH_AUTH_COOKIES = "auth_cookies"
 
 URI_CAPABILITIES = "/v1/devices/@self/capabilities"
+URI_DEVICE_PREFERENCES = "/api/device-preferences?cached=true"
 URI_DEVICE_VOLUMES = "/api/devices/deviceType/dsn/audio/v1/allDeviceVolumes"
 URI_DEVICES = "/api/devices-v2/device"
 URI_DND_STATUS_ALL = "/api/dnd/device-status-list"
