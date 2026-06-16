@@ -8,7 +8,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from http import HTTPMethod, HTTPStatus
 from typing import Any, cast
-from urllib.parse import parse_qs, urlencode
+from urllib.parse import parse_qs
 
 from bs4 import BeautifulSoup, Tag
 from multidict import MultiDictProxy
@@ -27,7 +27,9 @@ from .const.http import (
     REFRESH_AUTH_COOKIES,
     URI_CAPABILITIES,
     URI_DEVICES,
+    URI_REGISTER,
     URI_SIGNIN,
+    URI_WELCOME,
 )
 from .const.metadata import MAX_CUSTOMER_ACCOUNT_RETRIES
 from .exceptions import (
@@ -89,7 +91,7 @@ class AmazonLogin:
         code_verifier: bytes,
         client_id: str,
         registration_language: str = "en-US",
-    ) -> str:
+    ) -> URL:
         """Build the url to login to Amazon as a Mobile device."""
         code_challenge = self._create_s256_code_challenge(code_verifier)
 
@@ -113,7 +115,8 @@ class AmazonLogin:
             "openid.oa2.response_type": "code",
         }
 
-        return f"https://www.amazon.com{URI_SIGNIN}?{urlencode(oauth_params)}"
+        url = URL.joinpath(self._session_state_data.www_url, URI_SIGNIN)
+        return url.with_query(oauth_params)
 
     def _get_inputs_from_soup(self, soup: BeautifulSoup) -> dict[str, str]:
         """Extract hidden form input fields from a Amazon login page."""
@@ -129,7 +132,7 @@ class AmazonLogin:
 
         return inputs
 
-    def _get_request_from_soup(self, soup: BeautifulSoup) -> tuple[str, str]:
+    def _get_request_from_soup(self, soup: BeautifulSoup) -> tuple[str, URL]:
         """Extract URL and method for the next request."""
         _LOGGER.debug("Get request data from HTML source")
         form = soup.find("form", {"name": "signIn"}) or soup.find("form")
@@ -137,7 +140,7 @@ class AmazonLogin:
             method = form.get("method")
             url = form.get("action")
             if isinstance(method, str) and isinstance(url, str):
-                return method, url
+                return method, URL(url)
         raise CannotAuthenticate("Unable to extract form data from response")
 
     def _extract_code_from_url(self, url: URL) -> str:
@@ -198,10 +201,9 @@ class AmazonLogin:
             ],
         }
 
-        register_url = "https://api.amazon.com/auth/register"
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=register_url,
+            url=URL.joinpath(self._session_state_data.api_url, URI_REGISTER),
             input_data=body,
             json_data=True,
         )
@@ -258,7 +260,7 @@ class AmazonLogin:
         _, json_token_resp = await self._http_wrapper.refresh_data(REFRESH_ACCESS_TOKEN)
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.PUT,
-            url=f"https://api.amazonalexa.com{URI_CAPABILITIES}",
+            url=URL.joinpath(self._session_state_data.api_alexa_url, URI_CAPABILITIES),
             input_data=DEVICE_CAPABILITIES,
             json_data=True,
             extended_headers={
@@ -345,7 +347,7 @@ class AmazonLogin:
 
     async def _oauth_login(
         self, code_verifier: bytes, registration_language: str = "en-US"
-    ) -> tuple[str, BeautifulSoup]:
+    ) -> tuple[URL, BeautifulSoup]:
         client_id = self._build_client_id()
 
         _LOGGER.debug("Build oauth URL")
@@ -394,7 +396,7 @@ class AmazonLogin:
         _LOGGER.debug("Retrieve Alexa domain")
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}/api/welcome",
+            url=URL.joinpath(self._session_state_data.alexa_url, URI_WELCOME),
         )
         json_data = await self._http_wrapper.response_to_json(raw_resp)
         return cast(
@@ -459,7 +461,7 @@ class AmazonLogin:
             )
             _, raw_resp = await self._http_wrapper.session_request(
                 method=HTTPMethod.GET,
-                url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICES}",
+                url=URL.joinpath(self._session_state_data.alexa_url, URI_DEVICES),
             )
 
             json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")

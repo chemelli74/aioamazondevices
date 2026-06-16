@@ -3,6 +3,8 @@
 from http import HTTPMethod
 from typing import Any
 
+from yarl import URL
+
 from aioamazondevices.const.devices import (
     DEVICE_TYPE_AQM,
     SPEAKER_GROUP_FAMILY,
@@ -120,7 +122,7 @@ class AmazonSensorHandler:
 
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
+            url=URL.joinpath(self._session_state_data.alexa_url, URI_NEXUS_GRAPHQL),
             input_data=payload,
             json_data=True,
             extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
