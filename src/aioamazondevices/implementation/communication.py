@@ -37,7 +37,7 @@ class AlexaCommunicationsHandler:
             method=HTTPMethod.PATCH, url=url, input_data=payload, json_data=True
         )
 
-    async def set_communications_enablement(
+    async def set_communications_enabled(
         self, device: AmazonDevice, state: bool
     ) -> None:
         """Enable / disable communications for device."""
@@ -45,7 +45,7 @@ class AlexaCommunicationsHandler:
             "communications", device, "ON" if state else "OFF"
         )
 
-    async def set_announcements_enablement(
+    async def set_announcements_enabled(
         self, device: AmazonDevice, state: bool
     ) -> None:
         """Enable / disable announcements for device."""
@@ -53,7 +53,7 @@ class AlexaCommunicationsHandler:
             "announcements", device, "ON" if state else "OFF"
         )
 
-    async def set_dropin_enablement(
+    async def set_dropin_status(
         self, device: AmazonDevice, state: AmazonDropInStatus
     ) -> None:
         """Set allowed dropin state for device."""

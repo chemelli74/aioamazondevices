@@ -35,6 +35,7 @@ from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
 from .structures import (
     AmazonDevice,
+    AmazonDropInStatus,
     AmazonListEvent,
     AmazonListEventType,
     AmazonListInfo,
@@ -483,6 +484,24 @@ class AmazonEchoApi:
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
+
+    async def set_communication_enabled(
+        self, device: AmazonDevice, enable: bool
+    ) -> None:
+        """Set communication enabled status for a device."""
+        await self._communication_handler.set_communications_enabled(device, enable)
+
+    async def set_communication_drop_in_status(
+        self, device: AmazonDevice, dropin: AmazonDropInStatus
+    ) -> None:
+        """Set communication drop-in enabled status for a device."""
+        await self._communication_handler.set_dropin_status(device, dropin)
+
+    async def set_announcements_enabled(
+        self, device: AmazonDevice, enable: bool
+    ) -> None:
+        """Set announcements enabled status for a device."""
+        await self._communication_handler.set_announcements_enabled(device, enable)
 
     async def sync_media_state(self) -> None:
         """Sync media state.
