@@ -258,7 +258,7 @@ class AmazonHTTP2Client:
 
     async def _run_tasks(self, delay: float) -> _TaskAction:
         """Run stream and ping tasks until stopped or an unhandled exception occurs."""
-        reauth_required = False
+        reauth = False
         shutting_down = False
         reconnect = False
 
@@ -276,7 +276,7 @@ class AmazonHTTP2Client:
                     "HTTP2 auth failure",
                     exc_info=(type(auth_exc), auth_exc, auth_exc.__traceback__),
                 )
-            reauth_required = True
+            reauth = True
 
         except* httpx.RemoteProtocolError as disconnect_eg:
             for disc_exc in disconnect_eg.exceptions:
@@ -320,7 +320,7 @@ class AmazonHTTP2Client:
                 )
             reconnect = True
 
-        if reauth_required:
+        if reauth:
             return _TaskAction.REAUTH
         if shutting_down:
             return _TaskAction.STOP
