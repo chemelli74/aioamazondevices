@@ -314,14 +314,20 @@ class AmazonEchoApi:
         await self._emit_media_state_event()
 
     async def _handle_item_change_event(self, payload: dict[str, Any]) -> None:
-        list_id = payload["listId"]
-        item_id = payload["listItemId"]
-        list_event_type = AmazonListEventType(payload["eventName"])
+        list_id = payload.get("listId")
+        item_id = payload.get("listItemId")
+        event_name = payload.get("eventName")
 
-        _LOGGER.info("Received ItemChange for %s: %s", list_id, list_event_type)
+        if list_id is None or item_id is None or event_name is None:
+            _LOGGER.warning("Received malformed ItemChange payload: %s", payload)
+            return
 
-        if list_event_type not in AmazonListEventType:
-            _LOGGER.warning("Received unsupported list event type: %s", list_event_type)
+        _LOGGER.debug("Received ItemChange for %s: %s", list_id, event_name)
+
+        try:
+            list_event_type = AmazonListEventType(event_name)
+        except ValueError:
+            _LOGGER.warning("Received unsupported list event type: %s", event_name)
             return
 
         items = None
@@ -330,7 +336,6 @@ class AmazonEchoApi:
             items = list_items[item_id]
 
         list_event = AmazonListEvent(list_id, item_id, list_event_type, items=items)
-
         await self._emit_todo_event(list_event)
 
     async def call_alexa_speak(
