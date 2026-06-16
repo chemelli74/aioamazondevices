@@ -183,7 +183,7 @@ def parse_device_details(model: str | None) -> tuple[str | None, str | None]:
     return model, None
 
 
-async def format_graphql_error(graphql_response: dict[str, Any]) -> bool:
+def format_graphql_error(graphql_response: dict[str, Any]) -> bool:
     """Format human readable e rror from malformed data."""
     if graphql_response.get(ARRAY_WRAPPER):
         error = graphql_response[ARRAY_WRAPPER][0].get("errors", [])
