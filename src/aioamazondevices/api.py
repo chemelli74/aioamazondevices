@@ -270,54 +270,64 @@ class AmazonEchoApi:
         self, event_type: str, payload: dict[str, Any]
     ) -> None:
         _LOGGER.debug("Event - %s : Payload - %s", event_type, scrub_fields(payload))
-        if event_type == AmazonPushMessage.VolumeChange.value:
-            # Ensure initial full sync happens before applying incremental updates
-            if not self._device_volumes_initialized:
-                await self._media_handler.sync_device_volumes()
-                self._device_volumes_initialized = True
-            serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
-            if serial:
-                volume = AmazonVolumeState(
-                    payload.get("volumeSetting"), payload.get("isMuted")
-                )
-                self._media_handler.update_cached_device_volume(serial, volume)
-            await self._emit_volume_state_event()
+
+        match event_type:
+            case AmazonPushMessage.VolumeChange.value:
+                await self._handle_volume_change(payload)
+            case AmazonPushMessage.EqualizerStateChange.value:
+                await self._emit_history_event()
+            case AmazonPushMessage.AudioPlayerState.value:
+                await self._handle_audio_player_state()
+            case AmazonPushMessage.ItemChange.value:
+                await self._handle_item_change(payload)
+            case _:
+                _LOGGER.debug("Unhandled push event type: %s", event_type)
+
+    async def _handle_volume_change(self, payload: dict[str, Any]) -> None:
+        # Ensure initial full sync happens before applying incremental updates
+        if not self._device_volumes_initialized:
+            await self._media_handler.sync_device_volumes()
+            self._device_volumes_initialized = True
+
+        serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
+        if serial:
+            volume = AmazonVolumeState(
+                payload.get("volumeSetting"), payload.get("isMuted")
+            )
+            self._media_handler.update_cached_device_volume(serial, volume)
+
+        await self._emit_volume_state_event()
+
+    async def _handle_audio_player_state(self) -> None:
+        if not self._device_handler.devices:
+            _LOGGER.debug(
+                "Skipping media state sync for push event because devices "
+                "have not been loaded yet"
+            )
             return
-        if event_type == AmazonPushMessage.EqualizerStateChange.value:
-            await self._emit_history_event()
+
+        await self._media_handler.sync_media_state(self._device_handler.devices)
+        await self._emit_media_state_event()
+
+    async def _handle_item_change(self, payload: dict[str, Any]) -> None:
+        list_id = payload["listId"]
+        item_id = payload["listItemId"]
+        list_event_type = AmazonListEventType(payload["eventName"])
+
+        _LOGGER.info("Received ItemChange for %s: %s", list_id, list_event_type)
+
+        if list_event_type not in AmazonListEventType:
+            _LOGGER.warning("Received unsupported list event type: %s", list_event_type)
             return
-        if event_type == AmazonPushMessage.AudioPlayerState.value:
-            if not self._device_handler.devices:
-                _LOGGER.debug(
-                    "Skipping media state sync for push event because devices "
-                    "have not been loaded yet"
-                )
-                return
-            await self._media_handler.sync_media_state(self._device_handler.devices)
-            await self._emit_media_state_event()
-            return
-        if event_type == AmazonPushMessage.ItemChange.value:
-            list_id = payload["listId"]
-            item_id = payload["listItemId"]
-            list_event_type = AmazonListEventType(payload["eventName"])
 
-            _LOGGER.info("Received ItemChange for %s: %s", list_id, list_event_type)
+        items = None
+        if list_event_type != AmazonListEventType.DELETED:
+            list_items = await self.get_todo_list_items(list_id)
+            items = list_items[item_id]
 
-            if list_event_type not in AmazonListEventType:
-                _LOGGER.warning(
-                    "Received unsupported list event type: %s", list_event_type
-                )
-                return
+        list_event = AmazonListEvent(list_id, item_id, list_event_type, items=items)
 
-            items = None
-            if list_event_type != AmazonListEventType.DELETED:
-                list_items = await self.get_todo_list_items(list_id)
-                items = list_items[item_id]
-
-            list_event = AmazonListEvent(list_id, item_id, list_event_type, items=items)
-
-            await self._emit_todo_event(list_event)
-            return
+        await self._emit_todo_event(list_event)
 
     async def call_alexa_speak(
         self,
