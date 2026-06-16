@@ -82,7 +82,7 @@ class AmazonNotificationHandler:
                 schedule["type"] = NOTIFICATION_ALARM
             label_desc = schedule_type.lower() + "Label"
             if (schedule_status := schedule["status"]) == "ON" and (
-                next_occurrence := await self._parse_next_occurrence(schedule)
+                next_occurrence := self._parse_next_occurrence(schedule)
             ):
                 schedule_notification_list = final_notifications.get(
                     schedule_device_serial, {}
@@ -116,7 +116,7 @@ class AmazonNotificationHandler:
 
         return final_notifications
 
-    async def _parse_next_occurrence(
+    def _parse_next_occurrence(
         self,
         schedule: dict[str, Any],
     ) -> datetime | None:
@@ -153,7 +153,7 @@ class AmazonNotificationHandler:
             for recurring_rule in recurring_rules:
                 # Already in RFC5545 format
                 if "FREQ=" in recurring_rule:
-                    rule = await self._add_hours_minutes(recurring_rule, original_time)
+                    rule = self._add_hours_minutes(recurring_rule, original_time)
 
                     # `after` may return None when no next occurrence exists.
                     candidate = rrulestr(rule, dtstart=reference_start_date).after(
@@ -178,7 +178,7 @@ class AmazonNotificationHandler:
                         recurring_pattern |= WEEKEND_EXCEPTIONS[group]
                         break
 
-                rule = await self._add_hours_minutes(
+                rule = self._add_hours_minutes(
                     recurring_pattern[recurring_rule], original_time
                 )
 
@@ -214,7 +214,7 @@ class AmazonNotificationHandler:
 
         return None
 
-    async def _add_hours_minutes(
+    def _add_hours_minutes(
         self,
         recurring_rule: str,
         original_time: str | None,

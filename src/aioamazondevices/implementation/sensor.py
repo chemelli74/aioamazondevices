@@ -132,7 +132,7 @@ class AmazonSensorHandler:
 
         sensors_state = await self._http_wrapper.response_to_json(raw_resp, "sensors")
 
-        if await format_graphql_error(sensors_state):
+        if format_graphql_error(sensors_state):
             # Explicit error in returned data
             return {}
 
