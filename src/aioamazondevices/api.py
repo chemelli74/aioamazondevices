@@ -273,17 +273,17 @@ class AmazonEchoApi:
 
         match event_type:
             case AmazonPushMessage.VolumeChange.value:
-                await self._handle_volume_change(payload)
+                await self._handle_volume_change_event(payload)
             case AmazonPushMessage.EqualizerStateChange.value:
-                await self._emit_history_event()
+                await self._handle_eq_event_as_history_proxy()
             case AmazonPushMessage.AudioPlayerState.value:
-                await self._handle_audio_player_state()
+                await self._handle_audio_player_state_event()
             case AmazonPushMessage.ItemChange.value:
-                await self._handle_item_change(payload)
+                await self._handle_item_change_event(payload)
             case _:
                 _LOGGER.debug("Unhandled push event type: %s", event_type)
 
-    async def _handle_volume_change(self, payload: dict[str, Any]) -> None:
+    async def _handle_volume_change_event(self, payload: dict[str, Any]) -> None:
         # Ensure initial full sync happens before applying incremental updates
         if not self._device_volumes_initialized:
             await self._media_handler.sync_device_volumes()
@@ -298,7 +298,11 @@ class AmazonEchoApi:
 
         await self._emit_volume_state_event()
 
-    async def _handle_audio_player_state(self) -> None:
+    async def _handle_eq_event_as_history_proxy(self) -> None:
+        vocal_history = await self._history_handler.get_vocal_history()
+        await self._emit_history_event(vocal_history)
+
+    async def _handle_audio_player_state_event(self) -> None:
         if not self._device_handler.devices:
             _LOGGER.debug(
                 "Skipping media state sync for push event because devices "
@@ -309,7 +313,7 @@ class AmazonEchoApi:
         await self._media_handler.sync_media_state(self._device_handler.devices)
         await self._emit_media_state_event()
 
-    async def _handle_item_change(self, payload: dict[str, Any]) -> None:
+    async def _handle_item_change_event(self, payload: dict[str, Any]) -> None:
         list_id = payload["listId"]
         item_id = payload["listItemId"]
         list_event_type = AmazonListEventType(payload["eventName"])
@@ -508,13 +512,13 @@ class AmazonEchoApi:
         """
         return await self._history_handler.get_vocal_history()
 
-    async def _emit_history_event(self) -> None:
+    async def _emit_history_event(
+        self, vocal_history: dict[str, AmazonVocalRecord]
+    ) -> None:
         """Emit vocal history event to subscribers."""
         if self.on_history_event.frozen:
             _LOGGER.debug("Emitting vocal history event to subscribers")
-            await self.on_history_event.send(
-                await self._history_handler.get_vocal_history()
-            )
+            await self.on_history_event.send(vocal_history)
 
     async def set_todo_list_item_checked_status(
         self, list_id: str, item_id: str, checked: bool, version: int
