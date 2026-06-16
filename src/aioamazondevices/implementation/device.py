@@ -3,6 +3,8 @@
 from http import HTTPMethod
 from typing import Any
 
+from yarl import URL
+
 from aioamazondevices.const.devices import (
     DEVICE_TYPE_AQM,
     DEVICE_TYPES_HARDCODED_METADATA,
@@ -46,7 +48,7 @@ class AmazonDeviceHandler:
         """
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICES}",
+            url=URL.joinpath(self._session_state_data.alexa_website_url, URI_DEVICES),
         )
 
         json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
@@ -176,7 +178,9 @@ class AmazonDeviceHandler:
 
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_NEXUS_GRAPHQL}",
+            url=URL.joinpath(
+                self._session_state_data.alexa_website_url, URI_NEXUS_GRAPHQL
+            ),
             input_data=payload,
             json_data=True,
             extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
