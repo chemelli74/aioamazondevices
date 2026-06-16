@@ -38,6 +38,7 @@ from .const.http import (
     REQUEST_AGENT,
     URI_CAPABILITIES,
     URI_SIGNIN,
+    URI_TOKEN,
 )
 from .exceptions import (
     CannotAuthenticate,
@@ -73,6 +74,26 @@ class AmazonSessionStateData:
     def domain(self) -> str:
         """Return domain."""
         return self._domain
+
+    @property
+    def alexa_website_url(self) -> URL:
+        """Return Alexa website URL."""
+        return URL.build(scheme="https", host=f"alexa.amazon.{self._domain}")
+
+    @property
+    def retail_site_url(self) -> URL:
+        """Return Retail site URL."""
+        return URL.build(scheme="https", host=f"www.amazon.{self._domain}")
+
+    @property
+    def global_amazon_api_url(self) -> URL:
+        """Return Global Amazon API URL."""
+        return URL.build(scheme="https", host="api.amazon.com")
+
+    @property
+    def global_alexa_api_url(self) -> URL:
+        """Return Global Alexa API URL."""
+        return URL.build(scheme="https", host="api.amazonalexa.com")
 
     @property
     def language(self) -> str:
@@ -255,7 +276,7 @@ class AmazonHttpWrapper:
 
         _, raw_resp = await self.session_request(
             method=HTTPMethod.POST,
-            url="https://api.amazon.com/auth/token",
+            url=URL.joinpath(self._session_state_data.global_amazon_api_url, URI_TOKEN),
             input_data=data,
             json_data=False,
         )
@@ -281,7 +302,7 @@ class AmazonHttpWrapper:
     async def session_request(
         self,
         method: str,
-        url: str,
+        url: URL,
         input_data: dict[str, Any] | list[dict[str, Any]] | None = None,
         json_data: bool = False,
         extended_headers: dict[str, str] | None = None,
@@ -389,7 +410,7 @@ class AmazonHttpWrapper:
         if self._save_to_file:
             await self._save_to_file(
                 raw_content.decode("utf-8"),
-                url,
+                url.human_repr(),
                 content_type,
             )
 
@@ -415,7 +436,7 @@ class AmazonHttpWrapper:
                 _LOGGER.debug("JSON '%s' data: %s", description, scrub_fields(data))
             return cast("dict[str, Any]", data)
         except ContentTypeError as exc:
-            if raw_resp.url.path == URI_SIGNIN:
+            if URI_SIGNIN in raw_resp.url.path:
                 # content was not JSON and user has been redirected
                 # to signin page
                 raise CannotAuthenticate(

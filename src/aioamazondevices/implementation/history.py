@@ -6,6 +6,7 @@ from http import HTTPMethod
 from typing import Any
 
 from bs4 import Tag
+from yarl import URL
 
 from aioamazondevices.const.http import (
     CSRF_A2Z,
@@ -53,10 +54,15 @@ class AmazonHistoryHandler:
             - timedelta(days=7)
         ).timestamp() * 1000
         end_time = datetime.now(UTC).timestamp() * 1000
-        query_string = f"startTime={int(start_time)}&endTime={int(end_time)}"
+        query_string = {
+            "startTime": int(start_time),
+            "endTime": int(end_time),
+        }
+        url = URL.joinpath(self._session_state_data.retail_site_url, URI_HISTORY_DATA)
+        url = url.with_query(query_string)
         _, raw_res = await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=f"https://www.amazon.{self._session_state_data.domain}{URI_HISTORY_DATA}?{query_string}",
+            url=url,
             input_data={"previousRequestToken": None},
             json_data=True,
             extended_headers={
@@ -120,7 +126,9 @@ class AmazonHistoryHandler:
 
         bs_resp, _ = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://www.amazon.{self._session_state_data.domain}{URI_HISTORY_FRONTEND}",
+            url=URL.joinpath(
+                self._session_state_data.retail_site_url, URI_HISTORY_FRONTEND
+            ),
         )
         token_meta = bs_resp.find("meta", attrs={"name": "csrf-token"})
         if isinstance(token_meta, Tag):
