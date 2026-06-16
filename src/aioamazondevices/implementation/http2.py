@@ -396,6 +396,8 @@ class AmazonHTTP2Client:
         """Maintain AVS directive stream loop."""
         await self._refresh_token()
         await self._stream_and_process()
+        if not self._stop_event.is_set():
+            raise CannotConnect("AVS directives stream ended unexpectedly")
 
     async def _refresh_token(self) -> None:
         """Refresh the access token."""
