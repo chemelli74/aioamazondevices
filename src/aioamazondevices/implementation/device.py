@@ -184,7 +184,7 @@ class AmazonDeviceHandler:
         endpoint_data = await self._http_wrapper.response_to_json(raw_resp, "endpoint")
 
         if not (data := endpoint_data.get("data")) or not data.get("alexaVoiceDevices"):
-            await format_graphql_error(endpoint_data)
+            format_graphql_error(endpoint_data)
             return {}
 
         devices_endpoints: dict[str, dict[str, Any]] = {}
