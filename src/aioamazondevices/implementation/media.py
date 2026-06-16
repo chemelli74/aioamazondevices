@@ -4,6 +4,8 @@ from datetime import UTC, datetime
 from http import HTTPMethod
 from typing import Any
 
+from yarl import URL
+
 from aioamazondevices.const.http import (
     ARRAY_WRAPPER,
     HTTP_CONTENT_TYPE_STREAM,
@@ -66,7 +68,9 @@ class AmazonMediaHandler:
         """Sync all device volumes."""
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_DEVICE_VOLUMES}",
+            url=URL.joinpath(
+                self._session_state_data.alexa_website_url, URI_DEVICE_VOLUMES
+            ),
         )
 
         _volumes: dict[str, AmazonVolumeState] = {}
@@ -86,12 +90,15 @@ class AmazonMediaHandler:
 
         Whilst this takes a device as input it actually returns state for all devices.
         """
-        query_string = (
-            f"deviceSerialNumber={device.serial_number}&deviceType={device.device_type}"
-        )
+        query_string = {
+            "deviceSerialNumber": device.serial_number,
+            "deviceType": device.device_type,
+        }
+        url = URL.joinpath(self._session_state_data.alexa_website_url, URI_MEDIA_STATE)
+        url = url.with_query(query_string)
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_MEDIA_STATE}?{query_string}",
+            url=url,
         )
 
         json_data = await self._http_wrapper.response_to_json(raw_resp, "media state")
@@ -157,9 +164,16 @@ class AmazonMediaHandler:
 
     async def update_music_providers(self) -> None:
         """Update availables music providers."""
-        url = f"https://alexa.amazon.{self._session_state_data.domain}{URI_MUSIC_PROVIDERS}"
+        query_string = {
+            "skillId": "amzn1.ask.1p.music",
+        }
+        url = URL.joinpath(
+            self._session_state_data.alexa_website_url, URI_MUSIC_PROVIDERS
+        )
+        url = url.with_query(query_string)
         _, resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET, url=url
+            method=HTTPMethod.GET,
+            url=url,
         )
         provider_json = await self._http_wrapper.response_to_json(
             resp, "music providers", content_type=HTTP_CONTENT_TYPE_STREAM
