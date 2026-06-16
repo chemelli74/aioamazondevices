@@ -223,3 +223,11 @@ class AmazonListEvent:
     item_id: str
     type: AmazonListEventType
     items: AmazonListItem | None = None
+
+
+class AmazonDropInStatus(StrEnum):
+    """Amazon drop-in status types."""
+
+    ALL = "All"
+    HOME = "Home"
+    OFF = "Off"

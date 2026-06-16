@@ -2,9 +2,11 @@
 
 from http import HTTPMethod
 
-from aioamazondevices.const.http import COMM_SITE
+from yarl import URL
+
+from aioamazondevices.const.http import COMM_SITE, URI_COMM_PREFERENCES
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import AmazonDevice
+from aioamazondevices.structures import AmazonDevice, AmazonDropInStatus
 
 
 class AlexaCommunicationsHandler:
@@ -23,7 +25,14 @@ class AlexaCommunicationsHandler:
         self, preference: str, device: AmazonDevice, state: str
     ) -> None:
         payload = {"state": state}
-        url = f"https://{COMM_SITE}/devicesTypes/{device.device_type}/deviceId/{device.serial_number}/preferences/${preference}"
+        url = URL.joinpath(
+            COMM_SITE,
+            URI_COMM_PREFERENCES.format(
+                device_type=device.device_type,
+                serial_number=device.serial_number,
+            ),
+            preference,
+        )
         await self._http_wrapper.session_request(
             method=HTTPMethod.PATCH, url=url, input_data=payload, json_data=True
         )
@@ -44,12 +53,11 @@ class AlexaCommunicationsHandler:
             "announcements", device, "ON" if state else "OFF"
         )
 
-    async def set_dropin_enablement(self, device: AmazonDevice, state: str) -> None:
-        """Set allowed dropin state for device.
-
-        State values are All, Home and Off
-        """
-        await self._set_communications_state("dropin", device, state)
+    async def set_dropin_enablement(
+        self, device: AmazonDevice, state: AmazonDropInStatus
+    ) -> None:
+        """Set allowed dropin state for device."""
+        await self._set_communications_state("dropin", device, state.value)
 
     async def get_communication_preferences(
         self, devices: list[AmazonDevice]
@@ -57,7 +65,23 @@ class AlexaCommunicationsHandler:
         """Get communication preferences for a device."""
         communication_preferences = {}
         for device in devices:
-            url = f"https://{COMM_SITE}/devicesTypes/{device.device_type}/deviceId/{device.serial_number}/preferences?devicePreferences=communications&devicePreferences=calling&devicePreferences=messaging&devicePreferences=dropin&devicePreferences=announcements"
+            query_string = {
+                "devicePreferences": [
+                    "communications",
+                    "calling",
+                    "messaging",
+                    "dropin",
+                    "announcements",
+                ]
+            }
+            url = URL.joinpath(
+                COMM_SITE,
+                URI_COMM_PREFERENCES.format(
+                    device_type=device.device_type,
+                    serial_number=device.serial_number,
+                ),
+            )
+            url = url.with_query(query_string)
             _, resp = await self._http_wrapper.session_request(
                 method=HTTPMethod.GET, url=url
             )
@@ -66,7 +90,7 @@ class AlexaCommunicationsHandler:
             comms_preferences = {}
             for device_prefs in resp_json.get("devicePermissionsPreferences", {}):
                 comms_preferences[device_prefs.get("devicePreference")] = (
-                    device_prefs.get("state", "n/a")
+                    device_prefs.get("state")
                 )
 
             communication_preferences[device.serial_number] = comms_preferences
