@@ -59,4 +59,4 @@ HTTP2_SITE = "https://bob-dispatch-prod-{region}.amazon.com"
 HTTP2_DIRECTIVES_VERSION = "20160207"
 HTTP2_RECONNECT_DELAY = 5  # seconds
 
-COMM_SITE = "alexa-comms-mobile-service.amazon.com"
+COMM_SITE = "https://alexa-comms-mobile-service.amazon.com"
