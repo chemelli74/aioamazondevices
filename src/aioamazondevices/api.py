@@ -336,6 +336,7 @@ class AmazonEchoApi:
             items = list_items[item_id]
 
         list_event = AmazonListEvent(list_id, item_id, list_event_type, items=items)
+
         await self._emit_todo_event(list_event)
 
     async def call_alexa_speak(
