@@ -324,11 +324,11 @@ class AmazonEchoApi:
 
         _LOGGER.debug("Received ItemChange for %s: %s", list_id, event_name)
 
-        try:
-            list_event_type = AmazonListEventType(event_name)
-        except ValueError:
+        if event_name not in AmazonListEventType:
             _LOGGER.warning("Received unsupported list event type: %s", event_name)
             return
+
+        list_event_type = AmazonListEventType(event_name)
 
         items = None
         if list_event_type != AmazonListEventType.DELETED:
