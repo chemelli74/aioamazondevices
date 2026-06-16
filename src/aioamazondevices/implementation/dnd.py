@@ -26,7 +26,9 @@ class AmazonDnDHandler:
         dnd_status: dict[str, AmazonDeviceSensor] = {}
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=URL.joinpath(self._session_state_data.alexa_url, URI_DND_STATUS_ALL),
+            url=URL.joinpath(
+                self._session_state_data.alexa_website_url, URI_DND_STATUS_ALL
+            ),
         )
 
         dnd_data = await self._http_wrapper.response_to_json(raw_resp, "dnd")
@@ -51,7 +53,9 @@ class AmazonDnDHandler:
         }
         await self._http_wrapper.session_request(
             method=HTTPMethod.PUT,
-            url=URL.joinpath(self._session_state_data.alexa_url, URI_DND_STATUS_DEVICE),
+            url=URL.joinpath(
+                self._session_state_data.alexa_website_url, URI_DND_STATUS_DEVICE
+            ),
             input_data=payload,
             json_data=True,
         )

@@ -92,7 +92,9 @@ class AmazonSequenceHandler:
         _LOGGER.debug("Sending sequence with %s operations", len(sequences))
         await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=URL.joinpath(self._session_state_data.alexa_url, URI_BEHAVIORS_PREVIEW),
+            url=URL.joinpath(
+                self._session_state_data.alexa_website_url, URI_BEHAVIORS_PREVIEW
+            ),
             input_data=node_data,
             json_data=True,
         )
@@ -311,7 +313,7 @@ class AmazonSequenceHandler:
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
             url=URL.joinpath(
-                self._session_state_data.alexa_url, URI_BEHAVIORS_AUTOMATIONS
+                self._session_state_data.alexa_website_url, URI_BEHAVIORS_AUTOMATIONS
             ),
         )
         resp_json = await self._http_wrapper.response_to_json(

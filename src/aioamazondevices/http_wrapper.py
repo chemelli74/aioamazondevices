@@ -76,23 +76,23 @@ class AmazonSessionStateData:
         return self._domain
 
     @property
-    def alexa_url(self) -> URL:
-        """Return Alexa URL."""
+    def alexa_website_url(self) -> URL:
+        """Return Alexa website URL."""
         return URL.build(scheme="https", host=f"alexa.amazon.{self._domain}")
 
     @property
-    def www_url(self) -> URL:
-        """Return WWW URL."""
+    def retail_site_url(self) -> URL:
+        """Return Retail site URL."""
         return URL.build(scheme="https", host=f"www.amazon.{self._domain}")
 
     @property
-    def api_url(self) -> URL:
-        """Return API URL."""
+    def global_amazon_api_url(self) -> URL:
+        """Return Global Amazon API URL."""
         return URL.build(scheme="https", host="api.amazon.com")
 
     @property
-    def api_alexa_url(self) -> URL:
-        """Return API Alexa URL."""
+    def global_alexa_api_url(self) -> URL:
+        """Return Global Alexa API URL."""
         return URL.build(scheme="https", host="api.amazonalexa.com")
 
     @property
@@ -276,7 +276,7 @@ class AmazonHttpWrapper:
 
         _, raw_resp = await self.session_request(
             method=HTTPMethod.POST,
-            url=URL.joinpath(self._session_state_data.api_url, URI_TOKEN),
+            url=URL.joinpath(self._session_state_data.global_amazon_api_url, URI_TOKEN),
             input_data=data,
             json_data=False,
         )

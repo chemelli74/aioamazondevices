@@ -115,7 +115,7 @@ class AmazonLogin:
             "openid.oa2.response_type": "code",
         }
 
-        url = URL.joinpath(self._session_state_data.www_url, URI_SIGNIN)
+        url = URL.joinpath(self._session_state_data.retail_site_url, URI_SIGNIN)
         return url.with_query(oauth_params)
 
     def _get_inputs_from_soup(self, soup: BeautifulSoup) -> dict[str, str]:
@@ -203,7 +203,9 @@ class AmazonLogin:
 
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=URL.joinpath(self._session_state_data.api_url, URI_REGISTER),
+            url=URL.joinpath(
+                self._session_state_data.global_amazon_api_url, URI_REGISTER
+            ),
             input_data=body,
             json_data=True,
         )
@@ -260,7 +262,9 @@ class AmazonLogin:
         _, json_token_resp = await self._http_wrapper.refresh_data(REFRESH_ACCESS_TOKEN)
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.PUT,
-            url=URL.joinpath(self._session_state_data.api_alexa_url, URI_CAPABILITIES),
+            url=URL.joinpath(
+                self._session_state_data.global_alexa_api_url, URI_CAPABILITIES
+            ),
             input_data=DEVICE_CAPABILITIES,
             json_data=True,
             extended_headers={
@@ -396,7 +400,7 @@ class AmazonLogin:
         _LOGGER.debug("Retrieve Alexa domain")
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=URL.joinpath(self._session_state_data.alexa_url, URI_WELCOME),
+            url=URL.joinpath(self._session_state_data.alexa_website_url, URI_WELCOME),
         )
         json_data = await self._http_wrapper.response_to_json(raw_resp)
         return cast(
@@ -461,7 +465,9 @@ class AmazonLogin:
             )
             _, raw_resp = await self._http_wrapper.session_request(
                 method=HTTPMethod.GET,
-                url=URL.joinpath(self._session_state_data.alexa_url, URI_DEVICES),
+                url=URL.joinpath(
+                    self._session_state_data.alexa_website_url, URI_DEVICES
+                ),
             )
 
             json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")

@@ -68,7 +68,9 @@ class AmazonMediaHandler:
         """Sync all device volumes."""
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=URL.joinpath(self._session_state_data.alexa_url, URI_DEVICE_VOLUMES),
+            url=URL.joinpath(
+                self._session_state_data.alexa_website_url, URI_DEVICE_VOLUMES
+            ),
         )
 
         _volumes: dict[str, AmazonVolumeState] = {}
@@ -92,7 +94,7 @@ class AmazonMediaHandler:
             "deviceSerialNumber": device.serial_number,
             "deviceType": device.device_type,
         }
-        url = URL.joinpath(self._session_state_data.alexa_url, URI_MEDIA_STATE)
+        url = URL.joinpath(self._session_state_data.alexa_website_url, URI_MEDIA_STATE)
         url = url.with_query(query_string)
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
@@ -165,7 +167,9 @@ class AmazonMediaHandler:
         query_string = {
             "skillId": "amzn1.ask.1p.music",
         }
-        url = URL.joinpath(self._session_state_data.alexa_url, URI_MUSIC_PROVIDERS)
+        url = URL.joinpath(
+            self._session_state_data.alexa_website_url, URI_MUSIC_PROVIDERS
+        )
         url = url.with_query(query_string)
         _, resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,

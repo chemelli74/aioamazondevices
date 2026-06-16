@@ -43,7 +43,7 @@ class AmazonToDoHandler:
         input_data: dict[str, Any] | None = None,
     ) -> ClientResponse:
         """Call the Alexa lists API."""
-        url = URL.joinpath(self._session_state_data.www_url, URI_TODO, path)
+        url = URL.joinpath(self._session_state_data.retail_site_url, URI_TODO, path)
         url = url.with_query(query)
         _, raw_response = await self._http_wrapper.session_request(
             method=method,

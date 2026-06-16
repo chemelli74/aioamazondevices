@@ -45,7 +45,9 @@ class AmazonNotificationHandler:
         try:
             _, raw_resp = await self._http_wrapper.session_request(
                 HTTPMethod.GET,
-                url=URL.joinpath(self._session_state_data.alexa_url, URI_NOTIFICATIONS),
+                url=URL.joinpath(
+                    self._session_state_data.alexa_website_url, URI_NOTIFICATIONS
+                ),
                 extended_headers={"User-Agent": REQUEST_AGENT["Browser"]},
             )
         except CannotRetrieveData:

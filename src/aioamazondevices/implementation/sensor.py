@@ -122,7 +122,9 @@ class AmazonSensorHandler:
 
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=URL.joinpath(self._session_state_data.alexa_url, URI_NEXUS_GRAPHQL),
+            url=URL.joinpath(
+                self._session_state_data.alexa_website_url, URI_NEXUS_GRAPHQL
+            ),
             input_data=payload,
             json_data=True,
             extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},

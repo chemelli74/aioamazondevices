@@ -58,7 +58,7 @@ class AmazonHistoryHandler:
             "startTime": int(start_time),
             "endTime": int(end_time),
         }
-        url = URL.joinpath(self._session_state_data.www_url, URI_HISTORY_DATA)
+        url = URL.joinpath(self._session_state_data.retail_site_url, URI_HISTORY_DATA)
         url = url.with_query(query_string)
         _, raw_res = await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
@@ -126,7 +126,9 @@ class AmazonHistoryHandler:
 
         bs_resp, _ = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=URL.joinpath(self._session_state_data.www_url, URI_HISTORY_FRONTEND),
+            url=URL.joinpath(
+                self._session_state_data.retail_site_url, URI_HISTORY_FRONTEND
+            ),
         )
         token_meta = bs_resp.find("meta", attrs={"name": "csrf-token"})
         if isinstance(token_meta, Tag):
