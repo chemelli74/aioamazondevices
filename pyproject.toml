@@ -1,6 +1,6 @@
 [project]
 name = "aioamazondevices"
-version = "14.0.3"
+version = "14.0.4"
 requires-python = ">=3.12"
 description = "Python library to control Amazon devices"
 authors = [
@@ -50,7 +50,7 @@ version_variables = [
 ]
 # Keep this version in sync with scripts/setup.sh and .github/workflows/ci.yml.
 build_command = """
-    python -m pip install \"uv==0.11.20\"
+    python -m pip install \"uv==0.11.21\"
     uv lock --upgrade-package "$PACKAGE_NAME"
     git add uv.lock
     uv build
