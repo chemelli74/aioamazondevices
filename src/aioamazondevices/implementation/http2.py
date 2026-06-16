@@ -30,6 +30,9 @@ from aioamazondevices.utils import (
     http2_parse_boundary_delimiter,
 )
 
+_HTTP2_TASK_AVS_MAIN = "aioamazondevices-avs-main"
+_HTTP2_TASK_AVS_STREAM = "aioamazondevices-avs-stream"
+_HTTP2_TASK_AVS_PING = "aioamazondevices-avs-ping"
 _MAX_BUFFER_SIZE = 512 * 1024  # 512 KB
 _PING_INTERVAL = 280
 # How long to wait for the stream to open before the ping loop retries.
@@ -206,7 +209,7 @@ class AmazonHTTP2Client:
             self._stop_event.clear()
             self._connected_event.clear()
             self._run_task = asyncio.create_task(
-                self._orchestrate_tasks(), name="amazon-http2"
+                self._orchestrate_tasks(), name=_HTTP2_TASK_AVS_MAIN
             )
             return self._run_task
 
@@ -259,8 +262,8 @@ class AmazonHTTP2Client:
 
         try:
             async with asyncio.TaskGroup() as tg:
-                tg.create_task(self._get_avs_directives(), name="avs-stream")
-                tg.create_task(self._ping_loop(), name="avs-ping")
+                tg.create_task(self._get_avs_directives(), name=_HTTP2_TASK_AVS_STREAM)
+                tg.create_task(self._ping_loop(), name=_HTTP2_TASK_AVS_PING)
 
         except* CannotAuthenticate as auth_exc_group:
             for auth_exc in auth_exc_group.exceptions:
