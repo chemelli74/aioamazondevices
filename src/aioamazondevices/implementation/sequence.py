@@ -8,8 +8,14 @@ from itertools import groupby
 from typing import Any
 
 import orjson
+from yarl import URL
 
-from aioamazondevices.const.http import ARRAY_WRAPPER, HTTP_CONTENT_TYPE_STREAM
+from aioamazondevices.const.http import (
+    ARRAY_WRAPPER,
+    HTTP_CONTENT_TYPE_STREAM,
+    URI_BEHAVIORS_AUTOMATIONS,
+    URI_BEHAVIORS_PREVIEW,
+)
 from aioamazondevices.const.metadata import ALEXA_INFO_SKILLS, SEQUENCE_BATCH_DELAY
 from aioamazondevices.exceptions import CannotConnect
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
@@ -86,7 +92,9 @@ class AmazonSequenceHandler:
         _LOGGER.debug("Sending sequence with %s operations", len(sequences))
         await self._http_wrapper.session_request(
             method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}/api/behaviors/preview",
+            url=URL.joinpath(
+                self._session_state_data.alexa_website_url, URI_BEHAVIORS_PREVIEW
+            ),
             input_data=node_data,
             json_data=True,
         )
@@ -304,7 +312,9 @@ class AmazonSequenceHandler:
         """Update list of enabled routines for the account."""
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}/api/behaviors/v2/automations",
+            url=URL.joinpath(
+                self._session_state_data.alexa_website_url, URI_BEHAVIORS_AUTOMATIONS
+            ),
         )
         resp_json = await self._http_wrapper.response_to_json(
             raw_resp, content_type=HTTP_CONTENT_TYPE_STREAM

@@ -3,6 +3,7 @@
 import asyncio
 import uuid
 from collections.abc import Callable, Coroutine
+from enum import Enum, auto
 from http import HTTPStatus
 from typing import Any
 
@@ -18,7 +19,6 @@ from aioamazondevices.const.http import (
 )
 from aioamazondevices.exceptions import (
     CannotAuthenticate,
-    CannotConnect,
     CannotRetrieveData,
     UpdatedAVSSite,
 )
@@ -30,6 +30,9 @@ from aioamazondevices.utils import (
     http2_parse_boundary_delimiter,
 )
 
+_HTTP2_TASK_AVS_MAIN = "aioamazondevices-avs-main"
+_HTTP2_TASK_AVS_STREAM = "aioamazondevices-avs-stream"
+_HTTP2_TASK_AVS_PING = "aioamazondevices-avs-ping"
 _MAX_BUFFER_SIZE = 512 * 1024  # 512 KB
 _PING_INTERVAL = 280
 # How long to wait for the stream to open before the ping loop retries.
@@ -155,6 +158,13 @@ class AvsDirectiveStreamParser:
         return parts
 
 
+class _TaskAction(Enum):
+    RECONNECT = auto()
+    RECONNECT_IMMEDIATE = auto()
+    REAUTH = auto()
+    STOP = auto()
+
+
 class AmazonHTTP2Client:
     """Amazon push HTTP2 messages."""
 
@@ -198,7 +208,9 @@ class AmazonHTTP2Client:
 
             self._stop_event.clear()
             self._connected_event.clear()
-            self._run_task = asyncio.create_task(self._run_tasks(), name="amazon-http2")
+            self._run_task = asyncio.create_task(
+                self._orchestrate_tasks(), name=_HTTP2_TASK_AVS_MAIN
+            )
             return self._run_task
 
     async def stop_processing(self) -> None:
@@ -218,45 +230,63 @@ class AmazonHTTP2Client:
                 finally:
                     self._run_task = None
 
-    async def _run_tasks(self) -> None:
-        """Run stream and ping tasks until stopped or an unhandled exception occurs."""
+    async def _orchestrate_tasks(self) -> None:
+        """Run tasks and carry out appropriate next actions.
+
+        When tasks complete, perform the next action and apply exponential backoff.
+        For a reconnect this will apply the backoff and retry the tasks.
+        For a reauth, the on_reauth_required callback will be called and will exit.
+        """
         self._reconnect_attempt = 0
         while not self._stop_event.is_set():
             # exponential backoff with a max of 10 minutes between reconnect attempts
             # the backoff resets after a successful ping
             delay = min(HTTP2_RECONNECT_DELAY * (2**self._reconnect_attempt), 600)
+            action = await self._run_tasks(delay)
 
-            reauth_required = False
-            restart_required = False
-            try:
-                async with asyncio.TaskGroup() as tg:
-                    tg.create_task(self._get_avs_directives(), name="avs-stream")
-                    tg.create_task(self._ping_loop(), name="avs-ping")
-
-            except* CannotAuthenticate as auth_exc_group:
-                for auth_exc in auth_exc_group.exceptions:
-                    _LOGGER.warning(
-                        "HTTP2 auth failure",
-                        exc_info=(type(auth_exc), auth_exc, auth_exc.__traceback__),
-                    )
-                reauth_required = True
-
-            except* Exception as exc_group:  # noqa: BLE001
-                for exc in exc_group.exceptions:
-                    _LOGGER.warning(
-                        "HTTP2 failure, reconnecting in %s seconds",
-                        delay,
-                        exc_info=(type(exc), exc, exc.__traceback__),
-                    )
-                restart_required = True
-
-            if reauth_required:
+            if action == _TaskAction.STOP:
+                break
+            if action == _TaskAction.REAUTH:
                 if self._on_reauth_required:
                     await self._on_reauth_required()
                 break
-            if restart_required:
+            if action == _TaskAction.RECONNECT:
                 await asyncio.sleep(delay)
                 self._reconnect_attempt += 1
+            # RECONNECT_IMMEDIATE: just loop back, no sleep, no backoff increment
+
+    async def _run_tasks(self, delay: float) -> _TaskAction:
+        """Run stream and ping tasks until stopped or an unhandled exception occurs."""
+        reauth_required = False
+        restart_required = False
+
+        try:
+            async with asyncio.TaskGroup() as tg:
+                tg.create_task(self._get_avs_directives(), name=_HTTP2_TASK_AVS_STREAM)
+                tg.create_task(self._ping_loop(), name=_HTTP2_TASK_AVS_PING)
+
+        except* CannotAuthenticate as auth_exc_group:
+            for auth_exc in auth_exc_group.exceptions:
+                _LOGGER.warning(
+                    "HTTP2 auth failure",
+                    exc_info=(type(auth_exc), auth_exc, auth_exc.__traceback__),
+                )
+            reauth_required = True
+
+        except* Exception as exc_group:  # noqa: BLE001
+            for exc in exc_group.exceptions:
+                _LOGGER.warning(
+                    "HTTP2 failure, reconnecting in %s seconds",
+                    delay,
+                    exc_info=(type(exc), exc, exc.__traceback__),
+                )
+            restart_required = True
+
+        if reauth_required:
+            return _TaskAction.REAUTH
+        if restart_required:
+            return _TaskAction.RECONNECT
+        return _TaskAction.RECONNECT_IMMEDIATE
 
     async def _check_avs_site(self) -> None:
         """Check the AVS site by sending a test event.
@@ -302,9 +332,6 @@ class AmazonHTTP2Client:
         boundary = http2_parse_boundary_delimiter(
             response.headers.get("content-type", "")
         )
-        if boundary is None:
-            _LOGGER.warning("Missing multipart boundary in SynchronizeState response")
-            return
 
         parser = AvsDirectiveStreamParser(boundary)
         parts = parser.feed(response.content)
@@ -330,29 +357,20 @@ class AmazonHTTP2Client:
         while not self._stop_event.is_set():
             self._connected_event.clear()
 
-            if not (await self._refresh_token()):
-                await asyncio.sleep(HTTP2_RECONNECT_DELAY)
-                continue
-
+            await self._refresh_token()
             await self._stream_and_process()
 
             if not self._stop_event.is_set():
                 _LOGGER.debug("Reconnecting in %s seconds", HTTP2_RECONNECT_DELAY)
                 await asyncio.sleep(HTTP2_RECONNECT_DELAY)
 
-    async def _refresh_token(self) -> bool:
+    async def _refresh_token(self) -> None:
         """Refresh the access token."""
-        try:
-            refresh_successful, _ = await self._http_wrapper.refresh_data(
-                REFRESH_ACCESS_TOKEN
-            )
-            if not refresh_successful:
-                _LOGGER.warning("Failed to refresh access token")
-                return False
-        except (CannotConnect, CannotRetrieveData) as exc:
-            _LOGGER.warning("Failed to refresh access token: %s", exc)
-            return False
-        return True
+        refresh_successful, _ = await self._http_wrapper.refresh_data(
+            REFRESH_ACCESS_TOKEN
+        )
+        if not refresh_successful:
+            _LOGGER.warning("Failed to refresh access token")
 
     async def _stream_and_process(self) -> None:
         """Open stream and process incoming directives."""
@@ -388,9 +406,6 @@ class AmazonHTTP2Client:
             boundary = http2_parse_boundary_delimiter(
                 response.headers.get("content-type", "")
             )
-            if boundary is None:
-                _LOGGER.warning("Missing multipart boundary")
-                return
 
             # Stream confirmed open — allow the ping loop to start firing.
             self._connected_event.set()
@@ -409,7 +424,7 @@ class AmazonHTTP2Client:
                 return
             except BufferError:
                 _LOGGER.error("Buffer exceeded maximum size, forcing reconnect")
-                return
+                raise CannotRetrieveData("Buffer exceeded maximum size") from None
             finally:
                 _LOGGER.debug("AVS Directives stream closed")
                 self._connected_event.clear()

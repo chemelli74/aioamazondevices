@@ -11,6 +11,7 @@ from typing import Any
 import orjson
 
 from aioamazondevices.const.http import ARRAY_WRAPPER
+from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.structures import AmazonDevice
 
 _LOGGER = logging.getLogger(__package__)
@@ -77,7 +78,7 @@ def http2_extract_json_from_part(part: bytes) -> dict[str, Any] | None:
         return parsed
 
 
-def http2_parse_boundary_delimiter(content_type: str) -> bytes | None:
+def http2_parse_boundary_delimiter(content_type: str) -> bytes:
     """Extract the boundary delimiter from a Content-Type header value.
 
     Returns the full delimiter bytes (with '--' prefix) ready for use
@@ -86,7 +87,7 @@ def http2_parse_boundary_delimiter(content_type: str) -> bytes | None:
     msg = EmailMessage()
     msg["Content-Type"] = content_type
     if not (boundary := msg.get_boundary()):
-        return None
+        raise CannotRetrieveData("Missing multipart boundary")
     return f"--{boundary}".encode()
 
 
@@ -182,7 +183,7 @@ def parse_device_details(model: str | None) -> tuple[str | None, str | None]:
     return model, None
 
 
-async def format_graphql_error(graphql_response: dict[str, Any]) -> bool:
+def format_graphql_error(graphql_response: dict[str, Any]) -> bool:
     """Format human readable e rror from malformed data."""
     if graphql_response.get(ARRAY_WRAPPER):
         error = graphql_response[ARRAY_WRAPPER][0].get("errors", [])
