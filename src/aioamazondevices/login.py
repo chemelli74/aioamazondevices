@@ -108,7 +108,7 @@ class AmazonLogin:
             "openid.oa2.client_id": f"device:{client_id}",
             "language": registration_language,
             "openid.ns.pape": "http://specs.openid.net/extensions/pape/1.0",
-            "openid.oa2.code_challenge": code_challenge,
+            "openid.oa2.code_challenge": code_challenge.decode(),
             "openid.oa2.scope": "device_auth_access",
             "openid.ns": "http://specs.openid.net/auth/2.0",
             "openid.pape.max_auth_age": "0",
