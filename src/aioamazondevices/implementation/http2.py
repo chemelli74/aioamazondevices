@@ -3,6 +3,7 @@
 import asyncio
 import uuid
 from collections.abc import Callable, Coroutine
+from enum import Enum, auto
 from http import HTTPStatus
 from typing import Any
 
@@ -155,6 +156,13 @@ class AvsDirectiveStreamParser:
         return parts
 
 
+class _TaskAction(Enum):
+    RECONNECT = auto()
+    RECONNECT_IMMEDIATE = auto()
+    REAUTH = auto()
+    STOP = auto()
+
+
 class AmazonHTTP2Client:
     """Amazon push HTTP2 messages."""
 
@@ -198,7 +206,9 @@ class AmazonHTTP2Client:
 
             self._stop_event.clear()
             self._connected_event.clear()
-            self._run_task = asyncio.create_task(self._run_tasks(), name="amazon-http2")
+            self._run_task = asyncio.create_task(
+                self._orchestrate_tasks(), name="amazon-http2"
+            )
             return self._run_task
 
     async def stop_processing(self) -> None:
@@ -218,45 +228,63 @@ class AmazonHTTP2Client:
                 finally:
                     self._run_task = None
 
-    async def _run_tasks(self) -> None:
-        """Run stream and ping tasks until stopped or an unhandled exception occurs."""
+    async def _orchestrate_tasks(self) -> None:
+        """Run tasks and carry out appropriate next actions.
+
+        When tasks complete, perform the next action and apply exponential backoff.
+        For a reconnect this will apply the backoff and retry the tasks.
+        For a reauth, the on_reauth_required callback will be called and will exit.
+        """
         self._reconnect_attempt = 0
         while not self._stop_event.is_set():
             # exponential backoff with a max of 10 minutes between reconnect attempts
             # the backoff resets after a successful ping
             delay = min(HTTP2_RECONNECT_DELAY * (2**self._reconnect_attempt), 600)
+            action = await self._run_tasks(delay)
 
-            reauth_required = False
-            restart_required = False
-            try:
-                async with asyncio.TaskGroup() as tg:
-                    tg.create_task(self._get_avs_directives(), name="avs-stream")
-                    tg.create_task(self._ping_loop(), name="avs-ping")
-
-            except* CannotAuthenticate as auth_exc_group:
-                for auth_exc in auth_exc_group.exceptions:
-                    _LOGGER.warning(
-                        "HTTP2 auth failure",
-                        exc_info=(type(auth_exc), auth_exc, auth_exc.__traceback__),
-                    )
-                reauth_required = True
-
-            except* Exception as exc_group:  # noqa: BLE001
-                for exc in exc_group.exceptions:
-                    _LOGGER.warning(
-                        "HTTP2 failure, reconnecting in %s seconds",
-                        delay,
-                        exc_info=(type(exc), exc, exc.__traceback__),
-                    )
-                restart_required = True
-
-            if reauth_required:
+            if action == _TaskAction.STOP:
+                break
+            if action == _TaskAction.REAUTH:
                 if self._on_reauth_required:
                     await self._on_reauth_required()
                 break
-            if restart_required:
+            if action == _TaskAction.RECONNECT:
                 await asyncio.sleep(delay)
                 self._reconnect_attempt += 1
+            # RECONNECT_IMMEDIATE: just loop back, no sleep, no backoff increment
+
+    async def _run_tasks(self, delay: float) -> _TaskAction:
+        """Run stream and ping tasks until stopped or an unhandled exception occurs."""
+        reauth_required = False
+        restart_required = False
+
+        try:
+            async with asyncio.TaskGroup() as tg:
+                tg.create_task(self._get_avs_directives(), name="avs-stream")
+                tg.create_task(self._ping_loop(), name="avs-ping")
+
+        except* CannotAuthenticate as auth_exc_group:
+            for auth_exc in auth_exc_group.exceptions:
+                _LOGGER.warning(
+                    "HTTP2 auth failure",
+                    exc_info=(type(auth_exc), auth_exc, auth_exc.__traceback__),
+                )
+            reauth_required = True
+
+        except* Exception as exc_group:  # noqa: BLE001
+            for exc in exc_group.exceptions:
+                _LOGGER.warning(
+                    "HTTP2 failure, reconnecting in %s seconds",
+                    delay,
+                    exc_info=(type(exc), exc, exc.__traceback__),
+                )
+            restart_required = True
+
+        if reauth_required:
+            return _TaskAction.REAUTH
+        if restart_required:
+            return _TaskAction.RECONNECT
+        return _TaskAction.RECONNECT_IMMEDIATE
 
     async def _check_avs_site(self) -> None:
         """Check the AVS site by sending a test event.
