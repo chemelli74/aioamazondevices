@@ -19,7 +19,6 @@ from aioamazondevices.const.http import (
 )
 from aioamazondevices.exceptions import (
     CannotAuthenticate,
-    CannotConnect,
     CannotRetrieveData,
     UpdatedAVSSite,
 )
@@ -330,9 +329,6 @@ class AmazonHTTP2Client:
         boundary = http2_parse_boundary_delimiter(
             response.headers.get("content-type", "")
         )
-        if boundary is None:
-            _LOGGER.warning("Missing multipart boundary in SynchronizeState response")
-            return
 
         parser = AvsDirectiveStreamParser(boundary)
         parts = parser.feed(response.content)
@@ -358,29 +354,20 @@ class AmazonHTTP2Client:
         while not self._stop_event.is_set():
             self._connected_event.clear()
 
-            if not (await self._refresh_token()):
-                await asyncio.sleep(HTTP2_RECONNECT_DELAY)
-                continue
-
+            await self._refresh_token()
             await self._stream_and_process()
 
             if not self._stop_event.is_set():
                 _LOGGER.debug("Reconnecting in %s seconds", HTTP2_RECONNECT_DELAY)
                 await asyncio.sleep(HTTP2_RECONNECT_DELAY)
 
-    async def _refresh_token(self) -> bool:
+    async def _refresh_token(self) -> None:
         """Refresh the access token."""
-        try:
-            refresh_successful, _ = await self._http_wrapper.refresh_data(
-                REFRESH_ACCESS_TOKEN
-            )
-            if not refresh_successful:
-                _LOGGER.warning("Failed to refresh access token")
-                return False
-        except (CannotConnect, CannotRetrieveData) as exc:
-            _LOGGER.warning("Failed to refresh access token: %s", exc)
-            return False
-        return True
+        refresh_successful, _ = await self._http_wrapper.refresh_data(
+            REFRESH_ACCESS_TOKEN
+        )
+        if not refresh_successful:
+            _LOGGER.warning("Failed to refresh access token")
 
     async def _stream_and_process(self) -> None:
         """Open stream and process incoming directives."""
@@ -416,9 +403,6 @@ class AmazonHTTP2Client:
             boundary = http2_parse_boundary_delimiter(
                 response.headers.get("content-type", "")
             )
-            if boundary is None:
-                _LOGGER.warning("Missing multipart boundary")
-                return
 
             # Stream confirmed open — allow the ping loop to start firing.
             self._connected_event.set()
@@ -437,7 +421,7 @@ class AmazonHTTP2Client:
                 return
             except BufferError:
                 _LOGGER.error("Buffer exceeded maximum size, forcing reconnect")
-                return
+                raise CannotRetrieveData("Buffer exceeded maximum size") from None
             finally:
                 _LOGGER.debug("AVS Directives stream closed")
                 self._connected_event.clear()

@@ -4,6 +4,7 @@ from http import HTTPMethod
 from typing import Any
 
 from aiohttp import ClientResponse
+from yarl import URL
 
 from aioamazondevices.const.http import URI_TODO
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
@@ -27,8 +28,6 @@ class AmazonToDoHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
 
-        self._base_url = f"https://www.amazon.{self._session_state_data.domain}"
-
         self._lists: list[AmazonListInfo] = []
 
     @property
@@ -37,12 +36,18 @@ class AmazonToDoHandler:
         return self._lists
 
     async def _call_lists_api(
-        self, method: HTTPMethod, url: str, input_data: dict[str, Any] | None = None
+        self,
+        method: HTTPMethod,
+        path: str,
+        query: dict[str, Any] | None = None,
+        input_data: dict[str, Any] | None = None,
     ) -> ClientResponse:
         """Call the Alexa lists API."""
+        url = URL.joinpath(self._session_state_data.retail_site_url, URI_TODO, path)
+        url = url.with_query(query)
         _, raw_response = await self._http_wrapper.session_request(
-            method,
-            f"{self._base_url}{URI_TODO}/{url}",
+            method=method,
+            url=url,
             input_data=input_data or {},  # API doesn't allow 'None'
             json_data=True,
         )
@@ -71,7 +76,9 @@ class AmazonToDoHandler:
     ) -> list[AmazonListItem]:
         """Fetch all items from a specified Alexa shopping list."""
         raw_resp = await self._call_lists_api(
-            HTTPMethod.POST, f"{list_id}/items/fetch?limit={limit}"
+            method=HTTPMethod.POST,
+            path=f"{list_id}/items/fetch",
+            query={"limit": limit},
         )
 
         response_json = await self._http_wrapper.response_to_json(raw_resp)
@@ -93,8 +100,9 @@ class AmazonToDoHandler:
     ) -> None:
         """Update the checked status of an item in a shopping list."""
         await self._call_lists_api(
-            HTTPMethod.PUT,
-            f"{list_id}/items/{item_id}?version={version}",
+            method=HTTPMethod.PUT,
+            path=f"{list_id}/items/{item_id}",
+            query={"version": version},
             input_data={
                 "itemAttributesToUpdate": [
                     {
@@ -111,8 +119,8 @@ class AmazonToDoHandler:
     async def add_item(self, list_id: str, name: str) -> None:
         """Add a new item to a shopping list."""
         await self._call_lists_api(
-            HTTPMethod.POST,
-            f"{list_id}/items",
+            method=HTTPMethod.POST,
+            path=f"{list_id}/items",
             input_data={
                 "items": [
                     {
@@ -126,7 +134,9 @@ class AmazonToDoHandler:
     async def delete_item(self, list_id: str, item_id: str, version: int) -> None:
         """Delete an item from a shopping list."""
         await self._call_lists_api(
-            HTTPMethod.DELETE, f"{list_id}/items/{item_id}?version={version}"
+            method=HTTPMethod.DELETE,
+            path=f"{list_id}/items/{item_id}",
+            query={"version": version},
         )
 
     async def rename_item(
@@ -134,8 +144,9 @@ class AmazonToDoHandler:
     ) -> None:
         """Rename an item in a shopping list."""
         await self._call_lists_api(
-            HTTPMethod.PUT,
-            f"{list_id}/items/{item_id}?version={version}",
+            method=HTTPMethod.PUT,
+            path=f"{list_id}/items/{item_id}",
+            query={"version": version},
             input_data={
                 "itemAttributesToUpdate": [{"type": "itemName", "value": new_name}],
                 "itemAttributesToRemove": [],
