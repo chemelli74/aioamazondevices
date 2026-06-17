@@ -1,5 +1,12 @@
 # Changelog
 
+## v14.1.3 (2026-06-17)
+
+### Bug fixes
+
+- Communication preferences ([`4f468b2`](https://github.com/chemelli74/aioamazondevices/commit/4f468b2d02442d0228413d8db8eb5d191652f0f2))
+
+
 ## v14.1.2 (2026-06-17)
 
 ### Bug fixes
