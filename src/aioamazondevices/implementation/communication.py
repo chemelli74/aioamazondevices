@@ -20,13 +20,14 @@ class AlexaCommunicationsHandler:
         """Initialize AlexaCommunicationsHandler class."""
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
+        self._communication_site = URL(COMM_SITE)
 
     async def _set_communications_state(
         self, preference: str, device: AmazonDevice, state: str
     ) -> None:
         payload = {"state": state}
         url = URL.joinpath(
-            COMM_SITE,
+            self._communication_site,
             URI_COMM_PREFERENCES.format(
                 device_type=device.device_type,
                 serial_number=device.serial_number,
@@ -71,7 +72,7 @@ class AlexaCommunicationsHandler:
                 ]
             }
             url = URL.joinpath(
-                COMM_SITE,
+                self._communication_site,
                 URI_COMM_PREFERENCES.format(
                     device_type=device.device_type,
                     serial_number=device.serial_number,
