@@ -1,5 +1,21 @@
 # Changelog
 
+## v14.0.5 (2026-06-16)
+
+### Bug fixes
+
+- Avoid errors when parsing todo item changes ([`858e896`](https://github.com/chemelli74/aioamazondevices/commit/858e8969cb3243c3a7d5f7cb617df85407ed6e9b))
+
+
+### Refactoring
+
+- Use yarl url builder ([`5f3178e`](https://github.com/chemelli74/aioamazondevices/commit/5f3178ea57bf6f9783ce055e863f4a7ebc0808ad))
+- Remove async where not needed ([`f082f81`](https://github.com/chemelli74/aioamazondevices/commit/f082f81f10de9960934df48dfbb4c04d5d7bfec9))
+- Tidy up http2 event handler ([`9a39a21`](https://github.com/chemelli74/aioamazondevices/commit/9a39a2162e2248a69a3fb6a10a40800c3aba2075))
+- Change none returns to exceptions ([`65af18c`](https://github.com/chemelli74/aioamazondevices/commit/65af18ca1ee30c9e3efa02e4e60ac0cb8febed37))
+- Docstrings ([`440c037`](https://github.com/chemelli74/aioamazondevices/commit/440c037d048c88d1692a91c095c65eb4dc45b665))
+
+
 ## v14.0.4 (2026-06-12)
 
 ### Bug fixes

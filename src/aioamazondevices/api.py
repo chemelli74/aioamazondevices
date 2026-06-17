@@ -327,15 +327,21 @@ class AmazonEchoApi:
         await self._emit_media_state_event()
 
     async def _handle_item_change_event(self, payload: dict[str, Any]) -> None:
-        list_id = payload["listId"]
-        item_id = payload["listItemId"]
-        list_event_type = AmazonListEventType(payload["eventName"])
+        list_id = payload.get("listId")
+        item_id = payload.get("listItemId")
+        event_name = payload.get("eventName")
 
-        _LOGGER.info("Received ItemChange for %s: %s", list_id, list_event_type)
-
-        if list_event_type not in AmazonListEventType:
-            _LOGGER.warning("Received unsupported list event type: %s", list_event_type)
+        if list_id is None or item_id is None or event_name is None:
+            _LOGGER.warning("Received malformed ItemChange payload: %s", payload)
             return
+
+        _LOGGER.debug("Received ItemChange for %s: %s", list_id, event_name)
+
+        if event_name not in AmazonListEventType:
+            _LOGGER.warning("Received unsupported list event type: %s", event_name)
+            return
+
+        list_event_type = AmazonListEventType(event_name)
 
         items = None
         if list_event_type != AmazonListEventType.DELETED:
