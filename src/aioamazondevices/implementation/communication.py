@@ -65,8 +65,6 @@ class AlexaCommunicationsHandler:
             query_string = {
                 "devicePreferences": [
                     "communications",
-                    "calling",
-                    "messaging",
                     "dropin",
                     "announcements",
                 ]
@@ -84,12 +82,24 @@ class AlexaCommunicationsHandler:
             )
             resp_json = await self._http_wrapper.response_to_json(resp)
 
-            comms_preferences = {}
-            for device_prefs in resp_json.get("devicePermissionsPreferences", {}):
-                comms_preferences[device_prefs.get("devicePreference")] = (
-                    device_prefs.get("state")
+            device_communication_preferences: dict[str, str] = {}
+            for device_permissions_pref in resp_json.get(
+                "devicePermissionsPreferences", {}
+            ):
+                if (
+                    device_prefs := device_permissions_pref.get("devicePreference")
+                ) == "communications" and device_permissions_pref.get(
+                    "allowed"
+                ) is False:
+                    # Force empty data if communications are not allowed for the device
+                    device_communication_preferences = {}
+                    break
+                device_communication_preferences[device_prefs] = (
+                    device_permissions_pref.get("state")
                 )
 
-            communication_preferences[device.serial_number] = comms_preferences
+            communication_preferences[device.serial_number] = (
+                device_communication_preferences
+            )
 
         return communication_preferences
