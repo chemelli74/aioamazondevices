@@ -521,16 +521,7 @@ class AmazonHTTP2Client:
                 # task reconnect.
                 continue
 
-            try:
-                await self._ping()
-            except CannotAuthenticate:
-                _LOGGER.warning("HTTP2: Ping auth failure")
-                raise
-            except httpx.TimeoutException:
-                _LOGGER.warning("HTTP2: Ping timeout, forcing reconnect")
-                raise
-            except Exception:  # noqa: BLE001
-                _LOGGER.exception("HTTP2: Ping error (will retry)")
+            await self._ping()
 
     async def _ping(self) -> None:
         """POST a keepalive to the AVS /ping endpoint."""
