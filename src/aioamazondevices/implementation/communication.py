@@ -82,18 +82,20 @@ class AlexaCommunicationsHandler:
             )
             resp_json = await self._http_wrapper.response_to_json(resp)
 
-            comms_preferences: dict[str, str] = {}
+            device_communication_preferences: dict[str, str] = {}
             for device_prefs in resp_json.get("devicePermissionsPreferences", {}):
                 if (
                     device_prefs.get("devicePreference") == "communications"
                     and device_prefs.get("allowed") is False
                 ):
-                    comms_preferences = {}
+                    device_communication_preferences = {}
                     break
-                comms_preferences[device_prefs.get("devicePreference")] = (
-                    device_prefs.get("state")
-                )
+                device_communication_preferences[
+                    device_prefs.get("devicePreference")
+                ] = device_prefs.get("state")
 
-            communication_preferences[device.serial_number] = comms_preferences
+            communication_preferences[device.serial_number] = (
+                device_communication_preferences
+            )
 
         return communication_preferences
