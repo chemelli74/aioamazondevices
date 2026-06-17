@@ -43,6 +43,7 @@ class AmazonSensorHandler:
         endpoints: dict[str, str],
         dnd_sensors: dict[str, AmazonDeviceSensor],
         notifications: dict[str, dict[str, Any]] | None,
+        communications: dict[str, dict[str, str]],
     ) -> None:
         """Update sensors data for all devices."""
         self._final_devices = devices
@@ -66,6 +67,11 @@ class AmazonSensorHandler:
                 device_dnd := dnd_sensors.get(device.serial_number)
             ) and device.device_family != SPEAKER_GROUP_FAMILY:
                 device.sensors["dnd"] = device_dnd
+
+            if (
+                device_comm := communications.get(device.serial_number)
+            ) and device.device_family != SPEAKER_GROUP_FAMILY:
+                device.communication_settings = device_comm
 
             if notifications is None:
                 continue  # notifications were not obtained, do not update

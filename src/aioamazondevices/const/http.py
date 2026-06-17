@@ -37,6 +37,7 @@ REFRESH_AUTH_COOKIES = "auth_cookies"
 URI_CAPABILITIES = "v1/devices/@self/capabilities"
 URI_BEHAVIORS_PREVIEW = "api/behaviors/preview"
 URI_BEHAVIORS_AUTOMATIONS = "api/behaviors/v2/automations"
+URI_COMM_PREFERENCES = "devicesTypes/{device_type}/deviceId/{serial_number}/preferences"
 URI_DEVICE_VOLUMES = "api/devices/deviceType/dsn/audio/v1/allDeviceVolumes"
 URI_DEVICES = "api/devices-v2/device"
 URI_DND_STATUS_ALL = "api/dnd/device-status-list"
@@ -57,3 +58,5 @@ URI_WELCOME = "api/welcome"
 HTTP2_SITE = "https://bob-dispatch-prod-{region}.amazon.com"
 HTTP2_DIRECTIVES_VERSION = "20160207"
 HTTP2_RECONNECT_DELAY = 5  # seconds
+
+COMM_SITE = "https://alexa-comms-mobile-service.amazon.com"

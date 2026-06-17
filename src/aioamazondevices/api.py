@@ -10,6 +10,7 @@ import httpx
 from aiohttp import ClientSession
 from aiosignal import Signal
 
+from aioamazondevices.implementation.communication import AlexaCommunicationsHandler
 from aioamazondevices.implementation.device import AmazonDeviceHandler
 from aioamazondevices.implementation.media import AmazonMediaHandler
 from aioamazondevices.implementation.sensor import AmazonSensorHandler
@@ -34,6 +35,7 @@ from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
 from .structures import (
     AmazonDevice,
+    AmazonDropInStatus,
     AmazonListEvent,
     AmazonListEventType,
     AmazonListInfo,
@@ -123,6 +125,11 @@ class AmazonEchoApi:
         )
 
         self._todo_handler = AmazonToDoHandler(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
+        self._communication_handler = AlexaCommunicationsHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
         )
@@ -224,11 +231,17 @@ class AmazonEchoApi:
 
         dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
         notifications = await self._notification_handler.get_notifications()
+        communications = (
+            await self._communication_handler.get_communication_preferences(
+                list(self._device_handler.devices.values())
+            )
+        )
         await self._sensor_handler.update_sensor_data(
             self._device_handler.devices,
             self._device_handler.endpoints,
             dnd_sensors,
             notifications,
+            communications,
         )
 
         return self._device_handler.devices
@@ -477,6 +490,22 @@ class AmazonEchoApi:
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
+
+    async def set_communication_status(
+        self, device: AmazonDevice, enable: bool
+    ) -> None:
+        """Set communication enabled status for a device."""
+        await self._communication_handler.set_communication_status(device, enable)
+
+    async def set_dropin_status(
+        self, device: AmazonDevice, dropin: AmazonDropInStatus
+    ) -> None:
+        """Set communication drop-in enabled status for a device."""
+        await self._communication_handler.set_dropin_status(device, dropin)
+
+    async def set_announcement_status(self, device: AmazonDevice, enable: bool) -> None:
+        """Set announcements enabled status for a device."""
+        await self._communication_handler.set_announcement_status(device, enable)
 
     async def sync_media_state(self) -> None:
         """Sync media state.

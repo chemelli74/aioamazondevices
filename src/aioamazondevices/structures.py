@@ -61,6 +61,7 @@ class AmazonDevice:
     notifications_supported: bool
     notifications: dict[str, AmazonSchedule]
     media_player_supported: bool
+    communication_settings: dict[str, str]
 
 
 class AmazonSequenceType(StrEnum):
@@ -222,3 +223,11 @@ class AmazonListEvent:
     item_id: str
     type: AmazonListEventType
     items: AmazonListItem | None = None
+
+
+class AmazonDropInStatus(StrEnum):
+    """Amazon drop-in status types."""
+
+    ALL = "All"
+    HOME = "Home"
+    OFF = "Off"
