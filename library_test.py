@@ -342,7 +342,7 @@ async def main() -> None:
 
     finally:
         print("Closing session")
-        with contextlib.suppress(Exception):
+        with contextlib.suppress(BaseException):
             await api.stop_http2_processing()
         await client_session.close()
         await httpx_client.aclose()
@@ -541,4 +541,5 @@ def set_logging() -> None:
 
 if __name__ == "__main__":
     set_logging()
-    asyncio.run(main())
+    with contextlib.suppress(KeyboardInterrupt):
+        asyncio.run(main())
