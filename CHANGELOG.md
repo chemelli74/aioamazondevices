@@ -1,5 +1,17 @@
 # Changelog
 
+## v14.1.1 (2026-06-17)
+
+### Bug fixes
+
+- Convert str to url for communication module ([`e67a318`](https://github.com/chemelli74/aioamazondevices/commit/e67a31816278ca53cb4cab653ca275615516e58c))
+
+
+### Testing
+
+- Fix library_test shutdown ([`cbbc9ee`](https://github.com/chemelli74/aioamazondevices/commit/cbbc9ee51febafc52723d37408ad3842acf32c15))
+
+
 ## v14.1.0 (2026-06-17)
 
 ### Features
