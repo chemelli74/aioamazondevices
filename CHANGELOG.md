@@ -1,5 +1,12 @@
 # Changelog
 
+## v14.1.2 (2026-06-17)
+
+### Bug fixes
+
+- Propagate ping errors ([`eb83144`](https://github.com/chemelli74/aioamazondevices/commit/eb83144f66b8e74dd9920f53e2dd61a29876e031))
+
+
 ## v14.1.1 (2026-06-17)
 
 ### Bug fixes
