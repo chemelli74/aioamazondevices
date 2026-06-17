@@ -485,23 +485,21 @@ class AmazonEchoApi:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
 
-    async def set_communication_enabled(
+    async def set_communication_status(
         self, device: AmazonDevice, enable: bool
     ) -> None:
         """Set communication enabled status for a device."""
-        await self._communication_handler.set_communications_enabled(device, enable)
+        await self._communication_handler.set_communication_status(device, enable)
 
-    async def set_communication_drop_in_status(
+    async def set_dropin_status(
         self, device: AmazonDevice, dropin: AmazonDropInStatus
     ) -> None:
         """Set communication drop-in enabled status for a device."""
         await self._communication_handler.set_dropin_status(device, dropin)
 
-    async def set_announcements_enabled(
-        self, device: AmazonDevice, enable: bool
-    ) -> None:
+    async def set_announcement_status(self, device: AmazonDevice, enable: bool) -> None:
         """Set announcements enabled status for a device."""
-        await self._communication_handler.set_announcements_enabled(device, enable)
+        await self._communication_handler.set_announcement_status(device, enable)
 
     async def sync_media_state(self) -> None:
         """Sync media state.

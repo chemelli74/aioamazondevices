@@ -37,17 +37,13 @@ class AlexaCommunicationsHandler:
             method=HTTPMethod.PATCH, url=url, input_data=payload, json_data=True
         )
 
-    async def set_communications_enabled(
-        self, device: AmazonDevice, state: bool
-    ) -> None:
+    async def set_communication_status(self, device: AmazonDevice, state: bool) -> None:
         """Enable / disable communications for device."""
         await self._set_communications_state(
             "communications", device, "ON" if state else "OFF"
         )
 
-    async def set_announcements_enabled(
-        self, device: AmazonDevice, state: bool
-    ) -> None:
+    async def set_announcement_status(self, device: AmazonDevice, state: bool) -> None:
         """Enable / disable announcements for device."""
         await self._set_communications_state(
             "announcements", device, "ON" if state else "OFF"
