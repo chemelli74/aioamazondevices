@@ -1,5 +1,18 @@
 # Changelog
 
+## v14.1.0 (2026-06-17)
+
+### Features
+
+- Comms and announcement enablement ([`35b0e13`](https://github.com/chemelli74/aioamazondevices/commit/35b0e1324284b44e79c2ab1c218114f69133542b))
+
+
+### Refactoring
+
+- Cleanup http2 restart and exception handling ([`7cf8d3c`](https://github.com/chemelli74/aioamazondevices/commit/7cf8d3cdff05b50541f52ac3a9bb3d2d19f8187c))
+- Split http2 restart and run task logic ([`6a6364f`](https://github.com/chemelli74/aioamazondevices/commit/6a6364f8d71775b3291cc1e315d79fb203b326ff))
+
+
 ## v14.0.5 (2026-06-16)
 
 ### Bug fixes
