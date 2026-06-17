@@ -68,10 +68,9 @@ class AmazonSensorHandler:
             ) and device.device_family != SPEAKER_GROUP_FAMILY:
                 device.sensors["dnd"] = device_dnd
 
-            if (
-                device_comm := communications.get(device.serial_number)
-            ) and device.device_family != SPEAKER_GROUP_FAMILY:
-                device.communication_settings = device_comm
+            device.communication_settings = (
+                communications.get(device.serial_number) or {}
+            )
 
             if notifications is None:
                 continue  # notifications were not obtained, do not update
