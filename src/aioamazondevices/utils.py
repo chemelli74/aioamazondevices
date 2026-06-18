@@ -2,6 +2,7 @@
 
 import logging
 import re
+import traceback
 from collections.abc import Collection
 from email.message import EmailMessage
 from email.parser import BytesParser
@@ -257,3 +258,18 @@ def replace_routine_placeholders(
         return value
 
     return {k: _replace(v) for k, v in obj.items()}
+
+
+def get_innermost_frame(exc: BaseException) -> str:
+    """Innermost frame still inside our own code, e.g. '_ping:531'."""
+    for frame in reversed(traceback.extract_tb(exc.__traceback__)):
+        if "aioamazondevices" in frame.filename:
+            return f"{frame.name}:{frame.lineno}"
+    return "unknown"
+
+
+def get_deepest_cause(exc: BaseException) -> BaseException:
+    """Get the deepest cause of an exception."""
+    while exc.__cause__ is not None:
+        exc = exc.__cause__
+    return exc

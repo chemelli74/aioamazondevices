@@ -27,6 +27,8 @@ from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateD
 from aioamazondevices.structures import AmazonPushMessage
 from aioamazondevices.utils import (
     _LOGGER,
+    get_deepest_cause,
+    get_innermost_frame,
     http2_extract_json_from_part,
     http2_parse_boundary_delimiter,
 )
@@ -294,12 +296,24 @@ class AmazonHTTP2Client:
             for conn_exc in conn_eg.exceptions:
                 if shutting_down:
                     _LOGGER.debug("Connection interrupted during shutdown (expected)")
-                else:
+                    continue
+                root = get_deepest_cause(conn_exc)
+                if not str(root):
+                    # If the root cause has no message, this is a connection drop
                     _LOGGER.debug(
-                        "HTTP2 connection error, reconnecting in %s seconds",
+                        "Connection already gone (%s), reconnecting in %s seconds",
+                        get_innermost_frame(conn_exc),
                         delay,
-                        exc_info=(type(conn_exc), conn_exc, conn_exc.__traceback__),
                     )
+                    continue
+                _LOGGER.warning(
+                    "HTTP2 connection error in %s (%s: %s), reconnecting in %s seconds",
+                    get_innermost_frame(conn_exc),
+                    type(root).__name__,
+                    root,
+                    delay,
+                )
+
             reconnect = not shutting_down
 
         except* httpx.HTTPError as http_eg:
@@ -526,6 +540,7 @@ class AmazonHTTP2Client:
     async def _ping(self) -> None:
         """POST a keepalive to the AVS /ping endpoint."""
         if self._http2_client.is_closed:
+            self._stop_event.set()
             return
 
         response = await self._http2_client.post(
