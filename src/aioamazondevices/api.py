@@ -3,7 +3,6 @@
 import asyncio
 from collections.abc import Callable, Coroutine
 from datetime import UTC, datetime, timedelta
-from http import HTTPMethod
 from typing import Any
 
 import httpx
@@ -19,7 +18,6 @@ from aioamazondevices.implementation.todo import AmazonToDoHandler
 from . import __version__
 from .const.http import (
     DEFAULT_SITE,
-    URI_MEDIA_CONTROL,
 )
 from .const.metadata import (
     ALEXA_INFO_SKILLS,
@@ -476,16 +474,7 @@ class AmazonEchoApi:
                 device, AmazonSequenceType.Stop, ""
             )
             return
-        payload = {"type": command.value}
-        query_string = (
-            f"deviceSerialNumber={device.serial_number}&deviceType={device.device_type}"
-        )
-        await self._http_wrapper.session_request(
-            method=HTTPMethod.POST,
-            url=f"https://alexa.amazon.{self._session_state_data.domain}{URI_MEDIA_CONTROL}?{query_string}",
-            input_data=payload,
-            json_data=True,
-        )
+        await self._media_handler.send_media_command(device, command)
 
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set Do Not Disturb status for a device."""
