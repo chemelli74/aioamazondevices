@@ -29,3 +29,7 @@ class WrongMethod(AmazonError):
 
 class UpdatedAVSSite(AmazonError):
     """Exception raised when the AVS site is updated."""
+
+
+class AVSStreamEndedUnexpectedly(AmazonError):
+    """Exception raised when the AVS stream ends unexpectedly."""

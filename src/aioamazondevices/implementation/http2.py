@@ -18,6 +18,7 @@ from aioamazondevices.const.http import (
     REFRESH_ACCESS_TOKEN,
 )
 from aioamazondevices.exceptions import (
+    AVSStreamEndedUnexpectedly,
     CannotAuthenticate,
     CannotConnect,
     CannotRetrieveData,
@@ -280,15 +281,16 @@ class AmazonHTTP2Client:
                 )
             reauth = True
 
-        except* httpx.RemoteProtocolError as disconnect_eg:
-            for disc_exc in disconnect_eg.exceptions:
-                _LOGGER.debug(
-                    "HTTP2 disconnection detected",
-                    exc_info=(type(disc_exc), disc_exc, disc_exc.__traceback__),
-                )
-            reconnect = True
+        except* AVSStreamEndedUnexpectedly:
+            if self._stop_event.is_set() or bool(
+                (task := asyncio.current_task()) and task.cancelling()
+            ):
+                shutting_down = True
+            else:
+                _LOGGER.debug("AVS directives stream ended cleanly, reconnecting")
+                reconnect = True
 
-        except* (httpx.ReadError, CannotConnect, CannotRetrieveData) as conn_eg:
+        except* (httpx.TransportError, CannotConnect, CannotRetrieveData) as conn_eg:
             task = asyncio.current_task()
             shutting_down = self._stop_event.is_set() or bool(
                 task and task.cancelling()
@@ -297,11 +299,20 @@ class AmazonHTTP2Client:
                 if shutting_down:
                     _LOGGER.debug("Connection interrupted during shutdown (expected)")
                     continue
+
+                if isinstance(conn_exc, CannotConnect):
+                    # Only raised from session_request, which has already logged
+                    # a warning/error with the real cause before this point.
+                    _LOGGER.debug(
+                        "Token refresh failure, retrying in %s seconds",
+                        delay,
+                    )
+                    continue
                 root = get_deepest_cause(conn_exc)
                 if not str(root):
                     # If the root cause has no message, this is a connection drop
                     _LOGGER.debug(
-                        "Connection already gone (%s), reconnecting in %s seconds",
+                        "HTTP2 Connection lost (%s), reconnecting in %s seconds",
                         get_innermost_frame(conn_exc),
                         delay,
                     )
@@ -411,7 +422,7 @@ class AmazonHTTP2Client:
         await self._refresh_token()
         await self._stream_and_process()
         if not self._stop_event.is_set():
-            raise CannotConnect("AVS directives stream ended unexpectedly")
+            raise AVSStreamEndedUnexpectedly("AVS directives stream ended unexpectedly")
 
     async def _refresh_token(self) -> None:
         """Refresh the access token."""

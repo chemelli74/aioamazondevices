@@ -7,6 +7,7 @@ from collections.abc import Collection
 from email.message import EmailMessage
 from email.parser import BytesParser
 from email.policy import default
+from pathlib import Path
 from typing import Any
 
 import orjson
@@ -17,6 +18,7 @@ from aioamazondevices.structures import AmazonDevice
 
 _LOGGER = logging.getLogger(__package__)
 _MAX_JSON_PARSE_DEPTH = 10
+_PACKAGE_DIR = Path(__file__).parent
 
 TO_REDACT = {
     "access_token",
@@ -262,8 +264,9 @@ def replace_routine_placeholders(
 
 def get_innermost_frame(exc: BaseException) -> str:
     """Innermost frame still inside our own code, e.g. '_ping:531'."""
-    for frame in reversed(traceback.extract_tb(exc.__traceback__)):
-        if "aioamazondevices" in frame.filename:
+    frames = traceback.extract_tb(exc.__traceback__)
+    for frame in reversed(frames):
+        if Path(frame.filename).is_relative_to(_PACKAGE_DIR):
             return f"{frame.name}:{frame.lineno}"
     return "unknown"
 
