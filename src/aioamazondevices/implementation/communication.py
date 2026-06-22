@@ -90,7 +90,7 @@ class AlexaCommunicationsHandler:
                 pref_state = device_permissions_pref.get("state")
                 pref_allowed = device_permissions_pref.get("allowed")
 
-                if pref_allowed is True:
+                if device_pref and pref_allowed is True:
                     device_communication_preferences[device_pref] = pref_state
 
             communication_preferences[device.serial_number] = (
