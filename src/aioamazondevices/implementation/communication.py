@@ -86,17 +86,12 @@ class AlexaCommunicationsHandler:
             for device_permissions_pref in resp_json.get(
                 "devicePermissionsPreferences", {}
             ):
-                if (
-                    device_prefs := device_permissions_pref.get("devicePreference")
-                ) == "communications" and device_permissions_pref.get(
-                    "allowed"
-                ) is False:
-                    # Force empty data if communications are not allowed for the device
-                    device_communication_preferences = {}
-                    break
-                device_communication_preferences[device_prefs] = (
-                    device_permissions_pref.get("state")
-                )
+                device_pref = device_permissions_pref.get("devicePreference")
+                pref_state = device_permissions_pref.get("state")
+                pref_allowed = device_permissions_pref.get("allowed")
+
+                if pref_allowed is True:
+                    device_communication_preferences[device_pref] = pref_state
 
             communication_preferences[device.serial_number] = (
                 device_communication_preferences
