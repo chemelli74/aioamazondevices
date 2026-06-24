@@ -7,6 +7,8 @@ from enum import Enum, auto
 from http import HTTPStatus
 from typing import Any
 
+import anyio
+import h2
 import httpx
 import orjson
 from aiosignal import Signal
@@ -309,7 +311,7 @@ class AmazonHTTP2Client:
                     )
                     continue
                 root = get_deepest_cause(conn_exc)
-                if not str(root):
+                if not self.is_informative(conn_exc, root):
                     # If the root cause has no message, this is a connection drop
                     _LOGGER.debug(
                         "HTTP2 Connection lost (%s), reconnecting in %s seconds",
@@ -352,6 +354,35 @@ class AmazonHTTP2Client:
         if reconnect:
             return _TaskAction.RECONNECT
         return _TaskAction.RECONNECT_IMMEDIATE
+
+    def is_informative(self, conn_exc: BaseException, root: BaseException) -> bool:
+        """Whether exception is worth surfacing at warning level.
+
+        Due to the way httpx wraps exceptions we need to look within them
+        to determine whether they warrant warning-level logging.
+        """
+        # only delve into httpx.ReadError and httpx.RemoteProtocolError
+        # as these are the ones that may or may not be useful
+        if not isinstance(conn_exc, (httpx.ReadError, httpx.RemoteProtocolError)):
+            return True
+
+        if isinstance(conn_exc, httpx.ReadError):
+            # anyio.ClosedResourceError is triggered by httpx client aclose.
+            # This is likely to be HA shutdown.    This covers race condition
+            # where this is raised prior to stop_event being set.
+            return not isinstance(root, anyio.ClosedResourceError)
+
+        # conn_exc is httpx.RemoteProtocolError
+        if str(root) == "Server disconnected":
+            return False  # clean remote EOF
+
+        terminated = root.args[0] if root.args else None
+        # when server sends a GOAWAY frame with NO_ERROR, it is asking us to reconnect
+        server_goaway = (
+            isinstance(terminated, h2.events.ConnectionTerminated)
+            and terminated.error_code == h2.errors.ErrorCodes.NO_ERROR
+        )
+        return not server_goaway
 
     async def _check_avs_site(self) -> None:
         """Check the AVS site by sending a test event.
