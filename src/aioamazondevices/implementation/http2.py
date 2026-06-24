@@ -8,10 +8,11 @@ from http import HTTPStatus
 from typing import Any
 
 import anyio
-import h2
 import httpx
 import orjson
 from aiosignal import Signal
+from h2.errors import ErrorCodes
+from h2.events import ConnectionTerminated
 
 from aioamazondevices.const.http import (
     HTTP2_DIRECTIVES_VERSION,
@@ -379,8 +380,8 @@ class AmazonHTTP2Client:
         terminated = root.args[0] if root.args else None
         # when server sends a GOAWAY frame with NO_ERROR, it is asking us to reconnect
         server_goaway = (
-            isinstance(terminated, h2.events.ConnectionTerminated)
-            and terminated.error_code == h2.errors.ErrorCodes.NO_ERROR
+            isinstance(terminated, ConnectionTerminated)
+            and terminated.error_code == ErrorCodes.NO_ERROR
         )
         return not server_goaway
 
