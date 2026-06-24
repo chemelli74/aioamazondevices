@@ -10,12 +10,14 @@ from aioamazondevices.const.http import (
     ARRAY_WRAPPER,
     HTTP_CONTENT_TYPE_STREAM,
     URI_DEVICE_VOLUMES,
+    URI_MEDIA_CONTROL,
     URI_MEDIA_STATE,
     URI_MUSIC_PROVIDERS,
 )
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import (
     AmazonDevice,
+    AmazonMediaControls,
     AmazonMediaState,
     AmazonMusicProvider,
     AmazonSequenceType,
@@ -195,3 +197,23 @@ class AmazonMediaHandler:
             and provider["displayName"]
             and provider["availability"] == "AVAILABLE"
         }
+
+    async def send_media_command(
+        self, device: AmazonDevice, command: AmazonMediaControls
+    ) -> None:
+        """Send media control command."""
+        query_string = {
+            "deviceSerialNumber": device.serial_number,
+            "deviceType": device.device_type,
+        }
+        url = URL.joinpath(
+            self._session_state_data.alexa_website_url, URI_MEDIA_CONTROL
+        )
+        url = url.with_query(query_string)
+        payload = {"type": command.value}
+        await self._http_wrapper.session_request(
+            method=HTTPMethod.POST,
+            url=url,
+            input_data=payload,
+            json_data=True,
+        )
