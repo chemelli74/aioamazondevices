@@ -209,7 +209,7 @@ class AmazonLogin:
             input_data=body,
             json_data=True,
         )
-        resp_json = await self._http_wrapper.response_to_json(raw_resp)
+        resp_json = await self._http_wrapper.response_to_json(raw_resp, "register")
 
         if raw_resp.status != HTTPStatus.OK:
             msg = resp_json["response"]["error"]["message"]
@@ -402,7 +402,7 @@ class AmazonLogin:
             method=HTTPMethod.GET,
             url=URL.joinpath(self._session_state_data.alexa_website_url, URI_WELCOME),
         )
-        json_data = await self._http_wrapper.response_to_json(raw_resp)
+        json_data = await self._http_wrapper.response_to_json(raw_resp, "welcome")
         return cast(
             "str",
             json_data.get(

@@ -317,7 +317,7 @@ class AmazonSequenceHandler:
             ),
         )
         resp_json = await self._http_wrapper.response_to_json(
-            raw_resp, content_type=HTTP_CONTENT_TYPE_STREAM
+            raw_resp, "routines", content_type=HTTP_CONTENT_TYPE_STREAM
         )
         self._routines = {
             routine["name"]: routine["sequence"]

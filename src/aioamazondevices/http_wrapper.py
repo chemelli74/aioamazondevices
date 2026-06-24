@@ -419,7 +419,7 @@ class AmazonHttpWrapper:
     async def response_to_json(
         self,
         raw_resp: ClientResponse,
-        description: str | None = None,
+        description: str,
         content_type: str | None = HTTP_CONTENT_TYPE_JSON,
     ) -> dict[str, Any]:
         """Convert response to JSON, if possible."""
