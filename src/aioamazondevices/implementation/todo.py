@@ -57,7 +57,9 @@ class AmazonToDoHandler:
     async def update_lists(self) -> None:
         """Fetch all available Alexa shopping lists and stores it."""
         raw_resp = await self._call_lists_api(HTTPMethod.POST, "fetch")
-        response_json = await self._http_wrapper.response_to_json(raw_resp, "fetch")
+        response_json = await self._http_wrapper.response_to_json(
+            raw_resp, "(todo)fetch"
+        )
         list_info_list = response_json["listInfoList"]
 
         self._lists = [
@@ -80,7 +82,7 @@ class AmazonToDoHandler:
         )
 
         response_json = await self._http_wrapper.response_to_json(
-            raw_resp, "fetch(items)"
+            raw_resp, "(todo)ItemsFetch"
         )
 
         item_info_list = response_json.get("itemInfoList", [])
