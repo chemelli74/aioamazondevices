@@ -341,7 +341,7 @@ class AmazonHttpWrapper:
             if self._session_state_data.login_stored_data
             else self._cookies
         )
-        self._session.cookie_jar.update_cookies(
+        await self.set_cookies(
             _cookies,
             URL.build(
                 scheme="https", host=f".amazon.{self._session_state_data.domain}"
