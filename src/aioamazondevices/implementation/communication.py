@@ -62,7 +62,7 @@ class AlexaCommunicationsHandler:
         self, devices: list[AmazonDevice]
     ) -> dict[str, dict[str, str]]:
         """Get communication preferences for a device."""
-        communication_preferences = {}
+        communication_preferences: dict[str, dict[str, str]] = {}
         for device in devices:
             query_string = {
                 "devicePreferences": [
@@ -86,7 +86,9 @@ class AlexaCommunicationsHandler:
             except CannotRetrieveData as e:
                 if str(e) == "Request failed: Service Unavailable":
                     _LOGGER.debug("unable to get comms preferences")
-                    return {}
+                    # no point continuing to try other devices as they
+                    # will also fail.   Just return what we have so far
+                    return communication_preferences
                 raise
             resp_json = await self._http_wrapper.response_to_json(resp)
 
