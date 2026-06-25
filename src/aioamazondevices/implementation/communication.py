@@ -5,8 +5,10 @@ from http import HTTPMethod
 from yarl import URL
 
 from aioamazondevices.const.http import COMM_SITE, URI_COMM_PREFERENCES
+from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonDropInStatus
+from aioamazondevices.utils import _LOGGER
 
 
 class AlexaCommunicationsHandler:
@@ -21,6 +23,7 @@ class AlexaCommunicationsHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
         self._communication_site = URL(COMM_SITE)
+        self._communication_preferences: dict[str, dict[str, str]] = {}
 
     async def _set_communications_state(
         self, preference: str, device: AmazonDevice, state: str
@@ -60,7 +63,6 @@ class AlexaCommunicationsHandler:
         self, devices: list[AmazonDevice]
     ) -> dict[str, dict[str, str]]:
         """Get communication preferences for a device."""
-        communication_preferences = {}
         for device in devices:
             query_string = {
                 "devicePreferences": [
@@ -77,9 +79,16 @@ class AlexaCommunicationsHandler:
                 ),
             )
             url = url.with_query(query_string)
-            _, resp = await self._http_wrapper.session_request(
-                method=HTTPMethod.GET, url=url
-            )
+            try:
+                _, resp = await self._http_wrapper.session_request(
+                    method=HTTPMethod.GET, url=url
+                )
+            except CannotRetrieveData:
+                _LOGGER.warning(
+                    "Failed to refresh communications settings for device %s, used cached values.",  # noqa: E501
+                    device.account_name,
+                )
+                continue
             resp_json = await self._http_wrapper.response_to_json(
                 resp, "devicesTypes(preferences)"
             )
@@ -95,8 +104,8 @@ class AlexaCommunicationsHandler:
                 if pref_allowed is True:
                     device_communication_preferences[device_pref] = pref_state
 
-            communication_preferences[device.serial_number] = (
+            self._communication_preferences[device.serial_number] = (
                 device_communication_preferences
             )
 
-        return communication_preferences
+        return self._communication_preferences
