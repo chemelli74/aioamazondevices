@@ -58,7 +58,7 @@ class AmazonToDoHandler:
         """Fetch all available Alexa shopping lists and stores it."""
         raw_resp = await self._call_lists_api(HTTPMethod.POST, "fetch")
         response_json = await self._http_wrapper.response_to_json(
-            raw_resp, "listInfoList"
+            raw_resp, "(todo)fetch"
         )
         list_info_list = response_json["listInfoList"]
 
@@ -81,7 +81,9 @@ class AmazonToDoHandler:
             query={"limit": limit},
         )
 
-        response_json = await self._http_wrapper.response_to_json(raw_resp)
+        response_json = await self._http_wrapper.response_to_json(
+            raw_resp, "(todo)ItemsFetch"
+        )
 
         item_info_list = response_json.get("itemInfoList", [])
 
