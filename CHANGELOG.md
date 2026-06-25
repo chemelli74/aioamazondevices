@@ -1,5 +1,17 @@
 # Changelog
 
+## v14.1.6 (2026-06-25)
+
+### Bug fixes
+
+- Bypass comms unavailable error ([`a49d8b2`](https://github.com/chemelli74/aioamazondevices/commit/a49d8b28c22343ed672357bfa98271c668f60c10))
+
+
+### Refactoring
+
+- Improve http2 logging ([`0ce2a71`](https://github.com/chemelli74/aioamazondevices/commit/0ce2a718ce514642f07dd1adc2e8eaf450862552))
+
+
 ## v14.1.5 (2026-06-25)
 
 ### Bug fixes
