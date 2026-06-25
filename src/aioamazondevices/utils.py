@@ -263,7 +263,8 @@ def replace_routine_placeholders(
 
 
 def get_innermost_frame(exc: BaseException) -> str:
-    """Innermost frame still inside our own code, e.g. '_ping:531'."""
+    """Get innermost frame still inside library code."""
+    # E.g. '_ping:531'
     frames = traceback.extract_tb(exc.__traceback__)
     for frame in reversed(frames):
         if Path(frame.filename).is_relative_to(_PACKAGE_DIR):
