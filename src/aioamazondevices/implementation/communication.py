@@ -90,23 +90,20 @@ class AlexaCommunicationsHandler:
                     # will also fail.   Just return what we have so far
                     return communication_preferences
                 raise
-            resp_json = await self._http_wrapper.response_to_json(resp)
+            resp_json = await self._http_wrapper.response_to_json(
+                resp, "devicesTypes(preferences)"
+            )
 
             device_communication_preferences: dict[str, str] = {}
             for device_permissions_pref in resp_json.get(
                 "devicePermissionsPreferences", {}
             ):
-                if (
-                    device_prefs := device_permissions_pref.get("devicePreference")
-                ) == "communications" and device_permissions_pref.get(
-                    "allowed"
-                ) is False:
-                    # Force empty data if communications are not allowed for the device
-                    device_communication_preferences = {}
-                    break
-                device_communication_preferences[device_prefs] = (
-                    device_permissions_pref.get("state")
-                )
+                device_pref = device_permissions_pref["devicePreference"]
+                pref_state = device_permissions_pref.get("state")
+                pref_allowed = device_permissions_pref.get("allowed")
+
+                if pref_allowed is True:
+                    device_communication_preferences[device_pref] = pref_state
 
             communication_preferences[device.serial_number] = (
                 device_communication_preferences

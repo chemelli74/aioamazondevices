@@ -51,7 +51,7 @@ URI_NEXUS_GRAPHQL = "nexus/v1/graphql"
 URI_NOTIFICATIONS = "api/notifications"
 URI_SIGNIN = "ap/signin"
 URI_REGISTER = "auth/register"
-URI_TODO = "alexashoppinglists/api/v2/lists"
+URI_TODO_BASE = "alexashoppinglists/api/v2/lists"
 URI_TOKEN = "auth/token"  # noqa: S105
 URI_WELCOME = "api/welcome"
 

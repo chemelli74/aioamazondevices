@@ -209,7 +209,7 @@ class AmazonLogin:
             input_data=body,
             json_data=True,
         )
-        resp_json = await self._http_wrapper.response_to_json(raw_resp)
+        resp_json = await self._http_wrapper.response_to_json(raw_resp, "register")
 
         if raw_resp.status != HTTPStatus.OK:
             msg = resp_json["response"]["error"]["message"]
@@ -299,7 +299,7 @@ class AmazonLogin:
         await self.obtain_account_customer_id()
 
         self._session_state_data.login_stored_data.update(
-            {"site": f"https://www.amazon.{self._session_state_data.domain}"}
+            {"site": self._session_state_data.retail_site_url.human_repr().rstrip("/")}
         )
 
         return self._session_state_data.login_stored_data
@@ -402,11 +402,11 @@ class AmazonLogin:
             method=HTTPMethod.GET,
             url=URL.joinpath(self._session_state_data.alexa_website_url, URI_WELCOME),
         )
-        json_data = await self._http_wrapper.response_to_json(raw_resp)
+        json_data = await self._http_wrapper.response_to_json(raw_resp, "welcome")
         return cast(
             "str",
             json_data.get(
-                "alexaHostName", f"alexa.amazon.{self._session_state_data.domain}"
+                "alexaHostName", self._session_state_data.alexa_website_url.host
             ),
         )
 
@@ -425,7 +425,9 @@ class AmazonLogin:
             for cookie in cookie_json[cookie_domain]:
                 new_cookie_value = cookie["Value"].replace(r'"', r"")
                 new_cookie = {cookie["Name"]: new_cookie_value}
-                await self._http_wrapper.set_cookies(new_cookie, URL(cookie_domain))
+                await self._http_wrapper.set_cookies(
+                    new_cookie, URL.build(scheme="https", host=cookie_domain)
+                )
                 website_cookies.update(new_cookie)
                 if cookie["Name"] == "session-token":
                     self._session_state_data.login_stored_data[
