@@ -299,7 +299,7 @@ class AmazonLogin:
         await self.obtain_account_customer_id()
 
         self._session_state_data.login_stored_data.update(
-            {"site": f"https://www.amazon.{self._session_state_data.domain}"}
+            {"site": self._session_state_data.retail_site_url.human_repr().rstrip("/")}
         )
 
         return self._session_state_data.login_stored_data
@@ -406,7 +406,7 @@ class AmazonLogin:
         return cast(
             "str",
             json_data.get(
-                "alexaHostName", f"alexa.amazon.{self._session_state_data.domain}"
+                "alexaHostName", self._session_state_data.alexa_website_url.host
             ),
         )
 
@@ -425,7 +425,9 @@ class AmazonLogin:
             for cookie in cookie_json[cookie_domain]:
                 new_cookie_value = cookie["Value"].replace(r'"', r"")
                 new_cookie = {cookie["Name"]: new_cookie_value}
-                await self._http_wrapper.set_cookies(new_cookie, URL(cookie_domain))
+                await self._http_wrapper.set_cookies(
+                    new_cookie, URL.build(scheme="https", host=cookie_domain)
+                )
                 website_cookies.update(new_cookie)
                 if cookie["Name"] == "session-token":
                     self._session_state_data.login_stored_data[
