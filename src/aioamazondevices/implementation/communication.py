@@ -85,7 +85,7 @@ class AlexaCommunicationsHandler:
                 )
             except CannotRetrieveData:
                 _LOGGER.warning(
-                    "Failed to refresh communications settings, maybe stale."
+                    "Failed to refresh communications settings for device %s, used cached values.", device.account_name
                 )
                 continue
             resp_json = await self._http_wrapper.response_to_json(
