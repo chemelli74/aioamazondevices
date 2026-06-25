@@ -1,5 +1,19 @@
 # Changelog
 
+## v14.1.4 (2026-06-25)
+
+### Bug fixes
+
+- Only return 'allowed' comms preferences ([`1d976b9`](https://github.com/chemelli74/aioamazondevices/commit/1d976b9e6f7cd6515b4a8b66ecc6ae951c7cf13c))
+
+
+### Refactoring
+
+- Cleanup url's leftovers ([`2d2b975`](https://github.com/chemelli74/aioamazondevices/commit/2d2b97569040b62d33ba8236ca57bd54e46d5ad9))
+- Logging ([`44c4521`](https://github.com/chemelli74/aioamazondevices/commit/44c452154938f4f07abd6d6c1e72fc045158d1f3))
+- Move raw media command ([`a424c07`](https://github.com/chemelli74/aioamazondevices/commit/a424c075204c5e9e355c783119b7387f6e91a2fc))
+
+
 ## v14.1.3 (2026-06-17)
 
 ### Bug fixes
