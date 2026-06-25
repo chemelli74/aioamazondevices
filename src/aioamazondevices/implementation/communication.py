@@ -80,7 +80,9 @@ class AlexaCommunicationsHandler:
             _, resp = await self._http_wrapper.session_request(
                 method=HTTPMethod.GET, url=url
             )
-            resp_json = await self._http_wrapper.response_to_json(resp)
+            resp_json = await self._http_wrapper.response_to_json(
+                resp, "devicesTypes(preferences)"
+            )
 
             device_communication_preferences: dict[str, str] = {}
             for device_permissions_pref in resp_json.get(

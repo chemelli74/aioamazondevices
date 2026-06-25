@@ -13,24 +13,24 @@ repos:
       - id: check-yaml
       - id: detect-private-key
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.23
+    rev: 0.11.24
     hooks:
       - id: uv-lock
         args: ["--check"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.18
+    rev: v0.15.19
     hooks:
       - id: ruff-check
         args:
           - --fix
       - id: ruff-format
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.16.3
+    rev: v4.16.4
     hooks:
       - id: commitizen
         stages: [commit-msg]
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.25.0
+    rev: v9.26.0
     hooks:
       - id: commitlint
         stages: [commit-msg]

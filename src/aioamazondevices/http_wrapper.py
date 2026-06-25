@@ -271,7 +271,7 @@ class AmazonHttpWrapper:
             "di.os.version": AMAZON_CLIENT_OS,
             "current_version": "6.12.4",
             "previous_version": "6.12.4",
-            "domain": f"www.amazon.{self._session_state_data.domain}",
+            "domain": self._session_state_data.retail_site_url.host,
         }
 
         _, raw_resp = await self.session_request(
@@ -341,8 +341,11 @@ class AmazonHttpWrapper:
             if self._session_state_data.login_stored_data
             else self._cookies
         )
-        self._session.cookie_jar.update_cookies(
-            _cookies, URL(f"amazon.{self._session_state_data.domain}")
+        await self.set_cookies(
+            _cookies,
+            URL.build(
+                scheme="https", host=f".amazon.{self._session_state_data.domain}"
+            ),
         )
 
         resp: ClientResponse | None = None
@@ -356,7 +359,7 @@ class AmazonHttpWrapper:
             try:
                 resp = await self._session.request(
                     method,
-                    URL(url, encoded=True),
+                    url,
                     data=input_data if not json_data else orjson.dumps(input_data),
                     headers=headers,
                 )
@@ -419,7 +422,7 @@ class AmazonHttpWrapper:
     async def response_to_json(
         self,
         raw_resp: ClientResponse,
-        description: str | None = None,
+        description: str,
         content_type: str | None = HTTP_CONTENT_TYPE_JSON,
     ) -> dict[str, Any]:
         """Convert response to JSON, if possible."""

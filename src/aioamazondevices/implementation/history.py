@@ -70,7 +70,7 @@ class AmazonHistoryHandler:
                 CSRF_A2Z: self._csrf_a2z_token,
             },
         )
-        history = await self._http_wrapper.response_to_json(raw_res)
+        history = await self._http_wrapper.response_to_json(raw_res, "history")
         _LOGGER.debug("Vocal history data: %s", history)
         return history
 
