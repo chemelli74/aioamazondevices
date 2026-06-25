@@ -5,8 +5,10 @@ from http import HTTPMethod
 from yarl import URL
 
 from aioamazondevices.const.http import COMM_SITE, URI_COMM_PREFERENCES
+from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonDropInStatus
+from aioamazondevices.utils import _LOGGER
 
 
 class AlexaCommunicationsHandler:
@@ -77,9 +79,15 @@ class AlexaCommunicationsHandler:
                 ),
             )
             url = url.with_query(query_string)
-            _, resp = await self._http_wrapper.session_request(
-                method=HTTPMethod.GET, url=url
-            )
+            try:
+                _, resp = await self._http_wrapper.session_request(
+                    method=HTTPMethod.GET, url=url
+                )
+            except CannotRetrieveData as e:
+                if str(e) == "Request failed: Service Unavailable":
+                    _LOGGER.debug("unable to get comms preferences")
+                    return {}
+                raise
             resp_json = await self._http_wrapper.response_to_json(resp)
 
             device_communication_preferences: dict[str, str] = {}
