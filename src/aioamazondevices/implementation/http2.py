@@ -7,9 +7,12 @@ from enum import Enum, auto
 from http import HTTPStatus
 from typing import Any
 
+import anyio
 import httpx
 import orjson
 from aiosignal import Signal
+from h2.errors import ErrorCodes
+from h2.events import ConnectionTerminated
 
 from aioamazondevices.const.http import (
     HTTP2_DIRECTIVES_VERSION,
@@ -18,6 +21,7 @@ from aioamazondevices.const.http import (
     REFRESH_ACCESS_TOKEN,
 )
 from aioamazondevices.exceptions import (
+    AVSStreamEndedUnexpectedly,
     CannotAuthenticate,
     CannotConnect,
     CannotRetrieveData,
@@ -27,6 +31,8 @@ from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateD
 from aioamazondevices.structures import AmazonPushMessage
 from aioamazondevices.utils import (
     _LOGGER,
+    get_deepest_cause,
+    get_innermost_frame,
     http2_extract_json_from_part,
     http2_parse_boundary_delimiter,
 )
@@ -278,15 +284,16 @@ class AmazonHTTP2Client:
                 )
             reauth = True
 
-        except* httpx.RemoteProtocolError as disconnect_eg:
-            for disc_exc in disconnect_eg.exceptions:
-                _LOGGER.debug(
-                    "HTTP2 disconnection detected",
-                    exc_info=(type(disc_exc), disc_exc, disc_exc.__traceback__),
-                )
-            reconnect = True
+        except* AVSStreamEndedUnexpectedly:
+            if self._stop_event.is_set() or bool(
+                (task := asyncio.current_task()) and task.cancelling()
+            ):
+                shutting_down = True
+            else:
+                _LOGGER.debug("AVS directives stream ended cleanly, reconnecting")
+                reconnect = True
 
-        except* (httpx.ReadError, CannotConnect, CannotRetrieveData) as conn_eg:
+        except* (httpx.TransportError, CannotConnect, CannotRetrieveData) as conn_eg:
             task = asyncio.current_task()
             shutting_down = self._stop_event.is_set() or bool(
                 task and task.cancelling()
@@ -294,12 +301,33 @@ class AmazonHTTP2Client:
             for conn_exc in conn_eg.exceptions:
                 if shutting_down:
                     _LOGGER.debug("Connection interrupted during shutdown (expected)")
-                else:
+                    continue
+
+                if isinstance(conn_exc, CannotConnect):
+                    # Only raised from session_request, which has already logged
+                    # a warning/error with the real cause before this point.
                     _LOGGER.debug(
-                        "HTTP2 connection error, reconnecting in %s seconds",
+                        "Token refresh failure, retrying in %s seconds",
                         delay,
-                        exc_info=(type(conn_exc), conn_exc, conn_exc.__traceback__),
                     )
+                    continue
+                root = get_deepest_cause(conn_exc)
+                if not self.is_informative(conn_exc, root):
+                    # If the root cause has no message, this is a connection drop
+                    _LOGGER.debug(
+                        "HTTP2 Connection lost (%s), reconnecting in %s seconds",
+                        get_innermost_frame(conn_exc),
+                        delay,
+                    )
+                    continue
+                _LOGGER.warning(
+                    "HTTP2 connection error in %s (%s: %s), reconnecting in %s seconds",
+                    get_innermost_frame(conn_exc),
+                    type(root).__name__,
+                    root,
+                    delay,
+                )
+
             reconnect = not shutting_down
 
         except* httpx.HTTPError as http_eg:
@@ -327,6 +355,35 @@ class AmazonHTTP2Client:
         if reconnect:
             return _TaskAction.RECONNECT
         return _TaskAction.RECONNECT_IMMEDIATE
+
+    def is_informative(self, conn_exc: BaseException, root: BaseException) -> bool:
+        """Whether exception is worth surfacing at warning level.
+
+        Due to the way httpx wraps exceptions we need to look within them
+        to determine whether they warrant warning-level logging.
+        """
+        # only delve into httpx.ReadError and httpx.RemoteProtocolError
+        # as these are the ones that may or may not be useful
+        if not isinstance(conn_exc, (httpx.ReadError, httpx.RemoteProtocolError)):
+            return True
+
+        if isinstance(conn_exc, httpx.ReadError):
+            # anyio.ClosedResourceError is triggered by httpx client aclose.
+            # This is likely to be HA shutdown.    This covers race condition
+            # where this is raised prior to stop_event being set.
+            return not isinstance(root, anyio.ClosedResourceError)
+
+        # conn_exc is httpx.RemoteProtocolError
+        if str(root) == "Server disconnected":
+            return False  # clean remote EOF
+
+        terminated = root.args[0] if root.args else None
+        # when server sends a GOAWAY frame with NO_ERROR, it is asking us to reconnect
+        server_goaway = (
+            isinstance(terminated, ConnectionTerminated)
+            and terminated.error_code == ErrorCodes.NO_ERROR
+        )
+        return not server_goaway
 
     async def _check_avs_site(self) -> None:
         """Check the AVS site by sending a test event.
@@ -397,7 +454,7 @@ class AmazonHTTP2Client:
         await self._refresh_token()
         await self._stream_and_process()
         if not self._stop_event.is_set():
-            raise CannotConnect("AVS directives stream ended unexpectedly")
+            raise AVSStreamEndedUnexpectedly("AVS directives stream ended unexpectedly")
 
     async def _refresh_token(self) -> None:
         """Refresh the access token."""
@@ -526,6 +583,7 @@ class AmazonHTTP2Client:
     async def _ping(self) -> None:
         """POST a keepalive to the AVS /ping endpoint."""
         if self._http2_client.is_closed:
+            self._stop_event.set()
             return
 
         response = await self._http2_client.post(
