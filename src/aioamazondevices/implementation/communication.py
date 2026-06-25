@@ -23,6 +23,7 @@ class AlexaCommunicationsHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
         self._communication_site = URL(COMM_SITE)
+        self._communication_preferences: dict[str, dict[str, str]] = {}
 
     async def _set_communications_state(
         self, preference: str, device: AmazonDevice, state: str
@@ -62,7 +63,6 @@ class AlexaCommunicationsHandler:
         self, devices: list[AmazonDevice]
     ) -> dict[str, dict[str, str]]:
         """Get communication preferences for a device."""
-        communication_preferences: dict[str, dict[str, str]] = {}
         for device in devices:
             query_string = {
                 "devicePreferences": [
@@ -83,13 +83,11 @@ class AlexaCommunicationsHandler:
                 _, resp = await self._http_wrapper.session_request(
                     method=HTTPMethod.GET, url=url
                 )
-            except CannotRetrieveData as e:
-                if str(e) == "Request failed: Service Unavailable":
-                    _LOGGER.debug("unable to get comms preferences")
-                    # no point continuing to try other devices as they
-                    # will also fail.   Just return what we have so far
-                    return communication_preferences
-                raise
+            except CannotRetrieveData:
+                _LOGGER.warning(
+                    "Failed to refresh communications settings, maybe stale."
+                )
+                continue
             resp_json = await self._http_wrapper.response_to_json(
                 resp, "devicesTypes(preferences)"
             )
@@ -105,8 +103,8 @@ class AlexaCommunicationsHandler:
                 if pref_allowed is True:
                     device_communication_preferences[device_pref] = pref_state
 
-            communication_preferences[device.serial_number] = (
+            self._communication_preferences[device.serial_number] = (
                 device_communication_preferences
             )
 
-        return communication_preferences
+        return self._communication_preferences
