@@ -1,5 +1,12 @@
 # Changelog
 
+## v14.1.5 (2026-06-25)
+
+### Bug fixes
+
+- Add cookies for global sites ([`87ba630`](https://github.com/chemelli74/aioamazondevices/commit/87ba630fed38aa09f0f65156dbc2c7ef0d8e9979))
+
+
 ## v14.1.4 (2026-06-25)
 
 ### Bug fixes
