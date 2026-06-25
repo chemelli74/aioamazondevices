@@ -347,6 +347,11 @@ class AmazonHttpWrapper:
                 scheme="https", host=f".amazon.{self._session_state_data.domain}"
             ),
         )
+        # Needed for global endpoints like COMM_SITE and HTTP2_SITE
+        if self._session_state_data.domain != "com":
+            await self.set_cookies(
+                _cookies, URL.build(scheme="https", host=".amazon.com")
+            )
 
         resp: ClientResponse | None = None
         for delay in [0, 1, 2, 5, 8, 12, 21]:
