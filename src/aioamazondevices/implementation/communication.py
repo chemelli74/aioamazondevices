@@ -69,6 +69,8 @@ class AlexaCommunicationsHandler:
                 device.device_family == SPEAKER_GROUP_FAMILY
                 or device.device_type == DEVICE_TYPE_AQM
             ):
+                # avoid unnecessary call for devices we know don't support
+                # communications
                 continue
 
             query_string = {
