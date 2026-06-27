@@ -261,8 +261,8 @@ class AmazonHTTP2Client:
             if action == _TaskAction.RECONNECT:
                 with contextlib.suppress(asyncio.CancelledError):
                     await asyncio.wait_for(self._stop_event.wait(), timeout=delay)
-                    if self._stop_event.is_set():
-                        break
+                if self._stop_event.is_set():
+                    break
                 self._reconnect_attempt += 1
             # RECONNECT_IMMEDIATE: just loop back, no sleep, no backoff increment
 
