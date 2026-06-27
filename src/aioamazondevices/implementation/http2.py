@@ -259,7 +259,7 @@ class AmazonHTTP2Client:
                     await self._on_reauth_required()
                 break
             if action == _TaskAction.RECONNECT:
-                with contextlib.suppress(asyncio.CancelledError):
+                with contextlib.suppress(asyncio.CancelledError, TimeoutError):
                     await asyncio.wait_for(self._stop_event.wait(), timeout=delay)
                 if self._stop_event.is_set():
                     break
