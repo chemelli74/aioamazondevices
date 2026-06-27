@@ -64,6 +64,7 @@ class AlexaCommunicationsHandler:
         self, devices: list[AmazonDevice]
     ) -> dict[str, dict[str, str]]:
         """Get communication preferences for a device."""
+        failed_updates = []
         for device in devices:
             if (
                 device.device_family == SPEAKER_GROUP_FAMILY
@@ -92,10 +93,7 @@ class AlexaCommunicationsHandler:
                     method=HTTPMethod.GET, url=url
                 )
             except CannotRetrieveData:
-                _LOGGER.warning(
-                    "Failed to refresh communications settings for device %s, used cached values.",  # noqa: E501
-                    device.account_name,
-                )
+                failed_updates.append(device.account_name)
                 continue
             resp_json = await self._http_wrapper.response_to_json(
                 resp, "devicesTypes(preferences)"
@@ -116,4 +114,9 @@ class AlexaCommunicationsHandler:
                 device_communication_preferences
             )
 
+        if failed_updates:
+            _LOGGER.warning(
+                "Failed to refresh communications settings for [%s], using cached values.",  # noqa: E501
+                ", ".join(failed_updates),
+            )
         return self._communication_preferences
