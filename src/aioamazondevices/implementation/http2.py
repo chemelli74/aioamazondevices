@@ -260,6 +260,8 @@ class AmazonHTTP2Client:
                 break
             if action == _TaskAction.RECONNECT:
                 with contextlib.suppress(asyncio.CancelledError, TimeoutError):
+                    # wait to see if _stop_event is set during delay rather than
+                    # simple sleep.  This means it will stop immediately once set
                     await asyncio.wait_for(self._stop_event.wait(), timeout=delay)
                 if self._stop_event.is_set():
                     break
