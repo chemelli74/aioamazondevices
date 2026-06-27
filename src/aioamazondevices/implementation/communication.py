@@ -64,7 +64,7 @@ class AlexaCommunicationsHandler:
         self, devices: list[AmazonDevice]
     ) -> dict[str, dict[str, str]]:
         """Get communication preferences for a device."""
-        failed_updates = []
+        failed_updates: list[str] = []
         for device in devices:
             if (
                 device.device_family == SPEAKER_GROUP_FAMILY
@@ -116,7 +116,7 @@ class AlexaCommunicationsHandler:
 
         if failed_updates:
             _LOGGER.warning(
-                "Failed to refresh communications settings for [%s], using cached values.",  # noqa: E501
+                "Failed to refresh communications settings for [%s], will use cached values.",  # noqa: E501
                 ", ".join(failed_updates),
             )
         return self._communication_preferences
