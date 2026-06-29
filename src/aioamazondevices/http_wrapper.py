@@ -123,12 +123,12 @@ class AmazonSessionStateData:
     @property
     def account_customer_id(self) -> str | None:
         """Return account customer id."""
-        return self._account_customer_id
+        return self._login_stored_data.get("account_customer_id")
 
     @account_customer_id.setter
     def account_customer_id(self, customer_id: str | None) -> None:
         """Set account customer id."""
-        self._account_customer_id = customer_id
+        self._login_stored_data["account_customer_id"] = customer_id
 
     def country_specific_data(self, login_site: str) -> None:
         """Set country specific data."""
