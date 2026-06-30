@@ -1,6 +1,7 @@
 """HTTP2 Support for Amazon devices."""
 
 import asyncio
+import contextlib
 import uuid
 from collections.abc import Callable, Coroutine
 from enum import Enum, auto
@@ -258,7 +259,12 @@ class AmazonHTTP2Client:
                     await self._on_reauth_required()
                 break
             if action == _TaskAction.RECONNECT:
-                await asyncio.sleep(delay)
+                with contextlib.suppress(TimeoutError):
+                    # wait to see if _stop_event is set during delay rather than
+                    # simple sleep.  This means it will stop immediately once set
+                    await asyncio.wait_for(self._stop_event.wait(), timeout=delay)
+                if self._stop_event.is_set():
+                    break
                 self._reconnect_attempt += 1
             # RECONNECT_IMMEDIATE: just loop back, no sleep, no backoff increment
 
