@@ -9,6 +9,7 @@ from aioamazondevices.const.devices import (
     DEVICE_TYPE_AQM,
     DEVICE_TYPES_HARDCODED_METADATA,
     DEVICE_TYPES_TO_IGNORE,
+    SPEAKER_GROUP_FAMILY,
 )
 from aioamazondevices.const.http import REQUEST_AGENT, URI_DEVICES, URI_NEXUS_GRAPHQL
 from aioamazondevices.const.queries import QUERY_DEVICE_DATA
@@ -40,6 +41,14 @@ class AmazonDeviceHandler:
     def endpoints(self) -> dict[str, str]:
         """Return the endpoints mapping."""
         return self._endpoints
+
+    def is_device_group(self, device: AmazonDevice) -> bool:
+        """Return True if the device is a group."""
+        return device.device_family == SPEAKER_GROUP_FAMILY
+
+    def is_device_aqm(self, device: AmazonDevice) -> bool:
+        """Return True if the device is an Air Quality Monitor."""
+        return device.device_type == DEVICE_TYPE_AQM
 
     async def get_base_devices(self) -> None:
         """Get a list of devices we are interested in.
