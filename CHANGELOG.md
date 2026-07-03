@@ -1,5 +1,19 @@
 # Changelog
 
+## v14.1.8 (2026-06-26)
+
+### Bug fixes
+
+- Reduce number of retries ([`d2bcb18`](https://github.com/chemelli74/aioamazondevices/commit/d2bcb18440c4b04a3069940ce4336b2de8499657))
+
+
+## v14.1.7 (2026-06-26)
+
+### Bug fixes
+
+- Skip comms calls for devices that cannot be controlled ([`7f624fb`](https://github.com/chemelli74/aioamazondevices/commit/7f624fb703c207e282eabd082a6cfc9a47e8195d))
+
+
 ## v14.1.6 (2026-06-25)
 
 ### Bug fixes
