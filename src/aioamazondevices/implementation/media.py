@@ -115,17 +115,22 @@ class AmazonMediaHandler:
 
     async def sync_media_state(self, devices: dict[str, AmazonDevice]) -> None:
         """Sync media states."""
-        media_states = {}
+        if not (
+            media_devices := tuple(
+                device for device in devices.values() if device.media_player_supported
+            )
+        ):
+            self._media_states = {}
+            return
+
         # the endpoint needs a device type / serial but returns all sessions
-        media_sessions = await self._get_media_states(next(iter(devices.values())))
+        media_sessions = await self._get_media_states(media_devices[0])
         if not media_sessions:
             self._media_states = {}
             return
 
-        for device in devices.values():
-            if not device.media_player_supported:
-                continue
-
+        media_states: dict[str, AmazonMediaState] = {}
+        for device in media_devices:
             serial_number = device.serial_number
             now_playing = media_sessions.get(serial_number, {}).get(
                 "nowPlayingData", {}
