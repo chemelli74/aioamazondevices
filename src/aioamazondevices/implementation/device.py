@@ -1,6 +1,6 @@
 """Implementation of device handling for Amazon devices."""
 
-from http import HTTPMethod, HTTPStatus
+from http import HTTPMethod
 from typing import Any
 
 from yarl import URL
@@ -18,7 +18,7 @@ from aioamazondevices.const.http import (
     URI_REBOOT,
 )
 from aioamazondevices.const.queries import QUERY_DEVICE_DATA
-from aioamazondevices.exceptions import CannotRestartDevice
+from aioamazondevices.exceptions import CannotRestartDevice, CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice
 from aioamazondevices.utils import _LOGGER, format_graphql_error, parse_device_details
@@ -275,16 +275,19 @@ class AmazonDeviceHandler:
 
         access_token = self._session_state_data.login_stored_data[REFRESH_ACCESS_TOKEN]
 
-        _, raw_resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.POST,
-            url=url,
-            input_data=payload,
-            json_data=True,
-            extended_headers={
-                "Authorization": f"Bearer {access_token}",
-                "User-Agent": REQUEST_AGENT["Amazon"],
-            },
-        )
-
-        if raw_resp.status != HTTPStatus.OK:
-            raise CannotRestartDevice(f"Failed to restart device {device.account_name}")
+        try:
+            await self._http_wrapper.session_request(
+                method=HTTPMethod.POST,
+                url=url,
+                input_data=payload,
+                json_data=True,
+                extended_headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "User-Agent": REQUEST_AGENT["Amazon"],
+                },
+            )
+        except CannotRetrieveData as exc:
+            # Reraise standard exception with more context
+            raise CannotRestartDevice(
+                f"Failed to restart device {device.account_name}"
+            ) from exc
