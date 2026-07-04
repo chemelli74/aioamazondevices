@@ -13,7 +13,7 @@ repos:
       - id: check-yaml
       - id: detect-private-key
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.24
+    rev: 0.11.26
     hooks:
       - id: uv-lock
         args: ["--check"]
@@ -35,7 +35,7 @@ repos:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.8.4
+    rev: v3.9.4
     hooks:
       - id: prettier
         args: ["--tab-width", "2"]

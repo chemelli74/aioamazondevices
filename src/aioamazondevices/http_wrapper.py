@@ -354,7 +354,7 @@ class AmazonHttpWrapper:
             )
 
         resp: ClientResponse | None = None
-        for delay in [0, 1, 2, 5, 8, 12, 21]:
+        for delay in [0, 2, 5]:
             if delay:
                 _LOGGER.info(
                     "Sleeping for %s seconds before retrying API call to %s", delay, url
