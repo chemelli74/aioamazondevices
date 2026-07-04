@@ -15,6 +15,10 @@ class CannotAuthenticate(AmazonError):
     """Exception raised when authentication fails."""
 
 
+class CannotRestartDevice(AmazonError):
+    """Exception raised when device restart fails."""
+
+
 class CannotRetrieveData(AmazonError):
     """Exception raised when data retrieval fails."""
 
