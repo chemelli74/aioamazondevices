@@ -1,5 +1,12 @@
 # Changelog
 
+## v14.2.0 (2026-07-04)
+
+### Features
+
+- Add device restart method ([`1fb145d`](https://github.com/chemelli74/aioamazondevices/commit/1fb145dd9bd72f1881c8c5cba3d0ec4bf2d6a78f))
+
+
 ## v14.1.9 (2026-07-03)
 
 ### Bug fixes
