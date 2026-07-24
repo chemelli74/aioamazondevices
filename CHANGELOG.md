@@ -1,5 +1,18 @@
 # Changelog
 
+## v14.2.1 (2026-07-24)
+
+### Bug fixes
+
+- Ensure http2 retry sleep checks if stop_event was set during sleep ([`bc9cd7c`](https://github.com/chemelli74/aioamazondevices/commit/bc9cd7caf6de6f5209ff02110c74eb3ed842663c))
+
+
+### Build system
+
+- Bump actions/setup-python from 6.3.0 to 7.0.0 ([`e734a55`](https://github.com/chemelli74/aioamazondevices/commit/e734a556ac1fd0b386e03a389fdd4542b8177cd7))
+- Bump astral-sh/setup-uv from 8.3.2 to 9.0.0 ([`b0e65ad`](https://github.com/chemelli74/aioamazondevices/commit/b0e65add2266685002792f45d6ecbd2a4b89ee99))
+
+
 ## v14.2.0 (2026-07-04)
 
 ### Features
