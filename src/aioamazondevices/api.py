@@ -310,6 +310,9 @@ class AmazonEchoApi:
         await self._emit_volume_state_event()
 
     async def _handle_eq_event_as_history_proxy(self) -> None:
+        await self._refresh_history_state()
+
+    async def _refresh_history_state(self) -> None:
         vocal_history = await self._history_handler.get_vocal_history()
         await self._emit_history_event(vocal_history)
 
@@ -528,13 +531,13 @@ class AmazonEchoApi:
             _LOGGER.debug("Emitting todo event: %s", list_event)
             await self.on_todo_event.send(list_event)
 
-    async def sync_history_state(self) -> dict[str, AmazonVocalRecord]:
+    async def sync_history_state(self) -> None:
         """Sync history state.
 
         This will be called at startup to sync history state of all devices
         and can be called later to refresh history state.
         """
-        return await self._history_handler.get_vocal_history()
+        await self._refresh_history_state()
 
     async def _emit_history_event(
         self, vocal_history: dict[str, AmazonVocalRecord]
