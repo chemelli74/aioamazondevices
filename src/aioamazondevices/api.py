@@ -573,3 +573,7 @@ class AmazonEchoApi:
         items = await self._todo_handler.get_list_items(list_id)
 
         return {item.id: item for item in items}
+
+    async def restart_device(self, device: AmazonDevice) -> None:
+        """Restart a device."""
+        await self._device_handler.restart_device(device)

@@ -10,8 +10,15 @@ from aioamazondevices.const.devices import (
     DEVICE_TYPES_HARDCODED_METADATA,
     DEVICE_TYPES_TO_IGNORE,
 )
-from aioamazondevices.const.http import REQUEST_AGENT, URI_DEVICES, URI_NEXUS_GRAPHQL
+from aioamazondevices.const.http import (
+    REFRESH_ACCESS_TOKEN,
+    REQUEST_AGENT,
+    URI_DEVICES,
+    URI_NEXUS_GRAPHQL,
+    URI_REBOOT,
+)
 from aioamazondevices.const.queries import QUERY_DEVICE_DATA
+from aioamazondevices.exceptions import CannotRestartDevice, CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice
 from aioamazondevices.utils import _LOGGER, format_graphql_error, parse_device_details
@@ -252,3 +259,35 @@ class AmazonDeviceHandler:
             )
 
         return devices_endpoints
+
+    async def restart_device(self, device: AmazonDevice) -> None:
+        """Restart a device."""
+        url = URL.joinpath(
+            self._session_state_data.alexa_website_url,
+            URI_REBOOT.format(
+                device_type=device.device_type, serial_number=device.serial_number
+            ),
+        )
+        payload = {
+            "deviceSerialNumber": device.serial_number,
+            "deviceType": device.device_type,
+        }
+
+        access_token = self._session_state_data.login_stored_data[REFRESH_ACCESS_TOKEN]
+
+        try:
+            await self._http_wrapper.session_request(
+                method=HTTPMethod.POST,
+                url=url,
+                input_data=payload,
+                json_data=True,
+                extended_headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "User-Agent": REQUEST_AGENT["Amazon"],
+                },
+            )
+        except CannotRetrieveData as exc:
+            # Reraise standard exception with more context
+            raise CannotRestartDevice(
+                f"Failed to restart device {device.account_name}"
+            ) from exc
