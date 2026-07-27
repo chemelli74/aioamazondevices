@@ -144,6 +144,7 @@ class AmazonEchoApi:
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
         self.on_history_event = Signal[dict[str, AmazonVocalRecord]](self)
         self.on_todo_event = Signal[AmazonListEvent](self)
+        self.on_notification_event = Signal[dict[str, AmazonDevice]](self)
 
     @property
     def domain(self) -> str:
@@ -291,6 +292,9 @@ class AmazonEchoApi:
                 await self._handle_audio_player_state_event()
             case AmazonPushMessage.ItemChange.value:
                 await self._handle_item_change_event(payload)
+            case AmazonPushMessage.NotificationChange.value:
+                serial_number = payload.get("dopplerId", {}).get("deviceSerialNumber")
+                await self._handle_notification_change_event(serial_number)
             case _:
                 _LOGGER.debug("Unhandled push event type: %s", event_type)
 
@@ -323,6 +327,28 @@ class AmazonEchoApi:
 
         await self._media_handler.sync_media_state(self._device_handler.devices)
         await self._emit_media_state_event()
+
+    async def _handle_notification_change_event(
+        self, serial_number: str | None
+    ) -> None:
+        if not self._device_handler.devices:
+            _LOGGER.debug(
+                "Skipping notification sync for push event because devices "
+                "have not been loaded yet"
+            )
+            return
+
+        notifications = await self._notification_handler.get_notifications()
+        if notifications is None:
+            _LOGGER.debug("Notification fetch returned None, skipping update")
+            return
+
+        self._sensor_handler.handle_push_notification_update(
+            self._device_handler.devices,
+            notifications,
+            serial_number,
+        )
+        await self._emit_notification_event()
 
     async def _handle_item_change_event(self, payload: dict[str, Any]) -> None:
         list_id = payload.get("listId")
@@ -521,6 +547,12 @@ class AmazonEchoApi:
             await self.on_volume_state_event.send(
                 await self._media_handler.device_volumes
             )
+
+    async def _emit_notification_event(self) -> None:
+        """Emit notification event to subscribers."""
+        if self.on_notification_event.frozen:
+            _LOGGER.debug("Emitting notification event to subscribers")
+            await self.on_notification_event.send(self._device_handler.devices)
 
     async def _emit_todo_event(self, list_event: AmazonListEvent) -> None:
         """Emit todo event to subscribers."""
