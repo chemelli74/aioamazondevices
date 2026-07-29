@@ -31,7 +31,10 @@ from .const.http import (
     URI_SIGNIN,
     URI_WELCOME,
 )
-from .const.metadata import MAX_CUSTOMER_ACCOUNT_RETRIES
+from .const.metadata import (
+    CUSTOMER_ACCOUNT_DELAY_BETWEEN_RETRIES,
+    CUSTOMER_ACCOUNT_MAX_RETRIES,
+)
 from .exceptions import (
     CannotAuthenticate,
     CannotRegisterDevice,
@@ -456,14 +459,15 @@ class AmazonLogin:
 
     async def obtain_account_customer_id(self) -> None:
         """Find account customer id."""
-        for retry_count in range(MAX_CUSTOMER_ACCOUNT_RETRIES):
+        for retry_count in range(CUSTOMER_ACCOUNT_MAX_RETRIES):
             if not self._session_state_data.account_customer_id:
-                await asyncio.sleep(2)  # allow time for device to be registered
+                # allow time for device to be registered
+                await asyncio.sleep(CUSTOMER_ACCOUNT_DELAY_BETWEEN_RETRIES)
 
             _LOGGER.debug(
                 "Lookup customer account ID (attempt %d/%d)",
                 retry_count + 1,
-                MAX_CUSTOMER_ACCOUNT_RETRIES,
+                CUSTOMER_ACCOUNT_MAX_RETRIES,
             )
             _, raw_resp = await self._http_wrapper.session_request(
                 method=HTTPMethod.GET,
