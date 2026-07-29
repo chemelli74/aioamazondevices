@@ -1,5 +1,12 @@
 # Changelog
 
+## v14.2.2 (2026-07-29)
+
+### Bug fixes
+
+- Allow more retries for customer account id lookup ([`13ed3d3`](https://github.com/chemelli74/aioamazondevices/commit/13ed3d338bac3a90e35e443445b5659ae3664375))
+
+
 ## v14.2.1 (2026-07-24)
 
 ### Bug fixes
