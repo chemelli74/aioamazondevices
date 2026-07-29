@@ -54,6 +54,7 @@ URI_REGISTER = "auth/register"
 URI_SIGNIN = "ap/signin"
 URI_TODO_BASE = "alexashoppinglists/api/v2/lists"
 URI_TOKEN = "auth/token"  # noqa: S105
+URI_USERS_ME = "api/users/me"
 URI_WELCOME = "api/welcome"
 
 HTTP2_SITE = "https://bob-dispatch-prod-{region}.amazon.com"
