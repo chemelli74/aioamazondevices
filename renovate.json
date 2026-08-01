@@ -14,6 +14,16 @@
         "version\\s*=\\s*\"(?<currentValue>[0-9.]+)\"\\s*#\\s*renovate:\\s*depName=(?<depName>[^\\s]+)\\s+datasource=(?<datasource>[^\\s]+)"
       ],
       "versioningTemplate": "semver-coerced"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["pyproject.toml"],
+      "matchStrings": [
+        "Programming Language :: Python :: (?<currentValue>[0-9.]+)\",\\s*#\\s*renovate:\\s*customPinnedDependency=python,\\s*datasource=python-version"
+      ],
+      "depNameTemplate": "python",
+      "datasourceTemplate": "python-version",
+      "versioningTemplate": "python"
     }
   ],
   "packageRules": [
