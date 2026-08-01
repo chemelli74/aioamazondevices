@@ -37,3 +37,6 @@ lint.ignore = [
 
 [lint.mccabe]
 max-complexity = 18
+
+[lint.isort]
+known-first-party = ["aiocomelit", "tests"]
