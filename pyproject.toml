@@ -17,7 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14", # renovate: depName=python datasource=python-version
+    "Programming Language :: Python :: 3.14", # renovate: customPinnedDependency=python,datasource=python-version
     "Topic :: Software Development :: Libraries",
 ]
 dependencies = [
@@ -43,14 +43,19 @@ dev = [
     "types-python-dateutil>=2.9.0.20260323,<3",
 ]
 
+[tool.uv-version]
+# Source of truth for the uv version. All other version references must be derived from this value.
+version = "0.12.1" # renovate: depName=uv datasource=pypi
+
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
 version_variables = [
     "src/aioamazondevices/__init__.py:__version__",
 ]
-# Keep this version in sync with scripts/setup.sh and .github/workflows/ci.yml.
+# Extract version from [tool.uv-version], single source of truth.
 build_command = """
-    python -m pip install \"uv==0.12.1\"
+    UV_VERSION=$(./scripts/get-pyproject-uv.version.sh)
+    python -m pip install "uv==$UV_VERSION"
     uv lock --upgrade-package "$PACKAGE_NAME"
     git add uv.lock
     uv build

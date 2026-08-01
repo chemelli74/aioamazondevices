@@ -92,3 +92,8 @@ description = "Automatically closes if no answer after a delay"
 color = "ffffff"
 name = "wontfix"
 description = "This will not be worked on"
+
+[renovate]
+color = "1a5f91"
+name = "renovate"
+description = "Pull requests and issues related to Renovate"
