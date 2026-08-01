@@ -1,68 +1,52 @@
 {
-  "extends": ["github>browniebroke/renovate-configs:python"],
-  "dependencyDashboardApproval": false,
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":enablePreCommit"],
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0,
   "branchConcurrentLimit": 0,
+  "rangeStrategy": "update-lockfile",
+  "labels": ["renovate"],
   "customManagers": [
     {
       "customType": "regex",
-      "managerFilePatterns": [
-        "/(^|/)scripts/setup\\.sh$/",
-        "/(^|/)\\.github/workflows/ci\\.yml$/"
-      ],
+      "managerFilePatterns": ["pyproject.toml"],
       "matchStrings": [
-        "UV_VERSION\\s*[:=]\\s*\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=(?<depName>\\S+)\\s+datasource=(?<datasource>\\S+)"
-      ]
-    },
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["/(^|/)\\.github/workflows/ci\\.yml$/"],
-      "matchStrings": [
-        "(?<indentation>[ \\t]*)-\\s*\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=python\\s+datasource=python-version"
+        "version\\s*=\\s*\"(?<currentValue>[0-9.]+)\"\\s*#\\s*renovate:\\s*depName=(?<depName>[^\\s]+)\\s+datasource=(?<datasource>[^\\s]+)"
       ],
-      "depNameTemplate": "python",
-      "datasourceTemplate": "python-version",
-      "autoReplaceStringTemplate": "{{{indentation}}}- \"{{{newValue}}}\" # renovate: depName=python datasource=python-version"
-    },
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["/(^|/)\\.github/workflows/ci\\.yml$/"],
-      "matchStrings": [
-        "(?<indentation>[ \\t]*)python-version:\\s*\"(?<currentValue>[^\"]+)\"\\s+#\\s+renovate:\\s+depName=python\\s+datasource=python-version"
-      ],
-      "depNameTemplate": "python",
-      "datasourceTemplate": "python-version",
-      "autoReplaceStringTemplate": "{{{indentation}}}python-version: \"{{{newValue}}}\" # renovate: depName=python datasource=python-version"
-    },
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["/(^|/)\\.devcontainer/devcontainer\\.json$/"],
-      "matchStrings": [
-        "\"image\":\\s*\"mcr\\.microsoft\\.com/devcontainers/python:(?<prefix>[^-]+)-(?<currentValue>[^\"]+)\""
-      ],
-      "depNameTemplate": "python",
-      "datasourceTemplate": "python-version",
-      "autoReplaceStringTemplate": "\"image\": \"mcr.microsoft.com/devcontainers/python:1-{{{newValue}}}\""
-    },
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["/(^|/)pyproject\\.toml$/"],
-      "matchStrings": [
-        "\"Programming Language :: Python :: (?<currentValue>[^\"]+)\",\\s*#\\s+renovate:\\s+depName=python\\s+datasource=python-version"
-      ],
-      "depNameTemplate": "python",
-      "datasourceTemplate": "python-version",
-      "autoReplaceStringTemplate": "\"Programming Language :: Python :: {{{newValue}}}\", # renovate: depName=python datasource=python-version"
-    },
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["/(^|/)pyproject\\.toml$/"],
-      "matchStrings": [
-        "build_command\\s*=\\s*\"\"\"[\\s\\S]*?python -m pip install \\\\\\\"uv==(?<currentValue>[^\\\\\"]+)\\\\\"[\\s\\S]*?\"\"\""
-      ],
-      "depNameTemplate": "uv",
-      "datasourceTemplate": "pypi"
+      "versioningTemplate": "semver-coerced"
     }
-  ]
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": ["*"],
+      "addLabels": ["dependencies"]
+    },
+    {
+      "matchPackageNames": ["*"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "matchPackageNames": ["*"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "matchManagers": ["pre-commit", "devcontainer"],
+      "matchUpdateTypes": ["major"],
+      "automerge": true
+    },
+    {
+      "matchPackageNames": ["uv"],
+      "matchUpdateTypes": ["major"],
+      "automerge": true
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "addLabels": ["github_actions"]
+    }
+  ],
+  "lockFileMaintenance": {
+    "enabled": false
+  }
 }
