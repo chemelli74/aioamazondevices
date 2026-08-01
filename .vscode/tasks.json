@@ -17,7 +17,7 @@
         "-m",
         "pytest",
         "tests/",
-        "--cov=aiocomelit",
+        "--cov=aioamazondevices",
         "--cov-report=term-missing:skip-covered"
       ],
       "group": "test",
