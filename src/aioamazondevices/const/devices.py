@@ -1,3 +1,6 @@
+# Copyright 2024 Simone Chemelli and contributors
+# SPDX-License-Identifier: Apache-2.0
+
 """Devices constants for Amazon devices."""
 
 from .http import AMAZON_DEVICE_TYPE
