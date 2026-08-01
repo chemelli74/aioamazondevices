@@ -23,7 +23,8 @@
       ],
       "depNameTemplate": "python",
       "datasourceTemplate": "python-version",
-      "versioningTemplate": "python"
+      "versioningTemplate": "python",
+      "autoReplaceStringTemplate": "Programming Language :: Python :: {{{currentValue}}}\",\n    \"Programming Language :: Python :: {{{newValue}}}\", # renovate: customPinnedDependency=python,datasource=python-version"
     }
   ],
   "packageRules": [
