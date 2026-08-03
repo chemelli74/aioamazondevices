@@ -94,6 +94,17 @@ fragment EndpointState on Endpoint {
         timeOfSample
         timeOfLastChange
       }
+      ... on Setpoint {
+        value { value scale }
+        deviceNativeScaleValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatMode {
+        thermostatModeValue
+        timeOfSample
+        timeOfLastChange
+      }
     }
   }
 }
