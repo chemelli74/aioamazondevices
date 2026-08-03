@@ -220,36 +220,31 @@ class AmazonDeviceHandler:
         # map endpoint ID to serial number to facilitate sensor lookup but also
         # create AmazonDevice as these are not present in api/devices-v2/device endpoint
         for aqm_endpoint in data.get("airQualityMonitors", {}).get("endpoints", {}):
-            if (
-                aqm_endpoint.get("manufacturer", {})
-                .get("value", {})
-                .get("text", "Unknown")
-                != "Amazon"
-            ):
-                _LOGGER.debug(
-                    "Skipping non-Amazon Air Quality Monitor: %s",
-                    aqm_endpoint,
-                )
-                continue
-            aqm_serial_number: str = aqm_endpoint["serialNumber"]["value"]["text"]
+            aqm_serial_number: str = aqm_endpoint.get("endpointId")
             devices_endpoints[aqm_serial_number] = aqm_endpoint
             self._endpoints[aqm_endpoint["endpointId"]] = aqm_serial_number
+
+            device_model = aqm_endpoint.get("model")
+            if device_model:
+                device_type = device_model.get("value", {}).get("text")
+            else:
+                device_type = "Unknown"
 
             self._final_devices[aqm_serial_number] = AmazonDevice(
                 account_name=aqm_endpoint["friendlyNameObject"]["value"]["text"],
                 capabilities=[],
                 device_family="AIR_QUALITY_MONITOR",
-                device_type=aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
-                    "deviceType"
-                ]["value"]["text"],
+                device_type=device_type,
                 device_owner_customer_id=self._session_state_data.account_customer_id
                 or "n/a",
                 household_device=False,
                 device_cluster_members={aqm_serial_number: DEVICE_TYPE_AQM},
                 online=True,
                 serial_number=aqm_serial_number,
-                software_version=aqm_endpoint["softwareVersion"]["value"]["text"],
-                manufacturer="Amazon",
+                software_version="",
+                manufacturer=aqm_endpoint.get("manufacturer", {})
+                .get("value", {})
+                .get("text", "Unknown"),
                 model=None,
                 hardware_version=None,
                 entity_id=None,

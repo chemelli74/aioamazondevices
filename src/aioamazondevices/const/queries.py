@@ -16,8 +16,7 @@ query getDevicesBaseData {
 
   airQualityMonitors: listEndpoints(
     listEndpointsInput: {
-      displayCategory: "AIR_QUALITY_MONITOR"
-      includeHouseholdDevices: true
+      includeHouseholdDevices: false
     }
   ) {
     ...DeviceEndpoints
