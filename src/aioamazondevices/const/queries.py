@@ -65,6 +65,7 @@ fragment EndpointState on Endpoint {
       accuracy
       error { type message }
       __typename
+
       ... on Illuminance {
         illuminanceValue { value }
         timeOfSample
@@ -82,10 +83,7 @@ fragment EndpointState on Endpoint {
       }
       ... on TemperatureSensor {
         name
-        value {
-          value
-          scale
-        }
+        value { value scale }
         timeOfSample
         timeOfLastChange
       }
@@ -94,6 +92,8 @@ fragment EndpointState on Endpoint {
         timeOfSample
         timeOfLastChange
       }
+
+      # --- thermostat ---
       ... on Setpoint {
         value { value scale }
         deviceNativeScaleValue
@@ -105,10 +105,110 @@ fragment EndpointState on Endpoint {
         timeOfSample
         timeOfLastChange
       }
+
+      # --- thermostatConfiguration (properties) ---
+      ... on ThermostatConfigurationAllowedTemperatureRange {
+        thermostatAllowedTemperatureRangeValue {
+          heating { minimum { value scale } maximum { value scale } }
+          cooling { minimum { value scale } maximum { value scale } }
+        }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatConfigurationSetupState {
+        thermostatSetupStateValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatConfigurationTemperatureScale {
+        thermostatTemperatureScaleValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+
+      # --- thermostatSchedule ---
+      ... on ThermostatScheduleAdaptiveRecoveryEnabled {
+        thermostatScheduleAdaptiveRecoveryEnabledValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatScheduleScheduleEnabled {
+        thermostatScheduleScheduleEnabledValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatScheduleLastActivityType {
+        thermostatScheduleLastActivityTypeValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+
+      # --- thermostatAutomation ---
+      ... on ThermostatAutomationLastActivityType {
+        thermostatAutomationLastActivityTypeValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+    }
+
+    # --- static device capabilities ---
+    configuration {
+      __typename
+
+      ... on ThermostatConfiguration {
+        supportedModes
+      }
+      ... on HvacConfiguration {
+        numberOfPrimaryHeaterStage
+        numberOfFanStage
+        numberOfCoolerStage
+      }
+      ... on ThermostatScheduleConfiguration {
+        supportedFanModes
+        supportsAdaptiveRecovery
+        maxEntryPerDay
+      }
+      ... on ThermostatConfigurationConfiguration {
+        supportedResetStates { value }
+        requiredSetupInformation
+        supportedTemperatureScales
+        safetyTemperatures {
+          heating { minimum { value scale } maximum { value scale } }
+          cooling { minimum { value scale } maximum { value scale } }
+        }
+        minimumSetpointDifferential { value scale }
+        componentConfigurationConstraints {
+          supportedTerminals {
+            name
+            purpose
+          }
+          maximumStages {
+            heating
+            cooling
+            combined
+          }
+          supportedSwitchOverTypes
+          lockoutTemperature {
+            heating  { minimum { value scale } maximum { value scale } }
+            cooling  { minimum { value scale } maximum { value scale } }
+            increment { value scale }
+          }
+        }
+      }
+
+      # likely on the `doorbell` feature
+      ... on SimpleEventSourceConfiguration {
+        supportedEvents {
+          id
+          friendlyNames {
+            type
+            value { text locale }
+          }
+        }
+      }
     }
   }
 }
-
 
 query getEndpointState($endpointIds: [String]!) {
   listEndpoints(
