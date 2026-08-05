@@ -10,6 +10,7 @@ from yarl import URL
 from aioamazondevices.const.devices import (
     DEVICE_TYPE_SPEAKER_GROUP,
     DEVICE_TYPE_STEREO_PAIR,
+    DEVICE_TYPES_TO_IGNORE,
 )
 from aioamazondevices.const.http import URI_DND_STATUS_ALL, URI_DND_STATUS_DEVICE
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
@@ -54,6 +55,7 @@ class AmazonDnDHandler:
             for dnd in dnd_data.get("doNotDisturbDeviceStatusList", {})
             if dnd.get("deviceType")
             not in (DEVICE_TYPE_SPEAKER_GROUP, DEVICE_TYPE_STEREO_PAIR)
+            and dnd.get("deviceType") not in DEVICE_TYPES_TO_IGNORE
         }
 
         self._dnd_states = dnd_states
