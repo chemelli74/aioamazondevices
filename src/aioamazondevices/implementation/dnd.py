@@ -9,7 +9,7 @@ from yarl import URL
 
 from aioamazondevices.const.http import URI_DND_STATUS_ALL, URI_DND_STATUS_DEVICE
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
+from aioamazondevices.structures import AmazonDevice
 
 
 class AmazonDnDHandler:
@@ -23,10 +23,19 @@ class AmazonDnDHandler:
         """Initialize AmazonDnDHandler class."""
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
+        self._dnd_states: dict[str, bool] = {}
 
-    async def get_do_not_disturb_status(self) -> dict[str, AmazonDeviceSensor]:
-        """Get do_not_disturb status for all devices."""
-        dnd_status: dict[str, AmazonDeviceSensor] = {}
+    @property
+    def dnd_states(self) -> dict[str, bool]:
+        """Return do_not_disturb states."""
+        return self._dnd_states
+
+    def update_cached_dnd_state(self, serial: str, enabled: bool) -> None:
+        """Update the cached do_not_disturb state for a device."""
+        self._dnd_states[serial] = enabled
+
+    async def sync_do_not_disturb_status(self) -> None:
+        """Sync do_not_disturb status for all devices."""
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
             url=URL.joinpath(
@@ -37,15 +46,7 @@ class AmazonDnDHandler:
         dnd_data = await self._http_wrapper.response_to_json(raw_resp, "dnd")
 
         for dnd in dnd_data.get("doNotDisturbDeviceStatusList", {}):
-            dnd_status[dnd.get("deviceSerialNumber")] = AmazonDeviceSensor(
-                name="dnd",
-                value=dnd.get("enabled"),
-                error=False,
-                error_type=None,
-                error_msg=None,
-                scale=None,
-            )
-        return dnd_status
+            self._dnd_states[dnd.get("deviceSerialNumber")] = dnd.get("enabled")
 
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set do_not_disturb flag."""
