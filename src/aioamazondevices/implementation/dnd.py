@@ -7,6 +7,10 @@ from http import HTTPMethod
 
 from yarl import URL
 
+from aioamazondevices.const.devices import (
+    DEVICE_TYPE_SPEAKER_GROUP,
+    DEVICE_TYPE_STEREO_PAIR,
+)
 from aioamazondevices.const.http import URI_DND_STATUS_ALL, URI_DND_STATUS_DEVICE
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice
@@ -45,9 +49,13 @@ class AmazonDnDHandler:
 
         dnd_data = await self._http_wrapper.response_to_json(raw_resp, "dnd")
 
-        dnd_states: dict[str, bool] = {}
-        for dnd in dnd_data.get("doNotDisturbDeviceStatusList", {}):
-            dnd_states[dnd.get("deviceSerialNumber")] = dnd.get("enabled")
+        dnd_states: dict[str, bool] = {
+            dnd.get("deviceSerialNumber"): dnd.get("enabled")
+            for dnd in dnd_data.get("doNotDisturbDeviceStatusList", {})
+            if dnd.get("deviceType")
+            not in (DEVICE_TYPE_SPEAKER_GROUP, DEVICE_TYPE_STEREO_PAIR)
+        }
+
         self._dnd_states = dnd_states
 
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
