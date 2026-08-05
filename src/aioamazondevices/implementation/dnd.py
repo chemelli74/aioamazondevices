@@ -45,8 +45,10 @@ class AmazonDnDHandler:
 
         dnd_data = await self._http_wrapper.response_to_json(raw_resp, "dnd")
 
+        dnd_states: dict[str, bool] = {}
         for dnd in dnd_data.get("doNotDisturbDeviceStatusList", {}):
-            self._dnd_states[dnd.get("deviceSerialNumber")] = dnd.get("enabled")
+            dnd_states[dnd.get("deviceSerialNumber")] = dnd.get("enabled")
+        self._dnd_states = dnd_states
 
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set do_not_disturb flag."""
