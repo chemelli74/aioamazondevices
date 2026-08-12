@@ -155,3 +155,20 @@ def test_device_info_takes_precedence_over_activity_key() -> None:
     )
 
     assert list(records) == [SERIAL_A]
+
+
+def test_false_wake_does_not_mask_a_real_command() -> None:
+    """Keep the latest real command even when a false wake is more recent."""
+    records = _run(
+        [
+            _record(timestamp=1000, title="alexa turn off the nursery"),
+            _record(
+                timestamp=NEWEST_TIMESTAMP,
+                utteranceType="FALSE_WAKE_WORD_1P",
+                title="",
+            ),
+        ],
+        {SERIAL_A},
+    )
+
+    assert records[SERIAL_A].title == "alexa turn off the nursery"
