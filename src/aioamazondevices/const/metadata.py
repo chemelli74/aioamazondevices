@@ -86,6 +86,14 @@ ALEXA_INFO_SKILLS = [
     "Alexa.GoodNight.Play",
 ]
 
+# Utterance types that carry no usable command for a device
+UTTERANCE_TYPES_TO_SKIP = [
+    "ASR_TIMEOUT",
+    "DEVICE_ARBITRATION",
+    "NO_EXPRESSED_INTENT",
+    "WAKE_WORD_ONLY",
+]
+
 SEQUENCE_BATCH_DELAY = 0.3  # seconds
 
 CUSTOMER_ACCOUNT_MAX_RETRIES = 30
