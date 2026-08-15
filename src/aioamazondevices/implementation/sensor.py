@@ -55,12 +55,13 @@ class AmazonSensorHandler:
         for device in self._final_devices.values():
             # Update sensors
             sensors = devices_sensors.get(device.serial_number, {})
+            _LOGGER.debug(
+                "Sensors data for device %s: %s", device.serial_number, sensors
+            )
             if sensors:
                 device.sensors = sensors
                 if reachability_sensor := sensors.get("reachability"):
                     device.online = reachability_sensor.value == "OK"
-                else:
-                    device.online = False
             else:
                 device.online = False
                 for device_sensor in device.sensors.values():
