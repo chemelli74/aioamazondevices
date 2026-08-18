@@ -16,7 +16,9 @@ class AmazonSaveDataConfig:
     """Configuration for saving raw HTTP responses to disk (debug only)."""
 
     path: PathLike[str]
-    callback: Callable[[str, str, str], Coroutine[Any, Any, None]] | None = None
+    callback: (
+        Callable[[PathLike[str], str, str, str], Coroutine[Any, Any, None]] | None
+    ) = None
 
 
 @dataclass

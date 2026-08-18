@@ -417,6 +417,7 @@ class AmazonHttpWrapper:
 
         if self._save_data.callback:
             await self._save_data.callback(
+                self._save_data.path,
                 raw_content.decode("utf-8"),
                 url.human_repr(),
                 content_type,
