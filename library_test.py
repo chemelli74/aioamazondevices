@@ -35,6 +35,7 @@ from aioamazondevices.structures import (
     AmazonMediaControls,
     AmazonMediaState,
     AmazonMusicProvider,
+    AmazonSaveDataConfig,
 )
 
 SAVE_PATH = "out"
@@ -247,7 +248,10 @@ async def main() -> None:
         login_email=args.email,
         login_password=args.password,
         login_data=login_data_stored,
-        save_to_file=save_to_file,
+        save_data=AmazonSaveDataConfig(
+            path=Path(SAVE_PATH, SAVE_PATH_DATE),
+            callback=save_to_file,
+        ),
     )
 
     api.on_media_state_event.append(media_state_event_handler)
