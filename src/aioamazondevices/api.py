@@ -61,8 +61,9 @@ class AmazonEchoApi:
         client_session: ClientSession,
         login_email: str,
         login_password: str,
+        *,
+        save_data: AmazonSaveDataConfig,
         login_data: dict[str, Any] | None = None,
-        save_data: AmazonSaveDataConfig | None = None,
     ) -> None:
         """Initialize the scanner."""
         _LOGGER.debug("Initialize library v%s", __version__)

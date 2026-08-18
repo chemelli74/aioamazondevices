@@ -162,7 +162,7 @@ class AmazonHttpWrapper:
         self,
         client_session: ClientSession,
         session_state_data: AmazonSessionStateData,
-        save_data: AmazonSaveDataConfig | None = None,
+        save_data: AmazonSaveDataConfig,
     ) -> None:
         """Initialize HTTP wrapper."""
         self._session = client_session
@@ -415,7 +415,7 @@ class AmazonHttpWrapper:
 
         raw_content = await resp.read()
 
-        if self._save_data and self._save_data.callback:
+        if self._save_data.callback:
             await self._save_data.callback(
                 raw_content.decode("utf-8"),
                 url.human_repr(),
