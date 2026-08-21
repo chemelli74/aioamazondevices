@@ -97,6 +97,7 @@ class AmazonDeviceHandler:
                 device_cluster_members=dict.fromkeys(
                     device["clusterMembers"] or [serial_number]
                 ),
+                parent_clusters=device.get("parentClusters"),
                 online=device["online"],
                 serial_number=serial_number,
                 software_version=device["softwareVersion"]
@@ -246,6 +247,7 @@ class AmazonDeviceHandler:
                 or "n/a",
                 household_device=False,
                 device_cluster_members={aqm_serial_number: DEVICE_TYPE_AQM},
+                parent_clusters=None,
                 online=True,
                 serial_number=aqm_serial_number,
                 software_version=aqm_endpoint["softwareVersion"]["value"]["text"],

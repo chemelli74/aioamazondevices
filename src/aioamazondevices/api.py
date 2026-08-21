@@ -308,7 +308,21 @@ class AmazonEchoApi:
             volume = AmazonVolumeState(
                 payload.get("volumeSetting"), payload.get("isMuted")
             )
+            # check if device is part of a cluster
             self._media_handler.update_cached_device_volume(serial, volume)
+            volume_device: AmazonDevice | None = self._device_handler.devices.get(
+                serial, None
+            )
+            if volume_device and volume_device.parent_clusters:
+                for parent_serial in volume_device.parent_clusters:
+                    parent_cluster: AmazonDevice | None = (
+                        self._device_handler.devices.get(parent_serial, None)
+                    )
+                    if parent_cluster:
+                        self._media_handler.update_cached_speaker_group_volume(
+                            parent_serial,
+                            list(parent_cluster.device_cluster_members),
+                        )
 
         await self._emit_volume_state_event()
 
