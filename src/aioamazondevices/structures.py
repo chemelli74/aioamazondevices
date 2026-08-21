@@ -14,7 +14,7 @@ class AmazonDeviceSensor:
     """Amazon device sensor class."""
 
     name: str
-    value: str | int | float
+    value: str | int | float | dict[str, Any]
     error: bool
     error_type: str | None
     error_msg: str | None
