@@ -136,6 +136,7 @@ class AmazonEchoApi:
         )
 
         self._device_volumes_initialized: bool = False
+        self._dnd_initialized: bool = False
         self._http2_client: AmazonHTTP2Client | None = None
 
         # force initial refresh
@@ -147,6 +148,7 @@ class AmazonEchoApi:
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
         self.on_history_event = Signal[dict[str, AmazonVocalRecord]](self)
         self.on_todo_event = Signal[AmazonListEvent](self)
+        self.on_dnd_event = Signal[dict[str, bool]](self)
 
     @property
     def domain(self) -> str:
@@ -230,7 +232,6 @@ class AmazonEchoApi:
         # Perform a refresh to ensure your data is as up-to-date as possible.
         await self._refresh_basic_data()
 
-        dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
         notifications = await self._notification_handler.get_notifications()
         communications = (
             await self._communication_handler.get_communication_preferences(
@@ -240,7 +241,6 @@ class AmazonEchoApi:
         await self._sensor_handler.update_sensor_data(
             self._device_handler.devices,
             self._device_handler.endpoints,
-            dnd_sensors,
             notifications,
             communications,
         )
@@ -294,6 +294,8 @@ class AmazonEchoApi:
                 await self._handle_audio_player_state_event()
             case AmazonPushMessage.ItemChange.value:
                 await self._handle_item_change_event(payload)
+            case AmazonPushMessage.DoNotDisturbChange.value:
+                await self._handle_dnd_event(payload)
             case _:
                 _LOGGER.debug("Unhandled push event type: %s", event_type)
 
@@ -580,3 +582,27 @@ class AmazonEchoApi:
     async def restart_device(self, device: AmazonDevice) -> None:
         """Restart a device."""
         await self._device_handler.restart_device(device)
+
+    async def sync_dnd_state(self) -> None:
+        """Sync Do Not Disturb state for all devices."""
+        await self._dnd_handler.sync_do_not_disturb_status()
+        self._dnd_initialized = True
+        await self._emit_dnd_state_event()
+
+    async def _handle_dnd_event(self, payload: dict[str, Any]) -> None:
+        # Ensure initial full sync happens before applying incremental updates
+        if not self._dnd_initialized:
+            await self._dnd_handler.sync_do_not_disturb_status()
+            self._dnd_initialized = True
+
+        serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
+        if serial:
+            self._dnd_handler.dnd_states[serial] = payload.get("enabled", False)
+
+        await self._emit_dnd_state_event()
+
+    async def _emit_dnd_state_event(self) -> None:
+        """Emit dnd event to subscribers."""
+        if self.on_dnd_event.frozen:
+            _LOGGER.debug("Emitting dnd state event to subscribers")
+            await self.on_dnd_event.send(self._dnd_handler.dnd_states)
