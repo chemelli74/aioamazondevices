@@ -26,6 +26,10 @@ class CannotRetrieveData(AmazonError):
     """Exception raised when data retrieval fails."""
 
 
+class NoOnlineDevicesError(AmazonError):
+    """Exception raised when no online devices are found."""
+
+
 class CannotRegisterDevice(AmazonError):
     """Exception raised when device registration fails."""
 
