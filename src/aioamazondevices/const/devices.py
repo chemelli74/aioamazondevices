@@ -13,6 +13,7 @@ DEVICE_TYPE_ECHO_SPOT_GEN1 = "A10A33FOX2NUBK"
 DEVICE_TYPE_SPEAKER_GROUP = "A3C9PE6TNYLTCH"
 DEVICE_TYPE_STEREO_PAIR = "AP1F6KUH00XPV"
 DEVICE_TYPE_AUTO_GEN2 = "A13W6HQIHKEN3Z"
+DEVICE_TYPE_THERMOSTAT = "A39QOBV8YPBZIY"
 
 DEVICE_TYPES_HARDCODED_METADATA: dict[str, dict[str, str]] = {
     DEVICE_TYPE_AQM: {
@@ -37,6 +38,10 @@ DEVICE_TYPES_HARDCODED_METADATA: dict[str, dict[str, str]] = {
     },
     DEVICE_TYPE_STEREO_PAIR: {
         "model": "Stereo Pair",
+        "manufacturer": "Amazon",
+    },
+    DEVICE_TYPE_THERMOSTAT: {
+        "model": "Smart Thermostat",
         "manufacturer": "Amazon",
     },
 }

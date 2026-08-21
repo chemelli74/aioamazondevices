@@ -13,7 +13,11 @@ from aioamazondevices.const.devices import (
     SPEAKER_GROUP_FAMILY,
 )
 from aioamazondevices.const.http import ARRAY_WRAPPER, REQUEST_AGENT, URI_NEXUS_GRAPHQL
-from aioamazondevices.const.metadata import AQM_RANGE_SENSORS, SENSORS
+from aioamazondevices.const.metadata import (
+    AQM_RANGE_SENSORS,
+    SENSORS,
+    THERMOSTAT_SENSORS,
+)
 from aioamazondevices.const.queries import QUERY_SENSOR_STATE
 from aioamazondevices.const.schedules import (
     NOTIFICATION_ALARM,
@@ -168,7 +172,16 @@ class AmazonSensorHandler:
     ) -> dict[str, AmazonDeviceSensor]:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
         device = self._final_devices[serial_number]
+        thermostat_data: dict[str, Any] = {}
         for feature in endpoint.get("features", {}):
+            if feature["name"] == "thermostat":
+                thermostat_data.update(self._extract_thermostat(feature))
+                continue
+
+            if feature["name"] == "thermostatConfiguration":
+                thermostat_data.update(self._extract_thermostat_configuration(feature))
+                continue
+
             if (sensor_template := SENSORS.get(feature["name"])) is None:
                 # Skip sensors that are not in the predefined list
                 continue
@@ -256,4 +269,66 @@ class AmazonSensorHandler:
                     scale,
                 )
 
+        if thermostat_data:
+            if temperature_sensor := device_sensors.get("temperature"):
+                thermostat_data["temperature"] = temperature_sensor.value
+            device_sensors["thermostat"] = AmazonDeviceSensor(
+                "thermostat", thermostat_data, False, None, None, None
+            )
+
         return device_sensors
+
+    def _extract_thermostat(self, feature: dict[str, Any]) -> dict[str, Any]:
+        """Extract raw setpoint/mode values from a thermostat feature block."""
+        data: dict[str, Any] = {}
+        for feature_property in feature.get("properties") or []:
+            property_name = feature_property.get("name")
+            if (sensor_template := THERMOSTAT_SENSORS.get(property_name)) is None:
+                continue
+            if feature_property.get("error"):
+                continue
+
+            value_raw = feature_property.get(sensor_template["key"])
+            if not value_raw:
+                continue
+
+            if scale_template := sensor_template["scale"]:
+                data.setdefault("temperatureScale", value_raw[scale_template])
+            data[property_name] = (
+                value_raw[subkey_template]
+                if (subkey_template := sensor_template["subkey"])
+                else value_raw
+            )
+
+        supported_modes = (feature.get("configuration") or {}).get("supportedModes")
+        if supported_modes:
+            data["supportedModes"] = supported_modes
+
+        return data
+
+    def _extract_thermostat_configuration(
+        self, feature: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Extract the allowed heating/cooling temperature range values."""
+        data: dict[str, Any] = {}
+        for feature_property in feature.get("properties") or []:
+            if feature_property.get("name") != "allowedTemperatureRange":
+                continue
+            if feature_property.get("error"):
+                continue
+
+            allowed_range = (
+                feature_property.get("thermostatAllowedTemperatureRangeValue") or {}
+            )
+            for hvac_mode in ("heating", "cooling"):
+                mode_range = allowed_range.get(hvac_mode) or {}
+                for bound in ("minimum", "maximum"):
+                    bound_value = mode_range.get(bound)
+                    if not bound_value:
+                        continue
+                    data[f"{hvac_mode}{bound.title()}Temperature"] = bound_value[
+                        "value"
+                    ]
+                    data.setdefault("temperatureScale", bound_value.get("scale"))
+
+        return data

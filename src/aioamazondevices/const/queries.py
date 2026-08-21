@@ -22,6 +22,15 @@ query getDevicesBaseData {
   ) {
     ...DeviceEndpoints
   }
+
+  thermostats: listEndpoints(
+    listEndpointsInput: {
+      displayCategory: "THERMOSTAT"
+      includeHouseholdDevices: true
+    }
+  ) {
+    ...DeviceEndpoints
+  }
 }
 
 fragment DeviceEndpoints on ListEndpointsResponse {
@@ -94,6 +103,30 @@ fragment EndpointState on Endpoint {
         rangeValue { value }
         timeOfSample
         timeOfLastChange
+      }
+      ... on Setpoint {
+        value { value scale }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatMode {
+        thermostatModeValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatConfigurationAllowedTemperatureRange {
+        thermostatAllowedTemperatureRangeValue {
+          heating { minimum { value scale } maximum { value scale } }
+          cooling { minimum { value scale } maximum { value scale } }
+        }
+        timeOfSample
+        timeOfLastChange
+      }
+    }
+    configuration {
+      __typename
+      ... on ThermostatConfiguration {
+        supportedModes
       }
     }
   }

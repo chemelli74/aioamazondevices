@@ -307,6 +307,12 @@ async def main() -> None:
             print(f"   Device hardware version: {device.hardware_version}")
             print(f"   Device software version: {device.software_version}")
             print(f"   Device sensors: {len(device.sensors)}")
+            if (thermostat := device.sensors.get("thermostat")) and isinstance(
+                thermostat.value, dict
+            ):
+                print("   Thermostat data:")
+                for key, value in thermostat.value.items():
+                    print(f"     {key}: {value}")
             print(f"   Device notifications: {len(device.notifications)}")
             print(f"   Device communications: {device_comm_settings}")
             dev_index += 1

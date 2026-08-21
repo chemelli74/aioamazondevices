@@ -38,6 +38,31 @@ SENSORS: dict[str, dict[str, str | None]] = {
     },
 }
 
+# Feature "thermostat" carries several differently-named properties at once,
+# unlike the single-property features above, so it is keyed by property name.
+THERMOSTAT_SENSORS: dict[str, dict[str, str | None]] = {
+    "targetSetpoint": {
+        "key": "value",
+        "subkey": "value",
+        "scale": "scale",
+    },
+    "upperSetpoint": {
+        "key": "value",
+        "subkey": "value",
+        "scale": "scale",
+    },
+    "lowerSetpoint": {
+        "key": "value",
+        "subkey": "value",
+        "scale": "scale",
+    },
+    "thermostatMode": {
+        "key": "thermostatModeValue",
+        "subkey": None,
+        "scale": None,
+    },
+}
+
 AQM_RANGE_SENSORS: dict[str, dict[str, str | None]] = {
     "4": {
         "name": "Humidity",
