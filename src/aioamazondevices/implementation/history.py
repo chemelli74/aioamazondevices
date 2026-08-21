@@ -17,12 +17,42 @@ from aioamazondevices.const.http import (
     URI_HISTORY_DATA,
     URI_HISTORY_FRONTEND,
 )
+from aioamazondevices.const.metadata import UTTERANCE_TYPES_TO_SKIP
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonVocalRecord
 from aioamazondevices.utils import _LOGGER
 
 BACKEND_REFRESH_WAIT_SECONDS = 2
+
+# Amazon formats activityKey as:
+# <customerId>#<timestamp>#<deviceType>#<deviceSerialNumber>
+ACTIVITY_KEY_PARTS = 4
+ACTIVITY_KEY_SERIAL_INDEX = 3
+
+
+def _serial_from_activity_key(activity_key: object) -> str | None:
+    """Extract the device serial number from an activityKey."""
+    if not isinstance(activity_key, str):
+        return None
+
+    parts = activity_key.split("#")
+    if len(parts) != ACTIVITY_KEY_PARTS:
+        return None
+
+    return parts[ACTIVITY_KEY_SERIAL_INDEX] or None
+
+
+def _serial_from_device_info(device_info: object) -> str | None:
+    """Extract the device serial number from a record deviceInfo."""
+    if isinstance(device_info, list):
+        device_info = device_info[0] if device_info else None
+
+    if not isinstance(device_info, dict):
+        return None
+
+    serial = device_info.get("deviceSerialNumber")
+    return serial if isinstance(serial, str) and serial else None
 
 
 class AmazonHistoryHandler:
@@ -77,8 +107,15 @@ class AmazonHistoryHandler:
         _LOGGER.debug("Vocal history data: %s", history)
         return history
 
-    async def get_vocal_history(self) -> dict[str, AmazonVocalRecord]:
-        """Get vocal history."""
+    async def get_vocal_history(
+        self, known_serials: set[str] | None = None
+    ) -> dict[str, AmazonVocalRecord]:
+        """Get vocal history.
+
+        When known_serials is provided, records whose serial number can only be
+        recovered from the activityKey are kept only if that serial belongs to a
+        known device.
+        """
         # Give backend the time to update
         await asyncio.sleep(BACKEND_REFRESH_WAIT_SECONDS)
 
@@ -88,25 +125,13 @@ class AmazonHistoryHandler:
         for record in history_json["alexaHistoryRecords"]:
             _LOGGER.debug("Processing vocal history record: %s", record)
             utterance_type = record.get("utteranceType")
-            device_info = record.get("deviceInfo")
-            if (
-                utterance_type
-                in [
-                    "ASR_TIMEOUT",
-                    "DEVICE_ARBITRATION",
-                    "NO_EXPRESSED_INTENT",
-                    "WAKE_WORD_ONLY",
-                ]
-                # InvokeRoutineIntent, AddToListIntent are not linked to a device
-                or device_info is None
-            ):
+            if utterance_type in UTTERANCE_TYPES_TO_SKIP:
                 continue
 
-            if isinstance(device_info, list):
-                device_info = device_info[0] if device_info else None
-            if not isinstance(device_info, dict):
+            serial = self._serial_from_record(record, known_serials)
+            if serial is None:
                 continue
-            serial = device_info["deviceSerialNumber"]
+
             timestamp = record["timestamp"]
             new_record = AmazonVocalRecord(
                 timestamp=timestamp,
@@ -120,6 +145,27 @@ class AmazonHistoryHandler:
                 records[serial] = new_record
 
         return records
+
+    def _serial_from_record(
+        self, record: dict[str, Any], known_serials: set[str] | None
+    ) -> str | None:
+        """Resolve the device serial number a history record belongs to."""
+        if serial := _serial_from_device_info(record.get("deviceInfo")):
+            return serial
+
+        # Some devices, such as Sonos speakers with Alexa, return records
+        # without deviceInfo. The serial number is still carried by activityKey.
+        serial = _serial_from_activity_key(record.get("activityKey"))
+        if serial is None:
+            return None
+
+        if known_serials is not None and serial not in known_serials:
+            _LOGGER.debug(
+                "Discarding vocal history record for unknown device %s", serial
+            )
+            return None
+
+        return serial
 
     async def _update_vocal_history_token(self) -> None:
         """Find anti-csrftoken-a2z token."""

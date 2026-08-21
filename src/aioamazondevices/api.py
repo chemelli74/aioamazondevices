@@ -19,6 +19,10 @@ from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.implementation.todo import AmazonToDoHandler
 
 from . import __version__
+from .const.devices import (
+    SONOS_HISTORY_REFRESH_MIN_INTERVAL,
+    SONOS_MANUFACTURER_PREFIX,
+)
 from .const.http import (
     DEFAULT_SITE,
 )
@@ -141,6 +145,7 @@ class AmazonEchoApi:
         initial_time = datetime.now(UTC) - timedelta(days=2)
         self._last_daily_refresh: datetime = initial_time
         self._last_endpoint_refresh: datetime = initial_time
+        self._last_sonos_history_refresh: datetime = initial_time
 
         self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
@@ -287,6 +292,7 @@ class AmazonEchoApi:
         match event_type:
             case AmazonPushMessage.VolumeChange.value:
                 await self._handle_volume_change_event(payload)
+                await self._handle_sonos_volume_event_as_history_proxy(payload)
             case AmazonPushMessage.EqualizerStateChange.value:
                 await self._handle_eq_event_as_history_proxy()
             case AmazonPushMessage.AudioPlayerState.value:
@@ -311,8 +317,45 @@ class AmazonEchoApi:
 
         await self._emit_volume_state_event()
 
+    def _is_sonos_device(self, serial: str | None) -> bool:
+        """Return whether a serial number belongs to a Sonos speaker."""
+        if not serial:
+            return False
+
+        device = self._device_handler.devices.get(serial)
+        if device is None or not device.manufacturer:
+            return False
+
+        return device.manufacturer.lower().startswith(SONOS_MANUFACTURER_PREFIX)
+
     async def _handle_eq_event_as_history_proxy(self) -> None:
         vocal_history = await self._history_handler.get_vocal_history()
+        await self._emit_history_event(vocal_history)
+
+    async def _handle_sonos_volume_event_as_history_proxy(
+        self, payload: dict[str, Any]
+    ) -> None:
+        """Refresh vocal history for Sonos devices only.
+
+        Sonos speakers never send PUSH_EQUALIZER_STATE_CHANGE, so they never
+        reach the equalizer proxy. They do send a volume change when Alexa
+        ducks playback to answer, which is the only push that reliably follows
+        a voice interaction on those devices. Echo devices emit volume changes
+        on their own and keep using the equalizer event untouched.
+        """
+        serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
+        if not self._is_sonos_device(serial):
+            return
+
+        now = datetime.now(UTC)
+        if now - self._last_sonos_history_refresh < SONOS_HISTORY_REFRESH_MIN_INTERVAL:
+            _LOGGER.debug("Skipping history refresh for device %s: too soon", serial)
+            return
+
+        self._last_sonos_history_refresh = now
+        vocal_history = await self._history_handler.get_vocal_history(
+            set(self._device_handler.devices)
+        )
         await self._emit_history_event(vocal_history)
 
     async def _handle_audio_player_state_event(self) -> None:
