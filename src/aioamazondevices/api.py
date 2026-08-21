@@ -45,6 +45,7 @@ from .structures import (
     AmazonMediaState,
     AmazonMusicProvider,
     AmazonPushMessage,
+    AmazonSaveDataConfig,
     AmazonSequenceType,
     AmazonVocalRecord,
     AmazonVolumeState,
@@ -60,11 +61,9 @@ class AmazonEchoApi:
         client_session: ClientSession,
         login_email: str,
         login_password: str,
+        *,
+        save_data: AmazonSaveDataConfig,
         login_data: dict[str, Any] | None = None,
-        save_to_file: Callable[
-            [str | dict[str, Any], str, str], Coroutine[Any, Any, None]
-        ]
-        | None = None,
     ) -> None:
         """Initialize the scanner."""
         _LOGGER.debug("Initialize library v%s", __version__)
@@ -82,7 +81,7 @@ class AmazonEchoApi:
         self._http_wrapper = AmazonHttpWrapper(
             client_session,
             self._session_state_data,
-            save_to_file,
+            save_data,
         )
 
         self._login = AmazonLogin(
