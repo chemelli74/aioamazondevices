@@ -8,6 +8,7 @@ version = "15.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
+    { name = "anyio" },
     { name = "beautifulsoup4" },
     { name = "httpx", extra = ["http2"] },
     { name = "langcodes" },
@@ -17,7 +18,6 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "anyio" },
     { name = "colorlog" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -27,6 +27,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.12.7" },
+    { name = "anyio", specifier = ">=4" },
     { name = "beautifulsoup4" },
     { name = "httpx", extras = ["http2"] },
     { name = "langcodes" },
@@ -36,7 +37,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "anyio", specifier = ">=4" },
     { name = "colorlog" },
     { name = "pytest", specifier = ">=9.0,<10" },
     { name = "pytest-cov", specifier = ">=5,<8" },

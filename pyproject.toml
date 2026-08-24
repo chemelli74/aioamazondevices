@@ -22,6 +22,7 @@ classifiers = [
 ]
 dependencies = [
 "aiohttp (>=3.12.7)",
+"anyio (>=4)",
 "beautifulsoup4",
 "httpx[http2]",
 "langcodes",
@@ -36,7 +37,6 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "anyio>=4",
     "colorlog",
     "pytest>=9.0,<10",
     "pytest-cov>=5,<8",
@@ -117,6 +117,9 @@ warn_unused_ignores = true
 module = "tests.*"
 allow_untyped_defs = true
 disallow_untyped_decorators = false
+
+[tool.pylint.MASTER]
+extension-pkg-allow-list = ["orjson"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
