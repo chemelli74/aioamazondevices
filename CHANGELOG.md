@@ -1,5 +1,12 @@
 # Changelog
 
+## v15.1.0 (2026-08-24)
+
+### Features
+
+- Persist default device ([`948a566`](https://github.com/chemelli74/aioamazondevices/commit/948a566fa2e8951dab95faba389905671eedd188))
+
+
 ## v15.0.0 (2026-08-24)
 
 ### Bug fixes
