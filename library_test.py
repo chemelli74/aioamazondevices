@@ -30,6 +30,7 @@ from aioamazondevices.exceptions import (
     CannotAuthenticate,
     CannotConnect,
     CannotRegisterDevice,
+    NoOnlineDevicesError,
 )
 from aioamazondevices.structures import (
     AmazonDevice,
@@ -297,6 +298,9 @@ async def main() -> None:
         except (CannotAuthenticate, CannotConnect, CannotRegisterDevice) as exc:
             print(exc)
             sys.exit(3)  # cleanup in finally
+        except NoOnlineDevicesError as exc:
+            print(f"!!! Warning: No online devices found {exc} !!!")
+            sys.exit(0)  # cleanup in finally
 
         print("Devices count  :", len(devices))
         print("-" * 20)
@@ -317,10 +321,6 @@ async def main() -> None:
             print(f"   Device communications: {device_comm_settings}")
             dev_index += 1
         print("-" * 20)
-
-        if not devices:
-            print("!!! Warning: No devices found !!!")
-            sys.exit(0)  # cleanup in finally
 
         default_device = await api.get_default_device()
         print("Default device:", default_device.account_name)
