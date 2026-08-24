@@ -118,6 +118,9 @@ module = "tests.*"
 allow_untyped_defs = true
 disallow_untyped_decorators = false
 
+[tool.pylint.MASTER]
+extension-pkg-allow-list = ["orjson"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["aioamazondevices*"]

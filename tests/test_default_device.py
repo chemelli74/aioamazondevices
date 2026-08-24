@@ -49,30 +49,24 @@ async def test_get_default_device_returns_device_just_set(
 
 
 @pytest.mark.anyio
-async def test_init_default_device_resolves_from_persisted_settings(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice], tmp_path: Path
+@pytest.mark.parametrize(
+    "persisted_serial",
+    [
+        pytest.param(TEST_SERIAL_1, id="persisted-serial-matches-device"),
+        pytest.param(TEST_SERIAL_2, id="persisted-serial-is-stale"),
+    ],
+)
+async def test_init_default_device_resolves_persisted_or_falls_back(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    tmp_path: Path,
+    persisted_serial: str,
 ) -> None:
-    """A previously persisted serial is resolved to the matching device."""
-    device = make_device(TEST_SERIAL_2)
-    api._device_handler._final_devices = {device.serial_number: device}
-    (tmp_path / SETTINGS_FILENAME).write_bytes(
-        orjson.dumps({SETTINGS_DEFAULT_DEVICE: device.serial_number})
-    )
-
-    await api._init_default_device()
-
-    assert await api.get_default_device() == device
-
-
-@pytest.mark.anyio
-async def test_init_default_device_ignores_stale_persisted_serial(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice], tmp_path: Path
-) -> None:
-    """A persisted serial for a device that no longer exists is ignored."""
+    """A matching persisted serial is used; a stale one falls back to online."""
     online_device = make_device(TEST_SERIAL_1, online=True)
     api._device_handler._final_devices = {online_device.serial_number: online_device}
     (tmp_path / SETTINGS_FILENAME).write_bytes(
-        orjson.dumps({SETTINGS_DEFAULT_DEVICE: TEST_SERIAL_2})
+        orjson.dumps({SETTINGS_DEFAULT_DEVICE: persisted_serial})
     )
 
     await api._init_default_device()
@@ -98,6 +92,30 @@ async def test_init_default_device_falls_back_to_first_online_device(
 
 
 @pytest.mark.anyio
+@pytest.mark.parametrize(
+    "settings_bytes",
+    [
+        pytest.param(b"not valid json", id="malformed-json"),
+        pytest.param(orjson.dumps([1, 2, 3]), id="non-object-json"),
+    ],
+)
+async def test_init_default_device_ignores_invalid_settings_file(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    tmp_path: Path,
+    settings_bytes: bytes,
+) -> None:
+    """Invalid settings.json content is treated as no persisted settings."""
+    online_device = make_device(TEST_SERIAL_1, online=True)
+    api._device_handler._final_devices = {online_device.serial_number: online_device}
+    (tmp_path / SETTINGS_FILENAME).write_bytes(settings_bytes)
+
+    await api._init_default_device()
+
+    assert await api.get_default_device() == online_device
+
+
+@pytest.mark.anyio
 async def test_init_default_device_raises_without_online_devices(
     api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
 ) -> None:
@@ -110,20 +128,35 @@ async def test_init_default_device_raises_without_online_devices(
 
 
 @pytest.mark.anyio
-async def test_init_default_device_is_noop_once_resolved(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
+@pytest.mark.parametrize(
+    ("second_round_serials", "expected_serial"),
+    [
+        pytest.param(
+            (TEST_SERIAL_1, TEST_SERIAL_2), TEST_SERIAL_1, id="device-still-present"
+        ),
+        pytest.param((TEST_SERIAL_2,), TEST_SERIAL_2, id="device-removed"),
+    ],
+)
+async def test_init_default_device_revalidates_on_second_call(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    second_round_serials: tuple[str, ...],
+    expected_serial: str,
 ) -> None:
-    """Once a default device is resolved, re-running init keeps it unchanged."""
+    """A resolved device is kept if still present, re-resolved if removed."""
     first_device = make_device(TEST_SERIAL_1, online=True)
     second_device = make_device(TEST_SERIAL_2, online=True)
+    all_devices = {
+        first_device.serial_number: first_device,
+        second_device.serial_number: second_device,
+    }
     api._device_handler._final_devices = {first_device.serial_number: first_device}
 
     await api._init_default_device()
 
     api._device_handler._final_devices = {
-        first_device.serial_number: first_device,
-        second_device.serial_number: second_device,
+        serial: all_devices[serial] for serial in second_round_serials
     }
     await api._init_default_device()
 
-    assert await api.get_default_device() == first_device
+    assert await api.get_default_device() == all_devices[expected_serial]

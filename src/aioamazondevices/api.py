@@ -187,8 +187,9 @@ class AmazonEchoApi:
 
     async def _init_default_device(self) -> None:
         """Resolve default device serial from settings or the first online device."""
-        if self._default_device_serial:
+        if self._default_device_serial in self._device_handler.devices:
             return
+        self._default_device_serial = ""
 
         settings = await self._load_settings()
         if (
@@ -210,9 +211,19 @@ class AmazonEchoApi:
         if not await self._settings_file.exists():
             return {}
 
-        return cast(
-            "dict[str, Any]", orjson.loads(await self._settings_file.read_bytes())
-        )
+        try:
+            settings = orjson.loads(await self._settings_file.read_bytes())
+        except orjson.JSONDecodeError:
+            _LOGGER.warning("Ignoring invalid settings file: %s", self._settings_file)
+            return {}
+
+        if not isinstance(settings, dict):
+            _LOGGER.warning(
+                "Ignoring non-object settings file: %s", self._settings_file
+            )
+            return {}
+
+        return cast("dict[str, Any]", settings)
 
     async def _save_settings(self, settings: dict[str, Any]) -> None:
         """Persist settings to disk."""
