@@ -322,6 +322,11 @@ async def main() -> None:
             print("!!! Warning: No devices found !!!")
             sys.exit(0)  # cleanup in finally
 
+        default_device = await api.get_default_device()
+        print("Default device:", default_device.account_name)
+        await api.set_default_device(default_device)
+        print("-" * 20)
+
         await save_to_file(save_path, devices, "output-devices")
         print("Check above file for full devices details")
         print("-" * 20)
