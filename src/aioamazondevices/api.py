@@ -153,6 +153,7 @@ class AmazonEchoApi:
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
         self.on_history_event = Signal[dict[str, AmazonVocalRecord]](self)
         self.on_todo_event = Signal[AmazonListEvent](self)
+        self.on_notification_change_event = Signal[None](self)
 
     @property
     def domain(self) -> str:
@@ -339,8 +340,18 @@ class AmazonEchoApi:
                 await self._handle_audio_player_state_event()
             case AmazonPushMessage.ItemChange.value:
                 await self._handle_item_change_event(payload)
+            case AmazonPushMessage.NotificationChange.value:
+                await self._handle_notification_change_event()
             case _:
                 _LOGGER.debug("Unhandled push event type: %s", event_type)
+
+    async def _handle_notification_change_event(self) -> None:
+        notifications = await self._notification_handler.get_notifications()
+        if notifications is None:
+            return
+
+        self._sensor_handler.update_notification_data(notifications)
+        await self._emit_notification_change_event()
 
     async def _handle_volume_change_event(self, payload: dict[str, Any]) -> None:
         # Ensure initial full sync happens before applying incremental updates
@@ -575,6 +586,12 @@ class AmazonEchoApi:
         if self.on_todo_event.frozen:
             _LOGGER.debug("Emitting todo event: %s", list_event)
             await self.on_todo_event.send(list_event)
+
+    async def _emit_notification_change_event(self) -> None:
+        """Emit notification change event to subscribers."""
+        if self.on_notification_change_event.frozen:
+            _LOGGER.debug("Emitting notification change event to subscribers")
+            await self.on_notification_change_event.send()
 
     async def sync_history_state(self) -> dict[str, AmazonVocalRecord]:
         """Sync history state.
