@@ -49,6 +49,7 @@ from .structures import (
     AmazonMusicProvider,
     AmazonPushMessage,
     AmazonSaveDataConfig,
+    AmazonSchedule,
     AmazonSequenceType,
     AmazonVocalRecord,
     AmazonVolumeState,
@@ -155,7 +156,7 @@ class AmazonEchoApi:
         self.on_history_event = Signal[dict[str, AmazonVocalRecord]](self)
         self.on_todo_event = Signal[AmazonListEvent](self)
         self.on_dnd_event = Signal[dict[str, bool]](self)
-        self.on_notification_event = Signal[dict[str, AmazonDevice]](self)
+        self.on_notification_event = Signal[dict[str, dict[str, AmazonSchedule]]](self)
 
     @property
     def domain(self) -> str:
@@ -402,7 +403,7 @@ class AmazonEchoApi:
             notifications,
             serial_number,
         )
-        await self._emit_notification_event()
+        await self._emit_notification_event(notifications)
 
     async def _handle_item_change_event(self, payload: dict[str, Any]) -> None:
         list_id = payload.get("listId")
@@ -602,11 +603,13 @@ class AmazonEchoApi:
                 await self._media_handler.device_volumes
             )
 
-    async def _emit_notification_event(self) -> None:
+    async def _emit_notification_event(
+        self, notifications: dict[str, dict[str, AmazonSchedule]]
+    ) -> None:
         """Emit notification event to subscribers."""
         if self.on_notification_event.frozen:
             _LOGGER.debug("Emitting notification event to subscribers")
-            await self.on_notification_event.send(self._device_handler.devices)
+            await self.on_notification_event.send(notifications)
 
     async def _emit_todo_event(self, list_event: AmazonListEvent) -> None:
         """Emit todo event to subscribers."""
