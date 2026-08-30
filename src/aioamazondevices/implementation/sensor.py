@@ -229,6 +229,10 @@ class AmazonSensorHandler:
             else list(devices.values())
         )
         for device in targets:
+            if not device.notifications_supported:
+                continue
+
+            # Clear old notifications to handle cancelled ones
             device.notifications = {}
             device_notifications = notifications.get(device.serial_number, {})
             for capability, notification_type in [
