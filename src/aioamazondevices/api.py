@@ -49,6 +49,7 @@ from .structures import (
     AmazonMusicProvider,
     AmazonPushMessage,
     AmazonSaveDataConfig,
+    AmazonSchedule,
     AmazonSequenceType,
     AmazonVocalRecord,
     AmazonVolumeState,
@@ -153,7 +154,9 @@ class AmazonEchoApi:
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
         self.on_history_event = Signal[dict[str, AmazonVocalRecord]](self)
         self.on_todo_event = Signal[AmazonListEvent](self)
-        self.on_notification_change_event = Signal[None](self)
+        self.on_notification_change_event = Signal[
+            dict[str, dict[str, AmazonSchedule]]
+        ](self)
 
     @property
     def domain(self) -> str:
@@ -351,7 +354,7 @@ class AmazonEchoApi:
             return
 
         self._sensor_handler.update_notification_data(notifications)
-        await self._emit_notification_change_event()
+        await self._emit_notification_change_event(notifications)
 
     async def _handle_volume_change_event(self, payload: dict[str, Any]) -> None:
         # Ensure initial full sync happens before applying incremental updates
@@ -587,11 +590,13 @@ class AmazonEchoApi:
             _LOGGER.debug("Emitting todo event: %s", list_event)
             await self.on_todo_event.send(list_event)
 
-    async def _emit_notification_change_event(self) -> None:
+    async def _emit_notification_change_event(
+        self, notifications: dict[str, dict[str, AmazonSchedule]]
+    ) -> None:
         """Emit notification change event to subscribers."""
         if self.on_notification_change_event.frozen:
             _LOGGER.debug("Emitting notification change event to subscribers")
-            await self.on_notification_change_event.send()
+            await self.on_notification_change_event.send(notifications)
 
     async def sync_history_state(self) -> dict[str, AmazonVocalRecord]:
         """Sync history state.
