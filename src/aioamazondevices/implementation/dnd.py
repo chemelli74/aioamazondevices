@@ -52,7 +52,7 @@ class AmazonDnDHandler:
 
         dnd_states: dict[str, bool] = {
             dnd.get("deviceSerialNumber"): dnd.get("enabled")
-            for dnd in dnd_data.get("doNotDisturbDeviceStatusList", {})
+            for dnd in dnd_data.get("doNotDisturbDeviceStatusList", [])
             if dnd.get("deviceType")
             not in (DEVICE_TYPE_SPEAKER_GROUP, DEVICE_TYPE_STEREO_PAIR)
             and dnd.get("deviceType") not in DEVICE_TYPES_TO_IGNORE
