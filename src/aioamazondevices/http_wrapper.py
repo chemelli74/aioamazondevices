@@ -66,7 +66,6 @@ class AmazonSessionStateData:
         self._login_password: str = login_password
         self._login_stored_data: dict[str, Any] = login_data or {}
         self.country_specific_data(login_site)
-        self._account_customer_id: str | None = None
 
     @property
     def country_code(self) -> str:
