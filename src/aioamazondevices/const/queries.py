@@ -1,3 +1,6 @@
+# Copyright 2024 Simone Chemelli and contributors
+# SPDX-License-Identifier: Apache-2.0
+
 """GraphQL queries for Amazon devices."""
 
 QUERY_DEVICE_DATA = """

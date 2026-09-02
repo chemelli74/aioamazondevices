@@ -33,7 +33,18 @@ lint.ignore = [
 ]
 "tests/*" = [
     "S101",     # Use of `assert` detected
+    "SLF001",   # Private member accessed
+]
+"setup.py" = [
+    "CPY001",    # Missing copyright notice
 ]
 
 [lint.mccabe]
 max-complexity = 18
+
+[lint.isort]
+known-first-party = ["aiocomelit", "tests"]
+
+[lint.flake8-copyright]
+notice-rgx = '''(?i)# Copyright \d{4} Simone Chemelli and Contributors
+# SPDX-License-Identifier: Apache-2.0'''

@@ -1,9 +1,11 @@
+# Copyright 2024 Simone Chemelli and contributors
+# SPDX-License-Identifier: Apache-2.0
+
 """HTTP wrapper module for Amazon devices."""
 
 import asyncio
 import base64
 import secrets
-from collections.abc import Callable, Coroutine
 from http import HTTPMethod, HTTPStatus
 from http.cookies import Morsel
 from typing import Any, cast
@@ -45,6 +47,7 @@ from .exceptions import (
     CannotConnect,
     CannotRetrieveData,
 )
+from .structures import AmazonSaveDataConfig
 from .utils import _LOGGER, scrub_fields
 
 
@@ -159,15 +162,12 @@ class AmazonHttpWrapper:
         self,
         client_session: ClientSession,
         session_state_data: AmazonSessionStateData,
-        save_to_file: Callable[
-            [str | dict[str, Any], str, str], Coroutine[Any, Any, None]
-        ]
-        | None = None,
+        save_data: AmazonSaveDataConfig,
     ) -> None:
         """Initialize HTTP wrapper."""
         self._session = client_session
         self._session_state_data: AmazonSessionStateData = session_state_data
-        self._save_to_file = save_to_file
+        self._save_data = save_data
 
         self._csrf_cookie: str | None = None
         self._cookies: dict[str, str] = self._build_init_cookies()
@@ -415,8 +415,9 @@ class AmazonHttpWrapper:
 
         raw_content = await resp.read()
 
-        if self._save_to_file:
-            await self._save_to_file(
+        if self._save_data.callback:
+            await self._save_data.callback(
+                self._save_data.path,
                 raw_content.decode("utf-8"),
                 url.human_repr(),
                 content_type,

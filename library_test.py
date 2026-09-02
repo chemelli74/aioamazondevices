@@ -1,3 +1,6 @@
+# Copyright 2024 Simone Chemelli and contributors
+# SPDX-License-Identifier: Apache-2.0
+
 """Test script for aioamazondevices library."""
 
 import asyncio
@@ -11,6 +14,7 @@ import sys
 from argparse import ArgumentParser, Namespace
 from collections.abc import Callable
 from datetime import UTC, datetime
+from os import PathLike
 from typing import Any, cast
 from urllib.parse import urlparse
 
@@ -26,12 +30,14 @@ from aioamazondevices.exceptions import (
     CannotAuthenticate,
     CannotConnect,
     CannotRegisterDevice,
+    NoOnlineDevicesError,
 )
 from aioamazondevices.structures import (
     AmazonDevice,
     AmazonMediaControls,
     AmazonMediaState,
     AmazonMusicProvider,
+    AmazonSaveDataConfig,
 )
 
 SAVE_PATH = "out"
@@ -135,6 +141,7 @@ async def read_from_file(data_file: str) -> dict[str, Any]:
 
 
 async def save_to_file(
+    save_path: PathLike[str],
     raw_data: str | dict[str, Any],
     url: str,
     content_type: str = "application/json",
@@ -144,9 +151,7 @@ async def save_to_file(
         return
 
     # Create main output directory and timestamp subdirectory
-    output_dir = Path(SAVE_PATH)
-    await output_dir.mkdir(parents=True, exist_ok=True)
-    output_dir = output_dir.joinpath(SAVE_PATH_DATE)
+    output_dir = Path(save_path)
     await output_dir.mkdir(parents=True, exist_ok=True)
 
     extension = (
@@ -239,12 +244,17 @@ async def main() -> None:
     client_session = ClientSession()
     httpx_client = httpx.AsyncClient(http2=True)
 
+    save_path = Path(SAVE_PATH, SAVE_PATH_DATE)
+
     api = AmazonEchoApi(
         client_session=client_session,
         login_email=args.email,
         login_password=args.password,
         login_data=login_data_stored,
-        save_to_file=save_to_file,
+        save_data=AmazonSaveDataConfig(
+            path=save_path,
+            callback=save_to_file,
+        ),
     )
 
     api.on_media_state_event.append(media_state_event_handler)
@@ -258,7 +268,7 @@ async def main() -> None:
                 login_data = await api.login.login_mode_interactive(
                     args.otp_code or input("OTP Code: ")
                 )
-                await save_to_file(login_data, "login_data")
+                await save_to_file(save_path, login_data, "login_data")
         except CannotAuthenticate:
             print(f"Cannot authenticate with {args.email} credentials")
             raise
@@ -280,7 +290,7 @@ async def main() -> None:
         print("Login data:", login_data)
         print("-" * 20)
 
-        await save_to_file(login_data, "output-login-data")
+        await save_to_file(save_path, login_data, "output-login-data")
 
         print("-" * 20)
         try:
@@ -288,6 +298,9 @@ async def main() -> None:
         except (CannotAuthenticate, CannotConnect, CannotRegisterDevice) as exc:
             print(exc)
             sys.exit(3)  # cleanup in finally
+        except NoOnlineDevicesError as exc:
+            print(f"!!! Warning: No online devices found {exc} !!!")
+            sys.exit(0)  # cleanup in finally
 
         print("Devices count  :", len(devices))
         print("-" * 20)
@@ -309,11 +322,12 @@ async def main() -> None:
             dev_index += 1
         print("-" * 20)
 
-        if not devices:
-            print("!!! Warning: No devices found !!!")
-            sys.exit(0)  # cleanup in finally
+        default_device = await api.get_default_device()
+        print("Default device:", default_device.account_name)
+        await api.set_default_device(default_device)
+        print("-" * 20)
 
-        await save_to_file(devices, "output-devices")
+        await save_to_file(save_path, devices, "output-devices")
         print("Check above file for full devices details")
         print("-" * 20)
 

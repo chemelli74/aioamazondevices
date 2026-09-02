@@ -1,13 +1,18 @@
+# Copyright 2024 Simone Chemelli and contributors
+# SPDX-License-Identifier: Apache-2.0
+
 """Main module for Amazon devices."""
 
 import asyncio
 from collections.abc import Callable, Coroutine
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, cast
 
 import httpx
+import orjson
 from aiohttp import ClientSession
 from aiosignal import Signal
+from anyio import Path
 
 from aioamazondevices.implementation.communication import AlexaCommunicationsHandler
 from aioamazondevices.implementation.device import AmazonDeviceHandler
@@ -24,6 +29,7 @@ from .const.metadata import (
     VOLUME_MAX,
     VOLUME_MIN,
 )
+from .exceptions import NoOnlineDevicesError
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
 from .implementation.history import AmazonHistoryHandler
@@ -42,11 +48,15 @@ from .structures import (
     AmazonMediaState,
     AmazonMusicProvider,
     AmazonPushMessage,
+    AmazonSaveDataConfig,
     AmazonSequenceType,
     AmazonVocalRecord,
     AmazonVolumeState,
 )
 from .utils import _LOGGER, scrub_fields
+
+SETTINGS_FILENAME = "settings.json"
+SETTINGS_DEFAULT_DEVICE = "default_device"
 
 
 class AmazonEchoApi:
@@ -57,16 +67,15 @@ class AmazonEchoApi:
         client_session: ClientSession,
         login_email: str,
         login_password: str,
+        *,
+        save_data: AmazonSaveDataConfig,
         login_data: dict[str, Any] | None = None,
-        save_to_file: Callable[
-            [str | dict[str, Any], str, str], Coroutine[Any, Any, None]
-        ]
-        | None = None,
     ) -> None:
         """Initialize the scanner."""
         _LOGGER.debug("Initialize library v%s", __version__)
 
-        self._default_device: AmazonDevice | None = None
+        self._settings_file = Path(save_data.path, SETTINGS_FILENAME)
+        self._default_device_serial: str = ""
 
         # Check if there is a previous login, otherwise use default (US)
         site = login_data.get("site", DEFAULT_SITE) if login_data else DEFAULT_SITE
@@ -79,7 +88,7 @@ class AmazonEchoApi:
         self._http_wrapper = AmazonHttpWrapper(
             client_session,
             self._session_state_data,
-            save_to_file,
+            save_data,
         )
 
         self._login = AmazonLogin(
@@ -165,23 +174,61 @@ class AmazonEchoApi:
         """Return ToDo lists."""
         return self._todo_handler.lists
 
-    @property
-    def default_device(self) -> AmazonDevice:
+    async def get_default_device(self) -> AmazonDevice:
         """Return default device."""
-        if self._default_device:
-            return self._default_device
+        return self._device_handler.devices[self._default_device_serial]
 
-        # Get first online device as default if no default device has been set yet
+    async def set_default_device(self, device: AmazonDevice) -> None:
+        """Set default device and persist its serial number."""
+        self._default_device_serial = device.serial_number
+        await self._save_settings(
+            {SETTINGS_DEFAULT_DEVICE: self._default_device_serial}
+        )
+
+    async def _init_default_device(self) -> None:
+        """Resolve default device serial from settings or the first online device."""
+        if self._default_device_serial in self._device_handler.devices:
+            return
+        self._default_device_serial = ""
+
+        settings = await self._load_settings()
+        if (
+            serial_number := settings.get(SETTINGS_DEFAULT_DEVICE)
+        ) and serial_number in self._device_handler.devices:
+            self._default_device_serial = serial_number
+            return
+
+        # Use first online device as default if no default device has been set yet
         for device in self._device_handler.devices.values():
             if device.online:
-                return device
+                self._default_device_serial = device.serial_number
+                return
 
-        raise ValueError("No online devices found")
+        raise NoOnlineDevicesError("No online devices found")
 
-    @default_device.setter
-    def default_device(self, device: AmazonDevice) -> None:
-        """Set default device."""
-        self._default_device = device
+    async def _load_settings(self) -> dict[str, Any]:
+        """Load persisted settings from disk."""
+        if not await self._settings_file.exists():
+            return {}
+
+        try:
+            settings = orjson.loads(await self._settings_file.read_bytes())
+        except orjson.JSONDecodeError:
+            _LOGGER.warning("Ignoring invalid settings file: %s", self._settings_file)
+            return {}
+
+        if not isinstance(settings, dict):
+            _LOGGER.warning(
+                "Ignoring non-object settings file: %s", self._settings_file
+            )
+            return {}
+
+        return cast("dict[str, Any]", settings)
+
+    async def _save_settings(self, settings: dict[str, Any]) -> None:
+        """Persist settings to disk."""
+        await self._settings_file.parent.mkdir(parents=True, exist_ok=True)
+        await self._settings_file.write_bytes(orjson.dumps(settings))
 
     @property
     async def music_providers(self) -> dict[str, AmazonMusicProvider]:
@@ -201,6 +248,7 @@ class AmazonEchoApi:
             await self._media_handler.update_music_providers()
             await self._sequence_handler.update_routines()
             await self._todo_handler.update_lists()
+            await self._init_default_device()
 
             self._last_daily_refresh = datetime.now(UTC)
 
@@ -432,7 +480,7 @@ class AmazonEchoApi:
         # Routines are not device specific
         # but a device is needed to call them anyway.
         await self._call_alexa_command_per_cluster_member(
-            self.default_device,
+            self._device_handler.devices[self._default_device_serial],
             AmazonSequenceType.Routines,
             routine_name,
         )
@@ -573,3 +621,7 @@ class AmazonEchoApi:
         items = await self._todo_handler.get_list_items(list_id)
 
         return {item.id: item for item in items}
+
+    async def restart_device(self, device: AmazonDevice) -> None:
+        """Restart a device."""
+        await self._device_handler.restart_device(device)

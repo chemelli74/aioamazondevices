@@ -1,6 +1,6 @@
 [project]
 name = "aioamazondevices"
-version = "14.1.8"
+version = "15.1.0"
 requires-python = ">=3.12"
 description = "Python library to control Amazon devices"
 authors = [
@@ -17,11 +17,12 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14", # renovate: depName=python datasource=python-version
+    "Programming Language :: Python :: 3.14", # renovate: customPinnedDependency=python,datasource=python-version
     "Topic :: Software Development :: Libraries",
 ]
 dependencies = [
 "aiohttp (>=3.12.7)",
+"anyio (>=4)",
 "beautifulsoup4",
 "httpx[http2]",
 "langcodes",
@@ -36,21 +37,25 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "anyio>=4",
     "colorlog",
     "pytest>=9.0,<10",
     "pytest-cov>=5,<8",
     "types-python-dateutil>=2.9.0.20260323,<3",
 ]
 
+[tool.uv-version]
+# Source of truth for the uv version. All other version references must be derived from this value.
+version = "0.12.9" # renovate: depName=uv datasource=pypi
+
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
 version_variables = [
     "src/aioamazondevices/__init__.py:__version__",
 ]
-# Keep this version in sync with scripts/setup.sh and .github/workflows/ci.yml.
+# Extract version from [tool.uv-version], single source of truth.
 build_command = """
-    python -m pip install \"uv==0.11.25\"
+    UV_VERSION=$(./scripts/get-pyproject-uv.version.sh)
+    python -m pip install "uv==$UV_VERSION"
     uv lock --upgrade-package "$PACKAGE_NAME"
     git add uv.lock
     uv build
@@ -89,9 +94,6 @@ exclude_lines = [
     'if __name__ == "__main__":',
 ]
 
-[tool.ruff.isort]
-known-first-party = ["aioamazondevices", "tests"]
-
 [tool.mypy]
 check_untyped_defs = true
 disallow_any_generics = true
@@ -115,6 +117,9 @@ warn_unused_ignores = true
 module = "tests.*"
 allow_untyped_defs = true
 disallow_untyped_decorators = false
+
+[tool.pylint.MASTER]
+extension-pkg-allow-list = ["orjson"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

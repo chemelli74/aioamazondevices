@@ -1,3 +1,6 @@
+# Copyright 2024 Simone Chemelli and contributors
+# SPDX-License-Identifier: Apache-2.0
+
 """Exceptions module for Amazon devices."""
 
 from __future__ import annotations
@@ -15,8 +18,16 @@ class CannotAuthenticate(AmazonError):
     """Exception raised when authentication fails."""
 
 
+class CannotRestartDevice(AmazonError):
+    """Exception raised when device restart fails."""
+
+
 class CannotRetrieveData(AmazonError):
     """Exception raised when data retrieval fails."""
+
+
+class NoOnlineDevicesError(AmazonError):
+    """Exception raised when no online devices are found."""
 
 
 class CannotRegisterDevice(AmazonError):
