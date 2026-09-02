@@ -323,7 +323,7 @@ class AmazonHttpWrapper:
         headers.update({"x-amzn-build-version": __version__})
 
         if extended_headers:
-            _LOGGER.debug("Adding to headers: %s", extended_headers)
+            _LOGGER.debug("Adding to headers: %s", scrub_fields(extended_headers))
             headers.update(extended_headers)
 
         if self._csrf_cookie:
