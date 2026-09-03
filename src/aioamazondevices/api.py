@@ -36,6 +36,7 @@ from .implementation.history import AmazonHistoryHandler
 from .implementation.http2 import AmazonHTTP2Client
 from .implementation.notification import AmazonNotificationHandler
 from .implementation.sequence import AmazonSequenceHandler
+from .implementation.thermostat import AmazonThermostatHandler
 from .login import AmazonLogin
 from .structures import (
     AmazonDevice,
@@ -137,6 +138,11 @@ class AmazonEchoApi:
         )
 
         self._communication_handler = AlexaCommunicationsHandler(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
+        self._thermostat_handler = AmazonThermostatHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
         )
@@ -543,6 +549,22 @@ class AmazonEchoApi:
     async def set_announcement_status(self, device: AmazonDevice, enable: bool) -> None:
         """Set announcements enabled status for a device."""
         await self._communication_handler.set_announcement_status(device, enable)
+
+    async def set_thermostat_mode(self, device: AmazonDevice, mode: str) -> None:
+        """Set a thermostat's HVAC mode (e.g. HEAT, COOL, AUTO, OFF)."""
+        await self._thermostat_handler.set_thermostat_mode(device, mode)
+
+    async def set_thermostat_target_temperature(
+        self, device: AmazonDevice, temperature: float, scale: str
+    ) -> None:
+        """Set a thermostat's single target temperature (HEAT/COOL mode)."""
+        await self._thermostat_handler.set_target_setpoint(device, temperature, scale)
+
+    async def set_thermostat_temperature_range(
+        self, device: AmazonDevice, lower: float, upper: float, scale: str
+    ) -> None:
+        """Set a thermostat's heat/cool target range (AUTO mode)."""
+        await self._thermostat_handler.set_setpoint_range(device, lower, upper, scale)
 
     async def sync_media_state(self) -> None:
         """Sync media state.

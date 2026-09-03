@@ -30,6 +30,7 @@ from aioamazondevices.exceptions import (
     CannotAuthenticate,
     CannotConnect,
     CannotRegisterDevice,
+    CannotSetThermostat,
     NoOnlineDevicesError,
 )
 from aioamazondevices.structures import (
@@ -88,6 +89,12 @@ async def get_arguments() -> tuple[ArgumentParser, Namespace]:
         "-rn",
         type=str,
         help="Routine name to execute for testing",
+    )
+    parser.add_argument(
+        "--thermostat_device_name",
+        "-tdn",
+        type=str,
+        help="Thermostat device name to exercise set_thermostat_* calls on",
     )
     parser.add_argument(
         "--configfile",
@@ -317,6 +324,12 @@ async def main() -> None:
             print(f"   Device hardware version: {device.hardware_version}")
             print(f"   Device software version: {device.software_version}")
             print(f"   Device sensors: {len(device.sensors)}")
+            if (thermostat := device.sensors.get("thermostat")) and isinstance(
+                thermostat.value, dict
+            ):
+                print("   Thermostat data:")
+                for key, value in thermostat.value.items():
+                    print(f"     {key}: {value}")
             print(f"   Device notifications: {len(device.notifications)}")
             print(f"   Device communications: {device_comm_settings}")
             dev_index += 1
@@ -522,6 +535,62 @@ async def tests(
         print(f"Executing routine '{args.routine_name}'")
         await api.call_routine(args.routine_name)
         await wait_action_complete(10)
+
+    # Unlike the tests above, this defaults to False (not True): it has a real
+    # physical effect on the thermostat, so it must be explicitly opted into.
+    if args.tests.get("11_test_thermostat", False):
+        await test_thermostat(api, devices, args.thermostat_device_name)
+
+
+def _is_thermostat(device: AmazonDevice) -> bool:
+    """Return whether a device is a thermostat."""
+    return device.device_family == "THERMOSTAT"
+
+
+async def test_thermostat(
+    api: AmazonEchoApi, devices: dict[str, AmazonDevice], device_name: str | None
+) -> None:
+    """Exercise set_thermostat_* by re-setting the mode/setpoint(s) already active.
+
+    A round-trip no-op: it changes nothing about the thermostat's comfort
+    settings, but still exercises the write path end-to-end against the
+    real API.
+    """
+    device = find_device(devices, device_name, _is_thermostat)
+    thermostat = device.sensors.get("thermostat")
+    if not thermostat or not isinstance(thermostat.value, dict):
+        print(f"No thermostat data for {device.account_name}, skipping thermostat test")
+        return
+
+    data = thermostat.value
+    scale = data.get("temperatureScale", "FAHRENHEIT")
+    mode = data.get("thermostatMode")
+
+    try:
+        if mode == "AUTO" and "lowerSetpoint" in data and "upperSetpoint" in data:
+            lower = data["lowerSetpoint"]
+            upper = data["upperSetpoint"]
+            print(
+                f"Re-setting existing AUTO range {lower}-{upper}{scale} "
+                f"on {device.account_name}"
+            )
+            await api.set_thermostat_temperature_range(device, lower, upper, scale)
+            await wait_action_complete()
+        elif "targetSetpoint" in data:
+            target = data["targetSetpoint"]
+            print(
+                f"Re-setting existing target setpoint {target}{scale} "
+                f"on {device.account_name}"
+            )
+            await api.set_thermostat_target_temperature(device, target, scale)
+            await wait_action_complete()
+
+        if mode:
+            print(f"Re-setting existing mode {mode} on {device.account_name}")
+            await api.set_thermostat_mode(device, mode)
+            await wait_action_complete()
+    except CannotSetThermostat as exc:
+        print(f"Thermostat control failed: {exc}")
 
 
 def set_logging() -> None:
