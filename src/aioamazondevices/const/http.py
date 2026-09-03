@@ -1,3 +1,6 @@
+# Copyright 2024 Simone Chemelli and contributors
+# SPDX-License-Identifier: Apache-2.0
+
 """HTTP constants for Amazon devices."""
 
 HTTP_ERROR_199 = 199

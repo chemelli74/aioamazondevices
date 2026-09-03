@@ -1,6 +1,9 @@
+# Copyright 2024 Simone Chemelli and contributors
+# SPDX-License-Identifier: Apache-2.0
+
 """aioamazondevices library."""
 
-__version__ = "14.2.0"
+__version__ = "15.1.0"
 
 
 from .api import AmazonEchoApi

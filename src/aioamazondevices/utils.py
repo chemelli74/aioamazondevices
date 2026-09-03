@@ -1,3 +1,6 @@
+# Copyright 2024 Simone Chemelli and contributors
+# SPDX-License-Identifier: Apache-2.0
+
 """Utils module for Amazon devices."""
 
 import logging
@@ -26,6 +29,8 @@ TO_REDACT = {
     "address1",
     "address2",
     "address3",
+    "anti-csrftoken-a2z",
+    "Authorization",
     "city",
     "county",
     "customerId",
@@ -37,6 +42,7 @@ TO_REDACT = {
     "password",
     "postalCode",
     "searchCustomerId",
+    "secureSessionToken",
     "source_token",
     "state",
     "street",

@@ -1,9 +1,24 @@
+# Copyright 2024 Simone Chemelli and contributors
+# SPDX-License-Identifier: Apache-2.0
+
 """Structures module for Amazon devices."""
 
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
+from os import PathLike
 from typing import Any
+
+
+@dataclass
+class AmazonSaveDataConfig:
+    """Configuration for saving raw HTTP responses to disk (debug only)."""
+
+    path: PathLike[str]
+    callback: (
+        Callable[[PathLike[str], str, str, str], Coroutine[Any, Any, None]] | None
+    ) = None
 
 
 @dataclass

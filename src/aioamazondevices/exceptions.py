@@ -1,3 +1,6 @@
+# Copyright 2024 Simone Chemelli and contributors
+# SPDX-License-Identifier: Apache-2.0
+
 """Exceptions module for Amazon devices."""
 
 from __future__ import annotations
@@ -21,6 +24,10 @@ class CannotRestartDevice(AmazonError):
 
 class CannotRetrieveData(AmazonError):
     """Exception raised when data retrieval fails."""
+
+
+class NoOnlineDevicesError(AmazonError):
+    """Exception raised when no online devices are found."""
 
 
 class CannotRegisterDevice(AmazonError):

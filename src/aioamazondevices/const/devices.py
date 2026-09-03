@@ -1,3 +1,6 @@
+# Copyright 2024 Simone Chemelli and contributors
+# SPDX-License-Identifier: Apache-2.0
+
 """Devices constants for Amazon devices."""
 
 from .http import AMAZON_DEVICE_TYPE
@@ -6,16 +9,26 @@ SPEAKER_GROUP_FAMILY = "WHA"
 
 DEVICE_TYPE_AQM = "AEZME1X38KDRA"
 DEVICE_TYPE_CUBE_GEN3 = "A2JKHJ0PX4J3L3"
+DEVICE_TYPE_ECHO_SPOT_GEN1 = "A10A33FOX2NUBK"
 DEVICE_TYPE_SPEAKER_GROUP = "A3C9PE6TNYLTCH"
 DEVICE_TYPE_STEREO_PAIR = "AP1F6KUH00XPV"
+DEVICE_TYPE_AUTO_GEN2 = "A13W6HQIHKEN3Z"
 
 DEVICE_TYPES_HARDCODED_METADATA: dict[str, dict[str, str]] = {
     DEVICE_TYPE_AQM: {
         "model": "Air Quality Monitor",
         "manufacturer": "Amazon",
     },
+    DEVICE_TYPE_AUTO_GEN2: {
+        "model": "Echo Auto (2nd Generation)",
+        "manufacturer": "Amazon",
+    },
     DEVICE_TYPE_CUBE_GEN3: {
         "model": "Fire TV Cube (3rd Generation)",
+        "manufacturer": "Amazon",
+    },
+    DEVICE_TYPE_ECHO_SPOT_GEN1: {
+        "model": "Echo Spot (1st Generation)",
         "manufacturer": "Amazon",
     },
     DEVICE_TYPE_SPEAKER_GROUP: {

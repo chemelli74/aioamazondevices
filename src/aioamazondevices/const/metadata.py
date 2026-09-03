@@ -1,3 +1,6 @@
+# Copyright 2024 Simone Chemelli and contributors
+# SPDX-License-Identifier: Apache-2.0
+
 """Metadata constants for Amazon devices."""
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
@@ -85,7 +88,8 @@ ALEXA_INFO_SKILLS = [
 
 SEQUENCE_BATCH_DELAY = 0.3  # seconds
 
-MAX_CUSTOMER_ACCOUNT_RETRIES = 3
+CUSTOMER_ACCOUNT_MAX_RETRIES = 30
+CUSTOMER_ACCOUNT_DELAY_BETWEEN_RETRIES = 2  # seconds
 
 VOLUME_MAX = 100
 VOLUME_MIN = 0
