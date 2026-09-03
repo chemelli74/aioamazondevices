@@ -49,7 +49,7 @@ class AmazonDevice:
     device_owner_customer_id: str
     household_device: bool
     device_cluster_members: dict[str, str | None]
-    parent_clusters: list[str] | None
+    parent_clusters: list[str]
     online: bool
     serial_number: str
     manufacturer: str | None

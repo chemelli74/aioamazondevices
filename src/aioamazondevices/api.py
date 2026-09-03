@@ -310,12 +310,11 @@ class AmazonEchoApi:
             volume_device: AmazonDevice | None = self._device_handler.devices.get(
                 serial, None
             )
-            if volume_device and volume_device.parent_clusters:
+            if volume_device:
                 for parent_serial in volume_device.parent_clusters:
-                    parent_cluster: AmazonDevice | None = (
+                    if parent_cluster := (
                         self._device_handler.devices.get(parent_serial, None)
-                    )
-                    if parent_cluster:
+                    ):
                         self._media_handler.update_cached_speaker_group_volume(
                             parent_serial,
                             list(parent_cluster.device_cluster_members),
