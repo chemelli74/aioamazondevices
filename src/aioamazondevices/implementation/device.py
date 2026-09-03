@@ -97,7 +97,7 @@ class AmazonDeviceHandler:
                 device_cluster_members=dict.fromkeys(
                     device["clusterMembers"] or [serial_number]
                 ),
-                parent_clusters=device.get("parentClusters", []),
+                parent_clusters=device.get("parentClusters", []) or [],
                 online=device["online"],
                 serial_number=serial_number,
                 software_version=device["softwareVersion"]
