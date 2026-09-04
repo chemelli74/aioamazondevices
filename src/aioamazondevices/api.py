@@ -358,6 +358,9 @@ class AmazonEchoApi:
         await self._emit_volume_state_event()
 
     async def _handle_eq_event_as_history_proxy(self) -> None:
+        if not self.on_history_event.frozen:
+            _LOGGER.debug("No vocal history subscribers, skipping fetch")
+            return
         vocal_history = await self._history_handler.get_vocal_history()
         await self._emit_history_event(vocal_history)
 
