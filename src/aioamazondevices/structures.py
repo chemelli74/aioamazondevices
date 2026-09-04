@@ -165,6 +165,9 @@ class AmazonPushMessage(StrEnum):
     # Matter
     MatterDeviceFound = "MATTER_SETUP_NOTIFICATION"
 
+    # DND
+    DoNotDisturbChange = "PUSH_DND_STATE_CHANGE"
+
 
 @dataclass
 class AmazonSequenceNode:
