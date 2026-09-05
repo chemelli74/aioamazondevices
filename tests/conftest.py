@@ -65,6 +65,7 @@ def make_device() -> Callable[..., AmazonDevice]:
             notifications={},
             media_player_supported=False,
             communication_settings={},
+            light=None,
         )
 
     return _make_device
