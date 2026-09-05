@@ -3,6 +3,7 @@
 
 """Utils module for Amazon devices."""
 
+import io
 import logging
 import re
 import traceback
@@ -10,18 +11,30 @@ from collections.abc import Collection
 from email.message import EmailMessage
 from email.parser import BytesParser
 from email.policy import default
-from pathlib import Path
+from http import HTTPStatus
+from pathlib import Path as SyncPath
 from typing import Any
 
+import aiohttp
 import orjson
+from anyio import Path
+from pydub import AudioSegment
+from pydub.exceptions import CouldntDecodeError
 
 from aioamazondevices.const.http import ARRAY_WRAPPER
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.structures import AmazonDevice
 
+from .const.audio import (
+    AUDIO_FILE_FORMATS,
+    AUDIO_FILE_MAX_BITRATE,
+    AUDIO_FILE_MAX_DURATION,
+    AUDIO_FILE_MAX_SAMPLERATE,
+)
+
 _LOGGER = logging.getLogger(__package__)
 _MAX_JSON_PARSE_DEPTH = 10
-_PACKAGE_DIR = Path(__file__).parent
+_PACKAGE_DIR = SyncPath(__file__).parent
 
 TO_REDACT = {
     "access_token",
@@ -273,7 +286,7 @@ def get_innermost_frame(exc: BaseException) -> str:
     # E.g. '_ping:531'
     frames = traceback.extract_tb(exc.__traceback__)
     for frame in reversed(frames):
-        if Path(frame.filename).is_relative_to(_PACKAGE_DIR):
+        if SyncPath(frame.filename).is_relative_to(_PACKAGE_DIR):
             return f"{frame.name}:{frame.lineno}"
     return "unknown"
 
@@ -283,3 +296,83 @@ def get_deepest_cause(exc: BaseException) -> BaseException:
     while exc.__cause__ is not None:
         exc = exc.__cause__
     return exc
+
+
+async def load_audio(source: str) -> tuple[bytes, int]:
+    """Load audio file from URL or file and return (content, filesize)."""
+    if source.startswith(("http://", "https://")):
+        # Remote file
+        async with aiohttp.ClientSession() as session, session.get(source) as resp:
+            if resp.status != HTTPStatus.OK:
+                raise ValueError(f"Failed to fetch file, status {resp.status}")
+            content = await resp.read()
+            filesize = int(resp.headers.get("Content-Length", len(content)))
+    else:
+        # Local file
+        localfile = Path(source)
+        if not await localfile.exists():
+            raise FileNotFoundError(f"File not found: {source}")
+        content = await localfile.read_bytes()
+        filesize = len(content)
+
+    return content, filesize
+
+
+def detect_audio_format(content: bytes) -> str | None:
+    """Detect audio format from raw bytes using pydub."""
+    for fmt in AUDIO_FILE_FORMATS:
+        try:
+            AudioSegment.from_file(io.BytesIO(content), format=fmt)
+        except CouldntDecodeError:
+            # Could not decode with this format, try the next one
+            continue
+        else:
+            # Format decoded, return it
+            return fmt
+    return None
+
+
+def extract_audio_properties(content: bytes) -> dict[str, Any]:
+    """Extract audio properties using mutagen."""
+    audio = AudioSegment.from_file(io.BytesIO(content))
+    duration_sec = len(audio) / 1000
+
+    # Bitrate (bits/sec) = Sample Rate (Hz) x Bit Depth (bits) x Number of Channels.
+    # To get it in Kbits/sec divide by 1000
+    bitrate = audio.frame_rate * audio.sample_width * audio.channels / 1000
+
+    return {
+        "duration": duration_sec,
+        "samplerate": audio.frame_rate,
+        "channels": audio.channels,
+        "sample_width": audio.sample_width,
+        "bitrate": bitrate,
+    }
+
+
+def validate_audio_properties(
+    props: dict[str, Any],
+) -> tuple[bool, dict[str, Any]]:
+    """Validate extracted audio properties against given constraints."""
+    report = {}
+    valid = True
+
+    if props["format"].lower() not in AUDIO_FILE_FORMATS:
+        valid = False
+        report["format"] = f"Expected {AUDIO_FILE_FORMATS}, got {props['format']}"
+
+    if props["duration"] and props["duration"] > AUDIO_FILE_MAX_DURATION:
+        valid = False
+        report["duration"] = f"Too long: {props['duration']}s"
+
+    if props["samplerate"] > AUDIO_FILE_MAX_SAMPLERATE:
+        valid = False
+        report["samplerate"] = (
+            f"Expected < {AUDIO_FILE_MAX_SAMPLERATE}, got {props['samplerate']}"
+        )
+
+    if props["bitrate"] and int(props["bitrate"]) > AUDIO_FILE_MAX_BITRATE:
+        valid = False
+        report["bitrate"] = f"Too high: {props['bitrate']} bps"
+
+    return valid, {"properties": props, "issues": report}

@@ -7,6 +7,7 @@ import asyncio
 from collections.abc import Callable, Coroutine
 from datetime import UTC, datetime, timedelta
 from typing import Any, cast
+from urllib.parse import urlparse
 
 import httpx
 import orjson
@@ -21,9 +22,8 @@ from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.implementation.todo import AmazonToDoHandler
 
 from . import __version__
-from .const.http import (
-    DEFAULT_SITE,
-)
+from .const.audio import AUDIO_FILE_MAX_SIZE
+from .const.http import DEFAULT_SITE
 from .const.metadata import (
     ALEXA_INFO_SKILLS,
     VOLUME_MAX,
@@ -37,6 +37,7 @@ from .implementation.http2 import AmazonHTTP2Client
 from .implementation.notification import AmazonNotificationHandler
 from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
+from .sounds import SOUNDS_LIST
 from .structures import (
     AmazonDevice,
     AmazonDropInStatus,
@@ -53,7 +54,14 @@ from .structures import (
     AmazonVocalRecord,
     AmazonVolumeState,
 )
-from .utils import _LOGGER, scrub_fields
+from .utils import (
+    _LOGGER,
+    detect_audio_format,
+    extract_audio_properties,
+    load_audio,
+    scrub_fields,
+    validate_audio_properties,
+)
 
 SETTINGS_FILENAME = "settings.json"
 SETTINGS_DEFAULT_DEVICE = "default_device"
@@ -423,9 +431,37 @@ class AmazonEchoApi:
         device: AmazonDevice,
         sound_name: str,
     ) -> None:
-        """Call Alexa.Sound to play sound."""
-        await self._call_alexa_command_per_cluster_member(
-            device, AmazonSequenceType.Sound, sound_name
+        """Call Alexa.Sound or Alexa.Speak to play sound."""
+        # Amazon predefined file
+        if sound_name in SOUNDS_LIST:
+            return await self._sequence_handler.send_message(
+                device, AmazonSequenceType.Sound, sound_name
+            )
+
+        # Local or remote file
+        result = urlparse(sound_name)
+        if result.scheme == "http":
+            raise ValueError("HTTP is not supported, use HTTPS instead")
+
+        content, size = await load_audio(sound_name)
+
+        if size > AUDIO_FILE_MAX_SIZE:
+            raise ValueError("Audio file size exceeds maximum allowed.")
+
+        props = extract_audio_properties(content)
+        props["format"] = detect_audio_format(content)
+
+        if props.get("error"):
+            raise ValueError(f"Error fetching audio file: {props['error']}")
+
+        valid, info = validate_audio_properties(props)
+        _LOGGER.debug("Audio file properties: %s", info)
+
+        if not valid:
+            raise ValueError(f"Error validating audio file: {props['error']}")
+
+        return await self._sequence_handler.send_message(
+            device, AmazonSequenceType.Speak, f"<audio src='{result}' />"
         )
 
     async def call_alexa_music(

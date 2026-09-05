@@ -21,6 +21,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
 ]
 dependencies = [
+"audioop-lts; python_version>='3.13'",
 "aiohttp (>=3.12.7)",
 "anyio (>=4)",
 "beautifulsoup4",
@@ -28,6 +29,8 @@ dependencies = [
 "langcodes",
 "orjson (>=3.10,<4)",
 "python-dateutil",
+"pydub",
+"yarl",
 ]
 
 [project.urls]
