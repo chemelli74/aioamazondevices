@@ -22,8 +22,20 @@ from aioamazondevices.const.schedules import (
 )
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
+from aioamazondevices.implementation.thermostat import (
+    extract_thermostat_configuration_sensors,
+    extract_thermostat_sensors,
+)
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 from aioamazondevices.utils import _LOGGER, format_graphql_error
+
+
+def _range_friendly_name(feature: dict[str, Any]) -> str | None:
+    """Return a range feature's friendly name, if Amazon provided one."""
+    name = (
+        (feature.get("configuration") or {}).get("friendlyName", {}).get("value", {})
+    ).get("text")
+    return name if isinstance(name, str) else None
 
 
 class AmazonSensorHandler:
@@ -168,7 +180,18 @@ class AmazonSensorHandler:
     ) -> dict[str, AmazonDeviceSensor]:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
         device = self._final_devices[serial_number]
+        thermostat_data: dict[str, Any] = {}
         for feature in endpoint.get("features", {}):
+            if feature["name"] == "thermostat":
+                thermostat_data.update(extract_thermostat_sensors(feature))
+                continue
+
+            if feature["name"] == "thermostatConfiguration":
+                thermostat_data.update(
+                    extract_thermostat_configuration_sensors(feature)
+                )
+                continue
+
             if (sensor_template := SENSORS.get(feature["name"])) is None:
                 # Skip sensors that are not in the predefined list
                 continue
@@ -230,22 +253,11 @@ class AmazonSensorHandler:
 
                 sensor_name = sensor_template_name_value
 
-                if (
-                    device.device_type == DEVICE_TYPE_AQM
-                    and sensor_template_name_value == "rangeValue"
-                ):
-                    if not (
-                        (instance := feature.get("instance"))
-                        and (aqm_sensor := AQM_RANGE_SENSORS.get(instance))
-                        and (aqm_sensor_name := aqm_sensor.get("name"))
-                    ):
-                        _LOGGER.debug(
-                            "No template for rangeValue (%s) - Skipping sensor",
-                            instance,
-                        )
+                if sensor_template_name_value == "rangeValue":
+                    resolved = self._resolve_range_sensor(device, feature, scale)
+                    if resolved is None:
                         continue
-                    sensor_name = aqm_sensor_name
-                    scale = aqm_sensor.get("scale")
+                    sensor_name, scale = resolved
 
                 device_sensors[sensor_name] = AmazonDeviceSensor(
                     sensor_name,
@@ -256,4 +268,29 @@ class AmazonSensorHandler:
                     scale,
                 )
 
+        if thermostat_data:
+            if temperature_sensor := device_sensors.pop("temperature", None):
+                thermostat_data["temperature"] = temperature_sensor.value
+            device_sensors["thermostat"] = AmazonDeviceSensor(
+                "thermostat", thermostat_data, False, None, None, None
+            )
+
         return device_sensors
+
+    def _resolve_range_sensor(
+        self, device: AmazonDevice, feature: dict[str, Any], scale: str | None
+    ) -> tuple[str, str | None] | None:
+        """Return (sensor_name, scale) for a rangeValue sensor, or None to skip it."""
+        if device.device_type != DEVICE_TYPE_AQM:
+            # Amazon labels some range features (e.g. "Indoor humidity"); use it
+            # instead of the generic name so multiple instances don't collide.
+            return _range_friendly_name(feature) or "rangeValue", scale
+
+        if not (
+            (instance := feature.get("instance"))
+            and (aqm_sensor := AQM_RANGE_SENSORS.get(instance))
+            and (aqm_sensor_name := aqm_sensor.get("name"))
+        ):
+            _LOGGER.debug("No template for rangeValue (%s) - Skipping sensor", instance)
+            return None
+        return aqm_sensor_name, aqm_sensor.get("scale")
