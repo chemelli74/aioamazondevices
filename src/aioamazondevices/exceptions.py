@@ -22,6 +22,10 @@ class CannotRestartDevice(AmazonError):
     """Exception raised when device restart fails."""
 
 
+class CannotSetThermostat(AmazonError):
+    """Exception raised when a thermostat control mutation fails."""
+
+
 class CannotRetrieveData(AmazonError):
     """Exception raised when data retrieval fails."""
 

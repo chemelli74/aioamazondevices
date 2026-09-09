@@ -10,6 +10,7 @@ from yarl import URL
 
 from aioamazondevices.const.devices import (
     DEVICE_TYPE_AQM,
+    DEVICE_TYPE_THERMOSTAT,
     DEVICE_TYPES_HARDCODED_METADATA,
     DEVICE_TYPES_TO_IGNORE,
 )
@@ -216,52 +217,76 @@ class AmazonDeviceHandler:
                 devices_endpoints[serial_number] = endpoint
                 self._endpoints[endpoint["endpointId"]] = serial_number
 
-        # Process Air Quality Monitors if present
+        # Process Air Quality Monitors and Thermostats if present
         # map endpoint ID to serial number to facilitate sensor lookup but also
         # create AmazonDevice as these are not present in api/devices-v2/device endpoint
         for aqm_endpoint in data.get("airQualityMonitors", {}).get("endpoints", {}):
-            if (
-                aqm_endpoint.get("manufacturer", {})
-                .get("value", {})
-                .get("text", "Unknown")
-                != "Amazon"
-            ):
-                _LOGGER.debug(
-                    "Skipping non-Amazon Air Quality Monitor: %s",
-                    aqm_endpoint,
+            if not (
+                serial_number := self._register_graphql_only_device(
+                    aqm_endpoint, "AIR_QUALITY_MONITOR", DEVICE_TYPE_AQM
                 )
+            ):
                 continue
-            aqm_serial_number: str = aqm_endpoint["serialNumber"]["value"]["text"]
-            devices_endpoints[aqm_serial_number] = aqm_endpoint
-            self._endpoints[aqm_endpoint["endpointId"]] = aqm_serial_number
+            devices_endpoints[serial_number] = aqm_endpoint
+            self._endpoints[aqm_endpoint["endpointId"]] = serial_number
 
-            self._final_devices[aqm_serial_number] = AmazonDevice(
-                account_name=aqm_endpoint["friendlyNameObject"]["value"]["text"],
-                capabilities=[],
-                device_family="AIR_QUALITY_MONITOR",
-                device_type=aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
-                    "deviceType"
-                ]["value"]["text"],
-                device_owner_customer_id=self._session_state_data.account_customer_id
-                or "n/a",
-                household_device=False,
-                device_cluster_members={aqm_serial_number: DEVICE_TYPE_AQM},
-                online=True,
-                serial_number=aqm_serial_number,
-                software_version=aqm_endpoint["softwareVersion"]["value"]["text"],
-                manufacturer="Amazon",
-                model=None,
-                hardware_version=None,
-                entity_id=None,
-                endpoint_id=aqm_endpoint.get("endpointId"),
-                sensors={},
-                notifications_supported=False,
-                notifications={},
-                media_player_supported=False,
-                communication_settings={},
-            )
+        for therm_endpoint in data.get("thermostats", {}).get("endpoints", {}):
+            if not (
+                serial_number := self._register_graphql_only_device(
+                    therm_endpoint, "THERMOSTAT", DEVICE_TYPE_THERMOSTAT
+                )
+            ):
+                continue
+            devices_endpoints[serial_number] = therm_endpoint
+            self._endpoints[therm_endpoint["endpointId"]] = serial_number
 
         return devices_endpoints
+
+    def _register_graphql_only_device(
+        self,
+        endpoint: dict[str, Any],
+        device_family: str,
+        device_type_const: str,
+    ) -> str | None:
+        """Create an AmazonDevice for an endpoint only visible via graphql.
+
+        Returns the endpoint's serial number, or None if it was skipped.
+        """
+        if (
+            endpoint.get("manufacturer", {}).get("value", {}).get("text", "Unknown")
+            != "Amazon"
+        ):
+            _LOGGER.debug("Skipping non-Amazon %s: %s", device_family, endpoint)
+            return None
+
+        serial_number: str = endpoint["serialNumber"]["value"]["text"]
+
+        self._final_devices[serial_number] = AmazonDevice(
+            account_name=endpoint["friendlyNameObject"]["value"]["text"],
+            capabilities=[],
+            device_family=device_family,
+            device_type=endpoint["legacyIdentifiers"]["dmsIdentifier"]["deviceType"][
+                "value"
+            ]["text"],
+            device_owner_customer_id=self._session_state_data.account_customer_id
+            or "n/a",
+            household_device=False,
+            device_cluster_members={serial_number: device_type_const},
+            online=True,
+            serial_number=serial_number,
+            software_version=endpoint["softwareVersion"]["value"]["text"],
+            manufacturer="Amazon",
+            model=None,
+            hardware_version=None,
+            entity_id=None,
+            endpoint_id=endpoint.get("endpointId"),
+            sensors={},
+            notifications_supported=False,
+            notifications={},
+            media_player_supported=False,
+            communication_settings={},
+        )
+        return serial_number
 
     async def restart_device(self, device: AmazonDevice) -> None:
         """Restart a device."""

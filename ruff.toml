@@ -20,7 +20,8 @@ lint.ignore = [
 
 [lint.per-file-ignores]
 "library_test.py" = [
-    "ASYNC250",  # Blocking call to `input()` in async context 
+    "ASYNC250",  # Blocking call to `input()` in async context
+    "C901",      # too complex (a flat sequence of independent opt-in test toggles)
     "PLR0915",   # Too many statements
     "T201",      # `print` found
 ]
