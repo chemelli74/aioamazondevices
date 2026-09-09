@@ -39,6 +39,9 @@ class AmazonSensorHandler:
         self._http_wrapper = http_wrapper
         self._final_devices: dict[str, AmazonDevice] = {}
         self._endpoints: dict[str, str] = {}
+        # Serials for which the reachability sensor was missing on the last
+        # refresh, so the "keeping last known state" warning is logged only once
+        self._devices_missing_reachability: set[str] = set()
 
     async def update_sensor_data(
         self,
@@ -52,16 +55,36 @@ class AmazonSensorHandler:
         self._final_devices = devices
         self._endpoints = endpoints
         devices_sensors = await self._get_sensors_states()
+        if not devices_sensors:
+            # A failed or empty sensor refresh must not knock every device
+            # offline: keep the last known online state until it recovers.
+            _LOGGER.warning(
+                "No sensor data returned for any device, "
+                "keeping last known online state"
+            )
         for device in self._final_devices.values():
             # Update sensors
-            sensors = devices_sensors.get(device.serial_number, {})
-            _LOGGER.debug(
-                "Sensors data for device %s: %s", device.serial_number, sensors
-            )
+            serial_number = device.serial_number
+            sensors = devices_sensors.get(serial_number, {})
+            _LOGGER.debug("Sensors data for device %s: %s", serial_number, sensors)
+            if reachability_sensor := sensors.get("reachability"):
+                device.online = reachability_sensor.value == "OK"
+                self._devices_missing_reachability.discard(serial_number)
+            elif devices_sensors:
+                # Some devices (e.g. Sonos, ecobee) never report reachability, and
+                # Amazon may transiently drop it for others. Keep the last known
+                # online state instead of forcing the device offline.
+                if serial_number not in self._devices_missing_reachability:
+                    self._devices_missing_reachability.add(serial_number)
+                    _LOGGER.warning(
+                        "No reachability reported for device %s, "
+                        "keeping last known online state (%s)",
+                        serial_number,
+                        device.online,
+                    )
+
             if sensors:
                 device.sensors = sensors
-                if reachability_sensor := sensors.get("reachability"):
-                    device.online = reachability_sensor.value == "OK"
             else:
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
