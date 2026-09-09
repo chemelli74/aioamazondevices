@@ -9,7 +9,6 @@ from typing import Any
 from yarl import URL
 
 from aioamazondevices.const.devices import (
-    DEVICE_TYPE_AQM,
     DEVICE_TYPES_HARDCODED_METADATA,
     DEVICE_TYPES_TO_IGNORE,
 )
@@ -23,7 +22,7 @@ from aioamazondevices.const.http import (
 from aioamazondevices.const.queries import QUERY_DEVICE_DATA
 from aioamazondevices.exceptions import CannotRestartDevice, CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import AmazonDevice
+from aioamazondevices.structures import AmazonDevice, build_endpoint_device
 from aioamazondevices.utils import _LOGGER, format_graphql_error, parse_device_details
 
 
@@ -112,6 +111,7 @@ class AmazonDeviceHandler:
                 notifications={},
                 media_player_supported="AUDIO_PLAYER" in capabilities,
                 communication_settings={},
+                light=None,
             )
 
             serial_to_device_type[serial_number] = device["deviceType"]
@@ -235,30 +235,18 @@ class AmazonDeviceHandler:
             devices_endpoints[aqm_serial_number] = aqm_endpoint
             self._endpoints[aqm_endpoint["endpointId"]] = aqm_serial_number
 
-            self._final_devices[aqm_serial_number] = AmazonDevice(
+            self._final_devices[aqm_serial_number] = build_endpoint_device(
                 account_name=aqm_endpoint["friendlyNameObject"]["value"]["text"],
-                capabilities=[],
                 device_family="AIR_QUALITY_MONITOR",
                 device_type=aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
                     "deviceType"
                 ]["value"]["text"],
-                device_owner_customer_id=self._session_state_data.account_customer_id
-                or "n/a",
-                household_device=False,
-                device_cluster_members={aqm_serial_number: DEVICE_TYPE_AQM},
-                online=True,
                 serial_number=aqm_serial_number,
-                software_version=aqm_endpoint["softwareVersion"]["value"]["text"],
+                customer_id=self._session_state_data.account_customer_id,
+                online=True,
                 manufacturer="Amazon",
-                model=None,
-                hardware_version=None,
-                entity_id=None,
+                software_version=aqm_endpoint["softwareVersion"]["value"]["text"],
                 endpoint_id=aqm_endpoint.get("endpointId"),
-                sensors={},
-                notifications_supported=False,
-                notifications={},
-                media_player_supported=False,
-                communication_settings={},
             )
 
         return devices_endpoints

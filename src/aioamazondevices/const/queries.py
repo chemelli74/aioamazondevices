@@ -53,6 +53,29 @@ fragment DeviceEndpoints on ListEndpointsResponse {
 }
 """
 
+QUERY_SMART_HOME = """
+query CustomerSmartHome {
+  endpoints(
+    endpointsQueryParams: { paginationParams: { disablePagination: true } }
+  ) {
+    items {
+      legacyAppliance {
+        applianceId
+        applianceTypes
+        friendlyName
+        friendlyDescription
+        manufacturerName
+        modelName
+        entityId
+        aliases
+        capabilities
+        alexaDeviceIdentifierList
+      }
+    }
+  }
+}
+"""
+
 QUERY_SENSOR_STATE = """
 fragment EndpointState on Endpoint {
   endpointId: id

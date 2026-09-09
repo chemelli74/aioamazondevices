@@ -16,6 +16,7 @@ from anyio import Path
 
 from aioamazondevices.implementation.communication import AlexaCommunicationsHandler
 from aioamazondevices.implementation.device import AmazonDeviceHandler
+from aioamazondevices.implementation.light import AmazonLightHandler
 from aioamazondevices.implementation.media import AmazonMediaHandler
 from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.implementation.todo import AmazonToDoHandler
@@ -102,6 +103,11 @@ class AmazonEchoApi:
         )
 
         self._sensor_handler = AmazonSensorHandler(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
+        self._light_handler = AmazonLightHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
         )
@@ -245,6 +251,7 @@ class AmazonEchoApi:
             )
             # Request various data that doesn't change that often
             await self._device_handler.get_base_devices()
+            await self._light_handler.discover_lights()
             await self._media_handler.update_music_providers()
             await self._sequence_handler.update_routines()
             await self._todo_handler.update_lists()
@@ -289,8 +296,9 @@ class AmazonEchoApi:
             notifications,
             communications,
         )
+        await self._light_handler.update_lights_state()
 
-        return self._device_handler.devices
+        return {**self._device_handler.devices, **self._light_handler.lights}
 
     async def start_http2_processing(
         self,
@@ -625,3 +633,25 @@ class AmazonEchoApi:
     async def restart_device(self, device: AmazonDevice) -> None:
         """Restart a device."""
         await self._device_handler.restart_device(device)
+
+    async def set_light_power(self, device: AmazonDevice, power_on: bool) -> None:
+        """Turn a smart home light on or off."""
+        await self._light_handler.set_power(device, power_on)
+
+    async def set_light_brightness(self, device: AmazonDevice, brightness: int) -> None:
+        """Set a smart home light's brightness as a percentage (0-100)."""
+        await self._light_handler.set_brightness(device, brightness)
+
+    async def set_light_color(
+        self, device: AmazonDevice, hue: float, saturation: float
+    ) -> None:
+        """Set a smart home light's colour from HSB hue and saturation."""
+        await self._light_handler.set_color(device, hue, saturation)
+
+    async def set_light_effect(self, device: AmazonDevice, effect: str | None) -> None:
+        """Select a smart home light show, or None for plain solid colour."""
+        await self._light_handler.set_effect(device, effect)
+
+    async def set_light_tap(self, device: AmazonDevice, enabled: bool) -> None:
+        """Enable or disable tap-to-change-colour on a smart home light."""
+        await self._light_handler.set_tap(device, enabled)
