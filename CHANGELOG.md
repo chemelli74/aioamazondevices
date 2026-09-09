@@ -1,5 +1,48 @@
 # Changelog
 
+## v15.1.2 (2026-09-09)
+
+### Bug fixes
+
+- Don't raise noonlinedeviceserror on aqm-only accounts ([`9a48f47`](https://github.com/chemelli74/aioamazondevices/commit/9a48f47d2d304e725d3823117db1bbafd9207c70))
+
+
+## v15.1.1 (2026-09-09)
+
+### Bug fixes
+
+- Update cluster volume on member volume update ([`f3ee8df`](https://github.com/chemelli74/aioamazondevices/commit/f3ee8dfe14e933b3eb156b0c7bec156901f3d188))
+
+
+## v15.1.0 (2026-08-24)
+
+### Features
+
+- Persist default device ([`948a566`](https://github.com/chemelli74/aioamazondevices/commit/948a566fa2e8951dab95faba389905671eedd188))
+
+
+## v15.0.0 (2026-08-24)
+
+### Bug fixes
+
+- Make script executable ([`e3bc7da`](https://github.com/chemelli74/aioamazondevices/commit/e3bc7da1634ef9f4e4aaa4f1a8fe8566d020b58b))
+
+
+### Refactoring
+
+- Replace save_to_file with save_data ([`cd4acc0`](https://github.com/chemelli74/aioamazondevices/commit/cd4acc07158178bf2e4acedc7cec9a5907b761e5))
+
+
+### Build system
+
+- Bump h2 from 4.4.0 to 4.4.1 in the uv group across 1 directory ([`8b85861`](https://github.com/chemelli74/aioamazondevices/commit/8b85861f1c950b28b3c55c6122b45c9781921872))
+- Fix python classifiers ([`33872b6`](https://github.com/chemelli74/aioamazondevices/commit/33872b60b22a918f01b15b1fe9bdfe6bf470a109))
+- Improve update system ([`a227737`](https://github.com/chemelli74/aioamazondevices/commit/a227737d2e1c4ddad2e4c76c14df2a52cd734e77))
+- Fix ruff configuration ([`a862121`](https://github.com/chemelli74/aioamazondevices/commit/a86212178e7a78291b2eebfc69854ec829d75564))
+- Force lf ([`3625cf9`](https://github.com/chemelli74/aioamazondevices/commit/3625cf96aaa6d5a25f148902e3f0f44c85a17e22))
+- Bump pypa/gh-action-pypi-publish from 1.14.1 to 1.14.2 ([`e6d6779`](https://github.com/chemelli74/aioamazondevices/commit/e6d6779baa36795536b008b986aa00603e1fe6cf))
+
+
 ## v14.2.2 (2026-07-29)
 
 ### Bug fixes
