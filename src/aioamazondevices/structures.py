@@ -10,6 +10,8 @@ from enum import StrEnum
 from os import PathLike
 from typing import Any
 
+from .const.devices import SPEAKER_GROUP_FAMILY
+
 
 @dataclass
 class AmazonSaveDataConfig:
@@ -77,6 +79,18 @@ class AmazonDevice:
     notifications: dict[str, AmazonSchedule]
     media_player_supported: bool
     communication_settings: dict[str, str]
+
+    @property
+    def voice_control_supported(self) -> bool:
+        """Return whether the device can be spoken to.
+
+        Air Quality Monitors have no microphone and speaker groups cannot
+        receive voice commands themselves, so neither should expose voice events.
+        """
+        return (
+            "MICROPHONE" in self.capabilities
+            and self.device_family != SPEAKER_GROUP_FAMILY
+        )
 
 
 class AmazonSequenceType(StrEnum):
