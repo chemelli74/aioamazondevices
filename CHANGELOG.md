@@ -1,5 +1,12 @@
 # Changelog
 
+## v15.1.1 (2026-09-09)
+
+### Bug fixes
+
+- Update cluster volume on member volume update ([`f3ee8df`](https://github.com/chemelli74/aioamazondevices/commit/f3ee8dfe14e933b3eb156b0c7bec156901f3d188))
+
+
 ## v15.1.0 (2026-08-24)
 
 ### Features

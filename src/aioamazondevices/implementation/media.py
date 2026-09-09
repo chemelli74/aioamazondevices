@@ -5,6 +5,7 @@
 
 from datetime import UTC, datetime
 from http import HTTPMethod
+from statistics import fmean
 from typing import Any
 
 from yarl import URL
@@ -68,6 +69,30 @@ class AmazonMediaHandler:
     ) -> None:
         """Update cached device volume."""
         self._device_volumes[device_serial] = volume
+
+    def update_cached_speaker_group_volume(
+        self, speaker_group_serial: str, cluster_members: list[str]
+    ) -> None:
+        """Set the speaker group volume to the average of its members' volumes."""
+        member_volumes = [
+            member_vol
+            for member_serial in cluster_members
+            if (member_vol := self._device_volumes.get(member_serial)) is not None
+            and member_vol.volume is not None
+        ]
+        if not member_volumes:
+            return
+
+        self._device_volumes[speaker_group_serial] = AmazonVolumeState(
+            volume=round(
+                fmean(
+                    vol
+                    for member_vol in member_volumes
+                    if (vol := member_vol.volume) is not None
+                )
+            ),
+            is_muted=all(member_vol.is_muted for member_vol in member_volumes),
+        )
 
     async def sync_device_volumes(self) -> None:
         """Sync all device volumes."""
