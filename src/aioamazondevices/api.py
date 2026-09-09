@@ -659,10 +659,15 @@ class AmazonEchoApi:
             self._dnd_initialized = True
 
         serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
+        enabled = payload.get("enabled")
+        if not enabled:
+            _LOGGER.warning(
+                "Received DND event with no 'enabled' field: %s", scrub_fields(payload)
+            )
+            return
         if serial:
-            self._dnd_handler.dnd_states[serial] = payload.get("enabled", False)
-
-        await self._emit_dnd_state_event()
+            self._dnd_handler.update_cached_dnd_state(serial, enabled)
+            await self._emit_dnd_state_event()
 
     async def _emit_dnd_state_event(self) -> None:
         """Emit dnd event to subscribers."""
