@@ -1,5 +1,17 @@
 # Changelog
 
+## v15.1.3 (2026-09-09)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`daac9d6`](https://github.com/chemelli74/aioamazondevices/commit/daac9d690cc44c5addef542e783706642378cf90))
+
+
+### Bug fixes
+
+- Skip vocal history fetch when nothing subscribes ([`e49d810`](https://github.com/chemelli74/aioamazondevices/commit/e49d81070c06ab11ac4ab49f208827e2ae5e50f5))
+
+
 ## v15.1.2 (2026-09-09)
 
 ### Bug fixes
