@@ -1,5 +1,12 @@
 # Changelog
 
+## v15.1.2 (2026-09-09)
+
+### Bug fixes
+
+- Don't raise noonlinedeviceserror on aqm-only accounts ([`9a48f47`](https://github.com/chemelli74/aioamazondevices/commit/9a48f47d2d304e725d3823117db1bbafd9207c70))
+
+
 ## v15.1.1 (2026-09-09)
 
 ### Bug fixes
