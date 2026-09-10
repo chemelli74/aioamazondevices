@@ -5,36 +5,42 @@
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
-SENSORS: dict[str, dict[str, str | None]] = {
+# Sensors templates, keyed by feature name and then by property name
+SENSORS: dict[str, dict[str, dict[str, str | None]]] = {
     "temperatureSensor": {
-        "name": "temperature",
-        "key": "value",
-        "subkey": "value",
-        "scale": "scale",
+        "temperature": {
+            "key": "value",
+            "subkey": "value",
+            "scale": "scale",
+        },
     },
     "motionSensor": {
-        "name": "detectionState",
-        "key": "detectionStateValue",
-        "subkey": None,
-        "scale": None,
+        "detectionState": {
+            "key": "detectionStateValue",
+            "subkey": None,
+            "scale": None,
+        },
     },
     "lightSensor": {
-        "name": "illuminance",
-        "key": "illuminanceValue",
-        "subkey": "value",
-        "scale": None,
+        "illuminance": {
+            "key": "illuminanceValue",
+            "subkey": "value",
+            "scale": None,
+        },
     },
     "connectivity": {
-        "name": "reachability",
-        "key": "reachabilityStatusValue",
-        "subkey": None,
-        "scale": None,
+        "reachability": {
+            "key": "reachabilityStatusValue",
+            "subkey": None,
+            "scale": None,
+        },
     },
     "range": {
-        "name": "rangeValue",
-        "key": "rangeValue",
-        "subkey": "value",
-        "scale": None,
+        "rangeValue": {
+            "key": "rangeValue",
+            "subkey": "value",
+            "scale": None,
+        },
     },
 }
 
