@@ -7,7 +7,56 @@ QUERY_DEVICE_DATA = """
 query getDevicesBaseData {
   alexaVoiceDevices: listEndpoints(
     listEndpointsInput: {
-      displayCategory: "ALEXA_VOICE_ENABLED"
+      allDisplayCategories: "ALEXA_VOICE_ENABLED"
+      includeHouseholdDevices: true
+    }
+  ) {
+    ...DeviceEndpoints
+  }
+
+  airQualityMonitors: listEndpoints(
+    listEndpointsInput: {
+      displayCategory: "AIR_QUALITY_MONITOR"
+      includeHouseholdDevices: true
+    }
+  ) {
+    ...DeviceEndpoints
+  }
+}
+
+fragment DeviceEndpoints on ListEndpointsResponse {
+  endpoints {
+    endpointId: id
+    friendlyNameObject { value { text } }
+    manufacturer { value { text } }
+    model { value { text } }
+    serialNumber { value { text } }
+    softwareVersion { value { text } }
+    creationTime
+    enablement
+    displayCategories {
+      all { value }
+      primary { value }
+    }
+    alexaEnabledMetadata {
+      iconId
+      isVisible
+      category
+      capabilities
+    }
+    legacyIdentifiers {
+      dmsIdentifier { deviceType { value { text } } }
+      chrsIdentifier { entityId }
+    }
+    legacyAppliance { applianceId }
+  }
+}
+"""
+
+QUERY_DEVICE_DATA_ALL = """
+query getDevicesBaseData {
+  alexaVoiceDevices: listEndpoints(
+    listEndpointsInput: {
       includeHouseholdDevices: true
     }
   ) {
