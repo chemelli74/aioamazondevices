@@ -49,6 +49,7 @@ def make_device() -> Callable[..., AmazonDevice]:
         online: bool = True,
         capabilities: list[str] | None = None,
         device_family: str = "ECHO",
+        voice_control_supported: bool = True,
     ) -> AmazonDevice:
         return AmazonDevice(
             account_name=f"Echo {serial}",
@@ -72,6 +73,7 @@ def make_device() -> Callable[..., AmazonDevice]:
             media_player_supported=False,
             communication_settings={},
             parent_clusters=[],
+            voice_control_supported=voice_control_supported,
         )
 
     return _make_device

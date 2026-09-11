@@ -12,6 +12,7 @@ from aioamazondevices.const.devices import (
     DEVICE_TYPE_AQM,
     DEVICE_TYPES_HARDCODED_METADATA,
     DEVICE_TYPES_TO_IGNORE,
+    SPEAKER_GROUP_FAMILY,
 )
 from aioamazondevices.const.http import (
     REFRESH_ACCESS_TOKEN,
@@ -113,6 +114,7 @@ class AmazonDeviceHandler:
                 notifications={},
                 media_player_supported="AUDIO_PLAYER" in capabilities,
                 communication_settings={},
+                voice_control_supported=device["deviceFamily"] != SPEAKER_GROUP_FAMILY,
             )
 
             serial_to_device_type[serial_number] = device["deviceType"]
@@ -261,6 +263,7 @@ class AmazonDeviceHandler:
                 notifications={},
                 media_player_supported=False,
                 communication_settings={},
+                voice_control_supported=False,
             )
 
         return devices_endpoints
