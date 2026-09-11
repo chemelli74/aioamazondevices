@@ -108,12 +108,20 @@ class AmazonHistoryHandler:
                 continue
             serial = device_info["deviceSerialNumber"]
             timestamp = record["timestamp"]
+            person_info = record.get("personsInfo")
+            if isinstance(person_info, list):
+                person_info = person_info[0] if person_info else None
+            if not isinstance(person_info, dict):
+                person_info = {}
             new_record = AmazonVocalRecord(
                 timestamp=timestamp,
                 history_type=utterance_type or record.get("recordType") or "Unknown",
                 intent=record.get("intent") or "Unknown",
                 title=record["title"],
                 sub_title=record["subTitle"],
+                person_id=person_info.get("personId"),
+                person_first_name=person_info.get("personFirstName"),
+                person_type=person_info.get("personType"),
             )
             # Store only the latest record per serial number
             if serial not in records or timestamp > records[serial].timestamp:
