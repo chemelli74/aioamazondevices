@@ -5,13 +5,18 @@
 
 import asyncio
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.structures import AmazonDevice, AmazonPushMessage
+from aioamazondevices.structures import (
+    AmazonDevice,
+    AmazonPushMessage,
+    AmazonSaveDataConfig,
+)
 
 SONOS_SERIAL = "aa4228b15aa44796a0c2c1bdc9eae303"
 ECHO_SERIAL = "b182ad697e064415841cfe96a66cbf64"
@@ -43,14 +48,20 @@ def _device(serial: str, manufacturer: str | None) -> AmazonDevice:
         notifications={},
         media_player_supported=True,
         communication_settings={},
+        parent_clusters=[],
     )
 
 
 @pytest.fixture
-def api() -> AmazonEchoApi:
+def api(tmp_path: Path) -> AmazonEchoApi:
     """Return an API instance with two known devices and no I/O."""
-    instance = AmazonEchoApi(MagicMock(), "user@example.com", "password")
-    instance._device_handler._final_devices = {  # noqa: SLF001
+    instance = AmazonEchoApi(
+        MagicMock(),
+        "user@example.com",
+        "password",
+        save_data=AmazonSaveDataConfig(path=tmp_path),
+    )
+    instance._device_handler._final_devices = {
         SONOS_SERIAL: _device(SONOS_SERIAL, "Sonos, Inc."),
         ECHO_SERIAL: _device(ECHO_SERIAL, "Amazon"),
     }
@@ -73,8 +84,13 @@ def refreshes(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> list[int]:
     async def _volume(_payload: dict[str, Any]) -> None:
         return None
 
+    async def _on_history(_history: dict[str, Any]) -> None:
+        return None
+
+    api.on_history_event.append(_on_history)
+    api.on_history_event.freeze()
     monkeypatch.setattr(
-        api._history_handler,  # noqa: SLF001
+        api._history_handler,
         "get_vocal_history",
         _get_vocal_history,
     )
@@ -92,7 +108,7 @@ def _volume_payload(serial: str) -> dict[str, Any]:
 
 
 def _push(api: AmazonEchoApi, event: str, payload: dict[str, Any]) -> None:
-    asyncio.run(api._http2_push_event_handler(event, payload))  # noqa: SLF001
+    asyncio.run(api._http2_push_event_handler(event, payload))
 
 
 @pytest.mark.parametrize(
@@ -108,7 +124,7 @@ def test_is_sonos_device(
     api: AmazonEchoApi, serial: str | None, expected: bool
 ) -> None:
     """Only devices reporting a Sonos manufacturer are detected."""
-    assert api._is_sonos_device(serial) is expected  # noqa: SLF001
+    assert api._is_sonos_device(serial) is expected
 
 
 def test_volume_change_refreshes_history_for_sonos(
@@ -158,7 +174,7 @@ def test_history_refreshes_again_after_debounce_window(
     payload = _volume_payload(SONOS_SERIAL)
 
     _push(api, AmazonPushMessage.VolumeChange.value, payload)
-    api._last_sonos_history_refresh = datetime.now(UTC) - timedelta(minutes=1)  # noqa: SLF001
+    api._last_sonos_history_refresh = datetime.now(UTC) - timedelta(minutes=1)
     _push(api, AmazonPushMessage.VolumeChange.value, payload)
 
     assert len(refreshes) == EXPECTED_REFRESHES_AFTER_WINDOW

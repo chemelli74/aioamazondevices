@@ -53,7 +53,7 @@ def _run(
     async def _fake_json() -> dict[str, Any]:
         return {"alexaHistoryRecords": records}
 
-    handler._vocal_history_json = _fake_json  # type: ignore[method-assign]  # noqa: SLF001
+    handler._vocal_history_json = _fake_json  # type: ignore[method-assign]
     return asyncio.run(handler.get_vocal_history(known))
 
 
