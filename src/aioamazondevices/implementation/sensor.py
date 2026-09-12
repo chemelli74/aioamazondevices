@@ -44,7 +44,6 @@ class AmazonSensorHandler:
         self,
         devices: dict[str, AmazonDevice],
         endpoints: dict[str, str],
-        dnd_sensors: dict[str, AmazonDeviceSensor],
         notifications: dict[str, dict[str, Any]] | None,
         communications: dict[str, dict[str, str]],
     ) -> None:
@@ -65,11 +64,6 @@ class AmazonSensorHandler:
                 device.online = False
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
-
-            if (
-                device_dnd := dnd_sensors.get(device.serial_number)
-            ) and device.device_family != SPEAKER_GROUP_FAMILY:
-                device.sensors["dnd"] = device_dnd
 
             device.communication_settings = (
                 communications.get(device.serial_number) or {}
