@@ -43,11 +43,18 @@ def api(client_session: ClientSession, tmp_path: Path) -> AmazonEchoApi:
 def make_device() -> Callable[..., AmazonDevice]:
     """Return a factory that builds a minimal AmazonDevice for tests."""
 
-    def _make_device(serial: str, *, online: bool = True) -> AmazonDevice:
+    def _make_device(
+        serial: str,
+        *,
+        online: bool = True,
+        capabilities: list[str] | None = None,
+        device_family: str = "ECHO",
+        voice_control_supported: bool = True,
+    ) -> AmazonDevice:
         return AmazonDevice(
             account_name=f"Echo {serial}",
-            capabilities=[],
-            device_family="ECHO",
+            capabilities=capabilities if capabilities is not None else [],
+            device_family=device_family,
             device_type="A1B2C3",
             device_owner_customer_id="CUSTOMER_ID",
             household_device=False,
@@ -66,6 +73,7 @@ def make_device() -> Callable[..., AmazonDevice]:
             media_player_supported=False,
             communication_settings={},
             parent_clusters=[],
+            voice_control_supported=voice_control_supported,
         )
 
     return _make_device
