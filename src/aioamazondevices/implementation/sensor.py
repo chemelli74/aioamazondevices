@@ -40,6 +40,41 @@ class AmazonSensorHandler:
         self._final_devices: dict[str, AmazonDevice] = {}
         self._endpoints: dict[str, str] = {}
 
+    def update_notification_data(
+        self,
+        notifications: dict[str, dict[str, Any]] | None,
+    ) -> None:
+        """Update notification schedules for all devices."""
+        if notifications is None:
+            return
+
+        for device in self._final_devices.values():
+            if not device.notifications_supported:
+                continue  # notifications were not obtained, do not update
+
+            # Clear old notifications to handle cancelled ones
+            device.notifications = {}
+
+            # Update notifications
+            device_notifications = notifications.get(device.serial_number, {})
+
+            # Add only supported notification types
+            for capability, notification_type in [
+                ("REMINDERS", NOTIFICATION_REMINDER),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_TIMER),
+            ]:
+                if (
+                    capability in device.capabilities
+                    and notification_type in device_notifications
+                    and (
+                        notification_object := device_notifications.get(
+                            notification_type
+                        )
+                    )
+                ):
+                    device.notifications[notification_type] = notification_object
+
     async def update_sensor_data(
         self,
         devices: dict[str, AmazonDevice],
@@ -75,31 +110,7 @@ class AmazonSensorHandler:
                 communications.get(device.serial_number) or {}
             )
 
-            if notifications is None:
-                continue  # notifications were not obtained, do not update
-
-            # Clear old notifications to handle cancelled ones
-            device.notifications = {}
-
-            # Update notifications
-            device_notifications = notifications.get(device.serial_number, {})
-
-            # Add only supported notification types
-            for capability, notification_type in [
-                ("REMINDERS", NOTIFICATION_REMINDER),
-                ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
-                ("TIMERS_AND_ALARMS", NOTIFICATION_TIMER),
-            ]:
-                if (
-                    capability in device.capabilities
-                    and notification_type in device_notifications
-                    and (
-                        notification_object := device_notifications.get(
-                            notification_type
-                        )
-                    )
-                ):
-                    device.notifications[notification_type] = notification_object
+        self.update_notification_data(notifications)
 
         # base online status of speaker groups on their members
         for device in self._final_devices.values():
