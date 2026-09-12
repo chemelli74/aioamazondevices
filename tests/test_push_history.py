@@ -136,6 +136,26 @@ def test_volume_change_refreshes_history_for_sonos(
     assert len(refreshes) == 1
 
 
+def test_volume_change_skips_history_without_subscribers(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Do not fetch vocal history when no consumer is listening."""
+
+    async def _volume(_payload: dict[str, Any]) -> None:
+        return None
+
+    get_vocal_history = MagicMock()
+    is_sonos_device = MagicMock()
+    monkeypatch.setattr(api, "_handle_volume_change_event", _volume)
+    monkeypatch.setattr(api._history_handler, "get_vocal_history", get_vocal_history)
+    monkeypatch.setattr(api, "_is_sonos_device", is_sonos_device)
+
+    _push(api, AmazonPushMessage.VolumeChange.value, _volume_payload(SONOS_SERIAL))
+
+    get_vocal_history.assert_not_called()
+    is_sonos_device.assert_not_called()
+
+
 def test_volume_change_ignored_for_echo(
     api: AmazonEchoApi, refreshes: list[int]
 ) -> None:

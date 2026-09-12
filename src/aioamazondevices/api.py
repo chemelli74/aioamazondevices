@@ -410,6 +410,10 @@ class AmazonEchoApi:
         a voice interaction on those devices. Echo devices emit volume changes
         on their own and keep using the equalizer event untouched.
         """
+        if not self.on_history_event.frozen:
+            _LOGGER.debug("No vocal history subscribers, skipping fetch")
+            return
+
         serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
         if not self._is_sonos_device(serial):
             return
