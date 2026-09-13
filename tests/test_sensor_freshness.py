@@ -1,0 +1,86 @@
+# Copyright 2024 Simone Chemelli and contributors
+# SPDX-License-Identifier: Apache-2.0
+
+"""Tests for timeOfSample handling in AmazonSensorHandler."""
+
+from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import Any
+
+import pytest
+
+from aioamazondevices.api import AmazonEchoApi
+from aioamazondevices.structures import AmazonDevice
+
+from .const import TEST_SERIAL_1
+
+
+def _illuminance_endpoint(time_of_sample: str | None) -> dict[str, Any]:
+    property_data: dict[str, Any] = {
+        "name": "illuminance",
+        "illuminanceValue": {"value": 42.0},
+        "error": None,
+    }
+    if time_of_sample is not None:
+        property_data["timeOfSample"] = time_of_sample
+        property_data["timeOfLastChange"] = time_of_sample
+
+    return {
+        "features": [
+            {
+                "name": "lightSensor",
+                "instance": None,
+                "properties": [property_data],
+            }
+        ]
+    }
+
+
+@pytest.mark.anyio
+async def test_time_of_sample_is_parsed(
+    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
+) -> None:
+    """A well-formed timeOfSample is parsed into an aware datetime."""
+    device = make_device(TEST_SERIAL_1)
+    api._sensor_handler._final_devices = {TEST_SERIAL_1: device}
+
+    sensors = api._sensor_handler._get_device_sensor_state(
+        _illuminance_endpoint("2026-09-12T08:09:17.922Z"), TEST_SERIAL_1
+    )
+
+    assert sensors["illuminance"].time_of_sample == datetime(
+        2026, 9, 12, 8, 9, 17, 922000, tzinfo=UTC
+    )
+
+
+@pytest.mark.anyio
+async def test_missing_time_of_sample_defaults_to_none(
+    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
+) -> None:
+    """A response without timeOfSample leaves the field unset."""
+    device = make_device(TEST_SERIAL_1)
+    api._sensor_handler._final_devices = {TEST_SERIAL_1: device}
+
+    sensors = api._sensor_handler._get_device_sensor_state(
+        _illuminance_endpoint(None), TEST_SERIAL_1
+    )
+
+    assert sensors["illuminance"].time_of_sample is None
+
+
+@pytest.mark.anyio
+async def test_unparsable_time_of_sample_defaults_to_none(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A malformed timeOfSample is logged and does not raise."""
+    device = make_device(TEST_SERIAL_1)
+    api._sensor_handler._final_devices = {TEST_SERIAL_1: device}
+
+    sensors = api._sensor_handler._get_device_sensor_state(
+        _illuminance_endpoint("not-a-timestamp"), TEST_SERIAL_1
+    )
+
+    assert sensors["illuminance"].time_of_sample is None
+    assert "unparsable timeOfSample" in caplog.text

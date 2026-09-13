@@ -3,6 +3,7 @@
 
 """Sensor module for Amazon devices."""
 
+from datetime import datetime
 from http import HTTPMethod
 from typing import Any
 
@@ -182,6 +183,17 @@ class AmazonSensorHandler:
 
                 value: str | int | float = "n/a"
                 scale: str | None = None
+                time_of_sample: datetime | None = None
+                if raw_time_of_sample := feature_property.get("timeOfSample"):
+                    try:
+                        time_of_sample = datetime.fromisoformat(raw_time_of_sample)
+                    except ValueError:
+                        _LOGGER.warning(
+                            "Sensor %s [device %s] has an unparsable timeOfSample: %s",
+                            sensor_template_name_value,
+                            serial_number,
+                            raw_time_of_sample,
+                        )
 
                 # "error" can be None, missing, or a dict
                 api_error = feature_property.get("error") or {}
@@ -254,6 +266,7 @@ class AmazonSensorHandler:
                     error_type,
                     error_msg,
                     scale,
+                    time_of_sample,
                 )
 
         return device_sensors
