@@ -75,16 +75,44 @@ class AmazonSensorHandler:
                 communications.get(device.serial_number) or {}
             )
 
-            if notifications is None:
-                continue  # notifications were not obtained, do not update
+        self._update_notifications(self._final_devices, notifications)
 
-            # Clear old notifications to handle cancelled ones
+        # base online status of speaker groups on their members
+        for device in self._final_devices.values():
+            if device.device_family == SPEAKER_GROUP_FAMILY:
+                device.online = all(
+                    d.online
+                    for d in self._final_devices.values()
+                    if d.serial_number in device.device_cluster_members
+                )
+
+    def handle_push_notification_update(
+        self,
+        devices: dict[str, AmazonDevice],
+        notifications: dict[str, dict[str, Any]] | None,
+        serial_number: str | None = None,
+    ) -> None:
+        """Apply notification data from a push event for a specific device."""
+        self._update_notifications(devices, notifications, serial_number)
+
+    def _update_notifications(
+        self,
+        devices: dict[str, AmazonDevice],
+        notifications: dict[str, dict[str, Any]] | None,
+        serial_number: str | None = None,
+    ) -> None:
+        """Update notification data on devices."""
+        if notifications is None:
+            return
+
+        targets = (
+            [devices[serial_number]]
+            if serial_number and serial_number in devices
+            else list(devices.values())
+        )
+        for device in targets:
             device.notifications = {}
-
-            # Update notifications
             device_notifications = notifications.get(device.serial_number, {})
-
-            # Add only supported notification types
             for capability, notification_type in [
                 ("REMINDERS", NOTIFICATION_REMINDER),
                 ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
@@ -100,15 +128,6 @@ class AmazonSensorHandler:
                     )
                 ):
                     device.notifications[notification_type] = notification_object
-
-        # base online status of speaker groups on their members
-        for device in self._final_devices.values():
-            if device.device_family == SPEAKER_GROUP_FAMILY:
-                device.online = all(
-                    d.online
-                    for d in self._final_devices.values()
-                    if d.serial_number in device.device_cluster_members
-                )
 
     async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
         """Retrieve devices sensors states."""
