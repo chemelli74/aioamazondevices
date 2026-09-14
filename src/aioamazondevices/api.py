@@ -663,7 +663,7 @@ class AmazonEchoApi:
 
         serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
         enabled = payload.get("enabled")
-        if not enabled:
+        if not isinstance(enabled, bool):
             _LOGGER.warning(
                 "Received DND event with no 'enabled' field: %s", scrub_fields(payload)
             )
