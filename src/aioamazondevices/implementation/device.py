@@ -9,9 +9,9 @@ from typing import Any
 from yarl import URL
 
 from aioamazondevices.const.devices import (
-    DEVICE_TYPE_AQM,
     DEVICE_TYPES_HARDCODED_METADATA,
     DEVICE_TYPES_TO_IGNORE,
+    SPEAKER_GROUP_FAMILY,
 )
 from aioamazondevices.const.http import (
     REFRESH_ACCESS_TOKEN,
@@ -25,6 +25,51 @@ from aioamazondevices.exceptions import CannotRestartDevice, CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice
 from aioamazondevices.utils import _LOGGER, format_graphql_error, parse_device_details
+
+
+def _build_endpoint_device(  # noqa: PLR0913 - a device just has many fields
+    *,
+    account_name: str,
+    device_family: str,
+    device_type: str,
+    serial_number: str,
+    customer_id: str | None,
+    online: bool,
+    manufacturer: str | None = None,
+    model: str | None = None,
+    software_version: str | None = None,
+    entity_id: str | None = None,
+    endpoint_id: str | None = None,
+) -> AmazonDevice:
+    """Build an AmazonDevice for a GraphQL-discovered endpoint.
+
+    Air quality monitors are not returned by ``api/devices-v2/device``, so
+    the voice-device fields are left empty.
+    """
+    return AmazonDevice(
+        account_name=account_name,
+        capabilities=[],
+        device_family=device_family,
+        device_type=device_type,
+        device_owner_customer_id=customer_id or "n/a",
+        household_device=False,
+        device_cluster_members={serial_number: device_type},
+        parent_clusters=[],
+        online=online,
+        serial_number=serial_number,
+        software_version=software_version,
+        manufacturer=manufacturer,
+        model=model,
+        hardware_version=None,
+        entity_id=entity_id,
+        endpoint_id=endpoint_id,
+        sensors={},
+        notifications_supported=False,
+        notifications={},
+        media_player_supported=False,
+        communication_settings={},
+        voice_control_supported=False,
+    )
 
 
 class AmazonDeviceHandler:
@@ -97,6 +142,7 @@ class AmazonDeviceHandler:
                 device_cluster_members=dict.fromkeys(
                     device["clusterMembers"] or [serial_number]
                 ),
+                parent_clusters=device.get("parentClusters") or [],
                 online=device["online"],
                 serial_number=serial_number,
                 software_version=device["softwareVersion"]
@@ -112,6 +158,7 @@ class AmazonDeviceHandler:
                 notifications={},
                 media_player_supported="AUDIO_PLAYER" in capabilities,
                 communication_settings={},
+                voice_control_supported=device["deviceFamily"] != SPEAKER_GROUP_FAMILY,
             )
 
             serial_to_device_type[serial_number] = device["deviceType"]
@@ -235,30 +282,18 @@ class AmazonDeviceHandler:
             devices_endpoints[aqm_serial_number] = aqm_endpoint
             self._endpoints[aqm_endpoint["endpointId"]] = aqm_serial_number
 
-            self._final_devices[aqm_serial_number] = AmazonDevice(
+            self._final_devices[aqm_serial_number] = _build_endpoint_device(
                 account_name=aqm_endpoint["friendlyNameObject"]["value"]["text"],
-                capabilities=[],
                 device_family="AIR_QUALITY_MONITOR",
                 device_type=aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
                     "deviceType"
                 ]["value"]["text"],
-                device_owner_customer_id=self._session_state_data.account_customer_id
-                or "n/a",
-                household_device=False,
-                device_cluster_members={aqm_serial_number: DEVICE_TYPE_AQM},
-                online=True,
                 serial_number=aqm_serial_number,
-                software_version=aqm_endpoint["softwareVersion"]["value"]["text"],
+                customer_id=self._session_state_data.account_customer_id,
+                online=True,
                 manufacturer="Amazon",
-                model=None,
-                hardware_version=None,
-                entity_id=None,
+                software_version=aqm_endpoint["softwareVersion"]["value"]["text"],
                 endpoint_id=aqm_endpoint.get("endpointId"),
-                sensors={},
-                notifications_supported=False,
-                notifications={},
-                media_player_supported=False,
-                communication_settings={},
             )
 
         return devices_endpoints

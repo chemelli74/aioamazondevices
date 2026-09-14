@@ -169,6 +169,13 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/stefan-schweiger">
+                    <img src="https://avatars.githubusercontent.com/u/3532342?v=4" width="100;" alt="stefan-schweiger"/>
+                    <br />
+                    <sub><b>Stefan Schweiger</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/tronikos">
                     <img src="https://avatars.githubusercontent.com/u/9987465?v=4" width="100;" alt="tronikos"/>
                     <br />

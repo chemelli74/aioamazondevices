@@ -64,6 +64,7 @@ class AmazonDevice:
     device_owner_customer_id: str
     household_device: bool
     device_cluster_members: dict[str, str | None]
+    parent_clusters: list[str]
     online: bool
     serial_number: str
     manufacturer: str | None
@@ -77,6 +78,7 @@ class AmazonDevice:
     notifications: dict[str, AmazonSchedule]
     media_player_supported: bool
     communication_settings: dict[str, str]
+    voice_control_supported: bool
 
 
 class AmazonSequenceType(StrEnum):
@@ -164,6 +166,9 @@ class AmazonPushMessage(StrEnum):
 
     # Matter
     MatterDeviceFound = "MATTER_SETUP_NOTIFICATION"
+
+    # DND
+    DoNotDisturbChange = "PUSH_DND_STATE_CHANGE"
 
 
 @dataclass

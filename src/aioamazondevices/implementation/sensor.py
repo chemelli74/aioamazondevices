@@ -20,7 +20,6 @@ from aioamazondevices.const.schedules import (
     NOTIFICATION_REMINDER,
     NOTIFICATION_TIMER,
 )
-from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 from aioamazondevices.utils import _LOGGER, format_graphql_error
@@ -44,7 +43,6 @@ class AmazonSensorHandler:
         self,
         devices: dict[str, AmazonDevice],
         endpoints: dict[str, str],
-        dnd_sensors: dict[str, AmazonDeviceSensor],
         notifications: dict[str, dict[str, Any]] | None,
         communications: dict[str, dict[str, str]],
     ) -> None:
@@ -65,11 +63,6 @@ class AmazonSensorHandler:
                 device.online = False
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
-
-            if (
-                device_dnd := dnd_sensors.get(device.serial_number)
-            ) and device.device_family != SPEAKER_GROUP_FAMILY:
-                device.sensors["dnd"] = device_dnd
 
             device.communication_settings = (
                 communications.get(device.serial_number) or {}
@@ -169,15 +162,16 @@ class AmazonSensorHandler:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
         device = self._final_devices[serial_number]
         for feature in endpoint.get("features", {}):
-            if (sensor_template := SENSORS.get(feature["name"])) is None:
-                # Skip sensors that are not in the predefined list
+            if (feature_template := SENSORS.get(feature["name"])) is None:
+                # Skip features that are not in the predefined list
                 continue
 
-            if not (sensor_template_name_value := sensor_template["name"]):
-                raise CannotRetrieveData("Unable to read sensor template")
-
             for feature_property in feature.get("properties"):
-                if sensor_template["name"] != feature_property.get("name"):
+                feature_property_name = feature_property.get("name")
+                if (
+                    sensor_template := feature_template.get(feature_property_name)
+                ) is None:
+                    # Skip properties that are not in the predefined list
                     continue
 
                 value: str | int | float = "n/a"
@@ -194,7 +188,7 @@ class AmazonSensorHandler:
                         if not value_raw:
                             _LOGGER.warning(
                                 "Sensor %s [device %s] ignored due to empty value",
-                                sensor_template_name_value,
+                                feature_property_name,
                                 serial_number,
                             )
                             continue
@@ -212,7 +206,7 @@ class AmazonSensorHandler:
                     except (KeyError, ValueError) as exc:
                         _LOGGER.warning(
                             "Sensor %s [device %s] ignored due to errors in feature %s: %s",  # noqa: E501
-                            sensor_template_name_value,
+                            feature_property_name,
                             serial_number,
                             feature_property,
                             repr(exc),
@@ -220,7 +214,7 @@ class AmazonSensorHandler:
                 if error:
                     _LOGGER.debug(
                         "error in sensor %s - %s - %s",
-                        sensor_template_name_value,
+                        feature_property_name,
                         error_type,
                         error_msg,
                     )
@@ -228,11 +222,11 @@ class AmazonSensorHandler:
                 if error_type == "NOT_FOUND":
                     continue
 
-                sensor_name = sensor_template_name_value
+                sensor_name = feature_property_name
 
                 if (
                     device.device_type == DEVICE_TYPE_AQM
-                    and sensor_template_name_value == "rangeValue"
+                    and feature_property_name == "rangeValue"
                 ):
                     if not (
                         (instance := feature.get("instance"))
