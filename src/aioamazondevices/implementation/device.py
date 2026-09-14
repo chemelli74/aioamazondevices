@@ -23,7 +23,7 @@ from aioamazondevices.const.http import (
 from aioamazondevices.const.queries import QUERY_DEVICE_DATA
 from aioamazondevices.exceptions import CannotRestartDevice, CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import AmazonDevice
+from aioamazondevices.structures import AmazonDevice, AmazonDeviceLight
 from aioamazondevices.utils import _LOGGER, format_graphql_error, parse_device_details
 
 
@@ -40,11 +40,12 @@ def _build_endpoint_device(  # noqa: PLR0913 - a device just has many fields
     software_version: str | None = None,
     entity_id: str | None = None,
     endpoint_id: str | None = None,
+    light: AmazonDeviceLight | None = None,
 ) -> AmazonDevice:
     """Build an AmazonDevice for a GraphQL-discovered endpoint.
 
-    Air quality monitors are not returned by ``api/devices-v2/device``, so
-    the voice-device fields are left empty.
+    Air quality monitors and smart home lights are not returned by
+    ``api/devices-v2/device``, so the voice-device fields are left empty.
     """
     return AmazonDevice(
         account_name=account_name,
@@ -69,6 +70,7 @@ def _build_endpoint_device(  # noqa: PLR0913 - a device just has many fields
         media_player_supported=False,
         communication_settings={},
         voice_control_supported=False,
+        light=light,
     )
 
 
@@ -159,6 +161,7 @@ class AmazonDeviceHandler:
                 media_player_supported="AUDIO_PLAYER" in capabilities,
                 communication_settings={},
                 voice_control_supported=device["deviceFamily"] != SPEAKER_GROUP_FAMILY,
+                light=None,
             )
 
             serial_to_device_type[serial_number] = device["deviceType"]

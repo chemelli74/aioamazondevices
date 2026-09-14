@@ -9,6 +9,7 @@ import getpass
 import json
 import logging
 import mimetypes
+import secrets
 import signal
 import sys
 from argparse import ArgumentParser, Namespace
@@ -76,6 +77,12 @@ async def get_arguments() -> tuple[ArgumentParser, Namespace]:
         "-cdn",
         type=str,
         help="Cluster device name to send message via 'AlexaAnnouncement'",
+    )
+    parser.add_argument(
+        "--light_device_name",
+        "-ldn",
+        type=str,
+        help="Smart home light name to exercise (e.g. Echo Glow)",
     )
     parser.add_argument(
         "--test",
@@ -362,6 +369,50 @@ async def main() -> None:
         await httpx_client.aclose()
 
 
+async def test_light(api: AmazonEchoApi, device_light: AmazonDevice) -> None:
+    """Exercise a smart home light (e.g. Echo Glow)."""
+    light = device_light.light
+    serial = device_light.serial_number
+    print(f"Light {device_light.account_name} state: {light}")
+    if light is None:
+        return
+
+    print(f"Turning on {device_light.account_name}")
+    await api.set_light_power(device_light, power_on=True)
+
+    brightness = secrets.randbelow(91) + 10
+    print(f"Brightness to {brightness}%")
+    await api.set_light_brightness(device_light, brightness)
+
+    if light.supports_color:
+        hue = float(secrets.randbelow(360))
+        print(f"Colour to hue {hue} / saturation 1.0")
+        await api.set_light_color(device_light, hue, 1.0)
+
+    if light.effects:
+        effect = secrets.choice(light.effects)
+        print(f"Effect to '{effect}'")
+        await api.set_light_effect(device_light, effect)
+        await wait_action_complete(5)
+        print("Effect back to solid colour")
+        await api.set_light_effect(device_light, None)
+
+    if light.supports_tap:
+        print("Tap control off then on")
+        await api.set_light_tap(device_light, enabled=False)
+        await wait_action_complete(2)
+        await api.set_light_tap(device_light, enabled=True)
+
+    await wait_action_complete(3)
+
+    print(f"Turning off {device_light.account_name}")
+    await api.set_light_power(device_light, power_on=False)
+
+    # behaviors/preview has no response body, so re-read to confirm the ops.
+    await api._light_handler.update_lights_state()  # noqa: SLF001
+    print(f"Final light state: {api._light_handler.lights[serial].light}")  # noqa: SLF001
+
+
 async def tests(
     args: Namespace,
     api: AmazonEchoApi,
@@ -385,9 +436,16 @@ async def tests(
     else:
         device_cluster = device_single
 
+    device_light = (
+        find_device(devices, args.light_device_name, lambda d: d.light is not None)
+        if args.light_device_name
+        else None
+    )
+
     print("Selected devices:")
     print("- single : ", device_single.account_name)
     print("- cluster: ", device_cluster.account_name)
+    print("- light  : ", device_light.account_name if device_light else None)
     print("-" * 20)
 
     if args.tests.get("01_test_volume", True):
@@ -482,6 +540,9 @@ async def tests(
         await api.call_alexa_skill(
             device_cluster, "amzn1.ask.skill.94c477e7-61c0-43f5-b7d9-36d7498a4d04"
         )
+
+    if args.tests.get("11_test_light", True) and device_light:
+        await test_light(api, device_light)
 
     if not device_single.media_player_supported:
         print(
