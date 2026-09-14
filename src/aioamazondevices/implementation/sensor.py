@@ -184,7 +184,7 @@ class AmazonSensorHandler:
                     except ValueError:
                         _LOGGER.warning(
                             "Sensor %s [device %s] has an unparsable timeOfSample: %s",
-                            sensor_template_name_value,
+                            feature_property_name,
                             serial_number,
                             raw_time_of_sample,
                         )
