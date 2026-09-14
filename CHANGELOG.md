@@ -1,5 +1,14 @@
 # Changelog
 
+## v16.0.0 (2026-09-14)
+
+### Refactoring
+
+- Move dnd to push events ([`894abcb`](https://github.com/chemelli74/aioamazondevices/commit/894abcb6240dc29c001ba8b214d5a206e61b7b3f))
+- Extract device creation into a helper ([`fbf869a`](https://github.com/chemelli74/aioamazondevices/commit/fbf869accc10f3be9dd7fbc53c75c7bc93f6b422))
+- Allow multiple properties in graphql sensors ([`901b019`](https://github.com/chemelli74/aioamazondevices/commit/901b01974f40af0dca0480211d4a81b67c0f207b))
+
+
 ## v15.2.0 (2026-09-13)
 
 ### Features
