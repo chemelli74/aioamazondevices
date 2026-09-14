@@ -119,7 +119,6 @@ class AmazonHistoryHandler:
                 intent=record.get("intent") or "Unknown",
                 title=record["title"],
                 sub_title=record["subTitle"],
-                person_id=person_info.get("personId"),
                 person_first_name=person_info.get("personFirstName"),
                 person_type=person_info.get("personType"),
             )

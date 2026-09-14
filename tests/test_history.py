@@ -48,22 +48,22 @@ def handler(monkeypatch: pytest.MonkeyPatch) -> AmazonHistoryHandler:
     [
         pytest.param(
             TEST_PERSON,
-            ("amzn1.actor.person.oid.PERSON_ID", "Alice", "ADULT"),
+            ("Alice", "ADULT"),
             id="recognised-speaker",
         ),
         pytest.param(
             [TEST_PERSON],
-            ("amzn1.actor.person.oid.PERSON_ID", "Alice", "ADULT"),
+            ("Alice", "ADULT"),
             id="recognised-speaker-as-list",
         ),
-        pytest.param(None, (None, None, None), id="voice-not-recognised"),
-        pytest.param([], (None, None, None), id="empty-list"),
+        pytest.param(None, (None, None), id="voice-not-recognised"),
+        pytest.param([], (None, None), id="empty-list"),
     ],
 )
 async def test_vocal_history_exposes_speaker(
     handler: AmazonHistoryHandler,
     persons_info: PersonsInfo,
-    expected: tuple[str | None, str | None, str | None],
+    expected: tuple[str | None, str | None],
 ) -> None:
     """The recognised speaker is taken from personsInfo, absent when unknown."""
     handler._vocal_history_json = AsyncMock(  # type: ignore[method-assign]
@@ -73,4 +73,6 @@ async def test_vocal_history_exposes_speaker(
     records = await handler.get_vocal_history()
 
     record = records[TEST_SERIAL_1]
-    assert (record.person_id, record.person_first_name, record.person_type) == expected
+    assert (record.person_first_name, record.person_type) == expected
+    # personId is in the payload but account-scoped, so it is deliberately not exposed
+    assert not hasattr(record, "person_id")
