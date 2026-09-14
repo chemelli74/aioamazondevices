@@ -24,7 +24,7 @@ from aioamazondevices.const.http import (
 from aioamazondevices.const.queries import QUERY_DEVICE_DATA
 from aioamazondevices.exceptions import CannotRestartDevice, CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import AmazonDevice
+from aioamazondevices.structures import AmazonDevice, AmazonDeviceLight
 from aioamazondevices.utils import _LOGGER, format_graphql_error, parse_device_details
 
 
@@ -77,6 +77,54 @@ def _resolve_model_details(
         device_model,
         hardware_version,
         manufacturer or hardcoded_data.get("manufacturer"),
+    )
+
+
+def _build_endpoint_device(  # noqa: PLR0913 - a device just has many fields
+    *,
+    account_name: str,
+    device_family: str,
+    device_type: str,
+    serial_number: str,
+    customer_id: str | None,
+    online: bool,
+    manufacturer: str | None = None,
+    model: str | None = None,
+    software_version: str | None = None,
+    entity_id: str | None = None,
+    endpoint_id: str | None = None,
+    light: AmazonDeviceLight | None = None,
+) -> AmazonDevice:
+    """Build an AmazonDevice for a device discovered outside the endpoint/devices-v2 flow.
+
+    Smart home lights are not returned by ``api/devices-v2/device`` or the
+    voice-device GraphQL endpoint, so this builds their AmazonDevice directly
+    and leaves the voice-device fields empty.
+    """
+    return AmazonDevice(
+        account_name=account_name,
+        capabilities=[],
+        device_family=device_family,
+        device_type=device_type,
+        device_owner_customer_id=customer_id or "n/a",
+        household_device=False,
+        device_cluster_members={serial_number: device_type},
+        parent_clusters=[],
+        online=online,
+        serial_number=serial_number,
+        software_version=software_version,
+        manufacturer=manufacturer,
+        model=model,
+        hardware_version=None,
+        entity_id=entity_id,
+        endpoint_id=endpoint_id,
+        sensors={},
+        notifications_supported=False,
+        notifications={},
+        media_player_supported=False,
+        communication_settings={},
+        voice_control_supported=False,
+        light=light,
     )
 
 
@@ -229,6 +277,7 @@ class AmazonDeviceHandler:
             communication_settings={},
             # only devices-v2 devices can be spoken to, speaker groups aside
             voice_control_supported=bool(base) and family != SPEAKER_GROUP_FAMILY,
+            light=None,
         )
 
     async def _get_base_devices_data(self) -> dict[str, dict[str, Any]]:
