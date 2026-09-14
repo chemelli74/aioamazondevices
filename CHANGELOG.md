@@ -1,5 +1,12 @@
 # Changelog
 
+## v16.1.0 (2026-09-14)
+
+### Features
+
+- Store account customer id ([`702937e`](https://github.com/chemelli74/aioamazondevices/commit/702937ee024a51ad2ac7b3b08243e80f686fc8ed))
+
+
 ## v16.0.0 (2026-09-14)
 
 ### Refactoring
