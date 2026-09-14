@@ -94,11 +94,10 @@ class AlexaCommunicationsHandler:
                 _, resp = await self._http_wrapper.session_request(
                     method=HTTPMethod.GET, url=url
                 )
-            except CannotRetrieveData as err:
+            except CannotRetrieveData:
                 _LOGGER.warning(
-                    "Failed to refresh communications settings for device %s, used cached values: %s",  # noqa: E501
+                    "Failed to refresh communications settings for device %s, used cached values.",  # noqa: E501
                     device.account_name,
-                    err,
                 )
                 continue
             resp_json = await self._http_wrapper.response_to_json(
