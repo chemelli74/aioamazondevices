@@ -143,6 +143,7 @@ class AmazonEchoApi:
 
         self._device_volumes_initialized: bool = False
         self._dnd_initialized: bool = False
+        self._dnd_lock = asyncio.Lock()
         self._http2_client: AmazonHTTP2Client | None = None
 
         # force initial refresh
@@ -651,16 +652,13 @@ class AmazonEchoApi:
 
     async def sync_dnd_state(self) -> None:
         """Sync Do Not Disturb state for all devices."""
-        await self._dnd_handler.sync_do_not_disturb_status()
-        self._dnd_initialized = True
-        await self._emit_dnd_state_event()
-
-    async def _handle_dnd_event(self, payload: dict[str, Any]) -> None:
-        # Ensure initial full sync happens before applying incremental updates
-        if not self._dnd_initialized:
+        async with self._dnd_lock:
             await self._dnd_handler.sync_do_not_disturb_status()
             self._dnd_initialized = True
 
+        await self._emit_dnd_state_event()
+
+    async def _handle_dnd_event(self, payload: dict[str, Any]) -> None:
         serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
         enabled = payload.get("enabled")
         if not isinstance(enabled, bool):
@@ -668,9 +666,20 @@ class AmazonEchoApi:
                 "Received DND event with no 'enabled' field: %s", scrub_fields(payload)
             )
             return
-        if serial:
+        if not serial:
+            return
+
+        # The lock serializes the full sync with incremental updates, so that a
+        # sync response predating this event cannot overwrite it.
+        async with self._dnd_lock:
+            # Ensure initial full sync happens before applying incremental updates
+            if not self._dnd_initialized:
+                await self._dnd_handler.sync_do_not_disturb_status()
+                self._dnd_initialized = True
+
             self._dnd_handler.update_cached_dnd_state(serial, enabled)
-            await self._emit_dnd_state_event()
+
+        await self._emit_dnd_state_event()
 
     async def _emit_dnd_state_event(self) -> None:
         """Emit dnd event to subscribers."""
