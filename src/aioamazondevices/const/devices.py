@@ -3,9 +3,18 @@
 
 """Devices constants for Amazon devices."""
 
+from datetime import timedelta
+
 from .http import AMAZON_DEVICE_TYPE
 
 SPEAKER_GROUP_FAMILY = "WHA"
+
+# Sonos speakers with Alexa built in do not emit PUSH_EQUALIZER_STATE_CHANGE
+SONOS_MANUFACTURER_PREFIX = "sonos"
+
+# Wake word arbitration makes several speakers report a volume change for a
+# single utterance, so collapse bursts into one history refresh
+SONOS_HISTORY_REFRESH_MIN_INTERVAL = timedelta(seconds=3)
 
 DEVICE_TYPE_AQM = "AEZME1X38KDRA"
 DEVICE_TYPE_CUBE_GEN3 = "A2JKHJ0PX4J3L3"
