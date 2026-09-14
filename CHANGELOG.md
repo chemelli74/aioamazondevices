@@ -1,5 +1,12 @@
 # Changelog
 
+## v15.2.0 (2026-09-13)
+
+### Features
+
+- Add voice_control_supported property ([`544c301`](https://github.com/chemelli74/aioamazondevices/commit/544c3010d1bf0b09419a8072b2ea80bfb89a07e0))
+
+
 ## v15.1.3 (2026-09-09)
 
 ### Documentation
