@@ -15,7 +15,7 @@ from aioamazondevices.structures import AmazonDevice
 from .const import TEST_SERIAL_1
 
 
-def _illuminance_endpoint(time_of_sample: str | None) -> dict[str, Any]:
+def _illuminance_endpoint(time_of_sample: str | int | None = None) -> dict[str, Any]:
     property_data: dict[str, Any] = {
         "name": "illuminance",
         "illuminanceValue": {"value": 42.0},
@@ -23,7 +23,6 @@ def _illuminance_endpoint(time_of_sample: str | None) -> dict[str, Any]:
     }
     if time_of_sample is not None:
         property_data["timeOfSample"] = time_of_sample
-        property_data["timeOfLastChange"] = time_of_sample
 
     return {
         "features": [
@@ -45,7 +44,7 @@ async def test_time_of_sample_is_parsed(
     api._sensor_handler._final_devices = {TEST_SERIAL_1: device}
 
     sensors = api._sensor_handler._get_device_sensor_state(
-        _illuminance_endpoint("2026-09-12T08:09:17.922Z"), TEST_SERIAL_1
+        _illuminance_endpoint(time_of_sample="2026-09-12T08:09:17.922Z"), TEST_SERIAL_1
     )
 
     assert sensors["illuminance"].time_of_sample == datetime(
@@ -62,7 +61,7 @@ async def test_missing_time_of_sample_defaults_to_none(
     api._sensor_handler._final_devices = {TEST_SERIAL_1: device}
 
     sensors = api._sensor_handler._get_device_sensor_state(
-        _illuminance_endpoint(None), TEST_SERIAL_1
+        _illuminance_endpoint(), TEST_SERIAL_1
     )
 
     assert sensors["illuminance"].time_of_sample is None
@@ -79,7 +78,25 @@ async def test_unparsable_time_of_sample_defaults_to_none(
     api._sensor_handler._final_devices = {TEST_SERIAL_1: device}
 
     sensors = api._sensor_handler._get_device_sensor_state(
-        _illuminance_endpoint("not-a-timestamp"), TEST_SERIAL_1
+        _illuminance_endpoint(time_of_sample="not-a-timestamp"), TEST_SERIAL_1
+    )
+
+    assert sensors["illuminance"].time_of_sample is None
+    assert "unparsable timeOfSample" in caplog.text
+
+
+@pytest.mark.anyio
+async def test_non_string_time_of_sample_defaults_to_none(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A non-string timeOfSample is logged and does not raise."""
+    device = make_device(TEST_SERIAL_1)
+    api._sensor_handler._final_devices = {TEST_SERIAL_1: device}
+
+    sensors = api._sensor_handler._get_device_sensor_state(
+        _illuminance_endpoint(time_of_sample=12345), TEST_SERIAL_1
     )
 
     assert sensors["illuminance"].time_of_sample is None

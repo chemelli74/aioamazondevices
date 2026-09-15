@@ -26,6 +26,29 @@ from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 from aioamazondevices.utils import _LOGGER, format_graphql_error
 
 
+def _parse_sample_timestamp(
+    feature_property: dict[str, Any],
+    key: str,
+    sensor_name: str,
+    serial_number: str,
+) -> datetime | None:
+    """Parse a timestamp field from a sensor feature property, if present."""
+    raw_timestamp = feature_property.get(key)
+    if not raw_timestamp:
+        return None
+    try:
+        return datetime.fromisoformat(raw_timestamp)
+    except (TypeError, ValueError):
+        _LOGGER.warning(
+            "Sensor %s [device %s] has an unparsable %s: %s",
+            sensor_name,
+            serial_number,
+            key,
+            raw_timestamp,
+        )
+        return None
+
+
 class AmazonSensorHandler:
     """Class to handle Amazon sensor functionality."""
 
@@ -177,17 +200,12 @@ class AmazonSensorHandler:
 
                 value: str | int | float = "n/a"
                 scale: str | None = None
-                time_of_sample: datetime | None = None
-                if raw_time_of_sample := feature_property.get("timeOfSample"):
-                    try:
-                        time_of_sample = datetime.fromisoformat(raw_time_of_sample)
-                    except ValueError:
-                        _LOGGER.warning(
-                            "Sensor %s [device %s] has an unparsable timeOfSample: %s",
-                            feature_property_name,
-                            serial_number,
-                            raw_time_of_sample,
-                        )
+                time_of_sample = _parse_sample_timestamp(
+                    feature_property,
+                    "timeOfSample",
+                    feature_property_name,
+                    serial_number,
+                )
 
                 # "error" can be None, missing, or a dict
                 api_error = feature_property.get("error") or {}
