@@ -236,11 +236,13 @@ def apply_light_state(
     brightness = decoded.get(LIGHT_INTERFACE_BRIGHTNESS)
     light.brightness = int(brightness) if isinstance(brightness, (int, float)) else None
 
-    color = decoded.get(LIGHT_INTERFACE_COLOR) or {}
+    color = decoded.get(LIGHT_INTERFACE_COLOR)
+    color = color if isinstance(color, dict) else {}
     light.hue = color.get("hue")
     light.saturation = color.get("saturation")
 
-    color_properties = decoded.get(LIGHT_INTERFACE_COLOR_PROPERTIES) or {}
+    color_properties = decoded.get(LIGHT_INTERFACE_COLOR_PROPERTIES)
+    color_properties = color_properties if isinstance(color_properties, dict) else {}
     light.color_name = color_properties.get("name")
 
     if control.mode_instance is not None:
@@ -254,7 +256,8 @@ def apply_light_state(
         tap = decoded.get(f"{LIGHT_INTERFACE_TOGGLE}:{control.tap_instance}")
         light.tap_enabled = tap == "ON" if tap is not None else None
 
-    health = decoded.get(LIGHT_INTERFACE_HEALTH) or {}
+    health = decoded.get(LIGHT_INTERFACE_HEALTH)
+    health = health if isinstance(health, dict) else {}
     device.online = health.get("value") == "OK"
 
 
