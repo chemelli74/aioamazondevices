@@ -3,6 +3,7 @@
 
 """Sensor module for Amazon devices."""
 
+from datetime import datetime
 from http import HTTPMethod
 from typing import Any
 
@@ -23,6 +24,26 @@ from aioamazondevices.const.schedules import (
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 from aioamazondevices.utils import _LOGGER, format_graphql_error
+
+
+def _parse_sample_timestamp(
+    raw_timestamp: str | None,
+    sensor_name: str,
+    serial_number: str,
+) -> datetime | None:
+    """Parse a sensor sample timestamp, if present."""
+    if not raw_timestamp:
+        return None
+    try:
+        return datetime.fromisoformat(raw_timestamp)
+    except (TypeError, ValueError):
+        _LOGGER.warning(
+            "Sensor %s [device %s] has an unparsable timeOfSample: %s",
+            sensor_name,
+            serial_number,
+            raw_timestamp,
+        )
+        return None
 
 
 class AmazonSensorHandler:
@@ -176,6 +197,11 @@ class AmazonSensorHandler:
 
                 value: str | int | float = "n/a"
                 scale: str | None = None
+                time_of_sample = _parse_sample_timestamp(
+                    feature_property.get("timeOfSample"),
+                    feature_property_name,
+                    serial_number,
+                )
 
                 # "error" can be None, missing, or a dict
                 api_error = feature_property.get("error") or {}
@@ -248,6 +274,7 @@ class AmazonSensorHandler:
                     error_type,
                     error_msg,
                     scale,
+                    time_of_sample,
                 )
 
         return device_sensors
