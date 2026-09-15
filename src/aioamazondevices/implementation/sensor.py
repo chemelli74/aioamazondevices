@@ -27,23 +27,20 @@ from aioamazondevices.utils import _LOGGER, format_graphql_error
 
 
 def _parse_sample_timestamp(
-    feature_property: dict[str, Any],
-    key: str,
+    raw_timestamp: str | None,
     sensor_name: str,
     serial_number: str,
 ) -> datetime | None:
-    """Parse a timestamp field from a sensor feature property, if present."""
-    raw_timestamp = feature_property.get(key)
+    """Parse a sensor sample timestamp, if present."""
     if not raw_timestamp:
         return None
     try:
         return datetime.fromisoformat(raw_timestamp)
     except (TypeError, ValueError):
         _LOGGER.warning(
-            "Sensor %s [device %s] has an unparsable %s: %s",
+            "Sensor %s [device %s] has an unparsable timeOfSample: %s",
             sensor_name,
             serial_number,
-            key,
             raw_timestamp,
         )
         return None
@@ -201,8 +198,7 @@ class AmazonSensorHandler:
                 value: str | int | float = "n/a"
                 scale: str | None = None
                 time_of_sample = _parse_sample_timestamp(
-                    feature_property,
-                    "timeOfSample",
+                    feature_property.get("timeOfSample"),
                     feature_property_name,
                     serial_number,
                 )
