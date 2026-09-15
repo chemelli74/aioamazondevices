@@ -1,5 +1,12 @@
 # Changelog
 
+## v16.3.0 (2026-09-15)
+
+### Features
+
+- Expose sensor timestamps ([`c7a8cac`](https://github.com/chemelli74/aioamazondevices/commit/c7a8cac4e855b2de74b35f3be37dcc0728251bb9))
+
+
 ## v16.2.0 (2026-09-15)
 
 ### Documentation
