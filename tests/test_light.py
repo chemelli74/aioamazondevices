@@ -204,6 +204,27 @@ def test_apply_light_state_active_effect() -> None:
     assert device.light.effect == "Disco"
 
 
+def test_apply_light_state_ignores_non_dict_values() -> None:
+    """A scalar value where a dict is expected is treated as missing, not raised."""
+    device, control = _glow()
+    states = [
+        '{"namespace":"Alexa.ColorController","name":"color","value":"unexpected"}',
+        (
+            '{"namespace":"Alexa.ColorPropertiesController","name":"colorProperties",'
+            '"value":"unexpected"}'
+        ),
+        '{"namespace":"Alexa.EndpointHealth","name":"connectivity","value":"unexpected"}',
+    ]
+
+    apply_light_state(device, control, states)
+
+    assert device.light is not None
+    assert device.light.hue is None
+    assert device.light.saturation is None
+    assert device.light.color_name is None
+    assert device.online is False
+
+
 def _handler_with_glow() -> tuple[AmazonLightHandler, AmazonDevice, MagicMock]:
     http_wrapper = MagicMock()
     http_wrapper.session_request = AsyncMock(return_value=(MagicMock(), MagicMock()))

@@ -213,7 +213,7 @@ def find_device(
         return next(
             dev
             for dev in devices.values()
-            if ((dev.account_name == name) if name else condition(dev))
+            if condition(dev) and (dev.account_name == name if name else True)
         )
     except StopIteration:
         print(f"Unable to find requested device {name}, use one of this devices :")
@@ -380,33 +380,34 @@ async def test_light(api: AmazonEchoApi, device_light: AmazonDevice) -> None:
     print(f"Turning on {device_light.account_name}")
     await api.set_light_power(device_light, power_on=True)
 
-    brightness = secrets.randbelow(91) + 10
-    print(f"Brightness to {brightness}%")
-    await api.set_light_brightness(device_light, brightness)
+    try:
+        brightness = secrets.randbelow(91) + 10
+        print(f"Brightness to {brightness}%")
+        await api.set_light_brightness(device_light, brightness)
 
-    if light.supports_color:
-        hue = float(secrets.randbelow(360))
-        print(f"Colour to hue {hue} / saturation 1.0")
-        await api.set_light_color(device_light, hue, 1.0)
+        if light.supports_color:
+            hue = float(secrets.randbelow(360))
+            print(f"Colour to hue {hue} / saturation 1.0")
+            await api.set_light_color(device_light, hue, 1.0)
 
-    if light.effects:
-        effect = secrets.choice(light.effects)
-        print(f"Effect to '{effect}'")
-        await api.set_light_effect(device_light, effect)
-        await wait_action_complete(5)
-        print("Effect back to solid colour")
-        await api.set_light_effect(device_light, None)
+        if light.effects:
+            effect = secrets.choice(light.effects)
+            print(f"Effect to '{effect}'")
+            await api.set_light_effect(device_light, effect)
+            await wait_action_complete(5)
+            print("Effect back to solid colour")
+            await api.set_light_effect(device_light, None)
 
-    if light.supports_tap:
-        print("Tap control off then on")
-        await api.set_light_tap(device_light, enabled=False)
-        await wait_action_complete(2)
-        await api.set_light_tap(device_light, enabled=True)
+        if light.supports_tap:
+            print("Tap control off then on")
+            await api.set_light_tap(device_light, enabled=False)
+            await wait_action_complete(2)
+            await api.set_light_tap(device_light, enabled=True)
 
-    await wait_action_complete(3)
-
-    print(f"Turning off {device_light.account_name}")
-    await api.set_light_power(device_light, power_on=False)
+        await wait_action_complete(3)
+    finally:
+        print(f"Turning off {device_light.account_name}")
+        await api.set_light_power(device_light, power_on=False)
 
     # behaviors/preview has no response body, so re-read to confirm the ops.
     await api._light_handler.update_lights_state()  # noqa: SLF001
