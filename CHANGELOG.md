@@ -1,5 +1,17 @@
 # Changelog
 
+## v16.2.0 (2026-09-15)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`26f8152`](https://github.com/chemelli74/aioamazondevices/commit/26f8152dbf7964dd54330cb097d16a82f64f1d84))
+
+
+### Features
+
+- Expose recognised speaker from personsinfo ([`ab2373e`](https://github.com/chemelli74/aioamazondevices/commit/ab2373e9cd81023deb53783555ef65f0e48971c9))
+
+
 ## v16.1.0 (2026-09-14)
 
 ### Features
