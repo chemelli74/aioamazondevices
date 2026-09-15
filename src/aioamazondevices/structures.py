@@ -191,6 +191,9 @@ class AmazonVocalRecord:
     intent: str
     title: str
     sub_title: str
+    # Speaker recognised by an Alexa voice profile, when Amazon provides one
+    person_first_name: str | None = None
+    person_type: str | None = None
 
 
 class AmazonListType(StrEnum):
