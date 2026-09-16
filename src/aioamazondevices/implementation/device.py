@@ -20,7 +20,11 @@ from aioamazondevices.const.http import (
     URI_NEXUS_GRAPHQL,
     URI_REBOOT,
 )
-from aioamazondevices.const.queries import QUERY_DEVICE_DATA, QUERY_DEVICE_DATA_ALL
+from aioamazondevices.const.queries import (
+    QUERY_DEVICE_DATA,
+    QUERY_DEVICE_DATA_ALL,
+    QUERY_SENSOR_STATE,
+)
 from aioamazondevices.exceptions import (
     CannotAuthenticate,
     CannotRestartDevice,
@@ -216,13 +220,40 @@ class AmazonDeviceHandler:
             extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
         )
 
-        raise CannotAuthenticate("Stopping here.")
-
         endpoint_data = await self._http_wrapper.response_to_json(raw_resp, "endpoint")
 
         if not (data := endpoint_data.get("data")) or not data.get("alexaVoiceDevices"):
             format_graphql_error(endpoint_data)
             return {}
+
+        endpoint_ids = [
+            endpoint["endpointId"]
+            for endpoint in data.get("alexaVoiceDevices", {}).get("endpoints", [])
+            if endpoint.get("endpointId")
+        ]
+        payload = [
+            {
+                "operationName": "getEndpointState",
+                "variables": {
+                    "endpointIds": endpoint_ids,
+                },
+                "query": QUERY_SENSOR_STATE,
+            }
+        ]
+
+        _, raw_resp = await self._http_wrapper.session_request(
+            method=HTTPMethod.POST,
+            url=URL.joinpath(
+                self._session_state_data.alexa_website_url, URI_NEXUS_GRAPHQL
+            ),
+            input_data=payload,
+            json_data=True,
+            extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
+        )
+
+        await self._http_wrapper.response_to_json(raw_resp, "sensors")
+
+        raise CannotAuthenticate("Stopping here.")
 
         devices_endpoints: dict[str, dict[str, Any]] = {}
 
