@@ -18,7 +18,7 @@ TEST_SERIAL_AQM = "AQM-1"
 TEST_SERIAL_GROUP = "GROUP-1"
 
 
-def _text(value: str) -> dict[str, Any]:
+def _text(value: str | None) -> dict[str, Any]:
     return {"value": {"text": value}}
 
 
@@ -52,7 +52,7 @@ def _endpoint(
     serial_number: str,
     *,
     device_type: str = "ECHO_TYPE",
-    model: str = "Echo Dot (5th Gen)",
+    model: str | None = "Echo Dot (5th Gen)",
     manufacturer: str = "Amazon",
 ) -> dict[str, Any]:
     """Build a GraphQL endpoint entry."""
@@ -222,3 +222,43 @@ async def test_endpoint_data_reads_a_single_endpoints_list(api: AmazonEchoApi) -
     devices_endpoints = await handler._get_devices_endpoint_data()
 
     assert list(devices_endpoints) == [TEST_SERIAL_1, TEST_SERIAL_AQM]
+
+
+@pytest.mark.anyio
+async def test_devices_v2_data_enriches_the_endpoint_device(api: AmazonEchoApi) -> None:
+    """Voice specific data comes from devices-v2, the rest from the endpoint."""
+    handler = api._device_handler
+    base_device = _base_device(
+        TEST_SERIAL_1,
+        capabilities=["MICROPHONE", "REMINDERS", "SUPPORTS_SOFTWARE_VERSION"],
+    )
+    base_device["accountName"] = "This Device"
+    # only used when the endpoint reports no model at all
+    base_device["deviceTypeFriendlyName"] = "Echo Show 8 (2nd Gen)"
+    _patch_sources(
+        handler,
+        devices_endpoints={TEST_SERIAL_1: _endpoint(TEST_SERIAL_1, model=None)},
+        base_devices={TEST_SERIAL_1: base_device},
+    )
+
+    await handler.update_devices()
+
+    device = handler.devices[TEST_SERIAL_1]
+    # devices-v2 only
+    assert device.capabilities == [
+        "MICROPHONE",
+        "REMINDERS",
+        "SUPPORTS_SOFTWARE_VERSION",
+    ]
+    assert device.device_family == "ECHO"
+    assert device.notifications_supported
+    assert not device.media_player_supported
+    # a device without an endpoint model falls back to the friendly name
+    assert device.model == "Echo Show 8"
+    assert device.hardware_version == "2nd Gen"
+    # the endpoint wins over devices-v2 for everything both of them have
+    assert device.account_name == f"Device {TEST_SERIAL_1}"
+    assert device.endpoint_id == f"endpoint-{TEST_SERIAL_1}"
+    assert device.entity_id == f"entity-{TEST_SERIAL_1}"
+    assert device.manufacturer == "Amazon"
+    assert device.software_version == "1234"
