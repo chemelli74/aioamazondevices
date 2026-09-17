@@ -438,6 +438,7 @@ class AmazonEchoApi:
         text_to_announce: str,
         *,
         display_text: str | None = None,
+        speech_type: str = "text",
     ) -> None:
         """Call AlexaAnnouncement to send a message."""
         await self._sequence_handler.send_message(
@@ -445,6 +446,7 @@ class AmazonEchoApi:
             AmazonSequenceType.Announcement,
             text_to_announce,
             display_text=display_text,
+            speech_type=speech_type,
         )
 
     async def call_alexa_sound(

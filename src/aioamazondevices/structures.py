@@ -182,6 +182,7 @@ class AmazonSequenceNode:
     device: AmazonDevice
     operation_node: dict[str, Any]
     display_text: str | None = None
+    speech_type: str = "text"
 
 
 @dataclass
