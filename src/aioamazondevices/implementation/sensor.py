@@ -127,10 +127,7 @@ class AmazonSensorHandler:
                 )
 
     async def _get_endpoint_states(self) -> dict[str, dict[str, Any]]:
-        """Retrieve the state of every device endpoint, keyed by endpoint ID.
-
-        Speaker groups have no endpoint, so there is nothing to ask for them.
-        """
+        """Retrieve the sensor state of every device endpoint, keyed by endpoint ID."""
         endpoint_ids = [
             device.endpoint_id
             for device in self._final_devices.values()

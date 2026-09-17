@@ -45,24 +45,6 @@ def _endpoint_entity_id(endpoint: dict[str, Any]) -> str | None:
     return (legacy_identifiers.get("chrsIdentifier") or {}).get("entityId")
 
 
-def _graphql_endpoints(data: dict[str, Any]) -> list[dict[str, Any]]:
-    """Return the endpoints of a device data GraphQL response.
-
-    The query returns every device as a single list, wrapped in whatever key
-    the query uses for it.
-    """
-    if isinstance(endpoints := data.get("endpoints"), list):
-        return endpoints
-
-    for value in data.values():
-        if isinstance(value, dict) and isinstance(
-            endpoints := value.get("endpoints"), list
-        ):
-            return endpoints
-
-    return []
-
-
 def _resolve_model_details(
     device_type: str, account_name: str, model: str | None, manufacturer: str | None
 ) -> tuple[str | None, str | None, str | None]:
@@ -292,8 +274,10 @@ class AmazonDeviceHandler:
 
         endpoint_data = await self._http_wrapper.response_to_json(raw_resp, "endpoint")
 
-        if not (data := endpoint_data.get("data")) or not (
-            raw_endpoints := _graphql_endpoints(data)
+        if (
+            not (data := endpoint_data.get("data"))
+            or not (endpoints_list := data.get("listEndpoints"))
+            or not (raw_endpoints := endpoints_list.get("endpoints"))
         ):
             format_graphql_error(endpoint_data)
             return {}
