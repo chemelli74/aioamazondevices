@@ -9,7 +9,10 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.implementation.sequence import AmazonSequenceHandler
+from aioamazondevices.implementation.sequence import (
+    AmazonSequenceHandler,
+    validate_announcement_speech,
+)
 from aioamazondevices.structures import (
     AmazonDevice,
     AmazonSequenceNode,
@@ -89,3 +92,21 @@ def test_batch_separates_speech_types(make_device: Callable[..., AmazonDevice]) 
     assert list(handler._optimise_sequence_nodes(nodes)) == [
         node.operation_node for node in nodes
     ]
+
+
+def test_amazon_effect_prefix() -> None:
+    """Accept Amazon's documented prefix without modifying the outgoing SSML."""
+    validate_announcement_speech(
+        "ssml",
+        '<speak><amazon:effect name="whispered">Hello</amazon:effect></speak>',
+        "Hello",
+    )
+
+
+@pytest.mark.parametrize(
+    "message", ["<speak/><speak/>", "text<speak/>", "<speak/>text"]
+)
+def test_reject_multiple_roots_or_external_text(message: str) -> None:
+    """Keep the single speak-root requirement with the validation wrapper."""
+    with pytest.raises(ValueError, match="speak root"):
+        validate_announcement_speech("ssml", message, "Hello")

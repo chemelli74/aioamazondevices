@@ -43,10 +43,20 @@ def validate_announcement_speech(
         if not isinstance(message_body, str) or "<!" in message_body:
             raise ValueError("SSML must be XML without declarations")
         try:
-            root = ET.fromstring(message_body)  # noqa: S314
+            # Amazon examples use the amazon prefix without an XML declaration.
+            wrapper = ET.fromstring(  # noqa: S314
+                '<validation xmlns:amazon="urn:amazon:ssml">'
+                + message_body
+                + "</validation>"
+            )
         except ET.ParseError as err:
             raise ValueError("SSML must be well-formed XML") from err
-        if root.tag != "speak":
+        if (
+            len(wrapper) != 1
+            or wrapper[0].tag != "speak"
+            or (wrapper.text or "").strip()
+            or (wrapper[0].tail or "").strip()
+        ):
             raise ValueError("SSML must have a speak root element")
 
 
