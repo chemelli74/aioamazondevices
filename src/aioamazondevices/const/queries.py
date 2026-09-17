@@ -116,73 +116,10 @@ fragment EndpointState on Endpoint {
       error { type message }
       __typename
 
-      ... on ActionState {
-        timeOfSample
-        timeOfLastChange
-        actionStateValue {
-          status
-          timeInterval {
-            start
-            end
-            duration
-          }
-          actionId
-          targetIds
-        }
-      }
-      ... on AdaptiveRecoveryStatus {
-        timeOfSample
-        timeOfLastChange
-        adaptiveRecoveryStatusValue {
-          value
-        }
-      }
-      ... on ArmState {
-        timeOfSample
-        timeOfLastChange
-        armStateValue
-      }
-      ... on AutomationManagementAutomationStatuses {
-        timeOfSample
-        timeOfLastChange
-        automationManagementAutomationStatusesValue {
-          automationStatuses {
-            status
-            interfaceName
-            instance
-            source
-          }
-        }
-      }
-      ... on Battery {
-        timeOfSample
-        timeOfLastChange
-        batteryValue {
-          levelPercentage
-          health {
-            state
-            reasons
-          }
-          chargingHealth {
-            state
-            reason
-          }
-        }
-      }
       ... on Brightness {
         timeOfSample
         timeOfLastChange
         brightnessStateValue
-      }
-      ... on BurglaryAlarm {
-        timeOfSample
-        timeOfLastChange
-        burglaryAlarmValue
-      }
-      ... on CarbonMonoxideAlarm {
-        timeOfSample
-        timeOfLastChange
-        carbonMonoxideAlarmValue
       }
       ... on Color {
         timeOfSample
@@ -197,74 +134,6 @@ fragment EndpointState on Endpoint {
         timeOfSample
         timeOfLastChange
         colorTemperatureInKelvinStateValue
-      }
-      ... on CurrentProgram {
-        timeOfSample
-        timeOfLastChange
-        currentProgramValue {
-          value
-        }
-      }
-      ... on CustomYaleDoorState {
-        timeOfSample
-        timeOfLastChange
-        customYaleDoorStateValue {
-          value
-        }
-      }
-      ... on CustomYaleLockState {
-        timeOfSample
-        timeOfLastChange
-        customYaleLockStateValue {
-          value
-        }
-      }
-      ... on CustomYaleOneTouchLocking {
-        timeOfSample
-        timeOfLastChange
-        customYaleOneTouchLockingValue {
-          value
-        }
-      }
-      ... on CustomYaleOperatingMode {
-        timeOfSample
-        timeOfLastChange
-        customYaleOperatingModeValue {
-          value
-        }
-      }
-      ... on CustomYaleSoundVolume {
-        timeOfSample
-        timeOfLastChange
-        customYaleSoundVolumeValue {
-          value
-        }
-      }
-      ... on DelayState {
-        timeOfSample
-        timeOfLastChange
-        delayStateValue {
-          state
-          delayInSeconds
-          playlistId
-          playOrder {
-            assetId
-            loopCount
-            loopPauseInMilliseconds
-          }
-        }
-      }
-      ... on DemandResponseEventStatus {
-        timeOfSample
-        timeOfLastChange
-        eventStatusValue {
-          eventId
-          status
-          activeSignals {
-            name
-            currentInterval
-          }
-        }
       }
       ... on DetectionRange {
         timeOfSample
@@ -286,16 +155,6 @@ fragment EndpointState on Endpoint {
         timeOfLastChange
         detectionTechnologyValue
       }
-      ... on DeviceUsageMeterElectricityReading {
-        timeOfSample
-        timeOfLastChange
-        value
-      }
-      ... on DeviceUsageMeterNaturalGasReading {
-        timeOfSample
-        timeOfLastChange
-        value
-      }
       ... on DynamicLightingEffectEffect {
         timeOfSample
         timeOfLastChange
@@ -316,44 +175,6 @@ fragment EndpointState on Endpoint {
         timeOfLastChange
         enablementStateValue
       }
-      ... on FireAlarm {
-        timeOfSample
-        timeOfLastChange
-        fireAlarmValue
-      }
-      ... on GenericFeatureProperty {
-        timeOfSample
-        timeOfLastChange
-        genericValue
-      }
-      ... on HvacAuxiliaryHeaterStage {
-        timeOfSample
-        timeOfLastChange
-        auxiliaryHeaterStageValue {
-          value
-        }
-      }
-      ... on HvacCoolerStage {
-        timeOfSample
-        timeOfLastChange
-        coolerStageValue {
-          value
-        }
-      }
-      ... on HvacFanStage {
-        timeOfSample
-        timeOfLastChange
-        fanStageValue {
-          value
-        }
-      }
-      ... on HvacPrimaryHeaterStage {
-        timeOfSample
-        timeOfLastChange
-        primaryHeaterStageValue {
-          value
-        }
-      }
       ... on Illuminance {
         illuminanceValue {
           value
@@ -361,30 +182,10 @@ fragment EndpointState on Endpoint {
         timeOfSample
         timeOfLastChange
       }
-      ... on Lock {
-        timeOfSample
-        timeOfLastChange
-        lockState
-      }
       ... on Mode {
         timeOfSample
         timeOfLastChange
         modeValue {
-          value
-        }
-      }
-      ... on NetworkThroughput {
-        timeOfSample
-        timeOfLastChange
-        networkThroughputValue {
-          quality
-          bitsPerSecond
-        }
-      }
-      ... on OperationalState {
-        timeOfSample
-        timeOfLastChange
-        operationalStateValue {
           value
         }
       }
@@ -402,23 +203,6 @@ fragment EndpointState on Endpoint {
         timeOfSample
         timeOfLastChange
         powerLevelValue
-      }
-      ... on RadioDiagnostics {
-        timeOfSample
-        timeOfLastChange
-        radioDiagnosticsValue {
-          values {
-            radioType
-            signalStrength {
-              quality
-              rssiInDBM
-            }
-            signalToNoiseRatio {
-              quality
-              snrInDB
-            }
-          }
-        }
       }
       ... on RangeValue {
         timeOfSample
@@ -446,19 +230,6 @@ fragment EndpointState on Endpoint {
         setpointValue: value {
           value
           scale
-        }
-      }
-      ... on SirenState {
-        timeOfSample
-        timeOfLastChange
-        sirenStateValue {
-          state
-          playlistId
-          playOrder {
-            assetId
-            loopCount
-            loopPauseInMilliseconds
-          }
         }
       }
       ... on StatusCode {
@@ -567,11 +338,6 @@ fragment EndpointState on Endpoint {
           value
         }
       }
-      ... on WaterAlarm {
-        timeOfSample
-        timeOfLastChange
-        waterAlarmValue
-      }
     }
     operations {
       name
@@ -624,11 +390,6 @@ fragment EndpointState on Endpoint {
             }
             id
           }
-        }
-      }
-      ... on ConsentRequirementsConfiguration {
-        consents {
-          name
         }
       }
       ... on DetectionEventsConfiguration {
@@ -753,63 +514,6 @@ fragment EndpointState on Endpoint {
           }
         }
       }
-      ... on RecordingProviderConfiguration {
-        isAvailable
-        recordingUnavailabilityReason: unavailabilityReason
-        recordingFeatures {
-          __typename
-          name
-        }
-        supportedProtocols
-        retentionPeriodInHours
-      }
-      ... on SceneDescriptionProviderConfiguration {
-        isAvailable
-        sceneDescriptionUnavailabilityReason: unavailabilityReason
-        supportedLocales
-        supportedCapabilitiesConfig {
-          capabilityName
-        }
-        supportedRetrievalQueryTypes
-      }
-      ... on SecurityPanelAlertConfiguration {
-        alerts {
-          defaultPlaylistId
-          type
-        }
-        assets {
-          id
-          url
-        }
-        playlists {
-          id
-          playOrder {
-            assetId
-            loopCount
-            loopPauseInMilliseconds
-          }
-        }
-      }
-      ... on SecurityPanelConfiguration {
-        supportedAuthorizationTypes {
-          type
-        }
-        supportedArmStates {
-          value
-        }
-      }
-      ... on SimpleEventSourceConfiguration {
-        simpleEventSourceSupportedEvents: supportedEvents {
-          id
-          friendlyNames {
-            type
-            value {
-              text
-              locale
-            }
-          }
-        }
-      }
       ... on StatusCodeConfiguration {
         supportedCodes {
           code
@@ -910,22 +614,6 @@ fragment EndpointState on Endpoint {
             text
             locale
           }
-        }
-      }
-      ... on VideoSearchConfiguration {
-        isAvailable
-        unavailabilityReason
-      }
-    }
-    semantics {
-      __typename
-      ... on GenericSemantics {
-        genericValue
-      }
-      ... on StatusCodeSemantics {
-        codeToStatusesMappings {
-          code
-          statuses
         }
       }
     }
