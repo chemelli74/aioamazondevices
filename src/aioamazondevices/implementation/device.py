@@ -95,7 +95,7 @@ def _build_endpoint_device(  # noqa: PLR0913 - a device just has many fields
     endpoint_id: str | None = None,
     light: AmazonDeviceLight | None = None,
 ) -> AmazonDevice:
-    """Build an AmazonDevice for a device discovered outside the endpoint/devices-v2 flow.
+    """Build an AmazonDevice for a device discovered outside the devices-v2 flow.
 
     Smart home lights are not returned by ``api/devices-v2/device`` or the
     voice-device GraphQL endpoint, so this builds their AmazonDevice directly
