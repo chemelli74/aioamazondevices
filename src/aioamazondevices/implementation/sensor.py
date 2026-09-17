@@ -67,10 +67,15 @@ class AmazonSensorHandler:
     ) -> None:
         """Update sensors data for all devices."""
         self._final_devices = devices
-        devices_sensors = await self._get_sensors_states()
+        endpoint_states = await self._get_endpoint_states()
         for device in self._final_devices.values():
             # Update sensors
-            sensors = devices_sensors.get(device.serial_number, {})
+            sensors: dict[str, AmazonDeviceSensor] = {}
+            if device.endpoint_id and (
+                endpoint_state := endpoint_states.get(device.endpoint_id)
+            ):
+                sensors = self._get_device_sensor_state(endpoint_state, device)
+
             if sensors:
                 device.sensors = sensors
                 if reachability_sensor := sensors.get("reachability"):
@@ -121,27 +126,25 @@ class AmazonSensorHandler:
                     if d.serial_number in device.device_cluster_members
                 )
 
-    async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
-        """Retrieve devices sensors states."""
-        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
+    async def _get_endpoint_states(self) -> dict[str, dict[str, Any]]:
+        """Retrieve the state of every device endpoint, keyed by endpoint ID.
 
-        # Devices are built from their endpoint, so the mapping back to a
-        # serial number is the device list itself: only speaker groups, which
-        # have no endpoint, are left out
-        endpoint_serials: dict[str, str] = {
-            device.endpoint_id: device.serial_number
+        Speaker groups have no endpoint, so there is nothing to ask for them.
+        """
+        endpoint_ids = [
+            device.endpoint_id
             for device in self._final_devices.values()
             if device.endpoint_id
-        }
+        ]
 
-        if not endpoint_serials:
+        if not endpoint_ids:
             return {}
 
         payload = [
             {
                 "operationName": "getEndpointState",
                 "variables": {
-                    "endpointIds": list(endpoint_serials),
+                    "endpointIds": endpoint_ids,
                 },
                 "query": QUERY_SENSOR_STATE,
             }
@@ -172,19 +175,17 @@ class AmazonSensorHandler:
             _LOGGER.error("Malformed sensor state data received: %s", sensors_state)
             return {}
 
-        for endpoint in endpoints:
-            if serial_number := endpoint_serials.get(endpoint.get("endpointId")):
-                devices_sensors[serial_number] = self._get_device_sensor_state(
-                    endpoint, serial_number
-                )
-
-        return devices_sensors
+        return {
+            endpoint["endpointId"]: endpoint
+            for endpoint in endpoints
+            if endpoint.get("endpointId")
+        }
 
     def _get_device_sensor_state(
-        self, endpoint: dict[str, Any], serial_number: str
+        self, endpoint: dict[str, Any], device: AmazonDevice
     ) -> dict[str, AmazonDeviceSensor]:
         device_sensors: dict[str, AmazonDeviceSensor] = {}
-        device = self._final_devices[serial_number]
+        serial_number = device.serial_number
         for feature in endpoint.get("features", {}):
             if (feature_template := SENSORS.get(feature["name"])) is None:
                 # Skip features that are not in the predefined list

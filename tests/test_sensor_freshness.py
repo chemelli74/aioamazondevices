@@ -41,10 +41,9 @@ async def test_time_of_sample_is_parsed(
 ) -> None:
     """A well-formed timeOfSample is parsed into an aware datetime."""
     device = make_device(TEST_SERIAL_1)
-    api._sensor_handler._final_devices = {TEST_SERIAL_1: device}
 
     sensors = api._sensor_handler._get_device_sensor_state(
-        _illuminance_endpoint(time_of_sample="2026-09-12T08:09:17.922Z"), TEST_SERIAL_1
+        _illuminance_endpoint(time_of_sample="2026-09-12T08:09:17.922Z"), device
     )
 
     assert sensors["illuminance"].time_of_sample == datetime(
@@ -58,10 +57,9 @@ async def test_missing_time_of_sample_defaults_to_none(
 ) -> None:
     """A response without timeOfSample leaves the field unset."""
     device = make_device(TEST_SERIAL_1)
-    api._sensor_handler._final_devices = {TEST_SERIAL_1: device}
 
     sensors = api._sensor_handler._get_device_sensor_state(
-        _illuminance_endpoint(), TEST_SERIAL_1
+        _illuminance_endpoint(), device
     )
 
     assert sensors["illuminance"].time_of_sample is None
@@ -75,10 +73,9 @@ async def test_unparsable_time_of_sample_defaults_to_none(
 ) -> None:
     """A malformed timeOfSample is logged and does not raise."""
     device = make_device(TEST_SERIAL_1)
-    api._sensor_handler._final_devices = {TEST_SERIAL_1: device}
 
     sensors = api._sensor_handler._get_device_sensor_state(
-        _illuminance_endpoint(time_of_sample="not-a-timestamp"), TEST_SERIAL_1
+        _illuminance_endpoint(time_of_sample="not-a-timestamp"), device
     )
 
     assert sensors["illuminance"].time_of_sample is None
@@ -93,10 +90,9 @@ async def test_non_string_time_of_sample_defaults_to_none(
 ) -> None:
     """A non-string timeOfSample is logged and does not raise."""
     device = make_device(TEST_SERIAL_1)
-    api._sensor_handler._final_devices = {TEST_SERIAL_1: device}
 
     sensors = api._sensor_handler._get_device_sensor_state(
-        _illuminance_endpoint(time_of_sample=12345), TEST_SERIAL_1
+        _illuminance_endpoint(time_of_sample=12345), device
     )
 
     assert sensors["illuminance"].time_of_sample is None
