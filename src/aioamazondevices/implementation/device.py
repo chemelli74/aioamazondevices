@@ -105,8 +105,20 @@ class AmazonDeviceHandler:
         its endpoint and enriched with `api/devices-v2/device` data when there
         is some. Speaker groups are the exception, as they only exist in the
         devices-v2 data.
+
+        Raises CannotRetrieveData when no endpoint data is returned and there
+        are no known devices to fall back on.
         """
         devices_endpoints = await self._get_devices_endpoint_data()
+        if not devices_endpoints:
+            if not self._final_devices:
+                raise CannotRetrieveData("No device endpoint data received")
+
+            # The device list changes rarely, so keeping the known devices is
+            # better than dropping them all because of one failed call
+            _LOGGER.warning("No device endpoint data received, keeping known devices")
+            return
+
         base_devices = await self._get_base_devices_data()
 
         devices: dict[str, AmazonDevice] = {}
@@ -115,9 +127,9 @@ class AmazonDeviceHandler:
             # Devices without devices-v2 data are built from their endpoint
             # alone, one branch per device type we support that way
             if base_device := base_devices.get(serial_number):
-                device = self._build_device(endpoint, base_device)
+                device = self._build_device(serial_number, endpoint, base_device)
             elif _endpoint_device_type(endpoint) == DEVICE_TYPE_AQM:
-                device = self._build_device(endpoint)
+                device = self._build_device(serial_number, endpoint)
             else:
                 _LOGGER.debug(
                     "Skipping endpoint without devices-v2 data: %s",
@@ -135,7 +147,7 @@ class AmazonDeviceHandler:
             ):
                 continue
 
-            devices[serial_number] = self._build_device({}, base_device)
+            devices[serial_number] = self._build_device(serial_number, {}, base_device)
 
         # backfill device types for cluster members, now that they are all built
         for device in devices.values():
@@ -149,6 +161,7 @@ class AmazonDeviceHandler:
 
     def _build_device(
         self,
+        serial_number: str,
         endpoint: dict[str, Any],
         base_device: dict[str, Any] | None = None,
     ) -> AmazonDevice:
@@ -157,7 +170,8 @@ class AmazonDeviceHandler:
         The endpoint is the primary source and devices-v2 provides what it does
         not have, so a device without devices-v2 data (e.g. an air quality
         monitor) is built from its endpoint alone, and a speaker group, which
-        has no endpoint, from its devices-v2 data alone.
+        has no endpoint, from its devices-v2 data alone. Both sources are keyed
+        by serial number, so it is passed in rather than read again here.
         """
         base = base_device or {}
         account_customer_id = self._session_state_data.account_customer_id
@@ -166,9 +180,6 @@ class AmazonDeviceHandler:
 
         account_name = _endpoint_text(endpoint, "friendlyNameObject") or base.get(
             "accountName", ""
-        )
-        serial_number = _endpoint_text(endpoint, "serialNumber") or base.get(
-            "serialNumber", ""
         )
         device_type = _endpoint_device_type(endpoint) or base.get("deviceType", "")
         # devices-v2 is the only source of a device family, so a device that

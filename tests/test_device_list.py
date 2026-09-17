@@ -10,6 +10,7 @@ import pytest
 
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.devices import DEVICE_TYPE_AQM, SPEAKER_GROUP_FAMILY
+from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.implementation.device import AmazonDeviceHandler
 
 from .const import TEST_SERIAL_1, TEST_SERIAL_2
@@ -275,3 +276,47 @@ async def test_devices_v2_data_enriches_the_endpoint_device(api: AmazonEchoApi) 
     assert device.entity_id == f"entity-{TEST_SERIAL_1}"
     assert device.manufacturer == "Amazon"
     assert device.software_version == "1234"
+
+
+@pytest.mark.anyio
+async def test_known_devices_survive_an_empty_endpoint_response(
+    api: AmazonEchoApi,
+) -> None:
+    """A failed GraphQL call must not drop the devices we already know."""
+    handler = api._device_handler
+    _patch_sources(
+        handler,
+        devices_endpoints={TEST_SERIAL_1: _endpoint(TEST_SERIAL_1)},
+        base_devices={TEST_SERIAL_1: _base_device(TEST_SERIAL_1)},
+    )
+    await handler.update_devices()
+    known_devices = handler.devices
+    assert list(known_devices) == [TEST_SERIAL_1]
+
+    # the GraphQL call now returns nothing, devices-v2 is still fine
+    base_devices = AsyncMock(return_value={TEST_SERIAL_1: _base_device(TEST_SERIAL_1)})
+    handler._get_devices_endpoint_data = AsyncMock(return_value={})  # type: ignore[method-assign]
+    handler._get_base_devices_data = base_devices  # type: ignore[method-assign]
+
+    await handler.update_devices()
+
+    assert handler.devices == known_devices
+    # nothing is worth fetching from devices-v2 without endpoints to drive it
+    base_devices.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_empty_endpoint_response_raises_without_known_devices(
+    api: AmazonEchoApi,
+) -> None:
+    """With nothing to preserve, a failed GraphQL call stops the refresh."""
+    handler = api._device_handler
+    base_devices = AsyncMock(return_value={TEST_SERIAL_1: _base_device(TEST_SERIAL_1)})
+    handler._get_devices_endpoint_data = AsyncMock(return_value={})  # type: ignore[method-assign]
+    handler._get_base_devices_data = base_devices  # type: ignore[method-assign]
+
+    with pytest.raises(CannotRetrieveData):
+        await handler.update_devices()
+
+    assert not handler.devices
+    base_devices.assert_not_awaited()
