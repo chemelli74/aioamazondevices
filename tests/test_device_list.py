@@ -26,7 +26,7 @@ def _base_device(
     serial_number: str,
     *,
     device_type: str = "ECHO_TYPE",
-    device_family: str = "ECHO",
+    device_family: str | None = "ECHO",
     capabilities: list[str] | None = None,
     cluster_members: list[str] | None = None,
 ) -> dict[str, Any]:
@@ -134,7 +134,7 @@ async def test_air_quality_monitors_are_created(api: AmazonEchoApi) -> None:
 
     device = handler.devices[TEST_SERIAL_AQM]
     assert device.device_type == DEVICE_TYPE_AQM
-    assert device.device_family == "AIR_QUALITY_MONITOR"
+    assert device.device_family == "Endpoint Only"
     assert device.manufacturer == "Amazon"
     assert device.model == "Amazon Smart Air Quality Monitor"
     assert device.software_version == "1234"
@@ -171,6 +171,21 @@ async def test_speaker_groups_are_added_from_devices_v2(api: AmazonEchoApi) -> N
     assert group.device_cluster_members == {TEST_SERIAL_1: "ECHO_TYPE"}
     # speaker groups have no endpoint to query sensors on
     assert group.endpoint_id is None
+
+
+@pytest.mark.anyio
+async def test_device_without_a_family_is_unknown(api: AmazonEchoApi) -> None:
+    """A devices-v2 device with no family is unknown, not endpoint only."""
+    handler = api._device_handler
+    _patch_sources(
+        handler,
+        devices_endpoints={TEST_SERIAL_1: _endpoint(TEST_SERIAL_1)},
+        base_devices={TEST_SERIAL_1: _base_device(TEST_SERIAL_1, device_family=None)},
+    )
+
+    await handler.update_devices()
+
+    assert handler.devices[TEST_SERIAL_1].device_family == "Unknown"
 
 
 @pytest.mark.anyio
