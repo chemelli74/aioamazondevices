@@ -110,10 +110,6 @@ class AmazonDeviceHandler:
         base_devices = await self._get_base_devices_data()
 
         devices: dict[str, AmazonDevice] = {}
-        serial_to_device_type: dict[str, str | None] = {
-            serial_number: base_device["deviceType"]
-            for serial_number, base_device in base_devices.items()
-        }
 
         for serial_number, endpoint in devices_endpoints.items():
             # Devices without devices-v2 data are built from their endpoint
@@ -130,7 +126,6 @@ class AmazonDeviceHandler:
                 continue
 
             devices[serial_number] = device
-            serial_to_device_type.setdefault(serial_number, device.device_type)
 
         # Speaker groups are not exposed as endpoints by GraphQL
         for serial_number, base_device in base_devices.items():
@@ -142,11 +137,12 @@ class AmazonDeviceHandler:
 
             devices[serial_number] = self._build_device({}, base_device)
 
-        # backfill device types for cluster members
+        # backfill device types for cluster members, now that they are all built
         for device in devices.values():
             for member_serial in device.device_cluster_members:
+                member = devices.get(member_serial)
                 device.device_cluster_members[member_serial] = (
-                    serial_to_device_type.get(member_serial)
+                    member.device_type if member else None
                 )
 
         self._final_devices = devices
