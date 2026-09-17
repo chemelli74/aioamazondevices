@@ -103,7 +103,6 @@ async def test_graphql_drives_the_device_list(api: AmazonEchoApi) -> None:
     await handler.update_devices()
 
     assert list(handler.devices) == [TEST_SERIAL_1]
-    assert handler.endpoints == {f"endpoint-{TEST_SERIAL_1}": TEST_SERIAL_1}
 
     device = handler.devices[TEST_SERIAL_1]
     assert device.endpoint_id == f"endpoint-{TEST_SERIAL_1}"
@@ -140,7 +139,7 @@ async def test_air_quality_monitors_are_created(api: AmazonEchoApi) -> None:
     assert device.model == "Amazon Smart Air Quality Monitor"
     assert device.software_version == "1234"
     assert not device.voice_control_supported
-    assert handler.endpoints == {f"endpoint-{TEST_SERIAL_AQM}": TEST_SERIAL_AQM}
+    assert device.endpoint_id == f"endpoint-{TEST_SERIAL_AQM}"
 
 
 @pytest.mark.anyio
@@ -171,7 +170,7 @@ async def test_speaker_groups_are_added_from_devices_v2(api: AmazonEchoApi) -> N
     # cluster member device types are backfilled
     assert group.device_cluster_members == {TEST_SERIAL_1: "ECHO_TYPE"}
     # speaker groups have no endpoint to query sensors on
-    assert f"endpoint-{TEST_SERIAL_GROUP}" not in handler.endpoints
+    assert group.endpoint_id is None
 
 
 @pytest.mark.anyio
@@ -193,7 +192,6 @@ async def test_unsupported_endpoint_only_device_is_skipped(api: AmazonEchoApi) -
     await handler.update_devices()
 
     assert not handler.devices
-    assert not handler.endpoints
 
 
 @pytest.mark.anyio

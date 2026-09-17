@@ -274,7 +274,6 @@ class AmazonEchoApi:
         )
         await self._sensor_handler.update_sensor_data(
             self._device_handler.devices,
-            self._device_handler.endpoints,
             notifications,
             communications,
         )

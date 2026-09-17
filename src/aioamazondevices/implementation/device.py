@@ -189,17 +189,11 @@ class AmazonDeviceHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
         self._final_devices: dict[str, AmazonDevice] = {}
-        self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
 
     @property
     def devices(self) -> dict[str, AmazonDevice]:
         """Return the final devices list."""
         return self._final_devices
-
-    @property
-    def endpoints(self) -> dict[str, str]:
-        """Return the endpoints mapping."""
-        return self._endpoints
 
     async def update_devices(self) -> None:
         """Build the list of devices we are interested in.
@@ -214,7 +208,6 @@ class AmazonDeviceHandler:
         account_customer_id = self._session_state_data.account_customer_id
 
         devices: dict[str, AmazonDevice] = {}
-        endpoints: dict[str, str] = {}
         serial_to_device_type: dict[str, str | None] = {
             serial_number: base_device["deviceType"]
             for serial_number, base_device in base_devices.items()
@@ -239,7 +232,6 @@ class AmazonDeviceHandler:
 
             _resolve_device_details(device)
             devices[serial_number] = device
-            endpoints[endpoint["endpointId"]] = serial_number
             serial_to_device_type.setdefault(serial_number, device.device_type)
 
         # Speaker groups are not exposed as endpoints by GraphQL
@@ -263,7 +255,6 @@ class AmazonDeviceHandler:
                 )
 
         self._final_devices = devices
-        self._endpoints = endpoints
 
     async def _get_base_devices_data(self) -> dict[str, dict[str, Any]]:
         """Get the raw devices-v2 data, keyed by serial number.

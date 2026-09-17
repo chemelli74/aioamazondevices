@@ -58,18 +58,15 @@ class AmazonSensorHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
         self._final_devices: dict[str, AmazonDevice] = {}
-        self._endpoints: dict[str, str] = {}
 
     async def update_sensor_data(
         self,
         devices: dict[str, AmazonDevice],
-        endpoints: dict[str, str],
         notifications: dict[str, dict[str, Any]] | None,
         communications: dict[str, dict[str, str]],
     ) -> None:
         """Update sensors data for all devices."""
         self._final_devices = devices
-        self._endpoints = endpoints
         devices_sensors = await self._get_sensors_states()
         for device in self._final_devices.values():
             # Update sensors
@@ -128,15 +125,23 @@ class AmazonSensorHandler:
         """Retrieve devices sensors states."""
         devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
 
-        if not self._endpoints:
+        # Devices are built from their endpoint, so the mapping back to a
+        # serial number is the device list itself: only speaker groups, which
+        # have no endpoint, are left out
+        endpoint_serials: dict[str, str] = {
+            device.endpoint_id: device.serial_number
+            for device in self._final_devices.values()
+            if device.endpoint_id
+        }
+
+        if not endpoint_serials:
             return {}
 
-        endpoint_ids = list(self._endpoints.keys())
         payload = [
             {
                 "operationName": "getEndpointState",
                 "variables": {
-                    "endpointIds": endpoint_ids,
+                    "endpointIds": list(endpoint_serials),
                 },
                 "query": QUERY_SENSOR_STATE,
             }
@@ -168,9 +173,7 @@ class AmazonSensorHandler:
             return {}
 
         for endpoint in endpoints:
-            serial_number = self._endpoints[endpoint.get("endpointId")]
-
-            if serial_number in self._final_devices:
+            if serial_number := endpoint_serials.get(endpoint.get("endpointId")):
                 devices_sensors[serial_number] = self._get_device_sensor_state(
                     endpoint, serial_number
                 )
