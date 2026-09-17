@@ -85,6 +85,32 @@ fragment EndpointState on Endpoint {
         timeOfSample
         timeOfLastChange
       }
+      ... on Brightness {
+        timeOfSample
+        timeOfLastChange
+        brightnessStateValue
+      }
+      ... on Color {
+        timeOfSample
+        timeOfLastChange
+        colorStateValue {
+          hue
+          saturation
+          brightness
+        }
+      }
+      ... on Mode {
+        timeOfSample
+        timeOfLastChange
+        modeValue {
+          value
+        }
+      }
+      ... on Power {
+        timeOfSample
+        timeOfLastChange
+        powerStateValue
+      }
     }
   }
 }
