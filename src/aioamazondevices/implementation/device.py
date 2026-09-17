@@ -10,6 +10,7 @@ from yarl import URL
 
 from aioamazondevices.const.devices import (
     DEVICE_TYPE_AQM,
+    DEVICE_TYPE_ECHO_GLOW,
     DEVICE_TYPES_HARDCODED_METADATA,
     DEVICE_TYPES_TO_IGNORE,
     SPEAKER_GROUP_FAMILY,
@@ -129,6 +130,9 @@ class AmazonDeviceHandler:
             if base_device := base_devices.get(serial_number):
                 device = self._build_device(serial_number, endpoint, base_device)
             elif _endpoint_device_type(endpoint) == DEVICE_TYPE_AQM:
+                device = self._build_device(serial_number, endpoint)
+            elif _endpoint_device_type(endpoint) == DEVICE_TYPE_ECHO_GLOW:
+                # add some light implementation stuff
                 device = self._build_device(serial_number, endpoint)
             else:
                 _LOGGER.debug(

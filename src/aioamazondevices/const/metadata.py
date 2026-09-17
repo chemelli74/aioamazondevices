@@ -42,6 +42,34 @@ SENSORS: dict[str, dict[str, dict[str, str | None]]] = {
             "scale": None,
         },
     },
+    "brightness": {
+        "brightness": {
+            "key": "brightnessStateValue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
+    "power": {
+        "powerState": {
+            "key": "powerStateValue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
+    "color": {
+        "color": {
+            "key": "colorStateValue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
+    "mode": {
+        "mode": {
+            "key": "modeValue",
+            "subkey": "value",
+            "scale": None,
+        },
+    },
 }
 
 AQM_RANGE_SENSORS: dict[str, dict[str, str | None]] = {
