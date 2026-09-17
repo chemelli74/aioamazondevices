@@ -143,7 +143,7 @@ class AmazonDeviceHandler:
         for serial_number, base_device in base_devices.items():
             if (
                 serial_number in devices
-                or base_device["deviceFamily"] != SPEAKER_GROUP_FAMILY
+                or base_device.get("deviceFamily") != SPEAKER_GROUP_FAMILY
             ):
                 continue
 

@@ -104,6 +104,7 @@ def _get_device_sensor_state(
                         feature_property,
                         repr(exc),
                     )
+                    continue
             if error:
                 _LOGGER.debug(
                     "error in sensor %s - %s - %s",
