@@ -4,6 +4,7 @@
 """Sequence module for Amazon devices."""
 
 import asyncio
+import xml.etree.ElementTree as ET
 from collections.abc import Generator
 from copy import deepcopy
 from http import HTTPMethod
@@ -28,6 +29,35 @@ from aioamazondevices.structures import (
     AmazonSequenceType,
 )
 from aioamazondevices.utils import _LOGGER, replace_routine_placeholders
+
+
+def validate_announcement_speech(
+    speech_type: str, message_body: str | float | None, display_text: str | None
+) -> None:
+    """Validate the format before an announcement enters the queue."""
+    if speech_type not in ("text", "ssml"):
+        raise ValueError("Speech type must be text or ssml")
+    if speech_type == "ssml":
+        if display_text is None:
+            raise ValueError("SSML announcements require display text")
+        if not isinstance(message_body, str) or "<!" in message_body:
+            raise ValueError("SSML must be XML without declarations")
+        try:
+            # Amazon examples use the amazon prefix without an XML declaration.
+            wrapper = ET.fromstring(  # noqa: S314
+                '<validation xmlns:amazon="urn:amazon:ssml">'
+                + message_body
+                + "</validation>"
+            )
+        except ET.ParseError as err:
+            raise ValueError("SSML must be well-formed XML") from err
+        if (
+            len(wrapper) != 1
+            or wrapper[0].tag != "speak"
+            or (wrapper.text or "").strip()
+            or (wrapper[0].tail or "").strip()
+        ):
+            raise ValueError("SSML must have a speak root element")
 
 
 class AmazonSequenceHandler:
@@ -116,7 +146,13 @@ class AmazonSequenceHandler:
         # then wrap in parallel node if for different devices
         for _, group_iter in groupby(
             sequences,
-            key=lambda x: (x.message_type, x.message_body, x.music_provider_id),
+            key=lambda x: (
+                x.message_type,
+                x.message_body,
+                x.music_provider_id,
+                x.display_text,
+                x.speech_type,
+            ),
         ):
             group = list(group_iter)
             if len(group) > 1 and len(
@@ -129,12 +165,15 @@ class AmazonSequenceHandler:
             else:
                 yield from (sequence.operation_node for sequence in group)
 
-    def _build_operation_node(
+    def _build_operation_node(  # noqa: PLR0913
         self,
         device: AmazonDevice,
         message_type: str,
         message_body: str | float | None = None,
         music_provider_id: str | None = None,
+        *,
+        display_text: str | None = None,
+        speech_type: str = "text",
     ) -> dict[str, Any]:
         """Build operation node JSON payload for message."""
         if not self._session_state_data.login_stored_data:
@@ -173,6 +212,7 @@ class AmazonSequenceHandler:
                 "skillId": "amzn1.ask.1p.saysomething",
             }
         elif message_type == AmazonSequenceType.Announcement:
+            validate_announcement_speech(speech_type, message_body, display_text)
             playback_devices: list[dict[str, str | None]] = [
                 {
                     "deviceSerialNumber": serial,
@@ -189,10 +229,12 @@ class AmazonSequenceHandler:
                         "locale": self._session_state_data.language,
                         "display": {
                             "title": "Home Assistant",
-                            "body": message_body,
+                            "body": message_body
+                            if display_text is None
+                            else display_text,
                         },
                         "speak": {
-                            "type": "text",
+                            "type": speech_type,
                             "value": message_body,
                         },
                     }
@@ -259,16 +301,24 @@ class AmazonSequenceHandler:
             "operationPayload": payload,
         }
 
-    async def send_message(
+    async def send_message(  # noqa: PLR0913
         self,
         device: AmazonDevice,
         message_type: str,
         message_body: str | float | None = None,
         music_provider_id: str | None = None,
+        *,
+        display_text: str | None = None,
+        speech_type: str = "text",
     ) -> None:
         """Parse and enqueue message to specific device."""
         node = self._build_operation_node(
-            device, message_type, message_body, music_provider_id
+            device,
+            message_type,
+            message_body,
+            music_provider_id,
+            display_text=display_text,
+            speech_type=speech_type,
         )
         await self._enqueue_sequence(
             AmazonSequenceNode(
@@ -277,6 +327,8 @@ class AmazonSequenceHandler:
                 music_provider_id=music_provider_id,
                 device=device,
                 operation_node=node,
+                display_text=display_text,
+                speech_type=speech_type,
             )
         )
 
