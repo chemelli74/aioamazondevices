@@ -3,6 +3,7 @@
 
 """Sensor module for Amazon devices."""
 
+from datetime import datetime
 from http import HTTPMethod
 from typing import Any
 
@@ -20,10 +21,131 @@ from aioamazondevices.const.schedules import (
     NOTIFICATION_REMINDER,
     NOTIFICATION_TIMER,
 )
-from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 from aioamazondevices.utils import _LOGGER, format_graphql_error
+
+
+def _parse_sample_timestamp(
+    raw_timestamp: str | None,
+    sensor_name: str,
+    serial_number: str,
+) -> datetime | None:
+    """Parse a sensor sample timestamp, if present."""
+    if not raw_timestamp:
+        return None
+    try:
+        return datetime.fromisoformat(raw_timestamp)
+    except (TypeError, ValueError):
+        _LOGGER.warning(
+            "Sensor %s [device %s] has an unparsable timeOfSample: %s",
+            sensor_name,
+            serial_number,
+            raw_timestamp,
+        )
+        return None
+
+
+def _get_device_sensor_state(
+    endpoint: dict[str, Any], device: AmazonDevice
+) -> dict[str, AmazonDeviceSensor]:
+    device_sensors: dict[str, AmazonDeviceSensor] = {}
+    serial_number = device.serial_number
+    for feature in endpoint.get("features", {}):
+        if (feature_template := SENSORS.get(feature["name"])) is None:
+            # Skip features that are not in the predefined list
+            continue
+
+        for feature_property in feature.get("properties"):
+            feature_property_name = feature_property.get("name")
+            if (sensor_template := feature_template.get(feature_property_name)) is None:
+                # Skip properties that are not in the predefined list
+                continue
+
+            value: str | int | float = "n/a"
+            scale: str | None = None
+            time_of_sample = _parse_sample_timestamp(
+                feature_property.get("timeOfSample"),
+                feature_property_name,
+                serial_number,
+            )
+
+            # "error" can be None, missing, or a dict
+            api_error = feature_property.get("error") or {}
+            error = bool(api_error)
+            error_type = api_error.get("type")
+            error_msg = api_error.get("message")
+            if not error:
+                try:
+                    value_raw = feature_property[sensor_template["key"]]
+                    if not value_raw:
+                        _LOGGER.warning(
+                            "Sensor %s [device %s] ignored due to empty value",
+                            feature_property_name,
+                            serial_number,
+                        )
+                        continue
+                    scale = (
+                        value_raw[scale_template]
+                        if (scale_template := sensor_template["scale"])
+                        else None
+                    )
+                    value = (
+                        value_raw[subkey_template]
+                        if (subkey_template := sensor_template["subkey"])
+                        else value_raw
+                    )
+
+                except (KeyError, ValueError) as exc:
+                    _LOGGER.warning(
+                        "Sensor %s [device %s] ignored due to errors in feature %s: %s",
+                        feature_property_name,
+                        serial_number,
+                        feature_property,
+                        repr(exc),
+                    )
+                    continue
+            if error:
+                _LOGGER.debug(
+                    "error in sensor %s - %s - %s",
+                    feature_property_name,
+                    error_type,
+                    error_msg,
+                )
+
+            if error_type == "NOT_FOUND":
+                continue
+
+            sensor_name = feature_property_name
+
+            if (
+                device.device_type == DEVICE_TYPE_AQM
+                and feature_property_name == "rangeValue"
+            ):
+                if not (
+                    (instance := feature.get("instance"))
+                    and (aqm_sensor := AQM_RANGE_SENSORS.get(instance))
+                    and (aqm_sensor_name := aqm_sensor.get("name"))
+                ):
+                    _LOGGER.debug(
+                        "No template for rangeValue (%s) - Skipping sensor",
+                        instance,
+                    )
+                    continue
+                sensor_name = aqm_sensor_name
+                scale = aqm_sensor.get("scale")
+
+            device_sensors[sensor_name] = AmazonDeviceSensor(
+                sensor_name,
+                value,
+                error,
+                error_type,
+                error_msg,
+                scale,
+                time_of_sample,
+            )
+
+    return device_sensors
 
 
 class AmazonSensorHandler:
@@ -46,8 +168,6 @@ class AmazonSensorHandler:
     async def update_sensor_data(
         self,
         devices: dict[str, AmazonDevice],
-        endpoints: dict[str, str],
-        dnd_sensors: dict[str, AmazonDeviceSensor],
         notifications: dict[str, dict[str, Any]] | None,
         communications: dict[str, dict[str, str]],
     ) -> None:
@@ -82,17 +202,20 @@ class AmazonSensorHandler:
                         serial_number,
                         device.online,
                     )
+        endpoint_states = await self._get_endpoint_states()
+        for device in self._final_devices.values():
+            # Update sensors
+            sensors: dict[str, AmazonDeviceSensor] = {}
+            if device.endpoint_id and (
+                endpoint_state := endpoint_states.get(device.endpoint_id)
+            ):
+                sensors = _get_device_sensor_state(endpoint_state, device)
 
             if sensors:
                 device.sensors = sensors
             else:
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
-
-            if (
-                device_dnd := dnd_sensors.get(device.serial_number)
-            ) and device.device_family != SPEAKER_GROUP_FAMILY:
-                device.sensors["dnd"] = device_dnd
 
             device.communication_settings = (
                 communications.get(device.serial_number) or {}
@@ -133,14 +256,17 @@ class AmazonSensorHandler:
                     if d.serial_number in device.device_cluster_members
                 )
 
-    async def _get_sensors_states(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
-        """Retrieve devices sensors states."""
-        devices_sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
+    async def _get_endpoint_states(self) -> dict[str, dict[str, Any]]:
+        """Retrieve the sensor state of every device endpoint, keyed by endpoint ID."""
+        endpoint_ids = [
+            device.endpoint_id
+            for device in self._final_devices.values()
+            if device.endpoint_id
+        ]
 
-        if not self._endpoints:
+        if not endpoint_ids:
             return {}
 
-        endpoint_ids = list(self._endpoints.keys())
         payload = [
             {
                 "operationName": "getEndpointState",
@@ -176,107 +302,8 @@ class AmazonSensorHandler:
             _LOGGER.error("Malformed sensor state data received: %s", sensors_state)
             return {}
 
-        for endpoint in endpoints:
-            serial_number = self._endpoints[endpoint.get("endpointId")]
-
-            if serial_number in self._final_devices:
-                devices_sensors[serial_number] = self._get_device_sensor_state(
-                    endpoint, serial_number
-                )
-
-        return devices_sensors
-
-    def _get_device_sensor_state(
-        self, endpoint: dict[str, Any], serial_number: str
-    ) -> dict[str, AmazonDeviceSensor]:
-        device_sensors: dict[str, AmazonDeviceSensor] = {}
-        device = self._final_devices[serial_number]
-        for feature in endpoint.get("features", {}):
-            if (sensor_template := SENSORS.get(feature["name"])) is None:
-                # Skip sensors that are not in the predefined list
-                continue
-
-            if not (sensor_template_name_value := sensor_template["name"]):
-                raise CannotRetrieveData("Unable to read sensor template")
-
-            for feature_property in feature.get("properties"):
-                if sensor_template["name"] != feature_property.get("name"):
-                    continue
-
-                value: str | int | float = "n/a"
-                scale: str | None = None
-
-                # "error" can be None, missing, or a dict
-                api_error = feature_property.get("error") or {}
-                error = bool(api_error)
-                error_type = api_error.get("type")
-                error_msg = api_error.get("message")
-                if not error:
-                    try:
-                        value_raw = feature_property[sensor_template["key"]]
-                        if not value_raw:
-                            _LOGGER.warning(
-                                "Sensor %s [device %s] ignored due to empty value",
-                                sensor_template_name_value,
-                                serial_number,
-                            )
-                            continue
-                        scale = (
-                            value_raw[scale_template]
-                            if (scale_template := sensor_template["scale"])
-                            else None
-                        )
-                        value = (
-                            value_raw[subkey_template]
-                            if (subkey_template := sensor_template["subkey"])
-                            else value_raw
-                        )
-
-                    except (KeyError, ValueError) as exc:
-                        _LOGGER.warning(
-                            "Sensor %s [device %s] ignored due to errors in feature %s: %s",  # noqa: E501
-                            sensor_template_name_value,
-                            serial_number,
-                            feature_property,
-                            repr(exc),
-                        )
-                if error:
-                    _LOGGER.debug(
-                        "error in sensor %s - %s - %s",
-                        sensor_template_name_value,
-                        error_type,
-                        error_msg,
-                    )
-
-                if error_type == "NOT_FOUND":
-                    continue
-
-                sensor_name = sensor_template_name_value
-
-                if (
-                    device.device_type == DEVICE_TYPE_AQM
-                    and sensor_template_name_value == "rangeValue"
-                ):
-                    if not (
-                        (instance := feature.get("instance"))
-                        and (aqm_sensor := AQM_RANGE_SENSORS.get(instance))
-                        and (aqm_sensor_name := aqm_sensor.get("name"))
-                    ):
-                        _LOGGER.debug(
-                            "No template for rangeValue (%s) - Skipping sensor",
-                            instance,
-                        )
-                        continue
-                    sensor_name = aqm_sensor_name
-                    scale = aqm_sensor.get("scale")
-
-                device_sensors[sensor_name] = AmazonDeviceSensor(
-                    sensor_name,
-                    value,
-                    error,
-                    error_type,
-                    error_msg,
-                    scale,
-                )
-
-        return device_sensors
+        return {
+            endpoint["endpointId"]: endpoint
+            for endpoint in endpoints
+            if endpoint.get("endpointId")
+        }

@@ -1,5 +1,73 @@
 # Changelog
 
+## v16.3.0 (2026-09-15)
+
+### Features
+
+- Expose sensor timestamps ([`c7a8cac`](https://github.com/chemelli74/aioamazondevices/commit/c7a8cac4e855b2de74b35f3be37dcc0728251bb9))
+
+
+## v16.2.0 (2026-09-15)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`26f8152`](https://github.com/chemelli74/aioamazondevices/commit/26f8152dbf7964dd54330cb097d16a82f64f1d84))
+
+
+### Features
+
+- Expose recognised speaker from personsinfo ([`ab2373e`](https://github.com/chemelli74/aioamazondevices/commit/ab2373e9cd81023deb53783555ef65f0e48971c9))
+
+
+## v16.1.0 (2026-09-14)
+
+### Features
+
+- Store account customer id ([`702937e`](https://github.com/chemelli74/aioamazondevices/commit/702937ee024a51ad2ac7b3b08243e80f686fc8ed))
+
+
+## v16.0.0 (2026-09-14)
+
+### Refactoring
+
+- Move dnd to push events ([`894abcb`](https://github.com/chemelli74/aioamazondevices/commit/894abcb6240dc29c001ba8b214d5a206e61b7b3f))
+- Extract device creation into a helper ([`fbf869a`](https://github.com/chemelli74/aioamazondevices/commit/fbf869accc10f3be9dd7fbc53c75c7bc93f6b422))
+- Allow multiple properties in graphql sensors ([`901b019`](https://github.com/chemelli74/aioamazondevices/commit/901b01974f40af0dca0480211d4a81b67c0f207b))
+
+
+## v15.2.0 (2026-09-13)
+
+### Features
+
+- Add voice_control_supported property ([`544c301`](https://github.com/chemelli74/aioamazondevices/commit/544c3010d1bf0b09419a8072b2ea80bfb89a07e0))
+
+
+## v15.1.3 (2026-09-09)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`daac9d6`](https://github.com/chemelli74/aioamazondevices/commit/daac9d690cc44c5addef542e783706642378cf90))
+
+
+### Bug fixes
+
+- Skip vocal history fetch when nothing subscribes ([`e49d810`](https://github.com/chemelli74/aioamazondevices/commit/e49d81070c06ab11ac4ab49f208827e2ae5e50f5))
+
+
+## v15.1.2 (2026-09-09)
+
+### Bug fixes
+
+- Don't raise noonlinedeviceserror on aqm-only accounts ([`9a48f47`](https://github.com/chemelli74/aioamazondevices/commit/9a48f47d2d304e725d3823117db1bbafd9207c70))
+
+
+## v15.1.1 (2026-09-09)
+
+### Bug fixes
+
+- Update cluster volume on member volume update ([`f3ee8df`](https://github.com/chemelli74/aioamazondevices/commit/f3ee8dfe14e933b3eb156b0c7bec156901f3d188))
+
+
 ## v15.1.0 (2026-08-24)
 
 ### Features

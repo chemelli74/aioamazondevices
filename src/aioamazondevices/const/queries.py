@@ -5,18 +5,8 @@
 
 QUERY_DEVICE_DATA = """
 query getDevicesBaseData {
-  alexaVoiceDevices: listEndpoints(
+  listEndpoints(
     listEndpointsInput: {
-      displayCategory: "ALEXA_VOICE_ENABLED"
-      includeHouseholdDevices: true
-    }
-  ) {
-    ...DeviceEndpoints
-  }
-
-  airQualityMonitors: listEndpoints(
-    listEndpointsInput: {
-      displayCategory: "AIR_QUALITY_MONITOR"
       includeHouseholdDevices: true
     }
   ) {

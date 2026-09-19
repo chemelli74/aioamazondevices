@@ -31,6 +31,7 @@ class AmazonDeviceSensor:
     error_type: str | None
     error_msg: str | None
     scale: str | None
+    time_of_sample: datetime | None = None
 
 
 @dataclass
@@ -78,6 +79,7 @@ class AmazonDevice:
     notifications: dict[str, AmazonSchedule]
     media_player_supported: bool
     communication_settings: dict[str, str]
+    voice_control_supported: bool
 
 
 class AmazonSequenceType(StrEnum):
@@ -166,6 +168,9 @@ class AmazonPushMessage(StrEnum):
     # Matter
     MatterDeviceFound = "MATTER_SETUP_NOTIFICATION"
 
+    # DND
+    DoNotDisturbChange = "PUSH_DND_STATE_CHANGE"
+
 
 @dataclass
 class AmazonSequenceNode:
@@ -187,6 +192,9 @@ class AmazonVocalRecord:
     intent: str
     title: str
     sub_title: str
+    # Speaker recognised by an Alexa voice profile, when Amazon provides one
+    person_first_name: str | None = None
+    person_type: str | None = None
 
 
 class AmazonListType(StrEnum):
