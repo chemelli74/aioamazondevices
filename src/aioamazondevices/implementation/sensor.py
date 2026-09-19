@@ -160,7 +160,6 @@ class AmazonSensorHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
         self._final_devices: dict[str, AmazonDevice] = {}
-        self._endpoints: dict[str, str] = {}
         # Serials for which the reachability sensor was missing on the last
         # refresh, so the "keeping last known state" warning is logged only once
         self._devices_missing_reachability: set[str] = set()
@@ -173,9 +172,8 @@ class AmazonSensorHandler:
     ) -> None:
         """Update sensors data for all devices."""
         self._final_devices = devices
-        self._endpoints = endpoints
-        devices_sensors = await self._get_sensors_states()
-        if not devices_sensors:
+        endpoint_states = await self._get_endpoint_states()
+        if not endpoint_states:
             # A failed or empty sensor refresh must not knock every device
             # offline: keep the last known online state until it recovers.
             _LOGGER.warning(
@@ -185,12 +183,17 @@ class AmazonSensorHandler:
         for device in self._final_devices.values():
             # Update sensors
             serial_number = device.serial_number
-            sensors = devices_sensors.get(serial_number, {})
+            sensors: dict[str, AmazonDeviceSensor] = {}
+            if device.endpoint_id and (
+                endpoint_state := endpoint_states.get(device.endpoint_id)
+            ):
+                sensors = _get_device_sensor_state(endpoint_state, device)
             _LOGGER.debug("Sensors data for device %s: %s", serial_number, sensors)
+
             if reachability_sensor := sensors.get("reachability"):
                 device.online = reachability_sensor.value == "OK"
                 self._devices_missing_reachability.discard(serial_number)
-            elif devices_sensors:
+            elif endpoint_states:
                 # Some devices (e.g. Sonos, ecobee) never report reachability, and
                 # Amazon may transiently drop it for others. Keep the last known
                 # online state instead of forcing the device offline.
@@ -202,14 +205,6 @@ class AmazonSensorHandler:
                         serial_number,
                         device.online,
                     )
-        endpoint_states = await self._get_endpoint_states()
-        for device in self._final_devices.values():
-            # Update sensors
-            sensors: dict[str, AmazonDeviceSensor] = {}
-            if device.endpoint_id and (
-                endpoint_state := endpoint_states.get(device.endpoint_id)
-            ):
-                sensors = _get_device_sensor_state(endpoint_state, device)
 
             if sensors:
                 device.sensors = sensors
