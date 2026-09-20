@@ -16,6 +16,7 @@ from anyio import Path
 
 from aioamazondevices.implementation.communication import AlexaCommunicationsHandler
 from aioamazondevices.implementation.device import AmazonDeviceHandler
+from aioamazondevices.implementation.feature import AmazonFeatureHandler
 from aioamazondevices.implementation.media import AmazonMediaHandler
 from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.implementation.todo import AmazonToDoHandler
@@ -122,6 +123,11 @@ class AmazonEchoApi:
         )
 
         self._media_handler = AmazonMediaHandler(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
+        self._feature_handler = AmazonFeatureHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
         )
@@ -533,6 +539,26 @@ class AmazonEchoApi:
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
+
+    async def async_set_feature(
+        self,
+        endpoint_id: str,
+        feature_name: str,
+        operation_name: str,
+        payload: dict[str, Any] | None = None,
+        instance: str | None = None,
+    ) -> None:
+        """Invoke a feature operation on a device endpoint.
+
+        Raises CannotSetFeature if Amazon rejects the operation.
+        """
+        await self._feature_handler.set_feature(
+            endpoint_id=endpoint_id,
+            feature_name=feature_name,
+            operation_name=operation_name,
+            payload=payload,
+            instance=instance,
+        )
 
     async def set_communication_status(
         self, device: AmazonDevice, enable: bool

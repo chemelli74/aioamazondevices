@@ -104,3 +104,25 @@ query getEndpointState($endpointIds: [String]!) {
   }
 }
 """
+
+MUTATION_SET_ENDPOINT_FEATURES = """
+mutation setEndpointFeaturesV2($input: SetGenericEndpointFeaturesInput!) {
+  setEndpointFeaturesV2(input: $input) {
+    featureControlResponses {
+      endpointId
+      featureName
+      instance
+      featureOperationName
+      code
+    }
+    errors {
+      endpointId
+      featureName
+      instance
+      featureOperationName
+      code
+      message
+    }
+  }
+}
+"""

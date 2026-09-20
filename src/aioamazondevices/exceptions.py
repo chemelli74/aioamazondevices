@@ -44,3 +44,7 @@ class UpdatedAVSSite(AmazonError):
 
 class AVSStreamEndedUnexpectedly(AmazonError):
     """Exception raised when the AVS stream ends unexpectedly."""
+
+
+class CannotSetFeature(AmazonError):
+    """Exception raised when setting an endpoint feature fails."""
