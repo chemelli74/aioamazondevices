@@ -319,6 +319,8 @@ class AmazonEchoApi:
         _LOGGER.debug("Event - %s : Payload - %s", event_type, scrub_fields(payload))
 
         match event_type:
+            case "SmartHome":
+                await self._handle_smarthome_event(payload)
             case AmazonPushMessage.VolumeChange.value:
                 await self._handle_volume_change_event(payload)
             case AmazonPushMessage.EqualizerStateChange.value:
@@ -331,6 +333,60 @@ class AmazonEchoApi:
                 await self._handle_dnd_event(payload)
             case _:
                 _LOGGER.debug("Unhandled push event type: %s", event_type)
+
+    async def _handle_smarthome_event(self, payload: dict[str, Any]) -> None:
+        """Handle SmartHome events."""
+        endpoint_id = payload.get("entity", {}).get("id")
+        device = next(
+            (
+                device
+                for device in self._device_handler.devices.values()
+                if device.endpoint_id == endpoint_id
+            ),
+            None,
+        )
+        for feature in payload.get("data", {}).get("features", {}):
+            feature_name = feature.get("name")
+            feature_instance = feature.get("instance")
+            for feature_property in feature.get("properties", {}):
+                property_name = feature_property.get("name")
+                property_type = feature_property.get("__typename")
+                value = ""
+                if property_type == "TemperatureSensor":
+                    value = feature_property.get("value", {}).get("value")
+                if property_type == "RangeValue":
+                    value = feature_property.get("rangeValue", {}).get("value")
+                if property_type == "Brightness":
+                    value = feature_property.get("brightnessStateValue")
+                if property_type == "Color":
+                    value = feature_property.get("colorStateValue")
+                if property_type == "DetectionRange ":
+                    value = feature_property.get("detectionRangeStateValue")
+                if property_type == "DetectionSensitivity":
+                    value = feature_property.get("detectionSensitivityStateValue")
+                if property_type == "DetectionState":
+                    value = feature_property.get("detectionStateValue")
+                if property_type == "Mode":
+                    value = feature_property.get("modeValue", {}).get("value")
+                if property_type == "Power":
+                    value = feature_property.get("powerStateValue")
+                if property_type == "ToggleState":
+                    value = feature_property.get("toggleStateValue")
+                _LOGGER.warning(
+                    "SmartHome event for: %s (%s)",
+                    endpoint_id,
+                    device.account_name if device else "Unknown",
+                )
+                _LOGGER.warning(
+                    "Feature: %s - Instance: %s", feature_name, feature_instance
+                )
+                _LOGGER.warning(
+                    "Property: %s - Type: %s - Value: %s",
+                    property_name,
+                    property_type,
+                    value,
+                )
+                _LOGGER.debug(payload)
 
     async def _handle_volume_change_event(self, payload: dict[str, Any]) -> None:
         # Ensure initial full sync happens before applying incremental updates
