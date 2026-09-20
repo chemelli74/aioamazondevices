@@ -394,6 +394,8 @@ class AmazonLogin:
         if not self._session_state_data.account_customer_id:
             await self.obtain_account_customer_id()
 
+        await self._register_device_capabilities()
+
         return self._session_state_data.login_stored_data
 
     async def _get_alexa_domain(self) -> str:
