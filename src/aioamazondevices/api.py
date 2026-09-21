@@ -29,6 +29,7 @@ from .const.metadata import (
     VOLUME_MAX,
     VOLUME_MIN,
 )
+from .const.schedules import NOTIFICATION_DEBOUNCE_DELAY
 from .exceptions import NoOnlineDevicesError
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
@@ -145,6 +146,11 @@ class AmazonEchoApi:
         self._device_volumes_initialized: bool = False
         self._dnd_initialized: bool = False
         self._dnd_lock = asyncio.Lock()
+        self._notification_lock = asyncio.Lock()
+        # the sync still inside its debounce window, and so still cancellable
+        self._notification_debounce_task: asyncio.Task[None] | None = None
+        # strong refs, so a running sync cannot be garbage collected
+        self._notification_tasks: set[asyncio.Task[None]] = set()
         self._http2_client: AmazonHTTP2Client | None = None
 
         # force initial refresh
@@ -268,17 +274,18 @@ class AmazonEchoApi:
         # Perform a refresh to ensure your data is as up-to-date as possible.
         await self._refresh_basic_data()
 
-        notifications = await self._notification_handler.get_notifications()
         communications = (
             await self._communication_handler.get_communication_preferences(
                 list(self._device_handler.devices.values())
             )
         )
-        await self._sensor_handler.update_sensor_data(
-            self._device_handler.devices,
-            notifications,
-            communications,
-        )
+        async with self._notification_lock:
+            notifications = await self._notification_handler.get_notifications()
+            await self._sensor_handler.update_sensor_data(
+                self._device_handler.devices,
+                notifications,
+                communications,
+            )
 
         return self._device_handler.devices
 
@@ -311,6 +318,10 @@ class AmazonEchoApi:
 
     async def stop_http2_processing(self) -> None:
         """Stop HTTP2 background processing."""
+        for task in tuple(self._notification_tasks):
+            task.cancel()
+        self._notification_debounce_task = None
+
         if self._http2_client:
             await self._http2_client.stop_processing()
             self._http2_client = None
@@ -332,8 +343,7 @@ class AmazonEchoApi:
             case AmazonPushMessage.DoNotDisturbChange.value:
                 await self._handle_dnd_event(payload)
             case AmazonPushMessage.NotificationChange.value:
-                serial_number = payload.get("dopplerId", {}).get("deviceSerialNumber")
-                await self._handle_notification_change_event(serial_number)
+                await self._handle_notification_change_event()
             case _:
                 _LOGGER.debug("Unhandled push event type: %s", event_type)
 
@@ -383,9 +393,9 @@ class AmazonEchoApi:
         await self._media_handler.sync_media_state(self._device_handler.devices)
         await self._emit_media_state_event()
 
-    async def _handle_notification_change_event(
-        self, serial_number: str | None
-    ) -> None:
+    async def _handle_notification_change_event(self) -> None:
+        # Amazon sends a burst of these for a single timer/alarm/reminder change,
+        # so collapse them into one call to the notifications endpoint.
         if not self._device_handler.devices:
             _LOGGER.debug(
                 "Skipping notification sync for push event because devices "
@@ -393,16 +403,37 @@ class AmazonEchoApi:
             )
             return
 
-        notifications = await self._notification_handler.get_notifications()
-        if notifications is None:
-            _LOGGER.debug("Notification fetch returned None, skipping update")
+        if self._notification_debounce_task:
+            self._notification_debounce_task.cancel()
+
+        task = asyncio.create_task(self._debounced_notification_sync())
+        self._notification_debounce_task = task
+        self._notification_tasks.add(task)
+        task.add_done_callback(self._notification_tasks.discard)
+
+    async def _debounced_notification_sync(self) -> None:
+        """Sync notifications once the push event burst has settled."""
+        try:
+            await asyncio.sleep(NOTIFICATION_DEBOUNCE_DELAY)
+        except asyncio.CancelledError:
+            # Superseded by a newer push event
             return
 
-        self._sensor_handler.handle_push_notification_update(
-            self._device_handler.devices,
-            notifications,
-            serial_number,
-        )
+        # Past the point where a new event should cancel us: it schedules its
+        # own task instead, and the lock keeps the two syncs in order.
+        self._notification_debounce_task = None
+
+        async with self._notification_lock:
+            notifications = await self._notification_handler.get_notifications()
+            if notifications is None:
+                _LOGGER.debug("Notification fetch returned None, skipping update")
+                return
+
+            self._sensor_handler.handle_push_notification_update(
+                self._device_handler.devices,
+                notifications,
+            )
+
         await self._emit_notification_event(notifications)
 
     async def _handle_item_change_event(self, payload: dict[str, Any]) -> None:

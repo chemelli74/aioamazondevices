@@ -14,6 +14,10 @@ NOTIFICATIONS_SUPPORTED = [
     NOTIFICATION_TIMER,
 ]
 
+# Amazon emits several NotificationChange events for a single user action.
+# Wait for the burst to settle before hitting the notifications endpoint.
+NOTIFICATION_DEBOUNCE_DELAY = 2.0
+
 RECURRING_PATTERNS: dict[str, str] = {
     "P1D": "FREQ=DAILY",
     "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR",

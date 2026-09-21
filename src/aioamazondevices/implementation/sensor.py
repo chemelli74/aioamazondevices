@@ -208,27 +208,20 @@ class AmazonSensorHandler:
         self,
         devices: dict[str, AmazonDevice],
         notifications: dict[str, dict[str, Any]] | None,
-        serial_number: str | None = None,
     ) -> None:
-        """Apply notification data from a push event for a specific device."""
-        self._update_notifications(devices, notifications, serial_number)
+        """Apply notification data collected from push events."""
+        self._update_notifications(devices, notifications)
 
     def _update_notifications(
         self,
         devices: dict[str, AmazonDevice],
         notifications: dict[str, dict[str, Any]] | None,
-        serial_number: str | None = None,
     ) -> None:
         """Update notification data on devices."""
         if notifications is None:
             return
 
-        targets = (
-            [devices[serial_number]]
-            if serial_number and serial_number in devices
-            else list(devices.values())
-        )
-        for device in targets:
+        for device in devices.values():
             if not device.notifications_supported:
                 continue
 
