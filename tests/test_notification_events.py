@@ -57,6 +57,11 @@ def notified_api(
     return api
 
 
+def _stored(api: AmazonEchoApi) -> dict[str, dict[str, AmazonSchedule]]:
+    """Return the notifications the handler is holding."""
+    return api._notification_handler._notifications
+
+
 async def _settle(api: AmazonEchoApi) -> None:
     """Wait for any pending debounced sync to finish."""
     if task := api._notification_debounce_task:
@@ -91,9 +96,10 @@ async def test_push_event_dispatches_through_handler(
     notified_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A NotificationChange event refreshes every device, not just the sender."""
-    devices = notified_api._device_handler.devices
     # Stale entry on a device the push event does not name.
-    devices[OTHER_SERIAL].notifications = {NOTIFICATION_TIMER: TIMER}
+    notified_api._notification_handler._notifications = {
+        OTHER_SERIAL: {NOTIFICATION_TIMER: TIMER}
+    }
     monkeypatch.setattr(
         notified_api._notification_handler,
         "_fetch_notifications",
@@ -105,9 +111,9 @@ async def test_push_event_dispatches_through_handler(
     )
     await _settle(notified_api)
 
-    assert devices[SERIAL].notifications == {NOTIFICATION_TIMER: TIMER}
-    # The endpoint returns every device, so the whole snapshot is applied.
-    assert devices[OTHER_SERIAL].notifications == {}
+    assert _stored(notified_api)[SERIAL] == {NOTIFICATION_TIMER: TIMER}
+    # The endpoint returns every device, so the whole snapshot is replaced.
+    assert _stored(notified_api)[OTHER_SERIAL] == {}
 
 
 @pytest.mark.anyio
@@ -134,9 +140,8 @@ async def test_debounced_sync_updates_devices_and_emits(
     await notified_api._handle_notification_change_event()
     await _settle(notified_api)
 
-    devices = notified_api._device_handler.devices
-    assert devices[SERIAL].notifications == {NOTIFICATION_TIMER: TIMER}
-    assert received == [notifications]
+    assert _stored(notified_api)[SERIAL] == {NOTIFICATION_TIMER: TIMER}
+    assert received == [_stored(notified_api)]
 
 
 @pytest.mark.anyio
@@ -159,9 +164,10 @@ async def test_sync_updates_every_device(
     await notified_api._handle_notification_change_event()
     await _settle(notified_api)
 
-    devices = notified_api._device_handler.devices
-    assert devices[SERIAL].notifications == {NOTIFICATION_TIMER: TIMER}
-    assert devices[OTHER_SERIAL].notifications == {NOTIFICATION_TIMER: TIMER}
+    assert _stored(notified_api) == {
+        SERIAL: {NOTIFICATION_TIMER: TIMER},
+        OTHER_SERIAL: {NOTIFICATION_TIMER: TIMER},
+    }
 
 
 @pytest.mark.anyio
@@ -170,8 +176,8 @@ async def test_cancelled_notification_is_cleared(
     notified_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A device whose notification disappeared has its cache cleared."""
-    notified_api._device_handler.devices[SERIAL].notifications = {
-        NOTIFICATION_TIMER: TIMER
+    notified_api._notification_handler._notifications = {
+        SERIAL: {NOTIFICATION_TIMER: TIMER}
     }
     monkeypatch.setattr(
         notified_api._notification_handler,
@@ -182,7 +188,7 @@ async def test_cancelled_notification_is_cleared(
     await notified_api._handle_notification_change_event()
     await _settle(notified_api)
 
-    assert notified_api._device_handler.devices[SERIAL].notifications == {}
+    assert _stored(notified_api)[SERIAL] == {}
 
 
 @pytest.mark.anyio
@@ -207,8 +213,8 @@ async def test_failed_fetch_leaves_notifications_untouched(
     notified_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A None response from the endpoint does not wipe cached notifications."""
-    notified_api._device_handler.devices[SERIAL].notifications = {
-        NOTIFICATION_TIMER: TIMER
+    notified_api._notification_handler._notifications = {
+        SERIAL: {NOTIFICATION_TIMER: TIMER}
     }
     monkeypatch.setattr(
         notified_api._notification_handler,
@@ -219,9 +225,7 @@ async def test_failed_fetch_leaves_notifications_untouched(
     await notified_api._handle_notification_change_event()
     await _settle(notified_api)
 
-    assert notified_api._device_handler.devices[SERIAL].notifications == {
-        NOTIFICATION_TIMER: TIMER
-    }
+    assert _stored(notified_api)[SERIAL] == {NOTIFICATION_TIMER: TIMER}
 
 
 @pytest.mark.anyio
@@ -250,11 +254,10 @@ async def test_sync_notifications_primes_initial_state(
     notified_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """The public sync applies initial state and emits it, without a push event."""
-    notifications = {SERIAL: {NOTIFICATION_TIMER: TIMER}}
     monkeypatch.setattr(
         notified_api._notification_handler,
         "_fetch_notifications",
-        AsyncMock(return_value=notifications),
+        AsyncMock(return_value={SERIAL: {NOTIFICATION_TIMER: TIMER}}),
     )
 
     received: list[dict[str, dict[str, AmazonSchedule]]] = []
@@ -267,10 +270,9 @@ async def test_sync_notifications_primes_initial_state(
 
     await notified_api.sync_notifications()
 
-    assert notified_api._device_handler.devices[SERIAL].notifications == {
-        NOTIFICATION_TIMER: TIMER
-    }
-    assert received == [notifications]
+    assert _stored(notified_api)[SERIAL] == {NOTIFICATION_TIMER: TIMER}
+    # Devices with nothing scheduled are still reported, so consumers can clear
+    assert received == [{SERIAL: {NOTIFICATION_TIMER: TIMER}, OTHER_SERIAL: {}}]
     assert notified_api._notification_debounce_task is None
 
 

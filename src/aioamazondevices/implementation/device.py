@@ -224,7 +224,6 @@ class AmazonDeviceHandler:
                 capability in capabilities
                 for capability in ["REMINDERS", "TIMERS_AND_ALARMS"]
             ),
-            notifications={},
             media_player_supported="AUDIO_PLAYER" in capabilities,
             communication_settings={},
             # only devices-v2 devices can be spoken to, speaker groups aside

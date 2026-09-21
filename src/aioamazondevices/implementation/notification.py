@@ -41,34 +41,41 @@ class AmazonNotificationHandler:
         """Initialize AmazonNotificationHandler class."""
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
+        self._notifications: dict[str, dict[str, AmazonSchedule]] = {}
         # keeps an older snapshot from overwriting a newer one
         self._sync_lock = asyncio.Lock()
+
+    @property
+    async def notifications(self) -> dict[str, dict[str, AmazonSchedule]]:
+        """Return the last known notifications, keyed by device serial."""
+        return self._notifications
 
     async def get_notifications(
         self, devices: dict[str, AmazonDevice]
     ) -> dict[str, dict[str, AmazonSchedule]] | None:
-        """Get all notifications and apply them to the given devices."""
+        """Get all notifications for the devices that support them."""
         async with self._sync_lock:
             notifications = await self._fetch_notifications()
             if notifications is None:
                 return None
 
-            self._apply_notifications(devices, notifications)
-            return notifications
+            self._notifications = self._filter_supported(devices, notifications)
+            return self._notifications
 
-    def _apply_notifications(
+    def _filter_supported(
         self,
         devices: dict[str, AmazonDevice],
         notifications: dict[str, dict[str, AmazonSchedule]],
-    ) -> None:
-        """Apply a notifications snapshot to every device that supports them."""
+    ) -> dict[str, dict[str, AmazonSchedule]]:
+        """Keep only the notification types each device actually supports."""
+        supported: dict[str, dict[str, AmazonSchedule]] = {}
         for device in devices.values():
             if not device.notifications_supported:
                 continue
 
-            # Clear old notifications to handle cancelled ones
-            device.notifications = {}
             device_notifications = notifications.get(device.serial_number, {})
+            # Rebuilt from scratch every time, so cancelled ones drop out
+            device_supported: dict[str, AmazonSchedule] = {}
             for capability, notification_type in [
                 ("REMINDERS", NOTIFICATION_REMINDER),
                 ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
@@ -83,7 +90,11 @@ class AmazonNotificationHandler:
                         )
                     )
                 ):
-                    device.notifications[notification_type] = notification_object
+                    device_supported[notification_type] = notification_object
+
+            supported[device.serial_number] = device_supported
+
+        return supported
 
     async def _fetch_notifications(
         self,
