@@ -71,18 +71,18 @@ async def test_burst_collapses_into_single_fetch(
     notified_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A burst of push events hits the notifications endpoint only once."""
-    get_notifications = AsyncMock(return_value={SERIAL: {NOTIFICATION_TIMER: TIMER}})
+    fetch = AsyncMock(return_value={SERIAL: {NOTIFICATION_TIMER: TIMER}})
     monkeypatch.setattr(
-        notified_api._notification_handler, "get_notifications", get_notifications
+        notified_api._notification_handler, "_fetch_notifications", fetch
     )
 
     for _ in range(3):
         await notified_api._handle_notification_change_event()
 
-    get_notifications.assert_not_awaited()
+    fetch.assert_not_awaited()
     await _settle(notified_api)
 
-    get_notifications.assert_awaited_once()
+    fetch.assert_awaited_once()
 
 
 @pytest.mark.anyio
@@ -96,7 +96,7 @@ async def test_push_event_dispatches_through_handler(
     devices[OTHER_SERIAL].notifications = {NOTIFICATION_TIMER: TIMER}
     monkeypatch.setattr(
         notified_api._notification_handler,
-        "get_notifications",
+        "_fetch_notifications",
         AsyncMock(return_value={SERIAL: {NOTIFICATION_TIMER: TIMER}}),
     )
 
@@ -119,7 +119,7 @@ async def test_debounced_sync_updates_devices_and_emits(
     notifications = {SERIAL: {NOTIFICATION_TIMER: TIMER}}
     monkeypatch.setattr(
         notified_api._notification_handler,
-        "get_notifications",
+        "_fetch_notifications",
         AsyncMock(return_value=notifications),
     )
 
@@ -151,7 +151,7 @@ async def test_sync_updates_every_device(
     }
     monkeypatch.setattr(
         notified_api._notification_handler,
-        "get_notifications",
+        "_fetch_notifications",
         AsyncMock(return_value=notifications),
     )
 
@@ -175,7 +175,7 @@ async def test_cancelled_notification_is_cleared(
     }
     monkeypatch.setattr(
         notified_api._notification_handler,
-        "get_notifications",
+        "_fetch_notifications",
         AsyncMock(return_value={}),
     )
 
@@ -191,15 +191,13 @@ async def test_event_before_devices_loaded_is_skipped(
     api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """No devices means no fetch and no scheduled sync."""
-    get_notifications = AsyncMock(return_value={})
-    monkeypatch.setattr(
-        api._notification_handler, "get_notifications", get_notifications
-    )
+    fetch = AsyncMock(return_value={})
+    monkeypatch.setattr(api._notification_handler, "_fetch_notifications", fetch)
 
     await api._handle_notification_change_event()
     await _settle(api)
 
-    get_notifications.assert_not_awaited()
+    fetch.assert_not_awaited()
     assert api._notification_debounce_task is None
 
 
@@ -214,7 +212,7 @@ async def test_failed_fetch_leaves_notifications_untouched(
     }
     monkeypatch.setattr(
         notified_api._notification_handler,
-        "get_notifications",
+        "_fetch_notifications",
         AsyncMock(return_value=None),
     )
 
@@ -231,9 +229,9 @@ async def test_stop_http2_processing_cancels_pending_sync(
     notified_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Shutting down drops a debounce still waiting to fire."""
-    get_notifications = AsyncMock(return_value={})
+    fetch = AsyncMock(return_value={})
     monkeypatch.setattr(
-        notified_api._notification_handler, "get_notifications", get_notifications
+        notified_api._notification_handler, "_fetch_notifications", fetch
     )
 
     await notified_api._handle_notification_change_event()
@@ -243,5 +241,5 @@ async def test_stop_http2_processing_cancels_pending_sync(
     await notified_api.stop_http2_processing()
     await asyncio.gather(pending, return_exceptions=True)
 
-    get_notifications.assert_not_awaited()
+    fetch.assert_not_awaited()
     assert notified_api._notification_debounce_task is None

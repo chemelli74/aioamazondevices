@@ -3,6 +3,7 @@
 
 """Notification module for Amazon devices."""
 
+import asyncio
 from datetime import datetime, timedelta
 from http import HTTPMethod
 from typing import Any
@@ -25,7 +26,7 @@ from aioamazondevices.const.schedules import (
 )
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import AmazonSchedule
+from aioamazondevices.structures import AmazonDevice, AmazonSchedule
 from aioamazondevices.utils import _LOGGER
 
 
@@ -40,9 +41,54 @@ class AmazonNotificationHandler:
         """Initialize AmazonNotificationHandler class."""
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
+        # keeps an older snapshot from overwriting a newer one
+        self._sync_lock = asyncio.Lock()
 
-    async def get_notifications(self) -> dict[str, dict[str, AmazonSchedule]] | None:
-        """Get all notifications (alarms, timers, reminders)."""
+    async def get_notifications(
+        self, devices: dict[str, AmazonDevice]
+    ) -> dict[str, dict[str, AmazonSchedule]] | None:
+        """Get all notifications and apply them to the given devices."""
+        async with self._sync_lock:
+            notifications = await self._fetch_notifications()
+            if notifications is None:
+                return None
+
+            self._apply_notifications(devices, notifications)
+            return notifications
+
+    def _apply_notifications(
+        self,
+        devices: dict[str, AmazonDevice],
+        notifications: dict[str, dict[str, AmazonSchedule]],
+    ) -> None:
+        """Apply a notifications snapshot to every device that supports them."""
+        for device in devices.values():
+            if not device.notifications_supported:
+                continue
+
+            # Clear old notifications to handle cancelled ones
+            device.notifications = {}
+            device_notifications = notifications.get(device.serial_number, {})
+            for capability, notification_type in [
+                ("REMINDERS", NOTIFICATION_REMINDER),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_TIMER),
+            ]:
+                if (
+                    capability in device.capabilities
+                    and notification_type in device_notifications
+                    and (
+                        notification_object := device_notifications.get(
+                            notification_type
+                        )
+                    )
+                ):
+                    device.notifications[notification_type] = notification_object
+
+    async def _fetch_notifications(
+        self,
+    ) -> dict[str, dict[str, AmazonSchedule]] | None:
+        """Retrieve all notifications (alarms, timers, reminders)."""
         final_notifications: dict[str, dict[str, AmazonSchedule]] = {}
 
         try:

@@ -146,7 +146,6 @@ class AmazonEchoApi:
         self._device_volumes_initialized: bool = False
         self._dnd_initialized: bool = False
         self._dnd_lock = asyncio.Lock()
-        self._notification_lock = asyncio.Lock()
         # the sync still inside its debounce window, and so still cancellable
         self._notification_debounce_task: asyncio.Task[None] | None = None
         # strong refs, so a running sync cannot be garbage collected
@@ -279,13 +278,11 @@ class AmazonEchoApi:
                 list(self._device_handler.devices.values())
             )
         )
-        async with self._notification_lock:
-            notifications = await self._notification_handler.get_notifications()
-            await self._sensor_handler.update_sensor_data(
-                self._device_handler.devices,
-                notifications,
-                communications,
-            )
+        await self._notification_handler.get_notifications(self._device_handler.devices)
+        await self._sensor_handler.update_sensor_data(
+            self._device_handler.devices,
+            communications,
+        )
 
         return self._device_handler.devices
 
@@ -420,19 +417,15 @@ class AmazonEchoApi:
             return
 
         # Past the point where a new event should cancel us: it schedules its
-        # own task instead, and the lock keeps the two syncs in order.
+        # own task instead, and get_notifications serialises the two.
         self._notification_debounce_task = None
 
-        async with self._notification_lock:
-            notifications = await self._notification_handler.get_notifications()
-            if notifications is None:
-                _LOGGER.debug("Notification fetch returned None, skipping update")
-                return
-
-            self._sensor_handler.handle_push_notification_update(
-                self._device_handler.devices,
-                notifications,
-            )
+        notifications = await self._notification_handler.get_notifications(
+            self._device_handler.devices
+        )
+        if notifications is None:
+            _LOGGER.debug("Notification fetch returned None, skipping update")
+            return
 
         await self._emit_notification_event(notifications)
 

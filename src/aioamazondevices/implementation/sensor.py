@@ -16,11 +16,6 @@ from aioamazondevices.const.devices import (
 from aioamazondevices.const.http import ARRAY_WRAPPER, REQUEST_AGENT, URI_NEXUS_GRAPHQL
 from aioamazondevices.const.metadata import AQM_RANGE_SENSORS, SENSORS
 from aioamazondevices.const.queries import QUERY_SENSOR_STATE
-from aioamazondevices.const.schedules import (
-    NOTIFICATION_ALARM,
-    NOTIFICATION_REMINDER,
-    NOTIFICATION_TIMER,
-)
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 from aioamazondevices.utils import _LOGGER, format_graphql_error
@@ -164,7 +159,6 @@ class AmazonSensorHandler:
     async def update_sensor_data(
         self,
         devices: dict[str, AmazonDevice],
-        notifications: dict[str, dict[str, Any]] | None,
         communications: dict[str, dict[str, str]],
     ) -> None:
         """Update sensors data for all devices."""
@@ -193,8 +187,6 @@ class AmazonSensorHandler:
                 communications.get(device.serial_number) or {}
             )
 
-        self._update_notifications(self._final_devices, notifications)
-
         # base online status of speaker groups on their members
         for device in self._final_devices.values():
             if device.device_family == SPEAKER_GROUP_FAMILY:
@@ -203,46 +195,6 @@ class AmazonSensorHandler:
                     for d in self._final_devices.values()
                     if d.serial_number in device.device_cluster_members
                 )
-
-    def handle_push_notification_update(
-        self,
-        devices: dict[str, AmazonDevice],
-        notifications: dict[str, dict[str, Any]] | None,
-    ) -> None:
-        """Apply notification data collected from push events."""
-        self._update_notifications(devices, notifications)
-
-    def _update_notifications(
-        self,
-        devices: dict[str, AmazonDevice],
-        notifications: dict[str, dict[str, Any]] | None,
-    ) -> None:
-        """Update notification data on devices."""
-        if notifications is None:
-            return
-
-        for device in devices.values():
-            if not device.notifications_supported:
-                continue
-
-            # Clear old notifications to handle cancelled ones
-            device.notifications = {}
-            device_notifications = notifications.get(device.serial_number, {})
-            for capability, notification_type in [
-                ("REMINDERS", NOTIFICATION_REMINDER),
-                ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
-                ("TIMERS_AND_ALARMS", NOTIFICATION_TIMER),
-            ]:
-                if (
-                    capability in device.capabilities
-                    and notification_type in device_notifications
-                    and (
-                        notification_object := device_notifications.get(
-                            notification_type
-                        )
-                    )
-                ):
-                    device.notifications[notification_type] = notification_object
 
     async def _get_endpoint_states(self) -> dict[str, dict[str, Any]]:
         """Retrieve the sensor state of every device endpoint, keyed by endpoint ID."""
