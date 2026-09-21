@@ -243,3 +243,56 @@ async def test_stop_http2_processing_cancels_pending_sync(
 
     fetch.assert_not_awaited()
     assert notified_api._notification_debounce_task is None
+
+
+@pytest.mark.anyio
+async def test_sync_notifications_primes_initial_state(
+    notified_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The public sync applies initial state and emits it, without a push event."""
+    notifications = {SERIAL: {NOTIFICATION_TIMER: TIMER}}
+    monkeypatch.setattr(
+        notified_api._notification_handler,
+        "_fetch_notifications",
+        AsyncMock(return_value=notifications),
+    )
+
+    received: list[dict[str, dict[str, AmazonSchedule]]] = []
+
+    async def on_notification(data: dict[str, dict[str, AmazonSchedule]]) -> None:
+        received.append(data)
+
+    notified_api.on_notification_event.append(on_notification)
+    notified_api.on_notification_event.freeze()
+
+    await notified_api.sync_notifications()
+
+    assert notified_api._device_handler.devices[SERIAL].notifications == {
+        NOTIFICATION_TIMER: TIMER
+    }
+    assert received == [notifications]
+    assert notified_api._notification_debounce_task is None
+
+
+@pytest.mark.anyio
+async def test_sync_notifications_survives_failed_fetch(
+    notified_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A failed initial sync emits nothing and raises nothing."""
+    monkeypatch.setattr(
+        notified_api._notification_handler,
+        "_fetch_notifications",
+        AsyncMock(return_value=None),
+    )
+
+    received: list[dict[str, dict[str, AmazonSchedule]]] = []
+
+    async def on_notification(data: dict[str, dict[str, AmazonSchedule]]) -> None:
+        received.append(data)
+
+    notified_api.on_notification_event.append(on_notification)
+    notified_api.on_notification_event.freeze()
+
+    await notified_api.sync_notifications()
+
+    assert received == []

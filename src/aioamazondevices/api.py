@@ -420,14 +420,7 @@ class AmazonEchoApi:
         # own task instead, and get_notifications serialises the two.
         self._notification_debounce_task = None
 
-        notifications = await self._notification_handler.get_notifications(
-            self._device_handler.devices
-        )
-        if notifications is None:
-            _LOGGER.debug("Notification fetch returned None, skipping update")
-            return
-
-        await self._emit_notification_event(notifications)
+        await self.sync_notifications()
 
     async def _handle_item_change_event(self, payload: dict[str, Any]) -> None:
         list_id = payload.get("listId")
@@ -690,6 +683,21 @@ class AmazonEchoApi:
     async def restart_device(self, device: AmazonDevice) -> None:
         """Restart a device."""
         await self._device_handler.restart_device(device)
+
+    async def sync_notifications(self) -> None:
+        """Sync notifications state.
+
+        This will be called at startup to sync alarms, timers and reminders
+        of all devices and can be called later to refresh them.
+        """
+        notifications = await self._notification_handler.get_notifications(
+            self._device_handler.devices
+        )
+        if notifications is None:
+            _LOGGER.debug("Notification fetch returned None, skipping update")
+            return
+
+        await self._emit_notification_event(notifications)
 
     async def sync_dnd_state(self) -> None:
         """Sync Do Not Disturb state for all devices."""
