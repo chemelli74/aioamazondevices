@@ -278,7 +278,6 @@ class AmazonEchoApi:
                 list(self._device_handler.devices.values())
             )
         )
-        await self._notification_handler.get_notifications(self._device_handler.devices)
         await self._sensor_handler.update_sensor_data(
             self._device_handler.devices,
             communications,
@@ -391,15 +390,11 @@ class AmazonEchoApi:
         await self._emit_media_state_event()
 
     async def _handle_notification_change_event(self) -> None:
+        if not self.on_notification_event.frozen:
+            _LOGGER.debug("No notification subscribers, skipping fetch")
+            return
         # Amazon sends a burst of these for a single timer/alarm/reminder change,
         # so collapse them into one call to the notifications endpoint.
-        if not self._device_handler.devices:
-            _LOGGER.debug(
-                "Skipping notification sync for push event because devices "
-                "have not been loaded yet"
-            )
-            return
-
         if self._notification_debounce_task:
             self._notification_debounce_task.cancel()
 
@@ -415,9 +410,6 @@ class AmazonEchoApi:
         except asyncio.CancelledError:
             # Superseded by a newer push event
             return
-
-        # Past the point where a new event should cancel us: it schedules its
-        # own task instead, and get_notifications serialises the two.
         self._notification_debounce_task = None
 
         await self.sync_notifications()
@@ -690,9 +682,7 @@ class AmazonEchoApi:
         This will be called at startup to sync alarms, timers and reminders
         of all devices and can be called later to refresh them.
         """
-        notifications = await self._notification_handler.get_notifications(
-            self._device_handler.devices
-        )
+        notifications = await self._notification_handler.get_notifications()
         if notifications is None:
             _LOGGER.debug("Notification fetch returned None, skipping update")
             return
