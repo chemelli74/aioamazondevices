@@ -146,6 +146,8 @@ class AmazonEchoApi:
         self._device_volumes_initialized: bool = False
         self._dnd_initialized: bool = False
         self._dnd_lock = asyncio.Lock()
+        # keeps an older snapshot from reaching subscribers after a newer one
+        self._notification_lock = asyncio.Lock()
         # the sync still inside its debounce window, and so still cancellable
         self._notification_debounce_task: asyncio.Task[None] | None = None
         # strong refs, so a running sync cannot be garbage collected
@@ -314,8 +316,11 @@ class AmazonEchoApi:
 
     async def stop_http2_processing(self) -> None:
         """Stop HTTP2 background processing."""
-        for task in tuple(self._notification_tasks):
+        tasks = tuple(self._notification_tasks)
+        for task in tasks:
             task.cancel()
+        # wait, so no sync is still using the session once we return
+        await asyncio.gather(*tasks, return_exceptions=True)
         self._notification_debounce_task = None
 
         if self._http2_client:
@@ -681,13 +686,16 @@ class AmazonEchoApi:
 
         This will be called at startup to sync alarms, timers and reminders
         of all devices and can be called later to refresh them.
+        Must not be awaited from an on_notification_event subscriber,
+        as the lock is held while subscribers run.
         """
-        notifications = await self._notification_handler.get_notifications()
-        if notifications is None:
-            _LOGGER.debug("Notification fetch returned None, skipping update")
-            return
+        async with self._notification_lock:
+            notifications = await self._notification_handler.get_notifications()
+            if notifications is None:
+                _LOGGER.debug("Notification fetch returned None, skipping update")
+                return
 
-        await self._emit_notification_event(notifications)
+            await self._emit_notification_event(notifications)
 
     async def sync_dnd_state(self) -> None:
         """Sync Do Not Disturb state for all devices."""

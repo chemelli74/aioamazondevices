@@ -228,3 +228,61 @@ async def test_notifications_are_not_filtered(
     await notified_api.sync_notifications()
 
     assert received == [notifications]
+
+
+@pytest.mark.anyio
+@pytest.mark.usefixtures("fast_debounce")
+async def test_stop_http2_processing_waits_for_running_sync(
+    notified_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Shutting down does not return while a fetch is still in flight."""
+    fetch_started = asyncio.Event()
+    fetch_finished = False
+
+    async def slow_fetch() -> NotificationMap:
+        nonlocal fetch_finished
+        fetch_started.set()
+        try:
+            await asyncio.sleep(10)
+        finally:
+            fetch_finished = True
+        return {}
+
+    monkeypatch.setattr(
+        notified_api._notification_handler, "_fetch_notifications", slow_fetch
+    )
+
+    await notified_api._handle_notification_change_event()
+    await fetch_started.wait()
+    assert notified_api._notification_tasks
+
+    await notified_api.stop_http2_processing()
+
+    assert fetch_finished
+    assert not notified_api._notification_tasks
+
+
+@pytest.mark.anyio
+async def test_overlapping_syncs_emit_in_fetch_order(
+    api: AmazonEchoApi,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A slow subscriber cannot let an older snapshot land after a newer one."""
+    applied: list[NotificationMap] = []
+
+    async def slow_subscriber(data: NotificationMap) -> None:
+        # Yield before applying, as a subscriber doing its own I/O would
+        await asyncio.sleep(0.01 if not data else 0)
+        applied.append(data)
+
+    api.on_notification_event.append(slow_subscriber)
+    api.on_notification_event.freeze()
+
+    older: NotificationMap = {}
+    newer: NotificationMap = {SERIAL: {NOTIFICATION_TIMER: TIMER}}
+    fetch = AsyncMock(side_effect=[older, newer])
+    monkeypatch.setattr(api._notification_handler, "_fetch_notifications", fetch)
+
+    await asyncio.gather(api.sync_notifications(), api.sync_notifications())
+
+    assert applied == [older, newer]

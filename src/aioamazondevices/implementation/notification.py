@@ -3,7 +3,6 @@
 
 """Notification module for Amazon devices."""
 
-import asyncio
 from datetime import datetime, timedelta
 from http import HTTPMethod
 from typing import Any
@@ -41,16 +40,10 @@ class AmazonNotificationHandler:
         """Initialize AmazonNotificationHandler class."""
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
-        # keeps an older snapshot from overwriting a newer one
-        self._sync_lock = asyncio.Lock()
 
     async def get_notifications(self) -> dict[str, dict[str, AmazonSchedule]] | None:
         """Get all notifications."""
-        async with self._sync_lock:
-            notifications = await self._fetch_notifications()
-            if notifications is None:
-                return None
-            return notifications
+        return await self._fetch_notifications()
 
     async def _fetch_notifications(
         self,
