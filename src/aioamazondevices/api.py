@@ -316,16 +316,18 @@ class AmazonEchoApi:
 
     async def stop_http2_processing(self) -> None:
         """Stop HTTP2 background processing."""
+        # stop push events first, so no new notification task can start
+        # while the existing ones are drained
+        if self._http2_client:
+            await self._http2_client.stop_processing()
+            self._http2_client = None
+
         tasks = tuple(self._notification_tasks)
         for task in tasks:
             task.cancel()
         # wait, so no sync is still using the session once we return
         await asyncio.gather(*tasks, return_exceptions=True)
         self._notification_debounce_task = None
-
-        if self._http2_client:
-            await self._http2_client.stop_processing()
-            self._http2_client = None
 
     async def _http2_push_event_handler(
         self, event_type: str, payload: dict[str, Any]

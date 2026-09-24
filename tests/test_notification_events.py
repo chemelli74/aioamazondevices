@@ -286,3 +286,50 @@ async def test_overlapping_syncs_emit_in_fetch_order(
     await asyncio.gather(api.sync_notifications(), api.sync_notifications())
 
     assert applied == [older, newer]
+
+
+@pytest.mark.anyio
+@pytest.mark.usefixtures("fast_debounce")
+async def test_stop_http2_processing_ignores_pushes_during_shutdown(
+    notified_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A push arriving mid-shutdown cannot leave a sync running afterwards."""
+    fetch_started = asyncio.Event()
+
+    async def slow_fetch() -> NotificationMap:
+        fetch_started.set()
+        try:
+            await asyncio.sleep(10)
+        finally:
+            # slow cleanup, leaving a window for more pushes to arrive
+            await asyncio.sleep(0.05)
+        return {}
+
+    monkeypatch.setattr(
+        notified_api._notification_handler, "_fetch_notifications", slow_fetch
+    )
+
+    class FakeHttp2Client:
+        """Stands in for the push producer."""
+
+        stopped = False
+
+        async def stop_processing(self) -> None:
+            self.stopped = True
+
+    client = FakeHttp2Client()
+    monkeypatch.setattr(notified_api, "_http2_client", client)
+
+    async def producer() -> None:
+        while not client.stopped:
+            await notified_api._handle_notification_change_event()
+            await asyncio.sleep(0.001)
+
+    await notified_api._handle_notification_change_event()
+    await fetch_started.wait()
+    producer_task = asyncio.create_task(producer())
+
+    await notified_api.stop_http2_processing()
+    await producer_task
+
+    assert not notified_api._notification_tasks
