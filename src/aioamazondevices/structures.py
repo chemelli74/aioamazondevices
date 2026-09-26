@@ -35,6 +35,29 @@ class AmazonDeviceSensor:
 
 
 @dataclass
+class AmazonDeviceLight:
+    """Amazon smart light state (e.g. Echo Glow).
+
+    Colour is reported as HSB: ``hue`` in degrees (0-360), ``saturation``
+    and the colour's own ``brightness`` as fractions (0-1). ``brightness``
+    is the light's overall level as a percentage (0-100).
+    """
+
+    power: bool
+    brightness: int | None
+    hue: float | None
+    saturation: float | None
+    color_name: str | None
+    effect: str | None
+    effects: list[str]
+    supports_brightness: bool
+    supports_color: bool
+    supports_effects: bool
+    supports_tap: bool
+    tap_enabled: bool | None
+
+
+@dataclass
 class AmazonMusicProvider:
     """Music provider class."""
 
@@ -80,6 +103,7 @@ class AmazonDevice:
     media_player_supported: bool
     communication_settings: dict[str, str]
     voice_control_supported: bool
+    light: AmazonDeviceLight | None
 
 
 class AmazonSequenceType(StrEnum):
