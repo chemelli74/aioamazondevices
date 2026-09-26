@@ -42,7 +42,13 @@ class AmazonNotificationHandler:
         self._http_wrapper = http_wrapper
 
     async def get_notifications(self) -> dict[str, dict[str, AmazonSchedule]] | None:
-        """Get all notifications (alarms, timers, reminders)."""
+        """Get all notifications."""
+        return await self._fetch_notifications()
+
+    async def _fetch_notifications(
+        self,
+    ) -> dict[str, dict[str, AmazonSchedule]] | None:
+        """Retrieve all notifications (alarms, timers, reminders)."""
         final_notifications: dict[str, dict[str, AmazonSchedule]] = {}
 
         try:
