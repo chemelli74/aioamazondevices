@@ -360,7 +360,7 @@ class AmazonEchoApi:
                     value = feature_property.get("brightnessStateValue")
                 if property_type == "Color":
                     value = feature_property.get("colorStateValue")
-                if property_type == "DetectionRange ":
+                if property_type == "DetectionRange":
                     value = feature_property.get("detectionRangeStateValue")
                 if property_type == "DetectionSensitivity":
                     value = feature_property.get("detectionSensitivityStateValue")
