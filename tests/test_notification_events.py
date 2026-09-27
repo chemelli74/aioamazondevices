@@ -64,7 +64,7 @@ def _mock_fetch(
 ) -> AsyncMock:
     """Replace the notifications endpoint call with a canned response."""
     fetch = AsyncMock(return_value=notifications)
-    monkeypatch.setattr(api._notification_handler, "_fetch_notifications", fetch)
+    monkeypatch.setattr(api._notification_handler, "get_notifications", fetch)
     return fetch
 
 
@@ -249,7 +249,7 @@ async def test_stop_http2_processing_waits_for_running_sync(
         return {}
 
     monkeypatch.setattr(
-        notified_api._notification_handler, "_fetch_notifications", slow_fetch
+        notified_api._notification_handler, "get_notifications", slow_fetch
     )
 
     await notified_api._handle_notification_change_event()
@@ -281,7 +281,7 @@ async def test_overlapping_syncs_emit_in_fetch_order(
     older: NotificationMap = {}
     newer: NotificationMap = {SERIAL: {NOTIFICATION_TIMER: TIMER}}
     fetch = AsyncMock(side_effect=[older, newer])
-    monkeypatch.setattr(api._notification_handler, "_fetch_notifications", fetch)
+    monkeypatch.setattr(api._notification_handler, "get_notifications", fetch)
 
     await asyncio.gather(api.sync_notifications(), api.sync_notifications())
 
@@ -306,7 +306,7 @@ async def test_stop_http2_processing_ignores_pushes_during_shutdown(
         return {}
 
     monkeypatch.setattr(
-        notified_api._notification_handler, "_fetch_notifications", slow_fetch
+        notified_api._notification_handler, "get_notifications", slow_fetch
     )
 
     class FakeHttp2Client:
