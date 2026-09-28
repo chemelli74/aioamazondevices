@@ -385,8 +385,8 @@ class AmazonHttpWrapper:
             _LOGGER.error("No response received from %s", url)
             raise CannotConnect(f"No response received from {url}")
 
-        if csrf := resp.cookies.get(CSRF_COOKIE, Morsel()).value:
-            self._csrf_cookie = csrf
+        if csrf_value := resp.cookies.get(CSRF_COOKIE, Morsel()).value:
+            self._csrf_cookie = csrf_value
             _LOGGER.debug("CSRF cookie value: <%s> [%s]", self._csrf_cookie, url)
 
         content_type: str = resp.headers.get("Content-Type", "")
