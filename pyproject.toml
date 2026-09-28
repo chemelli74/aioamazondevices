@@ -78,12 +78,14 @@ match = "(?!main$)"
 prerelease = true
 
 [tool.pytest.ini_options]
-addopts = "-v -Wdefault"
+addopts = "-v -Wdefault --cov=aioamazondevices --cov-report=term-missing"
 pythonpath = ["src"]
 testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
+source = ["aioamazondevices"]
+omit = ["library_test.py"]
 
 [tool.coverage.report]
 exclude_lines = [
