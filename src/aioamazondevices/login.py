@@ -123,10 +123,13 @@ class AmazonLogin:
         if not isinstance(form, Tag):
             raise CannotAuthenticate("Unable to find form in login response")
 
-        inputs = {}
+        inputs: dict[str, str] = {}
         for field in form.find_all("input"):
             if isinstance(field, Tag) and field.get("type", "") == "hidden":
-                inputs[field["name"]] = field.get("value", "")
+                name = field.get("name")
+                value = field.get("value", "")
+                if isinstance(name, str) and isinstance(value, str):
+                    inputs[name] = value
 
         return inputs
 
