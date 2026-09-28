@@ -1,4 +1,0 @@
-[run]
-source = aioamazondevices
-omit =
-    library_test.py

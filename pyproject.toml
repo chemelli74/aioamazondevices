@@ -84,6 +84,8 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
+source = ["aioamazondevices"]
+omit = ["library_test.py"]
 
 [tool.coverage.report]
 exclude_lines = [
