@@ -43,7 +43,7 @@ lint.ignore = [
 max-complexity = 18
 
 [lint.isort]
-known-first-party = ["aiocomelit", "tests"]
+known-first-party = ["aioamazondevices", "tests"]
 
 [lint.flake8-copyright]
 notice-rgx = '''(?i)# Copyright \d{4} Simone Chemelli and Contributors
