@@ -49,9 +49,8 @@ version = "0.12.20" # renovate: depName=uv datasource=pypi
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
-version_variables = [
-    "src/aioamazondevices/__init__.py:__version__",
-]
+version_variables = ["src/aioamazondevices/__init__.py:__version__",]
+
 # Extract version from [tool.uv-version], single source of truth.
 build_command = """
     UV_VERSION=$(./scripts/get-pyproject-uv.version.sh)
