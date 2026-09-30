@@ -95,7 +95,7 @@ class AmazonToDoHandler:
         return [
             AmazonListItem(
                 id=item_info["itemId"],
-                name=(item_info["itemName"]).capitalize(),
+                name=item_info["itemName"][:1].upper() + item_info["itemName"][1:] if item_info["itemName"] else item_info["itemName"],
                 status=AmazonListItemStatus(item_info["itemStatus"]),
                 version=item_info["version"],
             )
