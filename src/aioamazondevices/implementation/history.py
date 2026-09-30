@@ -190,6 +190,8 @@ class AmazonHistoryHandler:
         if not title and not sub_title:
             return None
         utterance_type = raw.get("utteranceType") or raw.get("recordType") or "Unknown"
+        if not isinstance(utterance_type, str):
+            utterance_type = str(utterance_type)
         if not sub_title and (
             utterance_type in EXCLUDED_VOICE_HISTORY_TYPES
             or utterance_type.startswith("FALSE_WAKE_WORD")
