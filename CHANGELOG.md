@@ -1,5 +1,29 @@
 # Changelog
 
+## v16.3.1 (2026-09-30)
+
+### Bug fixes
+
+- Improve online/offline state ([`6edb263`](https://github.com/chemelli74/aioamazondevices/commit/6edb263b080785754859f2a3a3e8d07b66b46b19))
+
+
+### Build system
+
+- Format version_variables on one line ([`d0fef23`](https://github.com/chemelli74/aioamazondevices/commit/d0fef239491453676c336c52d644af9fa88fa3eb))
+- Pin mypy hook deps for local and ci alignment ([`b25a54d`](https://github.com/chemelli74/aioamazondevices/commit/b25a54df72409b125ef28a9db5fa94b26f0a577a))
+- Remove unused ruff ignores ([`5a9fc6e`](https://github.com/chemelli74/aioamazondevices/commit/5a9fc6ed6cc8093bddfc2e84363d53f2c57feebe))
+- Remove stale codespell skip list ([`534b396`](https://github.com/chemelli74/aioamazondevices/commit/534b396f7e5888d0d26159c144f74e8f1d6a3bcb))
+- Measure coverage on all modules ([`c9e2a3c`](https://github.com/chemelli74/aioamazondevices/commit/c9e2a3c89ff6dd2432f91293f0f7808359d67b2b))
+- Fix ruff known-first-party package name ([`cb3a61a`](https://github.com/chemelli74/aioamazondevices/commit/cb3a61a425261ef23bbd1d9bac719ed49d4e385d))
+- Replace unmaintained labels tool ([`8b2105b`](https://github.com/chemelli74/aioamazondevices/commit/8b2105ba8bb61484d3ea01bcbb94077264026786))
+
+
+### Refactoring
+
+- Drop dead httpx code ([`0095712`](https://github.com/chemelli74/aioamazondevices/commit/0095712ad4a46635e74460589b343e914bac0e66))
+- Drive devices from graphql ([`5bc9028`](https://github.com/chemelli74/aioamazondevices/commit/5bc90285f2ac6fc3568fc029cb62f0bd8ea18be5))
+
+
 ## v16.3.0 (2026-09-15)
 
 ### Features

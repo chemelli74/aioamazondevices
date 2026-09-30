@@ -11,10 +11,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from aioamazondevices import api as api_module
 from aioamazondevices.api import AmazonEchoApi
+from aioamazondevices.const import history as history_constants
 from aioamazondevices.const.http import CSRF_A2Z, REFRESH_ACCESS_TOKEN
-from aioamazondevices.implementation import history as history_module
 from aioamazondevices.implementation.history import AmazonHistoryHandler
 from aioamazondevices.structures import AmazonDevice
 
@@ -52,9 +51,8 @@ def _record(persons_info: PersonsInfo | _Absent) -> dict[str, Any]:
 
 
 @pytest.fixture
-def handler(monkeypatch: pytest.MonkeyPatch) -> AmazonHistoryHandler:
-    """Return a history handler that skips the backend refresh wait."""
-    monkeypatch.setattr(history_module, "BACKEND_REFRESH_WAIT_SECONDS", 0)
+def handler() -> AmazonHistoryHandler:
+    """Return a history handler with mocked HTTP dependencies."""
     return AmazonHistoryHandler(AsyncMock(), AsyncMock())
 
 
@@ -83,9 +81,10 @@ async def test_vocal_history_exposes_speaker(
     expected: tuple[str | None, str | None],
 ) -> None:
     """The recognised speaker is taken from personsInfo, absent when unknown."""
-    handler._vocal_history_json = AsyncMock(  # type: ignore[method-assign]
-        return_value={"alexaHistoryRecords": [_record(persons_info)]}
+    handler._request_voice_history = AsyncMock(  # type: ignore[method-assign]
+        return_value={"customerHistoryRecords": [_record(persons_info)]}
     )
+    handler._update_vocal_history_token = AsyncMock()  # type: ignore[method-assign]
 
     records = await handler.get_vocal_history()
 
@@ -125,7 +124,7 @@ def test_rvh_parser_keeps_commands_replies_and_amazon_timestamps() -> None:
     """The newest usable record per device can contain only a reply."""
     newest_timestamp = 200
     reply_timestamp = 150
-    records = AmazonEchoApi._parse_voice_history(
+    records = AmazonHistoryHandler._parse_voice_history(
         {
             "customerHistoryRecords": [
                 _api_record(TEST_SERIAL_1, 100, command="Alexa, what time is it"),
@@ -155,7 +154,7 @@ def test_rvh_parser_keeps_commands_replies_and_amazon_timestamps() -> None:
 def test_rvh_parser_ignores_false_wakes_and_empty_records() -> None:
     """Wake-only records cannot replace a real event from that device."""
     valid_timestamp = 100
-    records = AmazonEchoApi._parse_voice_history(
+    records = AmazonHistoryHandler._parse_voice_history(
         {
             "customerHistoryRecords": [
                 _api_record(TEST_SERIAL_1, valid_timestamp, command="what time is it"),
@@ -192,8 +191,11 @@ async def test_rah_request_uses_bearer_and_pagination_token(
     )
     api._history_handler._csrf_a2z_token = "csrf-test"  # noqa: S105
 
-    await api._request_rah_history(100, 200, "access-test", "next-page")
+    await api._history_handler._request_rah_history(
+        100, 200, "access-test", "next-page"
+    )
 
+    assert request.await_args is not None
     kwargs = request.await_args.kwargs
     assert kwargs["method"] == HTTPMethod.POST
     assert kwargs["url"].path.endswith("/rah/alexa-history-records-v2")
@@ -235,7 +237,7 @@ async def test_startup_history_pages_keep_newest_valid_event_per_device(
                     _api_record(TEST_SERIAL_1, newest, command="newest"),
                     _api_record(
                         TEST_SERIAL_2,
-                        now_ms - api_module.HISTORY_STARTUP_LOOKBACK_MS - 1000,
+                        now_ms - history_constants.HISTORY_STARTUP_LOOKBACK_MS - 1000,
                         reply="outside the window",
                     ),
                 ],
@@ -253,7 +255,7 @@ async def test_startup_history_pages_keep_newest_valid_event_per_device(
             },
         ]
     )
-    monkeypatch.setattr(api, "_request_rah_history", page)
+    monkeypatch.setattr(api._history_handler, "_request_rah_history", page)
 
     records = await api.sync_history_state()
 
@@ -268,3 +270,30 @@ async def test_startup_history_pages_keep_newest_valid_event_per_device(
         TEST_SERIAL_1: newest,
         TEST_SERIAL_2: reply_time,
     }
+
+
+@pytest.mark.anyio
+async def test_rvh_request_parameters(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Live history requests use RVH's voice filter and null page token."""
+    request = AsyncMock(return_value=(None, object()))
+    monkeypatch.setattr(api._http_wrapper, "session_request", request)
+    monkeypatch.setattr(
+        api._http_wrapper, "response_to_json", AsyncMock(return_value={})
+    )
+
+    await api._history_handler._request_voice_history(100, 200)
+
+    assert request.await_args is not None
+    kwargs = request.await_args.kwargs
+    assert kwargs["method"] == HTTPMethod.POST
+    assert kwargs["url"].path.endswith("/rvh/customer-history-records-v2")
+    assert dict(kwargs["url"].query) == {
+        "startTime": "100",
+        "endTime": "200",
+        "recordType": "VOICE_HISTORY",
+        "maxRecordSize": str(history_constants.HISTORY_MAX_RECORD_SIZE),
+    }
+    assert kwargs["input_data"] == {"previousRequestToken": None}
+    assert kwargs["json_data"] is True

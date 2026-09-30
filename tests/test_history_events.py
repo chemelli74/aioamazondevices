@@ -4,8 +4,8 @@
 """Tests for the vocal history push-event proxy in AmazonEchoApi."""
 
 import asyncio
-from http import HTTPMethod
-from unittest.mock import AsyncMock
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -74,6 +74,7 @@ async def test_eq_event_probes_only_the_pushing_device(
     await task
 
     probe.assert_awaited_once()
+    assert probe.await_args is not None
     assert probe.await_args.args[0] == TEST_SERIAL_1
 
 
@@ -122,14 +123,15 @@ async def test_simultaneous_probes_share_history_request(
         return {TEST_SERIAL_1: record}
 
     mock_fetch = AsyncMock(side_effect=fetch)
-    monkeypatch.setattr(api, "_fetch_voice_history", mock_fetch)
+    monkeypatch.setattr(api._history_handler, "get_vocal_history", mock_fetch)
     first = asyncio.create_task(api._shared_vocal_history_fetch())
     await started.wait()
     second = asyncio.create_task(api._shared_vocal_history_fetch())
     await asyncio.sleep(0)
     release.set()
 
-    assert await asyncio.gather(first, second) == [
+    results = list(await asyncio.gather(first, second))
+    assert results == [
         {TEST_SERIAL_1: record},
         {TEST_SERIAL_1: record},
     ]
@@ -137,26 +139,92 @@ async def test_simultaneous_probes_share_history_request(
 
 
 @pytest.mark.anyio
-async def test_rvh_request_parameters(
+@pytest.mark.parametrize("first_has_record", [True, False])
+async def test_push_during_probe_runs_again_for_latest_activity(
+    api: AmazonEchoApi,
+    monkeypatch: pytest.MonkeyPatch,
+    first_has_record: bool,
+) -> None:
+    """A second push survives an active probe, whether it succeeds or expires."""
+    received = _subscribe(api)
+    started = asyncio.Event()
+    release = asyncio.Event()
+    old = _record(1_000_100)
+    newer = _record(1_020_100)
+    fetch_count = 0
+
+    async def fetch() -> dict[str, AmazonVocalRecord]:
+        nonlocal fetch_count
+        fetch_count += 1
+        if fetch_count == 1:
+            started.set()
+            await release.wait()
+            return {TEST_SERIAL_1: old} if first_has_record else {}
+        return {TEST_SERIAL_1: newer}
+
+    clock = Mock()
+    clock.now.side_effect = [
+        datetime.fromtimestamp(1000, UTC),
+        datetime.fromtimestamp(1020, UTC),
+    ]
+    monkeypatch.setattr(api_module, "datetime", clock)
+    monkeypatch.setattr(api_module, "HISTORY_PROBE_DELAY_SECONDS", 0)
+    monkeypatch.setattr(api_module, "HISTORY_PROBE_ATTEMPTS", 1)
+    monkeypatch.setattr(api._history_handler, "get_vocal_history", fetch)
+    probe = AsyncMock(wraps=api._probe_vocal_history)
+    monkeypatch.setattr(api, "_probe_vocal_history", probe)
+    payload = {"dopplerId": {"deviceSerialNumber": TEST_SERIAL_1}}
+
+    await api._handle_eq_event_as_history_proxy(payload)
+    task = api._history_probe_tasks[TEST_SERIAL_1]
+    await started.wait()
+    await api._handle_eq_event_as_history_proxy(payload)
+    assert api._history_probe_tasks[TEST_SERIAL_1] is task
+    release.set()
+    await task
+
+    expected_fetches = 2
+    assert fetch_count == expected_fetches
+    assert [call.args for call in probe.await_args_list] == [
+        (TEST_SERIAL_1, 1_000_000),
+        (TEST_SERIAL_1, 1_020_000),
+    ]
+    assert received == (
+        [{TEST_SERIAL_1: old}, {TEST_SERIAL_1: newer}]
+        if first_has_record
+        else [{TEST_SERIAL_1: newer}]
+    )
+    assert not api._history_probe_tasks
+    assert not api._history_activity_timestamps
+
+
+@pytest.mark.anyio
+async def test_stop_cancels_pending_history_activity(
     api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Live history requests use RVH's voice filter and null page token."""
-    request = AsyncMock(return_value=(None, object()))
-    monkeypatch.setattr(api._http_wrapper, "session_request", request)
-    monkeypatch.setattr(
-        api._http_wrapper, "response_to_json", AsyncMock(return_value={})
-    )
+    """Shutdown cancels both the probe and its shared history request."""
+    received = _subscribe(api)
+    started = asyncio.Event()
+    cancelled = asyncio.Event()
 
-    await api._request_voice_history(100, 200)
+    async def fetch() -> dict[str, AmazonVocalRecord]:
+        started.set()
+        try:
+            await asyncio.Event().wait()
+        finally:
+            cancelled.set()
+        return {}
 
-    kwargs = request.await_args.kwargs
-    assert kwargs["method"] == HTTPMethod.POST
-    assert kwargs["url"].path.endswith("/rvh/customer-history-records-v2")
-    assert dict(kwargs["url"].query) == {
-        "startTime": "100",
-        "endTime": "200",
-        "recordType": "VOICE_HISTORY",
-        "maxRecordSize": str(api_module.HISTORY_MAX_RECORD_SIZE),
-    }
-    assert kwargs["input_data"] == {"previousRequestToken": None}
-    assert kwargs["json_data"] is True
+    monkeypatch.setattr(api_module, "HISTORY_PROBE_DELAY_SECONDS", 0)
+    monkeypatch.setattr(api._history_handler, "get_vocal_history", fetch)
+    payload = {"dopplerId": {"deviceSerialNumber": TEST_SERIAL_1}}
+    await api._handle_eq_event_as_history_proxy(payload)
+    await started.wait()
+    await api._handle_eq_event_as_history_proxy(payload)
+    await api.stop_http2_processing()
+
+    assert cancelled.is_set()
+    assert not received
+    assert not api._history_probe_tasks
+    assert not api._history_activity_timestamps
+    assert api._history_fetch_task is None
