@@ -219,12 +219,45 @@ async def test_stop_cancels_pending_history_activity(
     monkeypatch.setattr(api._history_handler, "get_vocal_history", fetch)
     payload = {"dopplerId": {"deviceSerialNumber": TEST_SERIAL_1}}
     await api._handle_eq_event_as_history_proxy(payload)
+    task = api._history_probe_tasks[TEST_SERIAL_1]
     await started.wait()
     await api._handle_eq_event_as_history_proxy(payload)
     await api.stop_http2_processing()
 
+    assert task.cancelled()
     assert cancelled.is_set()
     assert not received
     assert not api._history_probe_tasks
     assert not api._history_activity_timestamps
     assert api._history_fetch_task is None
+
+
+@pytest.mark.anyio
+async def test_unexpected_probe_error_is_logged_and_task_cleaned_up(
+    api: AmazonEchoApi,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Unexpected background failures are logged with the originating serial."""
+    received = _subscribe(api)
+    monkeypatch.setattr(api_module, "HISTORY_PROBE_DELAY_SECONDS", 0)
+    monkeypatch.setattr(
+        api._history_handler,
+        "get_vocal_history",
+        AsyncMock(side_effect=RuntimeError("unexpected history failure")),
+    )
+
+    await api._handle_eq_event_as_history_proxy(
+        {"dopplerId": {"deviceSerialNumber": TEST_SERIAL_1}}
+    )
+    task = api._history_probe_tasks[TEST_SERIAL_1]
+    await task
+
+    assert task.exception() is None
+    assert not received
+    assert not api._history_probe_tasks
+    assert not api._history_activity_timestamps
+    assert (
+        f"Unexpected history probe failure for EQ serial={TEST_SERIAL_1}" in caplog.text
+    )
+    assert "RuntimeError: unexpected history failure" in caplog.text

@@ -297,3 +297,34 @@ async def test_rvh_request_parameters(
     }
     assert kwargs["input_data"] == {"previousRequestToken": None}
     assert kwargs["json_data"] is True
+
+
+@pytest.mark.parametrize(
+    ("utterance_type", "record_type", "expected_type"),
+    [
+        (123, None, "123"),
+        (["GENERAL"], "GENERAL", "['GENERAL']"),
+        ({"type": "GENERAL"}, ["GENERAL"], "{'type': 'GENERAL'}"),
+        (None, "GENERAL", "GENERAL"),
+        ("", "", "Unknown"),
+    ],
+)
+def test_parser_handles_non_string_history_types(
+    utterance_type: object, record_type: object, expected_type: str
+) -> None:
+    """Malformed type metadata cannot prevent this or other devices updating."""
+    malformed = _api_record(TEST_SERIAL_1, 100, command="what time is it")
+    malformed["utteranceType"] = utterance_type
+    malformed["recordType"] = record_type
+    records = AmazonHistoryHandler._parse_voice_history(
+        {
+            "customerHistoryRecords": [
+                malformed,
+                _api_record(TEST_SERIAL_2, 200, command="what's the date"),
+            ]
+        }
+    )
+
+    assert records[TEST_SERIAL_1].history_type == expected_type
+    assert records[TEST_SERIAL_1].title == "what time is it"
+    assert records[TEST_SERIAL_2].title == "what's the date"

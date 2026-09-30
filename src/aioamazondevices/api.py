@@ -463,6 +463,10 @@ class AmazonEchoApi:
             raise
         except (AmazonError, TimeoutError):
             _LOGGER.exception("History probe failed for EQ serial=%s", serial)
+        except Exception:  # noqa: BLE001 - log failures at the background task boundary
+            _LOGGER.exception(
+                "Unexpected history probe failure for EQ serial=%s", serial
+            )
 
     async def _shared_vocal_history_fetch(self) -> dict[str, AmazonVocalRecord]:
         """Share an in-flight history request among simultaneous Echo probes."""
