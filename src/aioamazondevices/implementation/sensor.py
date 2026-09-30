@@ -182,10 +182,7 @@ class AmazonSensorHandler:
                 device.sensors = sensors
                 if reachability_sensor := sensors.get("reachability"):
                     device.online = reachability_sensor.value == "OK"
-                else:
-                    device.online = False
             else:
-                device.online = False
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
 
