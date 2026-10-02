@@ -205,3 +205,20 @@ This package was created with
 [Copier](https://copier.readthedocs.io/) and the
 [browniebroke/pypackage-template](https://github.com/browniebroke/pypackage-template)
 project template.
+
+### Separate announcement display text
+
+Announcements use the spoken message as the display text by default. To change
+only the screen content, pass the optional keyword argument `display_text`:
+
+```python
+await api.call_alexa_announcement(
+    device,
+    "Eksplifai version 1 32 0 is ready.",
+    display_text="Xplify version 1.32.0 is ready.",
+)
+```
+
+Omitting `display_text`, or passing `None`, preserves the existing behavior.
+An empty string requests an empty display body. The display title remains unchanged.
+This option uses plain text and does not change speech speed or enable SSML.

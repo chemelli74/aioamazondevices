@@ -116,7 +116,12 @@ class AmazonSequenceHandler:
         # then wrap in parallel node if for different devices
         for _, group_iter in groupby(
             sequences,
-            key=lambda x: (x.message_type, x.message_body, x.music_provider_id),
+            key=lambda x: (
+                x.message_type,
+                x.message_body,
+                x.music_provider_id,
+                x.display_text,
+            ),
         ):
             group = list(group_iter)
             if len(group) > 1 and len(
@@ -135,6 +140,8 @@ class AmazonSequenceHandler:
         message_type: str,
         message_body: str | float | None = None,
         music_provider_id: str | None = None,
+        *,
+        display_text: str | None = None,
     ) -> dict[str, Any]:
         """Build operation node JSON payload for message."""
         if not self._session_state_data.login_stored_data:
@@ -189,7 +196,9 @@ class AmazonSequenceHandler:
                         "locale": self._session_state_data.language,
                         "display": {
                             "title": "Home Assistant",
-                            "body": message_body,
+                            "body": message_body
+                            if display_text is None
+                            else display_text,
                         },
                         "speak": {
                             "type": "text",
@@ -265,10 +274,16 @@ class AmazonSequenceHandler:
         message_type: str,
         message_body: str | float | None = None,
         music_provider_id: str | None = None,
+        *,
+        display_text: str | None = None,
     ) -> None:
         """Parse and enqueue message to specific device."""
         node = self._build_operation_node(
-            device, message_type, message_body, music_provider_id
+            device,
+            message_type,
+            message_body,
+            music_provider_id,
+            display_text=display_text,
         )
         await self._enqueue_sequence(
             AmazonSequenceNode(
@@ -277,6 +292,7 @@ class AmazonSequenceHandler:
                 music_provider_id=music_provider_id,
                 device=device,
                 operation_node=node,
+                display_text=display_text,
             )
         )
 
