@@ -21,6 +21,12 @@ from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.implementation.todo import AmazonToDoHandler
 
 from . import __version__
+from .const.history import (
+    HISTORY_PROBE_ATTEMPTS,
+    HISTORY_PROBE_DELAY_SECONDS,
+    HISTORY_RETRY_DELAY_SECONDS,
+    HISTORY_STALE_FUDGE_MS,
+)
 from .const.http import (
     DEFAULT_SITE,
 )
@@ -29,7 +35,7 @@ from .const.metadata import (
     VOLUME_MAX,
     VOLUME_MIN,
 )
-from .exceptions import NoOnlineDevicesError
+from .exceptions import AmazonError, NoOnlineDevicesError
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
 from .implementation.history import AmazonHistoryHandler
@@ -145,6 +151,12 @@ class AmazonEchoApi:
         self._dnd_initialized: bool = False
         self._dnd_lock = asyncio.Lock()
         self._http2_client: AmazonHTTP2Client | None = None
+        self._history_probe_tasks: dict[str, asyncio.Task[None]] = {}
+        self._history_activity_timestamps: dict[str, int] = {}
+        self._last_emitted_history: dict[str, int] = {}
+        self._history_fetch_task: asyncio.Task[dict[str, AmazonVocalRecord]] | None = (
+            None
+        )
 
         # force initial refresh
         initial_time = datetime.now(UTC) - timedelta(days=2)
@@ -309,6 +321,17 @@ class AmazonEchoApi:
 
     async def stop_http2_processing(self) -> None:
         """Stop HTTP2 background processing."""
+        tasks = list(self._history_probe_tasks.values())
+        for task in tasks:
+            task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+        self._history_probe_tasks.clear()
+        self._history_activity_timestamps.clear()
+        if self._history_fetch_task is not None:
+            self._history_fetch_task.cancel()
+            await asyncio.gather(self._history_fetch_task, return_exceptions=True)
+            self._history_fetch_task = None
         if self._http2_client:
             await self._http2_client.stop_processing()
             self._http2_client = None
@@ -322,7 +345,7 @@ class AmazonEchoApi:
             case AmazonPushMessage.VolumeChange.value:
                 await self._handle_volume_change_event(payload)
             case AmazonPushMessage.EqualizerStateChange.value:
-                await self._handle_eq_event_as_history_proxy()
+                await self._handle_eq_event_as_history_proxy(payload)
             case AmazonPushMessage.AudioPlayerState.value:
                 await self._handle_audio_player_state_event()
             case AmazonPushMessage.ItemChange.value:
@@ -360,12 +383,98 @@ class AmazonEchoApi:
 
         await self._emit_volume_state_event()
 
-    async def _handle_eq_event_as_history_proxy(self) -> None:
+    async def _handle_eq_event_as_history_proxy(self, payload: dict[str, Any]) -> None:
         if not self.on_history_event.frozen:
             _LOGGER.debug("No vocal history subscribers, skipping fetch")
             return
-        vocal_history = await self._history_handler.get_vocal_history()
-        await self._emit_history_event(vocal_history)
+        serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
+        destination_user_id = payload.get("destinationUserId")
+
+        if not serial:
+            _LOGGER.debug("EQ history proxy: missing device serial, skipping")
+            return
+
+        _LOGGER.debug(
+            "EQ history proxy: serial=%s user=%s",
+            serial,
+            destination_user_id,
+        )
+
+        # Preserve newer activity while one probe is already running.
+        activity_timestamp_ms = int(datetime.now(UTC).timestamp() * 1000)
+        self._history_activity_timestamps[serial] = activity_timestamp_ms
+        if (task := self._history_probe_tasks.get(serial)) and not task.done():
+            return
+        self._history_probe_tasks[serial] = asyncio.create_task(
+            self._run_history_probes(serial)
+        )
+
+    async def _run_history_probes(self, serial: str) -> None:
+        """Probe the latest activity without overlapping tasks for one device."""
+        try:
+            while True:
+                activity_timestamp_ms = self._history_activity_timestamps[serial]
+                await self._probe_vocal_history(serial, activity_timestamp_ms)
+                if self._history_activity_timestamps[serial] <= activity_timestamp_ms:
+                    return
+        finally:
+            if self._history_probe_tasks.get(serial) is asyncio.current_task():
+                self._history_probe_tasks.pop(serial, None)
+                self._history_activity_timestamps.pop(serial, None)
+
+    async def _probe_vocal_history(
+        self, serial: str, activity_timestamp_ms: int
+    ) -> None:
+        """Wait for a fresh history record for the Echo that sent the EQ push."""
+        try:
+            await asyncio.sleep(HISTORY_PROBE_DELAY_SECONDS)
+            for attempt in range(1, HISTORY_PROBE_ATTEMPTS + 1):
+                if not self.on_history_event.frozen:
+                    return
+
+                # All Echo candidates in this round can examine one response.
+                vocal_history = await self._shared_vocal_history_fetch()
+                record = vocal_history.get(serial)
+                if (
+                    record is not None
+                    and record.timestamp
+                    >= activity_timestamp_ms - HISTORY_STALE_FUDGE_MS
+                    and record.timestamp > self._last_emitted_history.get(serial, 0)
+                ):
+                    self._last_emitted_history[serial] = record.timestamp
+                    _LOGGER.debug(
+                        "Emitting history for EQ serial=%s timestamp=%s type=%s",
+                        serial,
+                        record.timestamp,
+                        record.history_type,
+                    )
+                    await self._emit_history_event({serial: record})
+                    return
+
+                _LOGGER.debug(
+                    "No fresh completed history for EQ serial=%s (attempt %s/%s)",
+                    serial,
+                    attempt,
+                    HISTORY_PROBE_ATTEMPTS,
+                )
+                if attempt < HISTORY_PROBE_ATTEMPTS:
+                    await asyncio.sleep(HISTORY_RETRY_DELAY_SECONDS)
+        except asyncio.CancelledError:
+            raise
+        except (AmazonError, TimeoutError):
+            _LOGGER.exception("History probe failed for EQ serial=%s", serial)
+        except Exception:  # noqa: BLE001 - log failures at the background task boundary
+            _LOGGER.exception(
+                "Unexpected history probe failure for EQ serial=%s", serial
+            )
+
+    async def _shared_vocal_history_fetch(self) -> dict[str, AmazonVocalRecord]:
+        """Share an in-flight history request among simultaneous Echo probes."""
+        if self._history_fetch_task is None or self._history_fetch_task.done():
+            self._history_fetch_task = asyncio.create_task(
+                self._history_handler.get_vocal_history()
+            )
+        return await asyncio.shield(self._history_fetch_task)
 
     async def _handle_audio_player_state_event(self) -> None:
         if not self._device_handler.devices:
@@ -583,12 +692,17 @@ class AmazonEchoApi:
             await self.on_todo_event.send(list_event)
 
     async def sync_history_state(self) -> dict[str, AmazonVocalRecord]:
-        """Sync history state.
-
-        This will be called at startup to sync history state of all devices
-        and can be called later to refresh history state.
-        """
-        return await self._history_handler.get_vocal_history()
+        """Load the latest command or reply per device as a startup baseline."""
+        target_serials = {
+            serial
+            for serial, device in self._device_handler.devices.items()
+            if device.voice_control_supported
+        }
+        latest = await self._history_handler.get_startup_vocal_history(target_serials)
+        self._last_emitted_history.update(
+            (serial, record.timestamp) for serial, record in latest.items()
+        )
+        return latest
 
     async def _emit_history_event(
         self, vocal_history: dict[str, AmazonVocalRecord]
