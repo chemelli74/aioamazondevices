@@ -76,7 +76,6 @@ class AmazonDevice:
     endpoint_id: str | None
     sensors: dict[str, AmazonDeviceSensor]
     notifications_supported: bool
-    notifications: dict[str, AmazonSchedule]
     media_player_supported: bool
     communication_settings: dict[str, str]
     voice_control_supported: bool
