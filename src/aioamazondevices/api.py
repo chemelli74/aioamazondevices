@@ -23,7 +23,6 @@ from aioamazondevices.implementation.todo import AmazonToDoHandler
 from . import __version__
 from .const.history import (
     HISTORY_PROBE_ATTEMPTS,
-    HISTORY_PROBE_DELAY_SECONDS,
     HISTORY_RETRY_DELAY_SECONDS,
     HISTORY_STALE_FUDGE_MS,
 )
@@ -321,6 +320,9 @@ class AmazonEchoApi:
 
     async def stop_http2_processing(self) -> None:
         """Stop HTTP2 background processing."""
+        if self._http2_client:
+            await self._http2_client.stop_processing()
+            self._http2_client = None
         tasks = list(self._history_probe_tasks.values())
         for task in tasks:
             task.cancel()
@@ -332,9 +334,6 @@ class AmazonEchoApi:
             self._history_fetch_task.cancel()
             await asyncio.gather(self._history_fetch_task, return_exceptions=True)
             self._history_fetch_task = None
-        if self._http2_client:
-            await self._http2_client.stop_processing()
-            self._http2_client = None
 
     async def _http2_push_event_handler(
         self, event_type: str, payload: dict[str, Any]
@@ -427,7 +426,6 @@ class AmazonEchoApi:
     ) -> None:
         """Wait for a fresh history record for the Echo that sent the EQ push."""
         try:
-            await asyncio.sleep(HISTORY_PROBE_DELAY_SECONDS)
             for attempt in range(1, HISTORY_PROBE_ATTEMPTS + 1):
                 if not self.on_history_event.frozen:
                     return
@@ -692,17 +690,12 @@ class AmazonEchoApi:
             await self.on_todo_event.send(list_event)
 
     async def sync_history_state(self) -> dict[str, AmazonVocalRecord]:
-        """Load the latest command or reply per device as a startup baseline."""
-        target_serials = {
-            serial
-            for serial, device in self._device_handler.devices.items()
-            if device.voice_control_supported
-        }
-        latest = await self._history_handler.get_startup_vocal_history(target_serials)
-        self._last_emitted_history.update(
-            (serial, record.timestamp) for serial, record in latest.items()
-        )
-        return latest
+        """Sync history state.
+
+        This will be called at startup to sync history state of all devices
+        and can be called later to refresh history state.
+        """
+        return await self._history_handler.get_vocal_history()
 
     async def _emit_history_event(
         self, vocal_history: dict[str, AmazonVocalRecord]

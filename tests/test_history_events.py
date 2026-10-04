@@ -93,7 +93,6 @@ async def test_probe_retries_until_matching_reply_and_deduplicates(
         ]
     )
     monkeypatch.setattr(api, "_shared_vocal_history_fetch", fetch)
-    monkeypatch.setattr(api_module, "HISTORY_PROBE_DELAY_SECONDS", 0)
     monkeypatch.setattr(api_module, "HISTORY_RETRY_DELAY_SECONDS", 0)
 
     await api._probe_vocal_history(TEST_SERIAL_1, 1_000_000)
@@ -112,7 +111,7 @@ async def test_probe_retries_until_matching_reply_and_deduplicates(
 async def test_simultaneous_probes_share_history_request(
     api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Concurrent Echo probes await one in-flight RVH fetch."""
+    """Concurrent Echo probes await one in-flight RAH fetch."""
     started = asyncio.Event()
     release = asyncio.Event()
     record = _record(100)
@@ -168,7 +167,6 @@ async def test_push_during_probe_runs_again_for_latest_activity(
         datetime.fromtimestamp(1020, UTC),
     ]
     monkeypatch.setattr(api_module, "datetime", clock)
-    monkeypatch.setattr(api_module, "HISTORY_PROBE_DELAY_SECONDS", 0)
     monkeypatch.setattr(api_module, "HISTORY_PROBE_ATTEMPTS", 1)
     monkeypatch.setattr(api._history_handler, "get_vocal_history", fetch)
     probe = AsyncMock(wraps=api._probe_vocal_history)
@@ -215,7 +213,6 @@ async def test_stop_cancels_pending_history_activity(
             cancelled.set()
         return {}
 
-    monkeypatch.setattr(api_module, "HISTORY_PROBE_DELAY_SECONDS", 0)
     monkeypatch.setattr(api._history_handler, "get_vocal_history", fetch)
     payload = {"dopplerId": {"deviceSerialNumber": TEST_SERIAL_1}}
     await api._handle_eq_event_as_history_proxy(payload)
@@ -240,7 +237,6 @@ async def test_unexpected_probe_error_is_logged_and_task_cleaned_up(
 ) -> None:
     """Unexpected background failures are logged with the originating serial."""
     received = _subscribe(api)
-    monkeypatch.setattr(api_module, "HISTORY_PROBE_DELAY_SECONDS", 0)
     monkeypatch.setattr(
         api._history_handler,
         "get_vocal_history",
@@ -261,3 +257,54 @@ async def test_unexpected_probe_error_is_logged_and_task_cleaned_up(
         f"Unexpected history probe failure for EQ serial={TEST_SERIAL_1}" in caplog.text
     )
     assert "RuntimeError: unexpected history failure" in caplog.text
+
+
+@pytest.mark.anyio
+async def test_probe_expires_without_fresh_history(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Missing or stale history is retried a bounded number of times."""
+    received = _subscribe(api)
+    fetch = AsyncMock(side_effect=[{}, {TEST_SERIAL_1: _record(1)}] * 2)
+    monkeypatch.setattr(api, "_shared_vocal_history_fetch", fetch)
+    monkeypatch.setattr(api_module, "HISTORY_RETRY_DELAY_SECONDS", 0)
+
+    await api._probe_vocal_history(TEST_SERIAL_1, 1_000_000)
+
+    assert fetch.await_count == api_module.HISTORY_PROBE_ATTEMPTS
+    assert not received
+    assert not api._last_emitted_history
+
+
+@pytest.mark.anyio
+async def test_shutdown_cancels_probe_created_while_stream_stops(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A final push during stream shutdown is included in task cancellation."""
+    received = _subscribe(api)
+    started = asyncio.Event()
+
+    async def fetch() -> dict[str, AmazonVocalRecord]:
+        started.set()
+        await asyncio.Event().wait()
+        return {}
+
+    async def stop_stream() -> None:
+        await api._handle_eq_event_as_history_proxy(
+            {"dopplerId": {"deviceSerialNumber": TEST_SERIAL_1}}
+        )
+        await started.wait()
+
+    monkeypatch.setattr(api._history_handler, "get_vocal_history", fetch)
+    client = Mock()
+    client.stop_processing = AsyncMock(side_effect=stop_stream)
+    monkeypatch.setattr(api, "_http2_client", client)
+
+    await api.stop_http2_processing()
+
+    client.stop_processing.assert_awaited_once()
+    assert api._http2_client is None
+    assert not api._history_probe_tasks
+    assert not api._history_activity_timestamps
+    assert api._history_fetch_task is None
+    assert not received
