@@ -222,7 +222,12 @@ class AmazonHistoryHandler:
         refreshed, _ = await self._http_wrapper.refresh_data(REFRESH_ACCESS_TOKEN)
         if not refreshed:
             _LOGGER.warning("Access token refresh failed before history sync")
-        access_token = self._session_state_data.login_stored_data[REFRESH_ACCESS_TOKEN]
+        access_token = self._session_state_data.login_stored_data.get(
+            REFRESH_ACCESS_TOKEN
+        )
+        if not access_token:
+            _LOGGER.warning("No access token available, skipping history sync")
+            return {}
         now_ms = int(datetime.now(UTC).timestamp() * 1000)
         start_ms = now_ms - HISTORY_STARTUP_LOOKBACK_MS
         end_ms = now_ms
