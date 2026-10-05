@@ -181,7 +181,6 @@ class AmazonSequenceNode:
     music_provider_id: str | None
     device: AmazonDevice
     operation_node: dict[str, Any]
-    display_text: str | None = None
 
 
 @dataclass

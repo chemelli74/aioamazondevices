@@ -116,12 +116,7 @@ class AmazonSequenceHandler:
         # then wrap in parallel node if for different devices
         for _, group_iter in groupby(
             sequences,
-            key=lambda x: (
-                x.message_type,
-                x.message_body,
-                x.music_provider_id,
-                x.display_text,
-            ),
+            key=lambda x: (x.message_type, x.message_body, x.music_provider_id),
         ):
             group = list(group_iter)
             if len(group) > 1 and len(
@@ -140,10 +135,12 @@ class AmazonSequenceHandler:
         message_type: str,
         message_body: str | float | None = None,
         music_provider_id: str | None = None,
-        *,
         display_text: str | None = None,
     ) -> dict[str, Any]:
-        """Build operation node JSON payload for message."""
+        """Build operation node JSON payload for message.
+
+        For announcements, an omitted, None, or empty display_text uses message_body.
+        """
         if not self._session_state_data.login_stored_data:
             _LOGGER.warning("No login data available, cannot send message")
             raise CannotConnect(
@@ -196,9 +193,7 @@ class AmazonSequenceHandler:
                         "locale": self._session_state_data.language,
                         "display": {
                             "title": "Home Assistant",
-                            "body": message_body
-                            if display_text is None
-                            else display_text,
+                            "body": display_text or message_body,
                         },
                         "speak": {
                             "type": "text",
@@ -274,10 +269,12 @@ class AmazonSequenceHandler:
         message_type: str,
         message_body: str | float | None = None,
         music_provider_id: str | None = None,
-        *,
         display_text: str | None = None,
     ) -> None:
-        """Parse and enqueue message to specific device."""
+        """Parse and enqueue message to specific device.
+
+        The optional display_text changes only announcement screen text.
+        """
         node = self._build_operation_node(
             device,
             message_type,
@@ -292,7 +289,6 @@ class AmazonSequenceHandler:
                 music_provider_id=music_provider_id,
                 device=device,
                 operation_node=node,
-                display_text=display_text,
             )
         )
 
