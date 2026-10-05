@@ -24,7 +24,6 @@ from . import __version__
 from .const.history import (
     HISTORY_PROBE_ATTEMPTS,
     HISTORY_RETRY_DELAY_SECONDS,
-    HISTORY_STALE_FUDGE_MS,
 )
 from .const.http import (
     DEFAULT_SITE,
@@ -413,7 +412,7 @@ class AmazonEchoApi:
         try:
             while True:
                 activity_timestamp_ms = self._history_activity_timestamps[serial]
-                await self._probe_vocal_history(serial, activity_timestamp_ms)
+                await self._probe_vocal_history(serial)
                 if self._history_activity_timestamps[serial] <= activity_timestamp_ms:
                     return
         finally:
@@ -421,9 +420,7 @@ class AmazonEchoApi:
                 self._history_probe_tasks.pop(serial, None)
                 self._history_activity_timestamps.pop(serial, None)
 
-    async def _probe_vocal_history(
-        self, serial: str, activity_timestamp_ms: int
-    ) -> None:
+    async def _probe_vocal_history(self, serial: str) -> None:
         """Wait for a fresh history record for the Echo that sent the EQ push."""
         try:
             for attempt in range(1, HISTORY_PROBE_ATTEMPTS + 1):
@@ -435,8 +432,6 @@ class AmazonEchoApi:
                 record = vocal_history.get(serial)
                 if (
                     record is not None
-                    and record.timestamp
-                    >= activity_timestamp_ms - HISTORY_STALE_FUDGE_MS
                     and record.timestamp > self._last_emitted_history.get(serial, 0)
                 ):
                     self._last_emitted_history[serial] = record.timestamp
@@ -695,7 +690,13 @@ class AmazonEchoApi:
         This will be called at startup to sync history state of all devices
         and can be called later to refresh history state.
         """
-        return await self._history_handler.get_vocal_history()
+        history = await self._history_handler.get_vocal_history()
+        # Use Amazon record timestamps, since EQ pushes can arrive much later.
+        for serial, record in history.items():
+            self._last_emitted_history[serial] = max(
+                record.timestamp, self._last_emitted_history.get(serial, 0)
+            )
+        return history
 
     async def _emit_history_event(
         self, vocal_history: dict[str, AmazonVocalRecord]
