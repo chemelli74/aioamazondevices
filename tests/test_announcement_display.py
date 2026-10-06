@@ -19,22 +19,24 @@ from aioamazondevices.structures import (
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    ("display_text", "argument_style", "expected_display"),
+    ("args", "kwargs", "expected_display"),
     [
-        pytest.param(None, "omitted", "Doctor Smith", id="omitted"),
-        pytest.param(None, "keyword", "Doctor Smith", id="none-keyword"),
-        pytest.param(None, "positional", "Doctor Smith", id="none-positional"),
-        pytest.param("", "keyword", "Doctor Smith", id="empty-keyword"),
-        pytest.param("", "positional", "Doctor Smith", id="empty-positional"),
-        pytest.param("Dr. Smith", "keyword", "Dr. Smith", id="override-keyword"),
-        pytest.param("Dr. Smith", "positional", "Dr. Smith", id="override-positional"),
+        pytest.param((), {}, "Doctor Smith", id="omitted"),
+        pytest.param((), {"display_text": None}, "Doctor Smith", id="none-keyword"),
+        pytest.param((None,), {}, "Doctor Smith", id="none-positional"),
+        pytest.param((), {"display_text": ""}, "Doctor Smith", id="empty-keyword"),
+        pytest.param(("",), {}, "Doctor Smith", id="empty-positional"),
+        pytest.param(
+            (), {"display_text": "Dr. Smith"}, "Dr. Smith", id="override-keyword"
+        ),
+        pytest.param(("Dr. Smith",), {}, "Dr. Smith", id="override-positional"),
     ],
 )
 async def test_announcement_display_text(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
-    display_text: str | None,
-    argument_style: str,
+    args: tuple[str | None, ...],
+    kwargs: dict[str, str | None],
     expected_display: str,
 ) -> None:
     """Display overrides and defaults preserve speech, title, and target devices."""
@@ -47,12 +49,7 @@ async def test_announcement_display_text(
         device, AmazonSequenceType.Announcement, spoken
     )
     with patch.object(handler, "_enqueue_sequence", new_callable=AsyncMock) as enqueue:
-        if argument_style == "omitted":
-            await api.call_alexa_announcement(device, spoken)
-        elif argument_style == "positional":
-            await api.call_alexa_announcement(device, spoken, display_text)
-        else:
-            await api.call_alexa_announcement(device, spoken, display_text=display_text)
+        await api.call_alexa_announcement(device, spoken, *args, **kwargs)
     node = enqueue.call_args.args[0]
     expected = original
     expected["operationPayload"]["content"][0]["display"]["body"] = expected_display
@@ -64,56 +61,62 @@ async def test_announcement_display_text(
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize("method", ["send_message", "_build_operation_node"])
-async def test_sequence_display_text_positional_argument(
+async def test_send_message_display_text_positional_argument(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
-    method: str,
 ) -> None:
-    """Sequence methods accept display text after the music provider."""
+    """The message sender accepts display text after the music provider."""
     api._session_state_data.login_stored_data = {"test": True}
     handler = api._sequence_handler
     device = make_device("first")
     device.device_cluster_members = {device.serial_number: device.device_type}
-    if method == "_build_operation_node":
-        operation = handler._build_operation_node(
-            device, AmazonSequenceType.Announcement, "Doctor Smith", None, "Dr. Smith"
+    with patch.object(handler, "_enqueue_sequence", new_callable=AsyncMock) as enqueue:
+        await handler.send_message(
+            device,
+            AmazonSequenceType.Announcement,
+            "Doctor Smith",
+            None,
+            "Dr. Smith",
         )
-    else:
-        with patch.object(
-            handler, "_enqueue_sequence", new_callable=AsyncMock
-        ) as enqueue:
-            await handler.send_message(
-                device,
-                AmazonSequenceType.Announcement,
-                "Doctor Smith",
-                None,
-                "Dr. Smith",
-            )
-        operation = enqueue.call_args.args[0].operation_node
+    operation = enqueue.call_args.args[0].operation_node
+    content = operation["operationPayload"]["content"][0]
+    assert content["display"]["body"] == "Dr. Smith"
+    assert content["speak"] == {"type": "text", "value": "Doctor Smith"}
+
+
+@pytest.mark.usefixtures("anyio_backend")
+def test_build_operation_node_display_text_positional_argument(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+) -> None:
+    """Operation construction accepts display text after the music provider."""
+    api._session_state_data.login_stored_data = {"test": True}
+    handler = api._sequence_handler
+    device = make_device("first")
+    device.device_cluster_members = {device.serial_number: device.device_type}
+    operation = handler._build_operation_node(
+        device, AmazonSequenceType.Announcement, "Doctor Smith", None, "Dr. Smith"
+    )
     content = operation["operationPayload"]["content"][0]
     assert content["display"]["body"] == "Dr. Smith"
     assert content["speak"] == {"type": "text", "value": "Doctor Smith"}
 
 
 @pytest.mark.parametrize(
-    ("first_display", "second_display", "second_serial", "expected_count"),
+    ("first_display", "second_display"),
     [
-        (None, None, "second", 1),
-        ("Dr. Smith", "Dr. Smith", "second", 1),
-        ("Dr. Smith", "Other", "second", 1),
-        (None, "Dr. Smith", "second", 1),
-        ("Dr. Smith", "Other", "first", 2),
+        (None, None),
+        ("Dr. Smith", "Dr. Smith"),
+        ("Dr. Smith", "Other"),
+        (None, "Dr. Smith"),
     ],
 )
 def test_batch_preserves_display_text(
     make_device: Callable[..., AmazonDevice],
     first_display: str | None,
     second_display: str | None,
-    second_serial: str,
-    expected_count: int,
 ) -> None:
-    """Parallel groups preserve each display body and do not combine the same device."""
+    """Parallel groups preserve each display body for different devices."""
     nodes = [
         AmazonSequenceNode(
             message_type=AmazonSequenceType.Announcement,
@@ -124,13 +127,29 @@ def test_batch_preserves_display_text(
         )
         for serial, display in [
             ("first", first_display),
-            (second_serial, second_display),
+            ("second", second_display),
         ]
     ]
     handler = object.__new__(AmazonSequenceHandler)
     result = list(handler._optimise_sequence_nodes(nodes))
-    assert len(result) == expected_count
-    if expected_count == 1:
-        assert result[0]["nodesToExecute"] == [node.operation_node for node in nodes]
-    else:
-        assert result == [node.operation_node for node in nodes]
+    assert len(result) == 1
+    assert result[0]["nodesToExecute"] == [node.operation_node for node in nodes]
+
+
+def test_batch_keeps_same_device_operations_separate(
+    make_device: Callable[..., AmazonDevice],
+) -> None:
+    """Announcements for the same device remain separate operations."""
+    nodes = [
+        AmazonSequenceNode(
+            message_type=AmazonSequenceType.Announcement,
+            message_body="Doctor Smith",
+            music_provider_id=None,
+            device=make_device("first"),
+            operation_node={"display": display},
+        )
+        for display in ["Dr. Smith", "Other"]
+    ]
+    handler = object.__new__(AmazonSequenceHandler)
+    result = list(handler._optimise_sequence_nodes(nodes))
+    assert result == [node.operation_node for node in nodes]
