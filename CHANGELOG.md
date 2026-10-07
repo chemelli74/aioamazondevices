@@ -1,5 +1,17 @@
 # Changelog
 
+## v16.3.3 (2026-10-07)
+
+### Bug fixes
+
+- Update python dependencies ([`6c18d5e`](https://github.com/chemelli74/aioamazondevices/commit/6c18d5e4aeaf3838859d777ed8c2f0126084b62c))
+
+
+### Build system
+
+- Bump lower bounds, lockfile and mypy hook pins ([`ff95183`](https://github.com/chemelli74/aioamazondevices/commit/ff9518359f87959164e21594af105b7743992916))
+
+
 ## v16.3.2 (2026-10-07)
 
 ### Bug fixes
