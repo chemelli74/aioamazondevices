@@ -1,5 +1,12 @@
 # Changelog
 
+## v16.3.2 (2026-10-07)
+
+### Bug fixes
+
+- Cookie handling in aiohttp ([`f3318d1`](https://github.com/chemelli74/aioamazondevices/commit/f3318d15faee9a652427c4afe8b55e41a62babac))
+
+
 ## v16.3.1 (2026-09-30)
 
 ### Bug fixes
