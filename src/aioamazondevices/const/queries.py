@@ -98,6 +98,26 @@ fragment DeviceEndpoints on ListEndpointsResponse {
           timeOfSample
           timeOfLastChange
         }
+        ... on DetectionSensitivity {
+          detectionSensitivityValue
+          timeOfSample
+          timeOfLastChange
+        }
+        ... on EnablementState {
+          enablementStateValue
+          timeOfSample
+          timeOfLastChange
+        }
+        ... on DetectionRange {
+          detectionRangeValue
+          timeOfSample
+          timeOfLastChange
+        }
+        ... on DetectionTechnology {
+          detectionTechnologyValue
+          timeOfSample
+          timeOfLastChange
+        }
         ... on Mode {
           modeValue { value }
           timeOfSample
