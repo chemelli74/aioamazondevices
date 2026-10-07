@@ -3,8 +3,9 @@
 
 """Tests for the GraphQL driven device list."""
 
+from collections.abc import Iterator
 from typing import Any
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -56,7 +57,6 @@ def _endpoint(
     device_type: str = "ECHO_TYPE",
     model: str | None = "Echo Dot (5th Gen)",
     manufacturer: str = "Amazon",
-    features: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Build a GraphQL endpoint entry."""
     return {
@@ -70,7 +70,6 @@ def _endpoint(
             "dmsIdentifier": {"deviceType": _text(device_type)},
             "chrsIdentifier": {"entityId": f"entity-{serial_number}"},
         },
-        "features": features,
     }
 
 
@@ -99,6 +98,15 @@ def _feature(**overrides: object) -> AmazonDeviceFeature:
         "configuration": {},
     }
     return AmazonDeviceFeature(**(fields | overrides))
+
+
+@pytest.fixture(autouse=True)
+def endpoints_features() -> Iterator[AsyncMock]:
+    """Replace the endpoint features lookup, returning no features by default."""
+    with patch.object(
+        AmazonDeviceHandler, "_get_endpoints_features", AsyncMock(return_value={})
+    ) as mock:
+        yield mock
 
 
 @pytest.mark.anyio
@@ -341,8 +349,10 @@ async def test_empty_endpoint_response_raises_without_known_devices(
 
 
 @pytest.mark.anyio
-async def test_features_are_read_from_the_endpoint(api: AmazonEchoApi) -> None:
-    """Features are keyed by name and instance."""
+async def test_features_are_read_for_the_built_devices(
+    api: AmazonEchoApi, endpoints_features: AsyncMock
+) -> None:
+    """Features are keyed by name and instance, for built devices only."""
     handler = api._device_handler
     range_configuration = {
         "friendlyName": _text("Fan level"),
@@ -381,13 +391,25 @@ async def test_features_are_read_from_the_endpoint(api: AmazonEchoApi) -> None:
     _patch_sources(
         handler,
         devices_endpoints={
-            TEST_SERIAL_1: _endpoint(TEST_SERIAL_1, features=features),
+            TEST_SERIAL_1: _endpoint(TEST_SERIAL_1),
             TEST_SERIAL_AQM: _endpoint(TEST_SERIAL_AQM, device_type=DEVICE_TYPE_AQM),
+            "UNKNOWN": _endpoint("UNKNOWN"),
         },
         base_devices={TEST_SERIAL_1: _base_device(TEST_SERIAL_1)},
     )
+    endpoints_features.return_value = {
+        f"endpoint-{TEST_SERIAL_1}": {
+            "endpointId": f"endpoint-{TEST_SERIAL_1}",
+            "features": features,
+        }
+    }
 
     await handler.update_devices()
+
+    # only the devices we build are queried
+    endpoints_features.assert_awaited_once_with(
+        [f"endpoint-{TEST_SERIAL_1}", f"endpoint-{TEST_SERIAL_AQM}"]
+    )
 
     assert handler.devices[TEST_SERIAL_1].features == {
         "power": {"": _feature(supported_operations=["turnOn", "turnOff"])},
@@ -419,3 +441,29 @@ async def test_features_are_read_from_the_endpoint(api: AmazonEchoApi) -> None:
         },
     }
     assert handler.devices[TEST_SERIAL_AQM].features == {}
+
+
+@pytest.mark.anyio
+async def test_known_features_survive_a_failed_features_lookup(
+    api: AmazonEchoApi, endpoints_features: AsyncMock
+) -> None:
+    """A failed features lookup must not drop the features we already know."""
+    handler = api._device_handler
+    _patch_sources(
+        handler,
+        devices_endpoints={TEST_SERIAL_1: _endpoint(TEST_SERIAL_1)},
+        base_devices={TEST_SERIAL_1: _base_device(TEST_SERIAL_1)},
+    )
+    endpoints_features.return_value = {
+        f"endpoint-{TEST_SERIAL_1}": {
+            "features": [{"name": "power", "operations": [{"name": "turnOn"}]}],
+        }
+    }
+    await handler.update_devices()
+    known_features = handler.devices[TEST_SERIAL_1].features
+    assert known_features == {"power": {"": _feature(supported_operations=["turnOn"])}}
+
+    endpoints_features.return_value = {}
+    await handler.update_devices()
+
+    assert handler.devices[TEST_SERIAL_1].features == known_features

@@ -7,7 +7,6 @@ QUERY_DEVICE_DATA = """
 query getDevicesBaseData {
   listEndpoints(
     listEndpointsInput: {
-      latencyTolerance: LOW,
       includeHouseholdDevices: true
     }
   ) {
@@ -40,132 +39,197 @@ fragment DeviceEndpoints on ListEndpointsResponse {
       chrsIdentifier { entityId }
     }
     legacyAppliance { applianceId }
-    features {
+  }
+}
+"""
+
+QUERY_DEVICE_FEATURES = """
+fragment EndpointFeatures on Endpoint {
+  endpointId: id
+  features {
+    name
+    instance
+    properties {
       name
-      instance
-      properties {
+      type
+      accuracy
+      error { type message }
+      __typename
+      ... on Illuminance {
+        illuminanceValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on Reachability {
+        reachabilityStatusValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on DetectionState {
+        detectionStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on TemperatureSensor {
         name
-        type
-        accuracy
-        error { type message }
-        __typename
-        ... on Illuminance {
-          illuminanceValue { value }
-          timeOfSample
-          timeOfLastChange
+        value {
+          value
+          scale
         }
-        ... on Reachability {
-          reachabilityStatusValue
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on DetectionState {
-          detectionStateValue
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on TemperatureSensor {
-          name
-          value {
-            value
-            scale
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on RangeValue {
+        rangeValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ToggleState {
+        toggleStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on Power {
+        powerStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on Brightness {
+        brightnessStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on Color {
+        colorStateValue { hue saturation brightness }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on DetectionSensitivity {
+        detectionSensitivityValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on EnablementState {
+        enablementStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on DetectionRange {
+        detectionRangeValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on DetectionTechnology {
+        detectionTechnologyValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on Mode {
+        modeValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatMode {
+        thermostatModeValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on Setpoint {
+        value { value scale }
+        deviceNativeScaleValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatScheduleScheduleEnabled {
+        thermostatScheduleScheduleEnabledValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatScheduleAdaptiveRecoveryEnabled {
+        thermostatScheduleAdaptiveRecoveryEnabledValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatScheduleLastActivityType {
+        thermostatScheduleLastActivityTypeValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on AdaptiveRecoveryStatus {
+        adaptiveRecoveryStatusValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatConfigurationSetupState {
+        thermostatSetupStateValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatConfigurationTemperatureScale {
+        thermostatTemperatureScaleValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatConfigurationAllowedTemperatureRange {
+        thermostatAllowedTemperatureRangeValue {
+          heating {
+            minimum { value scale }
+            maximum { value scale }
           }
-          timeOfSample
-          timeOfLastChange
+          cooling {
+            minimum { value scale }
+            maximum { value scale }
+          }
         }
-        ... on RangeValue {
-          rangeValue { value }
-          timeOfSample
-          timeOfLastChange
+        timeOfSample
+        timeOfLastChange
+      }
+    }
+    operations { name }
+    configuration {
+      __typename
+      ... on ModeConfiguration {
+        friendlyName { value { text } }
+        order
+        modeOptions {
+          value
+          modeResources {
+            friendlyName { value { text } }
+          }
         }
-        ... on ToggleState {
-          toggleStateValue
-          timeOfSample
-          timeOfLastChange
+      }
+      ... on RangeConfiguration {
+        friendlyName { value { text } }
+        supportedRange {
+          minimumValue
+          maximumValue
+          precision
         }
-        ... on Power {
-          powerStateValue
-          timeOfSample
-          timeOfLastChange
+        unitOfMeasure { value { text } }
+        presets {
+          rangeValue
+          presetResources {
+            friendlyName { value { text } }
+          }
         }
-        ... on Brightness {
-          brightnessStateValue
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on Color {
-          colorStateValue { hue saturation brightness }
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on DetectionSensitivity {
-          detectionSensitivityValue
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on EnablementState {
-          enablementStateValue
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on DetectionRange {
-          detectionRangeValue
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on DetectionTechnology {
-          detectionTechnologyValue
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on Mode {
-          modeValue { value }
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on ThermostatMode {
-          thermostatModeValue
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on Setpoint {
-          value { value scale }
-          deviceNativeScaleValue
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on ThermostatScheduleScheduleEnabled {
-          thermostatScheduleScheduleEnabledValue { value }
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on ThermostatScheduleAdaptiveRecoveryEnabled {
-          thermostatScheduleAdaptiveRecoveryEnabledValue { value }
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on ThermostatScheduleLastActivityType {
-          thermostatScheduleLastActivityTypeValue { value }
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on AdaptiveRecoveryStatus {
-          adaptiveRecoveryStatusValue { value }
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on ThermostatConfigurationSetupState {
-          thermostatSetupStateValue { value }
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on ThermostatConfigurationTemperatureScale {
-          thermostatTemperatureScaleValue { value }
-          timeOfSample
-          timeOfLastChange
-        }
-        ... on ThermostatConfigurationAllowedTemperatureRange {
-          thermostatAllowedTemperatureRangeValue {
+      }
+      ... on ThermostatConfiguration {
+        supportedModes
+      }
+      ... on ThermostatConfigurationConfiguration {
+        supportedResetStates { value }
+        componentConfigurationConstraints {
+          supportedTerminals {
+            name
+            purpose
+          }
+          maximumStages {
+            heating
+            cooling
+            combined
+          }
+          supportedSwitchOverTypes
+          lockoutTemperature {
             heating {
               minimum { value scale }
               maximum { value scale }
@@ -174,93 +238,49 @@ fragment DeviceEndpoints on ListEndpointsResponse {
               minimum { value scale }
               maximum { value scale }
             }
+            increment { value scale }
           }
-          timeOfSample
-          timeOfLastChange
         }
+        requiredSetupInformation
+        supportedTemperatureScales
+        safetyTemperatures {
+          heating {
+            minimum { value scale }
+            maximum { value scale }
+          }
+          cooling {
+            minimum { value scale }
+            maximum { value scale }
+          }
+        }
+        minimumSetpointDifferential { value scale }
       }
-      operations { name }
-      configuration {
-        __typename
-        ... on ModeConfiguration {
-          friendlyName { value { text } }
-          order
-          modeOptions {
-            value
-            modeResources {
-              friendlyName { value { text } }
-            }
-          }
-        }
-        ... on RangeConfiguration {
-          friendlyName { value { text } }
-          supportedRange {
-            minimumValue
-            maximumValue
-            precision
-          }
-          unitOfMeasure { value { text } }
-          presets {
-            rangeValue
-            presetResources {
-              friendlyName { value { text } }
-            }
-          }
-        }
-        ... on ThermostatConfiguration {
-          supportedModes
-        }
-        ... on ThermostatConfigurationConfiguration {
-          supportedResetStates { value }
-          componentConfigurationConstraints {
-            supportedTerminals {
-              name
-              purpose
-            }
-            maximumStages {
-              heating
-              cooling
-              combined
-            }
-            supportedSwitchOverTypes
-            lockoutTemperature {
-              heating {
-                minimum { value scale }
-                maximum { value scale }
-              }
-              cooling {
-                minimum { value scale }
-                maximum { value scale }
-              }
-              increment { value scale }
-            }
-          }
-          requiredSetupInformation
-          supportedTemperatureScales
-          safetyTemperatures {
-            heating {
-              minimum { value scale }
-              maximum { value scale }
-            }
-            cooling {
-              minimum { value scale }
-              maximum { value scale }
-            }
-          }
-          minimumSetpointDifferential { value scale }
-        }
-        ... on ThermostatScheduleConfiguration {
-          supportedFanModes
-          supportsAdaptiveRecovery
-          maxEntryPerDay
-        }
-        ... on ToggleConfiguration {
-          friendlyName { value { text } }
-        }
-        ... on GenericConfiguration {
-          genericValue
-        }
+      ... on ThermostatScheduleConfiguration {
+        supportedFanModes
+        supportsAdaptiveRecovery
+        maxEntryPerDay
       }
+      ... on ToggleConfiguration {
+        friendlyName { value { text } }
+      }
+      ... on GenericConfiguration {
+        genericValue
+      }
+    }
+  }
+}
+
+
+query getEndpointFeatures($endpointIds: [String]!) {
+  listEndpoints(
+    listEndpointsInput: {
+      latencyTolerance: LOW,
+      endpointIds: $endpointIds,
+      includeHouseholdDevices: true
+    }
+  ) {
+    endpoints {
+      ...EndpointFeatures
     }
   }
 }

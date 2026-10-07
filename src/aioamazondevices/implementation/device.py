@@ -15,13 +15,14 @@ from aioamazondevices.const.devices import (
     SPEAKER_GROUP_FAMILY,
 )
 from aioamazondevices.const.http import (
+    ARRAY_WRAPPER,
     REFRESH_ACCESS_TOKEN,
     REQUEST_AGENT,
     URI_DEVICES,
     URI_NEXUS_GRAPHQL,
     URI_REBOOT,
 )
-from aioamazondevices.const.queries import QUERY_DEVICE_DATA
+from aioamazondevices.const.queries import QUERY_DEVICE_DATA, QUERY_DEVICE_FEATURES
 from aioamazondevices.exceptions import CannotRestartDevice, CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceFeature
@@ -162,23 +163,46 @@ class AmazonDeviceHandler:
 
         base_devices = await self._get_base_devices_data()
 
-        devices: dict[str, AmazonDevice] = {}
+        # serial number -> (endpoint, devices-v2 data) of the devices we want
+        wanted: dict[str, tuple[dict[str, Any], dict[str, Any] | None]] = {}
 
         for serial_number, endpoint in devices_endpoints.items():
             # Devices without devices-v2 data are built from their endpoint
             # alone, one branch per device type we support that way
             if base_device := base_devices.get(serial_number):
-                device = self._build_device(serial_number, endpoint, base_device)
+                wanted[serial_number] = (endpoint, base_device)
             elif _endpoint_device_type(endpoint) == DEVICE_TYPE_AQM:
-                device = self._build_device(serial_number, endpoint)
+                wanted[serial_number] = (endpoint, None)
             else:
                 _LOGGER.debug(
                     "Skipping endpoint without devices-v2 data: %s",
                     _endpoint_text(endpoint, "friendlyNameObject"),
                 )
-                continue
 
-            devices[serial_number] = device
+        endpoints_features = await self._get_endpoints_features(
+            [
+                endpoint_id
+                for endpoint, _ in wanted.values()
+                if (endpoint_id := endpoint.get("endpointId"))
+            ]
+        )
+
+        devices: dict[str, AmazonDevice] = {}
+
+        for serial_number, (endpoint, base_device) in wanted.items():
+            if endpoint_features := endpoints_features.get(
+                endpoint.get("endpointId", "")
+            ):
+                features = _parse_features(endpoint_features)
+            elif known_device := self._final_devices.get(serial_number):
+                # keep the last known features when the lookup fails
+                features = known_device.features
+            else:
+                features = {}
+
+            devices[serial_number] = self._build_device(
+                serial_number, endpoint, base_device, features
+            )
 
         # Speaker groups are not exposed as endpoints by GraphQL
         for serial_number, base_device in base_devices.items():
@@ -205,6 +229,7 @@ class AmazonDeviceHandler:
         serial_number: str,
         endpoint: dict[str, Any],
         base_device: dict[str, Any] | None = None,
+        features: dict[str, dict[str, AmazonDeviceFeature]] | None = None,
     ) -> AmazonDevice:
         """Build a device from its GraphQL endpoint and devices-v2 data.
 
@@ -270,7 +295,7 @@ class AmazonDeviceHandler:
             communication_settings={},
             # only devices-v2 devices can be spoken to, speaker groups aside
             voice_control_supported=bool(base) and family != SPEAKER_GROUP_FAMILY,
-            features=_parse_features(endpoint),
+            features=features or {},
         )
 
     async def _get_base_devices_data(self) -> dict[str, dict[str, Any]]:
@@ -343,6 +368,58 @@ class AmazonDeviceHandler:
             devices_endpoints[serial_number] = endpoint
 
         return devices_endpoints
+
+    async def _get_endpoints_features(
+        self, endpoint_ids: list[str]
+    ) -> dict[str, dict[str, Any]]:
+        """Retrieve the features of the given endpoints, keyed by endpoint ID."""
+        if not endpoint_ids:
+            return {}
+
+        payload = [
+            {
+                "operationName": "getEndpointFeatures",
+                "variables": {
+                    "endpointIds": endpoint_ids,
+                },
+                "query": QUERY_DEVICE_FEATURES,
+            }
+        ]
+
+        _, raw_resp = await self._http_wrapper.session_request(
+            method=HTTPMethod.POST,
+            url=URL.joinpath(
+                self._session_state_data.alexa_website_url, URI_NEXUS_GRAPHQL
+            ),
+            input_data=payload,
+            json_data=True,
+            extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
+        )
+
+        endpoints_features = await self._http_wrapper.response_to_json(
+            raw_resp, "endpoint features"
+        )
+
+        if format_graphql_error(endpoints_features):
+            # Explicit error in returned data
+            return {}
+
+        if (
+            not (arr := endpoints_features.get(ARRAY_WRAPPER))
+            or not (data := arr[0].get("data"))
+            or not (endpoints_list := data.get("listEndpoints"))
+            or not (endpoints := endpoints_list.get("endpoints"))
+        ):
+            _LOGGER.error(
+                "Malformed endpoint features data received: %s", endpoints_features
+            )
+            return {}
+
+        return {
+            endpoint["endpointId"]: endpoint
+            for endpoint in endpoints
+            if endpoint.get("endpointId")
+        }
 
     async def restart_device(self, device: AmazonDevice) -> None:
         """Restart a device."""
