@@ -11,6 +11,14 @@ from os import PathLike
 from typing import Any
 
 
+@dataclass(frozen=True, slots=True)
+class AmazonLoginContext:
+    """Non-secret context to preserve across an interactive reauthentication."""
+
+    site: str | None = None
+    device_serial_number: str | None = None
+
+
 @dataclass
 class AmazonSaveDataConfig:
     """Configuration for saving raw HTTP responses to disk (debug only)."""
