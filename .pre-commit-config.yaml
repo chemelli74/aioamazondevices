@@ -3,66 +3,66 @@ exclude: "CHANGELOG.md|.copier-answers.yml"
 default_stages: [pre-commit]
 
 repos:
-  - repo: builtin
-    hooks:
-      - id: no-commit-to-branch
-        args: ["--branch", "main"]
-      - id: check-json
-      - id: check-toml
-      - id: check-xml
-      - id: check-yaml
-      - id: detect-private-key
-  - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.12.23 # renovate: customPinnedDependency=uv,datasource=pypi
-    hooks:
-      - id: uv-lock
-        args: ["--check"]
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.10
-    hooks:
-      - id: ruff-check
-        args:
-          - --fix
-      - id: ruff-format
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.19.1
-    hooks:
-      - id: commitizen
-        stages: [commit-msg]
-  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.27.0
-    hooks:
-      - id: commitlint
-        stages: [commit-msg]
-  - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.9.9
-    hooks:
-      - id: prettier
-        args: ["--tab-width", "2"]
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.21.2
-    hooks:
-      - id: pyupgrade
-        args: [--py37-plus]
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.3
-    hooks:
-      - id: codespell
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.4.0
-    hooks:
-      - id: mypy
-        pass_filenames: false
-        additional_dependencies:
-          - aiohttp==3.14.3
-          - aiosignal==1.4.0
-          - anyio==4.15.1
-          - beautifulsoup4==4.15.0
-          - h2==4.4.1
-          - httpx==0.28.1
-          - langcodes==3.5.1
-          - multidict==6.7.1
-          - orjson==3.12.0
-          - python-dateutil==2.9.0.post0
-          - types-python-dateutil==2.9.0.20260807
-          - yarl==1.24.5
+    - repo: builtin
+      hooks:
+          - id: no-commit-to-branch
+            args: ["--branch", "main"]
+          - id: check-json
+          - id: check-toml
+          - id: check-xml
+          - id: check-yaml
+          - id: detect-private-key
+    - repo: https://github.com/astral-sh/uv-pre-commit
+      rev: 0.12.23 # renovate: customPinnedDependency=uv,datasource=pypi
+      hooks:
+          - id: uv-lock
+            args: ["--check"]
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.16.10
+      hooks:
+          - id: ruff-check
+            args:
+                - --fix
+          - id: ruff-format
+    - repo: https://github.com/commitizen-tools/commitizen
+      rev: v4.19.1
+      hooks:
+          - id: commitizen
+            stages: [commit-msg]
+    - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+      rev: v9.27.0
+      hooks:
+          - id: commitlint
+            stages: [commit-msg]
+    - repo: https://github.com/rbubley/mirrors-prettier
+      rev: v3.9.9
+      hooks:
+          - id: prettier
+            args: ["--tab-width", "2"]
+    - repo: https://github.com/asottile/pyupgrade
+      rev: v3.21.2
+      hooks:
+          - id: pyupgrade
+            args: [--py37-plus]
+    - repo: https://github.com/codespell-project/codespell
+      rev: v2.4.3
+      hooks:
+          - id: codespell
+    - repo: https://github.com/pre-commit/mirrors-mypy
+      rev: v2.4.0
+      hooks:
+          - id: mypy
+            pass_filenames: false
+            additional_dependencies:
+                - aiohttp==3.14.4
+                - aiosignal==1.4.0
+                - anyio==4.15.1
+                - beautifulsoup4==4.15.0
+                - h2==4.4.1
+                - httpx==0.28.1
+                - langcodes==3.5.1
+                - multidict==6.7.1
+                - orjson==3.12.0
+                - python-dateutil==2.9.0.post0
+                - types-python-dateutil==2.9.0.20260807
+                - yarl==1.24.5

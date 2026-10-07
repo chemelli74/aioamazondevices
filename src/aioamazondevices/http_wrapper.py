@@ -7,7 +7,7 @@ import asyncio
 import base64
 import secrets
 from http import HTTPMethod, HTTPStatus
-from http.cookies import Morsel
+from http.cookies import Morsel, SimpleCookie
 from typing import Any, cast
 
 import orjson
@@ -465,4 +465,12 @@ class AmazonHttpWrapper:
 
     async def set_cookies(self, cookies: dict[str, str], domain_url: URL) -> None:
         """Set session cookies."""
-        self._session.cookie_jar.update_cookies(cookies, domain_url)
+        # aiohttp >= 3.14.4 no longer domain-matches a leading-dot URL host
+        domain = cast("str", domain_url.host)
+        simple_cookie: SimpleCookie = SimpleCookie()
+        for name, value in cookies.items():
+            simple_cookie[name] = value
+            simple_cookie[name]["domain"] = domain
+        self._session.cookie_jar.update_cookies(
+            simple_cookie, domain_url.with_host(domain.lstrip("."))
+        )

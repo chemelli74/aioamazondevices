@@ -8,6 +8,7 @@ from http import HTTPMethod
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
+from yarl import URL
 
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.http import CSRF_COOKIE
@@ -34,3 +35,24 @@ async def test_csrf_cookie_sent_on_next_request(api: AmazonEchoApi) -> None:
         await api._http_wrapper.session_request(HTTPMethod.GET, url)
 
     assert received_csrf == [None, TEST_CSRF]
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        pytest.param("https://www.amazon.co.uk/", ["at-acbuk"], id="www"),
+        pytest.param("https://alexa.amazon.co.uk/", ["at-acbuk"], id="alexa"),
+        pytest.param("https://www.amazon.com/", [], id="other_tld"),
+    ],
+)
+async def test_set_cookies_leading_dot_domain(
+    api: AmazonEchoApi, url: str, expected: list[str]
+) -> None:
+    """Cookies set for a leading-dot domain are sent to its subdomains only."""
+    await api._http_wrapper.set_cookies(
+        {"at-acbuk": "dummy"}, URL.build(scheme="https", host=".amazon.co.uk")
+    )
+
+    cookie_jar = api._http_wrapper._session.cookie_jar
+    assert list(cookie_jar.filter_cookies(URL(url)).keys()) == expected
