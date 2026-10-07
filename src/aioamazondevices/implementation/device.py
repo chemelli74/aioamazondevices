@@ -46,7 +46,7 @@ def _endpoint_entity_id(endpoint: dict[str, Any]) -> str | None:
 
 
 def _parse_features(
-    endpoint: dict[str, Any],
+    endpoint_state: dict[str, Any],
 ) -> dict[str, dict[str, AmazonDeviceFeature]]:
     """Return the features of an endpoint, keyed by feature name and instance.
 
@@ -54,7 +54,7 @@ def _parse_features(
     only has string keys and can be serialised to JSON.
     """
     features: dict[str, dict[str, AmazonDeviceFeature]] = {}
-    for feature in endpoint.get("features") or []:
+    for feature in endpoint_state.get("features") or []:
         if not (name := feature.get("name")):
             continue
 

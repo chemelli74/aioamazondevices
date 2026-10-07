@@ -83,6 +83,21 @@ fragment DeviceEndpoints on ListEndpointsResponse {
           timeOfSample
           timeOfLastChange
         }
+        ... on Power {
+          powerStateValue
+          timeOfSample
+          timeOfLastChange
+        }
+        ... on Brightness {
+          brightnessStateValue
+          timeOfSample
+          timeOfLastChange
+        }
+        ... on Color {
+          colorStateValue { hue saturation brightness }
+          timeOfSample
+          timeOfLastChange
+        }
         ... on Mode {
           modeValue { value }
           timeOfSample
@@ -221,6 +236,9 @@ fragment DeviceEndpoints on ListEndpointsResponse {
         }
         ... on ToggleConfiguration {
           friendlyName { value { text } }
+        }
+        ... on GenericConfiguration {
+          genericValue
         }
       }
     }
