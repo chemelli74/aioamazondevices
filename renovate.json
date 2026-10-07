@@ -30,7 +30,7 @@
       "customType": "regex",
       "managerFilePatterns": [".pre-commit-config.yaml"],
       "matchStrings": [
-        "-\\s(?<depName>[A-Za-z0-9._-]+)==(?<currentValue>[^\\s]+)"
+        "\\s-\\s(?<depName>[A-Za-z0-9][A-Za-z0-9._-]*)==(?<currentValue>[^\\s#]+)"
       ],
       "datasourceTemplate": "pypi"
     }
