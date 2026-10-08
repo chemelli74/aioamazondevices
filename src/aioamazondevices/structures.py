@@ -58,6 +58,7 @@ class AmazonSchedule:
 class AmazonDeviceFeature:
     """Amazon device feature class."""
 
+    properties: list[str]
     supported_operations: list[str]
     supported_modes: list[str]
     friendly_name: str | None

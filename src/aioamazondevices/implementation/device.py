@@ -75,6 +75,11 @@ def _parse_features(
                 for operation in feature.get("operations") or []
                 if operation.get("name")
             ],
+            properties=[
+                prop["name"]
+                for prop in feature.get("properties") or []
+                if prop.get("name")
+            ],
             supported_modes=supported_modes,
             friendly_name=_endpoint_text(configuration, "friendlyName"),
             minimum_value=supported_range.get("minimumValue"),

@@ -93,6 +93,7 @@ def _feature(**overrides: object) -> AmazonDeviceFeature:
     """Build a feature with empty defaults, overriding the given fields."""
     fields: dict[str, Any] = {
         "supported_operations": [],
+        "properties": [],
         "supported_modes": [],
         "friendly_name": None,
         "minimum_value": None,
