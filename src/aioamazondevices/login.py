@@ -10,10 +10,8 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from http import HTTPMethod, HTTPStatus
 from typing import Any, cast
-from urllib.parse import parse_qs
 
 from bs4 import BeautifulSoup, Tag
-from multidict import MultiDictProxy
 from yarl import URL
 
 from .capabilities import DEVICE_CAPABILITIES
@@ -125,10 +123,13 @@ class AmazonLogin:
         if not isinstance(form, Tag):
             raise CannotAuthenticate("Unable to find form in login response")
 
-        inputs = {}
+        inputs: dict[str, str] = {}
         for field in form.find_all("input"):
             if isinstance(field, Tag) and field.get("type", "") == "hidden":
-                inputs[field["name"]] = field.get("value", "")
+                name = field.get("name")
+                value = field.get("value", "")
+                if isinstance(name, str) and isinstance(value, str):
+                    inputs[name] = value
 
         return inputs
 
@@ -145,17 +146,12 @@ class AmazonLogin:
 
     def _extract_code_from_url(self, url: URL) -> str:
         """Extract the access token from url query after login."""
-        parsed_url: dict[str, list[str]] = {}
-        if isinstance(url.query, bytes):
-            parsed_url = parse_qs(url.query.decode())
-        elif isinstance(url.query, MultiDictProxy):
-            for key, value in url.query.items():
-                parsed_url[key] = [value]
-        else:
+        code: str | None = url.query.get("openid.oa2.authorization_code")
+        if code is None:
             raise CannotAuthenticate(
                 f"Unable to extract authorization code from url: {url}"
             )
-        return parsed_url["openid.oa2.authorization_code"][0]
+        return code
 
     async def _register_device(
         self,

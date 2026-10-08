@@ -7,7 +7,7 @@ import asyncio
 import base64
 import secrets
 from http import HTTPMethod, HTTPStatus
-from http.cookies import Morsel
+from http.cookies import Morsel, SimpleCookie
 from typing import Any, cast
 
 import orjson
@@ -385,8 +385,8 @@ class AmazonHttpWrapper:
             _LOGGER.error("No response received from %s", url)
             raise CannotConnect(f"No response received from {url}")
 
-        if csrf := resp.cookies.get(CSRF_COOKIE, Morsel()).value:
-            self._csrf_cookie = csrf
+        if csrf_value := resp.cookies.get(CSRF_COOKIE, Morsel()).value:
+            self._csrf_cookie = csrf_value
             _LOGGER.debug("CSRF cookie value: <%s> [%s]", self._csrf_cookie, url)
 
         content_type: str = resp.headers.get("Content-Type", "")
@@ -465,4 +465,14 @@ class AmazonHttpWrapper:
 
     async def set_cookies(self, cookies: dict[str, str], domain_url: URL) -> None:
         """Set session cookies."""
-        self._session.cookie_jar.update_cookies(cookies, domain_url)
+        # Set an explicit domain attribute so cookies match all subdomains.
+        # aiohttp 3.14.4 changed how it handles cookies domains
+        domain = (domain_url.host or "").lstrip(".")
+        jar_cookies: SimpleCookie = SimpleCookie()
+        for name, value in cookies.items():
+            jar_cookies[name] = value
+            jar_cookies[name]["domain"] = f".{domain}"
+            jar_cookies[name]["path"] = "/"
+        self._session.cookie_jar.update_cookies(
+            jar_cookies, URL.build(scheme="https", host=domain)
+        )
