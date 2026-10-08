@@ -103,7 +103,11 @@ def _process_rendering_update(  # noqa: PLR0911
         _LOGGER.warning("Malformed rendering update node: %s", rendering_update)
         return None
 
-    push_event_type = rendering_update.get("resourceId")
+    push_event_type: str | None
+    if rendering_update.get("route") == "EventBus:AlexaMobile::FDAL":
+        push_event_type = AmazonPushMessage.SmartHome.value
+    else:
+        push_event_type = rendering_update.get("resourceId")
     if not push_event_type:
         _LOGGER.warning("Missing resourceId in update node: %s", rendering_update)
         return None
@@ -122,16 +126,13 @@ def _process_rendering_update(  # noqa: PLR0911
     device_serial = doppler_id.get("deviceSerialNumber")
 
     if not _is_known_event_type(push_event_type):
-        if rendering_update.get("route") == "EventBus:AlexaMobile::FDAL":
-            push_event_type = "SmartHome"
-        else:
-            _LOGGER.warning(
-                "Unknown HTTP2 push message from device %s: %s\n\n%s",
-                device_serial,
-                push_event_type,
-                rendering_update,
-            )
-            return None
+        _LOGGER.warning(
+            "Unknown HTTP2 push message from device %s: %s\n\n%s",
+            device_serial,
+            push_event_type,
+            rendering_update,
+        )
+        return None
 
     if (
         push_event_type == AmazonPushMessage.NotificationChange.value

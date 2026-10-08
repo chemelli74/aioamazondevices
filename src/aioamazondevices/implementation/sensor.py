@@ -46,9 +46,10 @@ def _parse_sample_timestamp(
         return None
 
 
-def _get_device_sensor_state(
+def parse_graphql_feature_to_sensor(
     endpoint: dict[str, Any], device: AmazonDevice
 ) -> dict[str, AmazonDeviceSensor]:
+    """Transform the GraphQL feature into AmazonDeviceSensor(s)."""
     device_sensors: dict[str, AmazonDeviceSensor] = {}
     serial_number = device.serial_number
     for feature in endpoint.get("features", {}):
@@ -176,7 +177,7 @@ class AmazonSensorHandler:
             if device.endpoint_id and (
                 endpoint_state := endpoint_states.get(device.endpoint_id)
             ):
-                sensors = _get_device_sensor_state(endpoint_state, device)
+                sensors = parse_graphql_feature_to_sensor(endpoint_state, device)
 
             if sensors:
                 device.sensors = sensors

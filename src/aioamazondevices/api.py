@@ -17,7 +17,10 @@ from anyio import Path
 from aioamazondevices.implementation.communication import AlexaCommunicationsHandler
 from aioamazondevices.implementation.device import AmazonDeviceHandler
 from aioamazondevices.implementation.media import AmazonMediaHandler
-from aioamazondevices.implementation.sensor import AmazonSensorHandler
+from aioamazondevices.implementation.sensor import (
+    AmazonSensorHandler,
+    parse_graphql_feature_to_sensor,
+)
 from aioamazondevices.implementation.todo import AmazonToDoHandler
 
 from . import __version__
@@ -319,8 +322,6 @@ class AmazonEchoApi:
         _LOGGER.debug("Event - %s : Payload - %s", event_type, scrub_fields(payload))
 
         match event_type:
-            case "SmartHome":
-                await self._handle_smarthome_event(payload)
             case AmazonPushMessage.VolumeChange.value:
                 await self._handle_volume_change_event(payload)
             case AmazonPushMessage.EqualizerStateChange.value:
@@ -331,6 +332,8 @@ class AmazonEchoApi:
                 await self._handle_item_change_event(payload)
             case AmazonPushMessage.DoNotDisturbChange.value:
                 await self._handle_dnd_event(payload)
+            case AmazonPushMessage.SmartHome.value:
+                await self._handle_smarthome_event(payload)
             case _:
                 _LOGGER.debug("Unhandled push event type: %s", event_type)
 
@@ -345,48 +348,19 @@ class AmazonEchoApi:
             ),
             None,
         )
-        for feature in payload.get("data", {}).get("features", {}):
-            feature_name = feature.get("name")
-            feature_instance = feature.get("instance")
-            for feature_property in feature.get("properties", {}):
-                property_name = feature_property.get("name")
-                property_type = feature_property.get("__typename")
-                value = ""
-                if property_type == "TemperatureSensor":
-                    value = feature_property.get("value", {}).get("value")
-                if property_type == "RangeValue":
-                    value = feature_property.get("rangeValue", {}).get("value")
-                if property_type == "Brightness":
-                    value = feature_property.get("brightnessStateValue")
-                if property_type == "Color":
-                    value = feature_property.get("colorStateValue")
-                if property_type == "DetectionRange":
-                    value = feature_property.get("detectionRangeStateValue")
-                if property_type == "DetectionSensitivity":
-                    value = feature_property.get("detectionSensitivityStateValue")
-                if property_type == "DetectionState":
-                    value = feature_property.get("detectionStateValue")
-                if property_type == "Mode":
-                    value = feature_property.get("modeValue", {}).get("value")
-                if property_type == "Power":
-                    value = feature_property.get("powerStateValue")
-                if property_type == "ToggleState":
-                    value = feature_property.get("toggleStateValue")
+        endpoint_feature = payload.get("data", {})
+        if endpoint_feature and device:
+            sensors = parse_graphql_feature_to_sensor(endpoint_feature, device)
+            for feature, sensor in sensors.items():
                 _LOGGER.warning(
-                    "SmartHome event for: %s (%s)",
-                    endpoint_id,
-                    device.account_name if device else "Unknown",
+                    "SmartHome event for: %s (%s) - %s: %s %s",
+                    device.account_name,
+                    feature,
+                    sensor.name,
+                    sensor.value,
+                    sensor.scale,
                 )
-                _LOGGER.warning(
-                    "Feature: %s - Instance: %s", feature_name, feature_instance
-                )
-                _LOGGER.warning(
-                    "Property: %s - Type: %s - Value: %s",
-                    property_name,
-                    property_type,
-                    value,
-                )
-                _LOGGER.debug(payload)
+        _LOGGER.debug(payload)
 
     async def _handle_volume_change_event(self, payload: dict[str, Any]) -> None:
         # Ensure initial full sync happens before applying incremental updates
