@@ -11,6 +11,7 @@ import pytest
 
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.devices import DEVICE_TYPE_AQM, SPEAKER_GROUP_FAMILY
+from aioamazondevices.const.http import ARRAY_WRAPPER
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.implementation.device import AmazonDeviceHandler
 from aioamazondevices.structures import AmazonDeviceFeature
@@ -19,6 +20,9 @@ from .const import TEST_SERIAL_1, TEST_SERIAL_2
 
 TEST_SERIAL_AQM = "AQM-1"
 TEST_SERIAL_GROUP = "GROUP-1"
+
+# the autouse fixture below replaces the lookup, keep the real one to test it
+_get_endpoints_features = AmazonDeviceHandler._get_endpoints_features
 
 
 def _text(value: str | None) -> dict[str, Any]:
@@ -387,6 +391,8 @@ async def test_features_are_read_for_the_built_devices(
             "operations": [{"name": "setRangeValue"}],
             "configuration": range_configuration,
         },
+        # features without a name are skipped
+        {"name": None, "instance": None, "operations": None, "configuration": None},
     ]
     _patch_sources(
         handler,
@@ -467,3 +473,68 @@ async def test_known_features_survive_a_failed_features_lookup(
     await handler.update_devices()
 
     assert handler.devices[TEST_SERIAL_1].features == known_features
+
+
+@pytest.mark.anyio
+async def test_endpoints_features_are_keyed_by_endpoint_id(
+    api: AmazonEchoApi,
+) -> None:
+    """Endpoint features are read from the wrapped GraphQL response."""
+    handler = api._device_handler
+    endpoint = {"endpointId": f"endpoint-{TEST_SERIAL_1}", "features": []}
+    response = {
+        ARRAY_WRAPPER: [
+            {
+                "data": {
+                    "listEndpoints": {
+                        "endpoints": [endpoint, {"endpointId": None, "features": []}]
+                    }
+                }
+            }
+        ]
+    }
+    session_request = AsyncMock(return_value=(None, None))
+    handler._http_wrapper.session_request = session_request  # type: ignore[method-assign]
+    handler._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
+
+    endpoints_features = await _get_endpoints_features(
+        handler, [f"endpoint-{TEST_SERIAL_1}"]
+    )
+
+    assert endpoints_features == {f"endpoint-{TEST_SERIAL_1}": endpoint}
+    assert session_request.await_args
+    payload = session_request.await_args.kwargs["input_data"]
+    assert payload[0]["variables"] == {"endpointIds": [f"endpoint-{TEST_SERIAL_1}"]}
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "response",
+    [
+        {ARRAY_WRAPPER: [{"errors": [{"message": "boom", "path": ["x"]}]}]},
+        {},
+        {ARRAY_WRAPPER: [{"data": None}]},
+        {ARRAY_WRAPPER: [{"data": {"listEndpoints": None}}]},
+        {ARRAY_WRAPPER: [{"data": {"listEndpoints": {"endpoints": []}}}]},
+    ],
+)
+async def test_bad_endpoints_features_response_returns_nothing(
+    api: AmazonEchoApi, response: dict[str, Any]
+) -> None:
+    """GraphQL errors and malformed data give no features."""
+    handler = api._device_handler
+    handler._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
+    handler._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
+
+    assert await _get_endpoints_features(handler, ["endpoint-1"]) == {}
+
+
+@pytest.mark.anyio
+async def test_no_endpoints_skips_the_features_request(api: AmazonEchoApi) -> None:
+    """Nothing is requested when there are no endpoints to query."""
+    handler = api._device_handler
+    session_request = AsyncMock()
+    handler._http_wrapper.session_request = session_request  # type: ignore[method-assign]
+
+    assert await _get_endpoints_features(handler, []) == {}
+    session_request.assert_not_awaited()
