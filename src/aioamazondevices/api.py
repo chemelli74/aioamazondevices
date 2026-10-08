@@ -339,7 +339,10 @@ class AmazonEchoApi:
 
     async def _handle_smarthome_event(self, payload: dict[str, Any]) -> None:
         """Handle SmartHome events."""
-        endpoint_id = payload.get("entity", {}).get("id")
+        if not (endpoint_id := payload.get("entity", {}).get("id")):
+            _LOGGER.debug("Missing endpoint ID in SmartHome event: %s", payload)
+            return
+
         device = next(
             (
                 device
@@ -348,7 +351,7 @@ class AmazonEchoApi:
             ),
             None,
         )
-        endpoint_feature = payload.get("data", {})
+        endpoint_feature = payload.get("data")
         if endpoint_feature and device:
             sensors = parse_graphql_feature_to_sensor(endpoint_feature, device)
             for feature, sensor in sensors.items():
