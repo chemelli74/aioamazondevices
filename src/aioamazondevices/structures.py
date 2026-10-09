@@ -31,6 +31,8 @@ class AmazonDeviceSensor:
     error_type: str | None
     error_msg: str | None
     scale: str | None
+    feature_name: str
+    instance: str
     time_of_sample: datetime | None = None
 
 

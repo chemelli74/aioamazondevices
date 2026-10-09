@@ -23,21 +23,6 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
             "subkey": None,
             "scale": None,
         },
-        "enablement": {
-            "key": "enablementStateValue",
-            "subkey": None,
-            "scale": None,
-        },
-        "detectionSensitivity": {
-            "key": "detectionSensitivityValue",
-            "subkey": None,
-            "scale": None,
-        },
-        "detectionRange": {
-            "key": "detectionRangeValue",
-            "subkey": None,
-            "scale": None,
-        },
     },
     "lightSensor": {
         "illuminance": {
@@ -60,13 +45,6 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
             "scale": None,
         },
     },
-    "toggle": {
-        "toggleState": {
-            "key": "toggleStateValue",
-            "subkey": None,
-            "scale": None,
-        },
-    },
 }
 
 # These templates will be applied to all devices
@@ -77,18 +55,34 @@ GENERIC_SENSORS: list[str] = [
     "connectivity",
 ]
 
-DEVICE_TYPE_SENSORS: dict[str, dict[str, list[str]]] = {
+# Device type specific sensors, keyed by device type, feature name and then instance
+DEVICE_TYPE_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
     DEVICE_TYPE_AQM: {
-        "range": [
-            "4",  # Humidity
-            "5",  # VOC
-            "6",  # PM25
-            "7",  # PM10
-            "8",  # CO
-            "9",  # Air Quality
-        ],
-        "toggle": [
-            "11",  # LED toggle
-        ],
+        "range": {
+            "4": {
+                "name": "Humidity",
+                "scale": "%",
+            },
+            "5": {
+                "name": "VOC",
+                "scale": None,
+            },
+            "6": {
+                "name": "PM25",
+                "scale": "MicroGramsPerCubicMeter",
+            },
+            "7": {
+                "name": "PM10",
+                "scale": "MicroGramsPerCubicMeter",
+            },
+            "8": {
+                "name": "CO",
+                "scale": "ppm",
+            },
+            "9": {
+                "name": "Air Quality",
+                "scale": None,
+            },
+        },
     }
 }

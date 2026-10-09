@@ -55,16 +55,17 @@ def parse_graphql_feature_to_sensor(
     serial_number = device.serial_number
     device_specific_features = DEVICE_TYPE_SENSORS.get(device.device_type, {})
     for feature in endpoint.get("features", {}):
-        feature_name = feature.get("name")
-        instance = feature.get("instance")
+        feature_name: str = feature.get("name") or ""
+        instance: str = feature.get("instance") or ""
         if (feature_template := SENSOR_TEMPLATES.get(feature_name)) is None:
             # Skip features that are not in the predefined list
             continue
 
+        device_specific_override: dict[str, str | None] | None
         if feature_name in GENERIC_SENSORS:
-            device_specific = False
-        elif instance in device_specific_features.get(feature_name, []):
-            device_specific = True
+            device_specific_override = None
+        elif instance in (instances := device_specific_features.get(feature_name, {})):
+            device_specific_override = instances[instance]
         else:
             # Skip features not enabled for this device type / instance
             continue
@@ -130,10 +131,12 @@ def parse_graphql_feature_to_sensor(
                 continue
 
             sensor_name = feature_property_name
-            if device_specific:
-                # Friendly names and scales not yet supported for these sensors
-                sensor_name = f"{feature_property_name}-{instance}"
-                scale = None
+            if device_specific_override is not None:
+                sensor_name = (
+                    device_specific_override.get("name")
+                    or f"{feature_property_name}-{instance}"
+                )
+                scale = device_specific_override.get("scale")
 
             device_sensors[sensor_name] = AmazonDeviceSensor(
                 sensor_name,
@@ -142,7 +145,9 @@ def parse_graphql_feature_to_sensor(
                 error_type,
                 error_msg,
                 scale,
-                time_of_sample,
+                feature_name=feature_name,
+                instance=instance,
+                time_of_sample=time_of_sample,
             )
 
     return device_sensors
