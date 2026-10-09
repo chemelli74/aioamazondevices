@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from aioamazondevices.implementation.sensor import _get_device_sensor_state
+from aioamazondevices.implementation.sensor import parse_graphql_feature_to_sensor
 from aioamazondevices.structures import AmazonDevice
 
 from .const import TEST_SERIAL_1
@@ -42,7 +42,7 @@ async def test_sensor_value_is_read(
     make_device: Callable[..., AmazonDevice],
 ) -> None:
     """A reading under the expected key is parsed."""
-    sensors = _get_device_sensor_state(
+    sensors = parse_graphql_feature_to_sensor(
         _temperature_endpoint("value"), make_device(TEST_SERIAL_1)
     )
 
@@ -57,7 +57,7 @@ async def test_unreadable_sensor_is_skipped(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A reading we cannot parse is dropped, not reported as a valid 'n/a'."""
-    sensors = _get_device_sensor_state(
+    sensors = parse_graphql_feature_to_sensor(
         _temperature_endpoint("temperatureValue"), make_device(TEST_SERIAL_1)
     )
 

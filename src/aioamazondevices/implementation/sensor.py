@@ -9,17 +9,18 @@ from typing import Any
 
 from yarl import URL
 
-from aioamazondevices.const.devices import (
-    DEVICE_TYPE_AQM,
-    SPEAKER_GROUP_FAMILY,
-)
+from aioamazondevices.const.devices import SPEAKER_GROUP_FAMILY
 from aioamazondevices.const.http import ARRAY_WRAPPER, REQUEST_AGENT, URI_NEXUS_GRAPHQL
-from aioamazondevices.const.metadata import AQM_RANGE_SENSORS, SENSORS
 from aioamazondevices.const.queries import QUERY_SENSOR_STATE
 from aioamazondevices.const.schedules import (
     NOTIFICATION_ALARM,
     NOTIFICATION_REMINDER,
     NOTIFICATION_TIMER,
+)
+from aioamazondevices.const.sensors import (
+    DEVICE_TYPE_SENSORS,
+    GENERIC_SENSORS,
+    SENSOR_TEMPLATES,
 )
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
@@ -46,17 +47,29 @@ def _parse_sample_timestamp(
         return None
 
 
-def _get_device_sensor_state(
+def parse_graphql_feature_to_sensor(
     endpoint: dict[str, Any], device: AmazonDevice
 ) -> dict[str, AmazonDeviceSensor]:
+    """Transform the GraphQL feature into AmazonDeviceSensor(s)."""
     device_sensors: dict[str, AmazonDeviceSensor] = {}
     serial_number = device.serial_number
+    device_specific_features = DEVICE_TYPE_SENSORS.get(device.device_type, {})
     for feature in endpoint.get("features", {}):
-        if (feature_template := SENSORS.get(feature["name"])) is None:
+        feature_name = feature.get("name")
+        instance = feature.get("instance")
+        if (feature_template := SENSOR_TEMPLATES.get(feature_name)) is None:
             # Skip features that are not in the predefined list
             continue
 
-        for feature_property in feature.get("properties"):
+        if feature_name in GENERIC_SENSORS:
+            device_specific = False
+        elif instance in device_specific_features.get(feature_name, []):
+            device_specific = True
+        else:
+            # Skip features not enabled for this device type / instance
+            continue
+
+        for feature_property in feature.get("properties") or []:
             feature_property_name = feature_property.get("name")
             if (sensor_template := feature_template.get(feature_property_name)) is None:
                 # Skip properties that are not in the predefined list
@@ -117,23 +130,10 @@ def _get_device_sensor_state(
                 continue
 
             sensor_name = feature_property_name
-
-            if (
-                device.device_type == DEVICE_TYPE_AQM
-                and feature_property_name == "rangeValue"
-            ):
-                if not (
-                    (instance := feature.get("instance"))
-                    and (aqm_sensor := AQM_RANGE_SENSORS.get(instance))
-                    and (aqm_sensor_name := aqm_sensor.get("name"))
-                ):
-                    _LOGGER.debug(
-                        "No template for rangeValue (%s) - Skipping sensor",
-                        instance,
-                    )
-                    continue
-                sensor_name = aqm_sensor_name
-                scale = aqm_sensor.get("scale")
+            if device_specific:
+                # Friendly names and scales not yet supported for these sensors
+                sensor_name = f"{feature_property_name}-{instance}"
+                scale = None
 
             device_sensors[sensor_name] = AmazonDeviceSensor(
                 sensor_name,
@@ -176,7 +176,7 @@ class AmazonSensorHandler:
             if device.endpoint_id and (
                 endpoint_state := endpoint_states.get(device.endpoint_id)
             ):
-                sensors = _get_device_sensor_state(endpoint_state, device)
+                sensors = parse_graphql_feature_to_sensor(endpoint_state, device)
 
             if sensors:
                 device.sensors = sensors
