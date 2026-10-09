@@ -44,6 +44,7 @@ from .structures import (
     AmazonListEventType,
     AmazonListInfo,
     AmazonListItem,
+    AmazonLoginContext,
     AmazonMediaControls,
     AmazonMediaState,
     AmazonMusicProvider,
@@ -69,7 +70,7 @@ class AmazonEchoApi:
         login_password: str,
         *,
         save_data: AmazonSaveDataConfig,
-        login_data: dict[str, Any] | None = None,
+        login_data: dict[str, Any] | AmazonLoginContext | None = None,
     ) -> None:
         """Initialize the scanner."""
         _LOGGER.debug("Initialize library v%s", __version__)
@@ -77,12 +78,23 @@ class AmazonEchoApi:
         self._settings_file = Path(save_data.path, SETTINGS_FILENAME)
         self._default_device_serial: str = ""
 
-        # Check if there is a previous login, otherwise use default (US)
-        site = login_data.get("site", DEFAULT_SITE) if login_data else DEFAULT_SITE
+        # A typed context preserves only non-secret reauthentication state.
+        # Normal stored-login callers keep the existing dictionary behavior.
+        login_context = (
+            login_data if isinstance(login_data, AmazonLoginContext) else None
+        )
+        stored_login_data = login_data if isinstance(login_data, dict) else None
+        site = (
+            login_context.site
+            if login_context is not None and login_context.site is not None
+            else stored_login_data.get("site", DEFAULT_SITE)
+            if stored_login_data
+            else DEFAULT_SITE
+        )
         _LOGGER.debug("Using site: %s", site)
 
         self._session_state_data = AmazonSessionStateData(
-            site, login_email, login_password, login_data
+            site, login_email, login_password, stored_login_data
         )
 
         self._http_wrapper = AmazonHttpWrapper(
@@ -94,6 +106,7 @@ class AmazonEchoApi:
         self._login = AmazonLogin(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
+            login_context=login_context,
         )
 
         self._device_handler = AmazonDeviceHandler(

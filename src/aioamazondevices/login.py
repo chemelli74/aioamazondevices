@@ -37,6 +37,7 @@ from .exceptions import (
     WrongMethod,
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
+from .structures import AmazonLoginContext
 from .utils import _LOGGER, obfuscate_email, scrub_fields
 
 
@@ -47,12 +48,19 @@ class AmazonLogin:
         self,
         http_wrapper: AmazonHttpWrapper,
         session_state_data: AmazonSessionStateData,
+        *,
+        login_context: AmazonLoginContext | None = None,
     ) -> None:
         """Login to Amazon."""
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
 
-        self._serial = self._serial_number()
+        self._serial = (
+            login_context.device_serial_number
+            if login_context is not None
+            and login_context.device_serial_number is not None
+            else self._serial_number()
+        )
 
     def _serial_number(self) -> str:
         """Get or calculate device serial number."""
