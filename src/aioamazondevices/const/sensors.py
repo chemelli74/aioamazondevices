@@ -8,7 +8,7 @@ from aioamazondevices.const.devices import DEVICE_TYPE_AQM
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
 # Sensors templates, keyed by feature name and then by property name
-
+# This determines how to parse the feature
 SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
     "temperatureSensor": {
         "temperature": {
