@@ -329,8 +329,14 @@ class AmazonEchoApi:
                 await self._handle_item_change_event(payload)
             case AmazonPushMessage.DoNotDisturbChange.value:
                 await self._handle_dnd_event(payload)
+            case AmazonPushMessage.SmartHome.value:
+                await self._handle_smarthome_event(payload)
             case _:
                 _LOGGER.debug("Unhandled push event type: %s", event_type)
+
+    async def _handle_smarthome_event(self, payload: dict[str, Any]) -> None:
+        """Handle SmartHome events."""
+        _LOGGER.debug(payload)
 
     async def _handle_volume_change_event(self, payload: dict[str, Any]) -> None:
         # Ensure initial full sync happens before applying incremental updates

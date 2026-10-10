@@ -3,12 +3,14 @@
 
 """Tests for the Amazon login flow."""
 
+from unittest.mock import AsyncMock
+
 import pytest
 from bs4 import BeautifulSoup
 from yarl import URL
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.exceptions import CannotAuthenticate
+from aioamazondevices.exceptions import CannotAuthenticate, WrongMethod
 
 from .const import FIXTURES_DIR
 
@@ -68,3 +70,25 @@ async def test_get_inputs_from_soup_without_form(api: AmazonEchoApi) -> None:
 
     with pytest.raises(CannotAuthenticate):
         api._login._get_inputs_from_soup(soup)
+
+
+@pytest.mark.anyio
+async def test_login_stored_data_registers_capabilities(api: AmazonEchoApi) -> None:
+    """Stored-data login re-registers device capabilities."""
+    state = api._login._session_state_data
+    state.login_stored_data = {"customer_info": {}}
+    state.account_customer_id = "CUSTOMER_ID"
+    api._login._register_device_capabilities = AsyncMock()  # type: ignore[method-assign]
+
+    await api._login.login_mode_stored_data()
+
+    api._login._register_device_capabilities.assert_awaited_once()
+
+
+@pytest.mark.anyio
+async def test_login_stored_data_without_data_raises(api: AmazonEchoApi) -> None:
+    """Stored-data login without stored data raises WrongMethod."""
+    api._login._session_state_data.login_stored_data = {}
+
+    with pytest.raises(WrongMethod):
+        await api._login.login_mode_stored_data()
