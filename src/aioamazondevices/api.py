@@ -418,10 +418,19 @@ class AmazonEchoApi:
         self,
         device: AmazonDevice,
         text_to_announce: str,
+        display_text: str | None = None,
     ) -> None:
-        """Call AlexaAnnouncement to send a message."""
+        """Send an announcement with an optional display body.
+
+        An omitted, None, or empty display_text uses the spoken text.
+        The spoken text and display title stay unchanged.
+        The optional display_text accepts positional or keyword use.
+        """
         await self._sequence_handler.send_message(
-            device, AmazonSequenceType.Announcement, text_to_announce
+            device,
+            AmazonSequenceType.Announcement,
+            text_to_announce,
+            display_text=display_text,
         )
 
     async def call_alexa_sound(
