@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-from aioamazondevices.implementation.sensor import parse_graphql_feature_to_sensor
+from aioamazondevices.implementation.sensor import _get_device_sensor_state
 from aioamazondevices.structures import AmazonDevice
 
 from .const import TEST_SERIAL_1
@@ -42,7 +42,7 @@ async def test_time_of_sample_is_parsed(
     """A well-formed timeOfSample is parsed into an aware datetime."""
     device = make_device(TEST_SERIAL_1)
 
-    sensors = parse_graphql_feature_to_sensor(
+    sensors = _get_device_sensor_state(
         _illuminance_endpoint(time_of_sample="2026-09-12T08:09:17.922Z"), device
     )
 
@@ -58,7 +58,7 @@ async def test_missing_time_of_sample_defaults_to_none(
     """A response without timeOfSample leaves the field unset."""
     device = make_device(TEST_SERIAL_1)
 
-    sensors = parse_graphql_feature_to_sensor(_illuminance_endpoint(), device)
+    sensors = _get_device_sensor_state(_illuminance_endpoint(), device)
 
     assert sensors["illuminance"].time_of_sample is None
 
@@ -71,7 +71,7 @@ async def test_unparsable_time_of_sample_defaults_to_none(
     """A malformed timeOfSample is logged and does not raise."""
     device = make_device(TEST_SERIAL_1)
 
-    sensors = parse_graphql_feature_to_sensor(
+    sensors = _get_device_sensor_state(
         _illuminance_endpoint(time_of_sample="not-a-timestamp"), device
     )
 
@@ -87,7 +87,7 @@ async def test_non_string_time_of_sample_defaults_to_none(
     """A non-string timeOfSample is logged and does not raise."""
     device = make_device(TEST_SERIAL_1)
 
-    sensors = parse_graphql_feature_to_sensor(
+    sensors = _get_device_sensor_state(
         _illuminance_endpoint(time_of_sample=12345), device
     )
 

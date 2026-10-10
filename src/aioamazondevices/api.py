@@ -19,7 +19,6 @@ from aioamazondevices.implementation.device import AmazonDeviceHandler
 from aioamazondevices.implementation.media import AmazonMediaHandler
 from aioamazondevices.implementation.sensor import (
     AmazonSensorHandler,
-    parse_graphql_feature_to_sensor,
 )
 from aioamazondevices.implementation.todo import AmazonToDoHandler
 
@@ -339,30 +338,6 @@ class AmazonEchoApi:
 
     async def _handle_smarthome_event(self, payload: dict[str, Any]) -> None:
         """Handle SmartHome events."""
-        if not (endpoint_id := payload.get("entity", {}).get("id")):
-            _LOGGER.debug("Missing endpoint ID in SmartHome event: %s", payload)
-            return
-
-        device = next(
-            (
-                device
-                for device in self._device_handler.devices.values()
-                if device.endpoint_id == endpoint_id
-            ),
-            None,
-        )
-        endpoint_feature = payload.get("data")
-        if endpoint_feature and device:
-            sensors = parse_graphql_feature_to_sensor(endpoint_feature, device)
-            for feature, sensor in sensors.items():
-                _LOGGER.warning(
-                    "SmartHome event for: %s (%s) - %s: %s %s",
-                    device.account_name,
-                    feature,
-                    sensor.name,
-                    sensor.value,
-                    sensor.scale,
-                )
         _LOGGER.debug(payload)
 
     async def _handle_volume_change_event(self, payload: dict[str, Any]) -> None:
