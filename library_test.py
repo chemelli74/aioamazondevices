@@ -319,6 +319,7 @@ async def main() -> None:
             print(f"   Device sensors: {len(device.sensors)}")
             print(f"   Device notifications: {len(device.notifications)}")
             print(f"   Device communications: {device_comm_settings}")
+            print(f"   Device features: {list(device.features.keys())}")
             dev_index += 1
         print("-" * 20)
 

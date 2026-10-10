@@ -55,6 +55,23 @@ class AmazonSchedule:
 
 
 @dataclass
+class AmazonDeviceFeature:
+    """Amazon device feature class."""
+
+    properties: list[str]
+    supported_operations: list[str]
+    supported_modes: list[str]
+    friendly_name: str | None
+    # range features only
+    minimum_value: float | None
+    maximum_value: float | None
+    precision: float | None
+    unit_of_measure: str | None
+    # raw configuration section, its shape depends on the feature
+    configuration: dict[str, Any]
+
+
+@dataclass
 class AmazonDevice:
     """Amazon device class."""
 
@@ -80,6 +97,7 @@ class AmazonDevice:
     media_player_supported: bool
     communication_settings: dict[str, str]
     voice_control_supported: bool
+    features: dict[str, dict[str, AmazonDeviceFeature]]
 
 
 class AmazonSequenceType(StrEnum):
