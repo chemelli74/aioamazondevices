@@ -14,7 +14,7 @@ from aioamazondevices.exceptions import CannotSetFeature
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.utils import _LOGGER
 
-OPERATION_NAME = "setEndpointFeaturesV2"
+OPERATION_NAME = "setEndpointFeatures"
 
 
 def _describe(request: dict[str, Any]) -> str:
@@ -62,7 +62,7 @@ class AmazonFeatureHandler:
     ) -> dict[str, Any]:
         """Invoke a feature operation on an endpoint.
 
-        Wraps the `setEndpointFeaturesV2` GraphQL mutation with a single
+        Wraps the `setEndpointFeatures` GraphQL mutation with a single
         feature control request, and returns the matching feature control
         response.
 
@@ -82,7 +82,9 @@ class AmazonFeatureHandler:
         gql_payload = [
             {
                 "operationName": OPERATION_NAME,
-                "variables": {"input": {"featureControlRequests": [request]}},
+                "variables": {
+                    "setEndpointFeaturesInput": {"featureControlRequests": [request]}
+                },
                 "query": MUTATION_SET_ENDPOINT_FEATURES,
             }
         ]

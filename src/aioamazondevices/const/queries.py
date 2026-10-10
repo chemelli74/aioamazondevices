@@ -106,8 +106,10 @@ query getEndpointState($endpointIds: [String]!) {
 """
 
 MUTATION_SET_ENDPOINT_FEATURES = """
-mutation setEndpointFeaturesV2($input: SetGenericEndpointFeaturesInput!) {
-  setEndpointFeaturesV2(input: $input) {
+mutation setEndpointFeatures(
+  $setEndpointFeaturesInput: SetEndpointFeaturesInput!
+) {
+  setEndpointFeatures(setEndpointFeaturesInput: $setEndpointFeaturesInput) {
     featureControlResponses {
       endpointId
       featureName
