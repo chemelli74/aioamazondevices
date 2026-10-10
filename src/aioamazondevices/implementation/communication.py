@@ -86,6 +86,10 @@ class AlexaCommunicationsHandler:
             dev_name = hg_dev.get("deviceName")
             dev_status = hg_dev.get("deviceStatus", {})
 
+            # the homegroup devices endpoint always returns ON for announcements
+            # use this initially to ensure we have an announcements entry and ensure
+            # entities can be created.  We will attempt to update this with the device
+            # preferences endpoint below.
             if dev_serial not in self._communication_preferences:
                 self._communication_preferences[dev_serial] = {
                     "announcements": dev_status.get("announcementAvailability"),
