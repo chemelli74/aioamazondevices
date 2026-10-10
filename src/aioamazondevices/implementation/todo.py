@@ -17,6 +17,9 @@ from aioamazondevices.structures import (
     AmazonListItemStatus,
     AmazonListType,
 )
+from aioamazondevices.utils import _LOGGER
+
+MAX_LIST_PAGES = 20
 
 
 class AmazonToDoHandler:
@@ -79,28 +82,54 @@ class AmazonToDoHandler:
     async def get_list_items(
         self, list_id: str, limit: int = 100
     ) -> list[AmazonListItem]:
-        """Fetch all items from a specified Alexa shopping list."""
-        raw_resp = await self._call_lists_api(
-            method=HTTPMethod.POST,
-            path=f"{list_id}/items/fetch",
-            query={"limit": limit},
-        )
+        """Fetch all items from a specified Alexa shopping list.
 
-        response_json = await self._http_wrapper.response_to_json(
-            raw_resp, "(todo)ItemsFetch"
-        )
+        The API returns at most ``limit`` items per call plus a ``nextToken``
+        when more items exist; follow it until the last page.
+        """
+        items: dict[str, AmazonListItem] = {}
+        next_token: str | None = None
 
-        item_info_list = response_json.get("itemInfoList", [])
+        for _ in range(MAX_LIST_PAGES):
+            query: dict[str, Any] = {"limit": limit}
+            input_data: dict[str, Any] = {}
+            if next_token:
+                query["nextToken"] = next_token
+                input_data["nextToken"] = next_token
 
-        return [
-            AmazonListItem(
-                id=item_info["itemId"],
-                name=(item_info["itemName"]).capitalize(),
-                status=AmazonListItemStatus(item_info["itemStatus"]),
-                version=item_info["version"],
+            raw_resp = await self._call_lists_api(
+                method=HTTPMethod.POST,
+                path=f"{list_id}/items/fetch",
+                query=query,
+                input_data=input_data,
             )
-            for item_info in item_info_list
-        ]
+
+            response_json = await self._http_wrapper.response_to_json(
+                raw_resp, "(todo)ItemsFetch"
+            )
+
+            item_info_list = response_json.get("itemInfoList") or []
+            for item_info in item_info_list:
+                items[item_info["itemId"]] = AmazonListItem(
+                    id=item_info["itemId"],
+                    name=(item_info["itemName"]).capitalize(),
+                    status=AmazonListItemStatus(item_info["itemStatus"]),
+                    version=item_info["version"],
+                )
+
+            token = response_json.get("nextToken")
+            if not token or token == next_token or not item_info_list:
+                break
+            next_token = token
+        else:
+            _LOGGER.warning(
+                "List %s: stopped after %s pages with %s items",
+                list_id,
+                MAX_LIST_PAGES,
+                len(items),
+            )
+
+        return list(items.values())
 
     async def set_item_checked_status(
         self, list_id: str, item_id: str, checked: bool, version: int
