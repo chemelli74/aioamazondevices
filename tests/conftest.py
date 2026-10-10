@@ -69,7 +69,6 @@ def make_device() -> Callable[..., AmazonDevice]:
             endpoint_id=None,
             sensors={},
             notifications_supported=False,
-            notifications={},
             media_player_supported=False,
             communication_settings={},
             parent_clusters=[],
