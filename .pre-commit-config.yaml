@@ -13,34 +13,34 @@ repos:
       - id: check-yaml
       - id: detect-private-key
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.12.17 # renovate: customPinnedDependency=uv,datasource=pypi
+    rev: 0.12.24 # renovate: customPinnedDependency=uv,datasource=pypi
     hooks:
       - id: uv-lock
         args: ["--check"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.8
+    rev: v0.16.10
     hooks:
       - id: ruff-check
         args:
           - --fix
       - id: ruff-format
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.18.1
+    rev: v4.19.2
     hooks:
       - id: commitizen
         stages: [commit-msg]
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.26.0
+    rev: v9.27.0
     hooks:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.9.8
+    rev: v3.9.9
     hooks:
       - id: prettier
         args: ["--tab-width", "2"]
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.21.2
+    rev: v3.22.0
     hooks:
       - id: pyupgrade
         args: [--py37-plus]
@@ -48,12 +48,21 @@ repos:
     rev: v2.4.3
     hooks:
       - id: codespell
-        args:
-          [
-            "--skip=src/aioamazondevices/sounds.py, scripts/sounds_strings.json, scripts/sounds_services.yaml",
-          ]
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.3.1
+    rev: v2.4.0
     hooks:
       - id: mypy
-        additional_dependencies: ["types-python-dateutil"]
+        pass_filenames: false
+        additional_dependencies:
+          - aiohttp==3.14.4
+          - aiosignal==1.4.0
+          - anyio==4.15.1
+          - beautifulsoup4==4.15.0
+          - h2==4.4.1
+          - httpx==0.28.1
+          - langcodes==3.5.1
+          - multidict==6.9.1
+          - orjson==3.13.0
+          - python-dateutil==2.9.0.post0
+          - types-python-dateutil==2.9.0.20260807
+          - yarl==1.25.1
