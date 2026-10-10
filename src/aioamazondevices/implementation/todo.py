@@ -87,21 +87,15 @@ class AmazonToDoHandler:
         The API returns at most ``limit`` items per call plus a ``nextToken``
         when more items exist; follow it until the last page.
         """
-        items: dict[str, AmazonListItem] = {}
+        items: list[AmazonListItem] = []
         next_token: str | None = None
 
         for _ in range(MAX_LIST_PAGES):
-            query: dict[str, Any] = {"limit": limit}
-            input_data: dict[str, Any] = {}
-            if next_token:
-                query["nextToken"] = next_token
-                input_data["nextToken"] = next_token
-
             raw_resp = await self._call_lists_api(
                 method=HTTPMethod.POST,
                 path=f"{list_id}/items/fetch",
-                query=query,
-                input_data=input_data,
+                query={"limit": limit},
+                input_data={"nextToken": next_token} if next_token else {},
             )
 
             response_json = await self._http_wrapper.response_to_json(
@@ -109,13 +103,15 @@ class AmazonToDoHandler:
             )
 
             item_info_list = response_json.get("itemInfoList") or []
-            for item_info in item_info_list:
-                items[item_info["itemId"]] = AmazonListItem(
+            items.extend(
+                AmazonListItem(
                     id=item_info["itemId"],
                     name=(item_info["itemName"]).capitalize(),
                     status=AmazonListItemStatus(item_info["itemStatus"]),
                     version=item_info["version"],
                 )
+                for item_info in item_info_list
+            )
 
             token = response_json.get("nextToken")
             if not token or token == next_token or not item_info_list:
@@ -129,7 +125,7 @@ class AmazonToDoHandler:
                 len(items),
             )
 
-        return list(items.values())
+        return items
 
     async def set_item_checked_status(
         self, list_id: str, item_id: str, checked: bool, version: int

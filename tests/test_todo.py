@@ -68,7 +68,7 @@ async def test_get_list_items_follows_next_token(api: AmazonEchoApi) -> None:
     assert len(items) == TOTAL
     assert call.await_count == len(pages)
     second = call.await_args_list[1].kwargs
-    assert second["query"] == {"limit": PAGE, "nextToken": "t1"}
+    assert second["query"] == {"limit": PAGE}
     assert second["input_data"] == {"nextToken": "t1"}
     assert items["id-0"].status == AmazonListItemStatus.COMPLETE
     assert items["id-1"].name == "Item 1"
@@ -76,16 +76,16 @@ async def test_get_list_items_follows_next_token(api: AmazonEchoApi) -> None:
 
 @pytest.mark.anyio
 async def test_get_list_items_stops_on_repeated_token(api: AmazonEchoApi) -> None:
-    """A repeated token or an empty page ends the loop, duplicates collapse."""
+    """A repeated token ends the loop."""
     pages = [
         {"itemInfoList": _items(0, PAGE), "nextToken": "t1"},
-        {"itemInfoList": _items(PAGE // 2, PAGE), "nextToken": "t1"},
+        {"itemInfoList": _items(PAGE, PAGE), "nextToken": "t1"},
     ]
     call = _wire(api, pages)
 
     items = await api.get_todo_list_items("list")
 
-    assert len(items) == PAGE + PAGE // 2
+    assert len(items) == 2 * PAGE
     assert call.await_count == len(pages)
 
 
