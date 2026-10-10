@@ -18,9 +18,9 @@ from aioamazondevices.const.schedules import (
     NOTIFICATION_TIMER,
 )
 from aioamazondevices.const.sensors import (
-    DEVICE_TYPE_SENSORS,
-    GENERIC_SENSORS,
+    COMMON_SENSORS,
     SENSOR_TEMPLATES,
+    SPECIFIC_SENSORS,
 )
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
@@ -53,7 +53,7 @@ def parse_graphql_feature_to_sensor(
     """Transform the GraphQL feature into AmazonDeviceSensor(s)."""
     device_sensors: dict[str, AmazonDeviceSensor] = {}
     serial_number = device.serial_number
-    device_specific_features = DEVICE_TYPE_SENSORS.get(device.device_type, {})
+    device_specific_features = SPECIFIC_SENSORS.get(device.device_type, {})
     for feature in endpoint.get("features", {}):
         feature_name: str = feature.get("name") or ""
         instance: str = feature.get("instance") or ""
@@ -62,12 +62,15 @@ def parse_graphql_feature_to_sensor(
             continue
 
         device_specific_override: dict[str, str | None] | None
-        if feature_name in GENERIC_SENSORS:
+        if feature_name in COMMON_SENSORS:
             device_specific_override = None
         elif instance in (instances := device_specific_features.get(feature_name, {})):
             device_specific_override = instances[instance]
         else:
-            # Skip features not enabled for this device type / instance
+            _LOGGER.debug(
+                "Skip feature (%s) not enabled for this device type / instance",
+                feature_name,
+            )
             continue
 
         for feature_property in feature.get("properties") or []:

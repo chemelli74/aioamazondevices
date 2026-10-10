@@ -158,7 +158,7 @@ async def test_device_specific_sensor_without_name_uses_fallback(
 ) -> None:
     """An override without a name is keyed by property name and instance."""
     monkeypatch.setitem(
-        sensor_module.DEVICE_TYPE_SENSORS,
+        sensor_module.SPECIFIC_SENSORS,
         "TESTTYPE",
         {"range": {"1": {"scale": "ppm"}}},
     )

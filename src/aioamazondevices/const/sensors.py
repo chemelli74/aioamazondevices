@@ -48,7 +48,7 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
 }
 
 # These templates will be applied to all devices
-GENERIC_SENSORS: list[str] = [
+COMMON_SENSORS: list[str] = [
     "temperatureSensor",
     "motionSensor",
     "lightSensor",
@@ -56,7 +56,7 @@ GENERIC_SENSORS: list[str] = [
 ]
 
 # Device type specific sensors, keyed by device type, feature name and then instance
-DEVICE_TYPE_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
+SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
     DEVICE_TYPE_AQM: {
         "range": {
             "4": {
