@@ -13,7 +13,6 @@ from aioamazondevices.structures import AmazonDevice
 
 from .const import TEST_SERIAL_1
 
-TEST_ENDPOINT_ID = "endpoint-1"
 TEST_TEMPERATURE = 21.3
 
 

@@ -17,9 +17,7 @@ from anyio import Path
 from aioamazondevices.implementation.communication import AlexaCommunicationsHandler
 from aioamazondevices.implementation.device import AmazonDeviceHandler
 from aioamazondevices.implementation.media import AmazonMediaHandler
-from aioamazondevices.implementation.sensor import (
-    AmazonSensorHandler,
-)
+from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.implementation.todo import AmazonToDoHandler
 
 from . import __version__
