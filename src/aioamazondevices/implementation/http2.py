@@ -105,7 +105,7 @@ def _process_rendering_update(  # noqa: PLR0911
 
     push_event_type = rendering_update.get("resourceId")
     if rendering_update.get("route") == "EventBus:AlexaMobile::FDAL":
-        push_event_type = AmazonPushMessage.SmartHome.value       
+        push_event_type = AmazonPushMessage.SmartHome.value
     if not push_event_type:
         _LOGGER.warning("Missing resourceId in update node: %s", rendering_update)
         return None
