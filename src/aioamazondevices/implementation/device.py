@@ -217,7 +217,9 @@ class AmazonDeviceHandler:
             ):
                 continue
 
-            devices[serial_number] = self._build_device(serial_number, {}, base_device)
+            devices[serial_number] = self._build_device(
+                serial_number, {}, base_device, {}
+            )
 
         # backfill device types for cluster members, now that they are all built
         for device in devices.values():
@@ -233,8 +235,8 @@ class AmazonDeviceHandler:
         self,
         serial_number: str,
         endpoint: dict[str, Any],
-        base_device: dict[str, Any] | None = None,
-        features: dict[str, dict[str, AmazonDeviceFeature]] | None = None,
+        base_device: dict[str, Any] | None,
+        features: dict[str, dict[str, AmazonDeviceFeature]],
     ) -> AmazonDevice:
         """Build a device from its GraphQL endpoint and devices-v2 data.
 
@@ -300,7 +302,7 @@ class AmazonDeviceHandler:
             communication_settings={},
             # only devices-v2 devices can be spoken to, speaker groups aside
             voice_control_supported=bool(base) and family != SPEAKER_GROUP_FAMILY,
-            features=features or {},
+            features=features,
         )
 
     async def _get_base_devices_data(self) -> dict[str, dict[str, Any]]:
