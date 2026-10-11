@@ -169,15 +169,15 @@ class AmazonDeviceHandler:
         base_devices = await self._get_base_devices_data()
 
         # serial number -> (endpoint, devices-v2 data) of the devices we want
-        wanted: dict[str, tuple[dict[str, Any], dict[str, Any] | None]] = {}
+        selected_devices: dict[str, tuple[dict[str, Any], dict[str, Any] | None]] = {}
 
         for serial_number, endpoint in devices_endpoints.items():
             # Devices without devices-v2 data are built from their endpoint
             # alone, one branch per device type we support that way
             if base_device := base_devices.get(serial_number):
-                wanted[serial_number] = (endpoint, base_device)
+                selected_devices[serial_number] = (endpoint, base_device)
             elif _endpoint_device_type(endpoint) == DEVICE_TYPE_AQM:
-                wanted[serial_number] = (endpoint, None)
+                selected_devices[serial_number] = (endpoint, None)
             else:
                 _LOGGER.debug(
                     "Skipping endpoint without devices-v2 data: %s",
@@ -187,14 +187,14 @@ class AmazonDeviceHandler:
         endpoints_features = await self._get_endpoints_features(
             [
                 endpoint_id
-                for endpoint, _ in wanted.values()
+                for endpoint, _ in selected_devices.values()
                 if (endpoint_id := endpoint.get("endpointId"))
             ]
         )
 
         devices: dict[str, AmazonDevice] = {}
 
-        for serial_number, (endpoint, base_device) in wanted.items():
+        for serial_number, (endpoint, base_device) in selected_devices.items():
             if endpoint_features := endpoints_features.get(
                 endpoint.get("endpointId", "")
             ):
