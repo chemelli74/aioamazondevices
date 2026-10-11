@@ -21,7 +21,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
 ]
 dependencies = [
-"aiohttp (>=3.14.4)",
+"aiohttp (>=3.14.5)",
 "anyio (>=4.15.1)",
 "beautifulsoup4",
 "httpx[http2]",
