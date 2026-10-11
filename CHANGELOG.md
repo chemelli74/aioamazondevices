@@ -1,5 +1,12 @@
 # Changelog
 
+## v16.5.0 (2026-10-11)
+
+### Features
+
+- Make sensor parsing generic ([`5add2d9`](https://github.com/chemelli74/aioamazondevices/commit/5add2d9ad31c8350ea2fbb8e9fca10bc848e7dca))
+
+
 ## v16.4.0 (2026-10-11)
 
 ### Features
