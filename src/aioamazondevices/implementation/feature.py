@@ -17,7 +17,7 @@ from aioamazondevices.utils import _LOGGER
 OPERATION_NAME = "setEndpointFeatures"
 
 
-def _describe(request: dict[str, Any]) -> str:
+def _control_request_description(request: dict[str, Any]) -> str:
     """Return a human readable description of a feature control request."""
     instance = request.get("instance")
     feature = request["featureName"]
@@ -57,7 +57,7 @@ class AmazonFeatureHandler:
         endpoint_id: str,
         feature_name: str,
         operation_name: str,
-        payload: dict[str, Any] | None = None,
+        command_payload: dict[str, Any] | None = None,
         instance: str | None = None,
     ) -> dict[str, Any]:
         """Invoke a feature operation on an endpoint.
@@ -76,10 +76,10 @@ class AmazonFeatureHandler:
         }
         if instance is not None:
             request["instance"] = instance
-        if payload is not None:
-            request["payload"] = payload
+        if command_payload is not None:
+            request["payload"] = command_payload
 
-        gql_payload = [
+        payload = [
             {
                 "operationName": OPERATION_NAME,
                 "variables": {
@@ -94,7 +94,7 @@ class AmazonFeatureHandler:
             url=URL.joinpath(
                 self._session_state_data.alexa_website_url, URI_NEXUS_GRAPHQL
             ),
-            input_data=gql_payload,
+            input_data=payload,
             json_data=True,
             extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
         )
@@ -107,7 +107,7 @@ class AmazonFeatureHandler:
         self, response: dict[str, Any], request: dict[str, Any]
     ) -> dict[str, Any]:
         """Return the feature control response, raising on any reported error."""
-        described = _describe(request)
+        described = _control_request_description(request)
 
         if errors := _graphql_errors(response):
             raise CannotSetFeature(f"Cannot set {described}: {'; '.join(errors)}")

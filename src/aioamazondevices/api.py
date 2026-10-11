@@ -545,7 +545,7 @@ class AmazonEchoApi:
         endpoint_id: str,
         feature_name: str,
         operation_name: str,
-        payload: dict[str, Any] | None = None,
+        command_payload: dict[str, Any] | None = None,
         instance: str | None = None,
     ) -> None:
         """Invoke a feature operation on a device endpoint.
@@ -556,7 +556,7 @@ class AmazonEchoApi:
             endpoint_id=endpoint_id,
             feature_name=feature_name,
             operation_name=operation_name,
-            payload=payload,
+            command_payload=command_payload,
             instance=instance,
         )
 
