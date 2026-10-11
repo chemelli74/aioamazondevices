@@ -1,5 +1,18 @@
 # Changelog
 
+## v16.3.4 (2026-10-11)
+
+### Bug fixes
+
+- Update dependency aiohttp to v3.14.5 ([`311729a`](https://github.com/chemelli74/aioamazondevices/commit/311729acb5039a77b236ec4568b5052812883f8e))
+
+
+### Build system
+
+- Add gh cli to devcontainer ([`c4591a5`](https://github.com/chemelli74/aioamazondevices/commit/c4591a507be2feea051a385219f15772f2bed055))
+- Avoid bumping package.json when building environment ([`96e4570`](https://github.com/chemelli74/aioamazondevices/commit/96e4570a1c8e7a25fbff08e974d95c702227ddc6))
+
+
 ## v16.3.3 (2026-10-07)
 
 ### Bug fixes
