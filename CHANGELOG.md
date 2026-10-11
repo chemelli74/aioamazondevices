@@ -1,5 +1,18 @@
 # Changelog
 
+## v16.4.0 (2026-10-11)
+
+### Features
+
+- Add smart home push events ([`c7edba8`](https://github.com/chemelli74/aioamazondevices/commit/c7edba88f8d6ededaea273c28cbb8c1fb3798157))
+
+
+### Build system
+
+- Bump node feature to 2.1.1 ([`efa6a97`](https://github.com/chemelli74/aioamazondevices/commit/efa6a97113e6fbc93dc1d2ef4c722c0af358d698))
+- Bump multidict from 6.7.1 to 6.9.1 in the uv group across 1 directory ([`b0581f2`](https://github.com/chemelli74/aioamazondevices/commit/b0581f2d6ae5de882825a4fe0e6ee65f073a866a))
+
+
 ## v16.3.4 (2026-10-11)
 
 ### Bug fixes
