@@ -171,6 +171,9 @@ class AmazonPushMessage(StrEnum):
     # DND
     DoNotDisturbChange = "PUSH_DND_STATE_CHANGE"
 
+    # Smart Home - This is generated inside the code, not sent by Amazon
+    SmartHome = "FDAL_UPDATE"
+
 
 @dataclass
 class AmazonSequenceNode:
