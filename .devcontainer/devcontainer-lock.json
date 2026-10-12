@@ -6,9 +6,9 @@
       "integrity": "sha256:bd7ab48a832228f633239277552c30b353867fef2e5b037e064b4e64f0b843f2"
     },
     "ghcr.io/devcontainers/features/node:2": {
-      "version": "2.0.0",
-      "resolved": "ghcr.io/devcontainers/features/node@sha256:fedd4c11f7adfb64283b578dddc7da906728daa25fa293351c9d913231acf12f",
-      "integrity": "sha256:fedd4c11f7adfb64283b578dddc7da906728daa25fa293351c9d913231acf12f"
+      "version": "2.1.1",
+      "resolved": "ghcr.io/devcontainers/features/node@sha256:2a19d3b0b3879437637cfd292eb29fee0afcfbe6364e33db9afc4f80c5c1f956",
+      "integrity": "sha256:2a19d3b0b3879437637cfd292eb29fee0afcfbe6364e33db9afc4f80c5c1f956"
     }
   }
 }
