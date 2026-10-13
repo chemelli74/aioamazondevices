@@ -20,16 +20,12 @@ lint.ignore = [
 
 [lint.per-file-ignores]
 "library_test.py" = [
-    "ASYNC250",  # Blocking call to `input()` in async context 
+    "ASYNC250",  # Blocking call to `input()` in async context
     "PLR0915",   # Too many statements
     "T201",      # `print` found
 ]
-"src/aioamazondevices/sounds.py" = [
-    "E501",      # Line too long
-]
 "scripts/*" = [
     "INP001",    # Missing an __init__.py file
-    "T201",      # `print` found
 ]
 "tests/*" = [
     "S101",     # Use of `assert` detected
@@ -43,7 +39,7 @@ lint.ignore = [
 max-complexity = 18
 
 [lint.isort]
-known-first-party = ["aiocomelit", "tests"]
+known-first-party = ["aioamazondevices", "tests"]
 
 [lint.flake8-copyright]
 notice-rgx = '''(?i)# Copyright \d{4} Simone Chemelli and Contributors
