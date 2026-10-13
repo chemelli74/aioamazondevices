@@ -227,7 +227,7 @@ def validate_graphql_endpoint_shape(
     except (KeyError, IndexError, TypeError):
         endpoints = None
 
-    if not endpoints or not isinstance(endpoints, list):
+    if not isinstance(endpoints, list):
         _LOGGER.error(
             "Malformed endpoint data received in %s: %s",
             query_name,

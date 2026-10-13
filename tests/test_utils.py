@@ -141,6 +141,16 @@ def test_validate_graphql_endpoint_shape_returns_endpoints(
     assert not caplog.records
 
 
+def test_validate_graphql_endpoint_shape_empty_endpoints(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """An empty endpoints list is valid and returned as is."""
+    response: dict[str, Any] = {"data": {"listEndpoints": {"endpoints": []}}}
+
+    assert validate_graphql_endpoint_shape("TEST_QUERY", response) == []
+    assert not caplog.records
+
+
 @pytest.mark.parametrize(
     "response",
     [
@@ -149,7 +159,8 @@ def test_validate_graphql_endpoint_shape_returns_endpoints(
         {"data": {}},
         {"data": {"listEndpoints": None}},
         {"data": {"listEndpoints": {}}},
-        {"data": {"listEndpoints": {"endpoints": []}}},
+        {"data": {"listEndpoints": {"endpoints": None}}},
+        {"data": {"listEndpoints": {"endpoints": {"endpointId": "x"}}}},
         {ARRAY_WRAPPER: []},
         {ARRAY_WRAPPER: ["not a dict"]},
         {ARRAY_WRAPPER: [{"data": {}}]},
