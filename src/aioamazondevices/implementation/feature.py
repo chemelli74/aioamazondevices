@@ -12,32 +12,9 @@ from aioamazondevices.const.http import ARRAY_WRAPPER, REQUEST_AGENT, URI_NEXUS_
 from aioamazondevices.const.queries import MUTATION_SET_ENDPOINT_FEATURES
 from aioamazondevices.exceptions import CannotSetFeature
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.utils import _LOGGER
+from aioamazondevices.utils import _LOGGER, check_and_log_graphql_errors
 
 OPERATION_NAME = "setEndpointFeatures"
-
-
-def _control_request_description(request: dict[str, Any]) -> str:
-    """Return a human readable description of a feature control request."""
-    instance = request.get("instance")
-    feature = request["featureName"]
-    if instance:
-        feature = f"{feature}[{instance}]"
-    return f"{feature}.{request['featureOperationName']} on {request['endpointId']}"
-
-
-def _graphql_errors(response: dict[str, Any]) -> list[str]:
-    """Return the top level GraphQL error messages, if any."""
-    if arr := response.get(ARRAY_WRAPPER):
-        errors = arr[0].get("errors", [])
-    else:
-        errors = response.get("errors", [])
-
-    return [
-        f"{error.get('message', 'Unknown error')}"
-        f" for path {error.get('path', 'Unknown path')}"
-        for error in errors
-    ]
 
 
 class AmazonFeatureHandler:
@@ -59,15 +36,10 @@ class AmazonFeatureHandler:
         operation_name: str,
         command_payload: dict[str, Any] | None = None,
         instance: str | None = None,
-    ) -> dict[str, Any]:
+    ) -> None:
         """Invoke a feature operation on an endpoint.
 
-        Wraps the `setEndpointFeatures` GraphQL mutation with a single
-        feature control request, and returns the matching feature control
-        response.
-
-        Raises CannotSetFeature when the mutation, or the single request it
-        carries, is rejected.
+        Raises CannotSetFeature if the operation is rejected.
         """
         request: dict[str, Any] = {
             "endpointId": endpoint_id,
@@ -101,16 +73,16 @@ class AmazonFeatureHandler:
 
         response = await self._http_wrapper.response_to_json(raw_resp, "set_feature")
 
-        return self._parse_response(response, request)
+        readable_form = (
+            f"{feature_name}[{instance or ''}].{operation_name} on {endpoint_id}"
+        )
 
-    def _parse_response(
-        self, response: dict[str, Any], request: dict[str, Any]
-    ) -> dict[str, Any]:
-        """Return the feature control response, raising on any reported error."""
-        described = _control_request_description(request)
+        self._parse_response(response, readable_form)
 
-        if errors := _graphql_errors(response):
-            raise CannotSetFeature(f"Cannot set {described}: {'; '.join(errors)}")
+    def _parse_response(self, response: dict[str, Any], readable_form: str) -> None:
+        """Raise CannotSetFeature if the response reports any error."""
+        if check_and_log_graphql_errors("MUTATION_SET_ENDPOINT_FEATURES", response):
+            raise CannotSetFeature(f"Cannot set {readable_form}.")
 
         if (
             not (arr := response.get(ARRAY_WRAPPER))
@@ -118,7 +90,7 @@ class AmazonFeatureHandler:
             or (result := data.get(OPERATION_NAME)) is None
         ):
             raise CannotSetFeature(
-                f"Malformed response received setting {described}: {response}"
+                f"Malformed response received setting {readable_form}: {response}"
             )
 
         if failures := result.get("errors"):
@@ -127,11 +99,12 @@ class AmazonFeatureHandler:
                 f" {failure.get('message', 'no message')}"
                 for failure in failures
             )
-            raise CannotSetFeature(f"Cannot set {described}: {messages}")
+            raise CannotSetFeature(f"Cannot set {readable_form}: {messages}")
 
         if not (responses := result.get("featureControlResponses")):
-            raise CannotSetFeature(f"No response received setting {described}")
+            raise CannotSetFeature(f"No response received setting {readable_form}")
 
-        _LOGGER.debug("Feature set: %s [%s]", described, responses[0].get("code"))
-
-        return dict(responses[0])
+        for response_details in responses:
+            _LOGGER.debug(
+                "Feature set: %s [%s]", readable_form, response_details.get("code")
+            )
