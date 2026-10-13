@@ -100,7 +100,7 @@ def _feature(**overrides: object) -> AmazonDeviceFeature:
         "maximum_value": None,
         "precision": None,
         "unit_of_measure": None,
-        "configuration": {},
+        "raw_configuration": {},
     }
     return AmazonDeviceFeature(**(fields | overrides))
 
@@ -453,7 +453,7 @@ async def test_features_are_read_for_the_built_devices(
             "Fan.Speed": _feature(
                 supported_operations=["setMode"],
                 supported_modes=["Low", "High"],
-                configuration={
+                raw_configuration={
                     "modeOptions": [{"value": "Low"}, {"value": "High"}],
                 },
             )
@@ -461,7 +461,7 @@ async def test_features_are_read_for_the_built_devices(
         "thermostat": {
             "": _feature(
                 supported_modes=["HEAT", "OFF"],
-                configuration={"supportedModes": ["HEAT", "OFF"]},
+                raw_configuration={"supportedModes": ["HEAT", "OFF"]},
             )
         },
         "range": {
@@ -472,7 +472,7 @@ async def test_features_are_read_for_the_built_devices(
                 maximum_value=10,
                 precision=1,
                 unit_of_measure="Alexa.Unit.Percent",
-                configuration=range_configuration,
+                raw_configuration=range_configuration,
             )
         },
     }
