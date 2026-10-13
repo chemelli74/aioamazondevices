@@ -215,6 +215,29 @@ def check_and_log_graphql_errors(
     return True
 
 
+def validate_graphql_endpoint_shape(
+    query_name: str, endpoint_resp: dict[str, Any]
+) -> list[dict[str, Any]] | None:
+    """Return the endpoints of a GraphQL listEndpoints response."""
+    try:
+        response = endpoint_resp
+        if ARRAY_WRAPPER in response:
+            response = response[ARRAY_WRAPPER][0]
+        endpoints = response["data"]["listEndpoints"]["endpoints"]
+    except (KeyError, IndexError, TypeError):
+        endpoints = None
+
+    if not isinstance(endpoints, list):
+        _LOGGER.error(
+            "Malformed endpoint data received in %s: %s",
+            query_name,
+            scrub_fields(endpoint_resp),
+        )
+        return None
+
+    return endpoints
+
+
 def string_recursive_parse(
     obj: dict[str, Any] | str | list[Any], _depth: int = 0
 ) -> dict[str, Any] | list[Any] | str:
