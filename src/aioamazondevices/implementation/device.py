@@ -15,7 +15,6 @@ from aioamazondevices.const.devices import (
     SPEAKER_GROUP_FAMILY,
 )
 from aioamazondevices.const.http import (
-    ARRAY_WRAPPER,
     REFRESH_ACCESS_TOKEN,
     REQUEST_AGENT,
     URI_DEVICES,
@@ -418,15 +417,11 @@ class AmazonDeviceHandler:
             # Explicit error in returned data
             return {}
 
-        if (
-            not (arr := endpoints_features.get(ARRAY_WRAPPER))
-            or not (data := arr[0].get("data"))
-            or not (endpoints_list := data.get("listEndpoints"))
-            or not (endpoints := endpoints_list.get("endpoints"))
-        ):
-            _LOGGER.error(
-                "Malformed endpoint features data received: %s", endpoints_features
+        if not (
+            endpoints := validate_graphql_endpoint_shape(
+                "QUERY_DEVICE_FEATURES", endpoints_features
             )
+        ):
             return {}
 
         return {
