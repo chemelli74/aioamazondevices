@@ -540,7 +540,7 @@ class AmazonEchoApi:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
 
-    async def async_set_feature(
+    async def call_feature_operation(
         self,
         endpoint_id: str,
         feature_name: str,

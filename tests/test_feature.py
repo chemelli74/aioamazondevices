@@ -51,30 +51,40 @@ def _sent_request(session_request: AsyncMock) -> dict[str, Any]:
 
 
 @pytest.mark.parametrize(
-    ("fixture", "operation"),
-    [("turn_on", "turnOn"), ("turn_off", "turnOff")],
+    ("fixture", "request_args"),
+    [
+        ("turn_on", ("toggle", "turnOn", "11")),
+        ("turn_off", ("toggle", "turnOff", "11")),
+        ("power_on", ("power", "turnOn", None)),
+    ],
 )
 @pytest.mark.anyio
 async def test_set_feature_success(
     api: AmazonEchoApi,
     caplog: pytest.LogCaptureFixture,
     fixture: str,
-    operation: str,
+    request_args: tuple[str, str, str | None],
 ) -> None:
-    """A successful toggle sends the request and logs the response code."""
+    """A successful operation sends the request and logs the response code."""
+    feature, operation, instance = request_args
     session_request = _mock_response(api, _fixture(fixture))
 
     with caplog.at_level(logging.DEBUG):
-        await api.async_set_feature(ENDPOINT_ID, "toggle", operation, instance="11")
+        await api.call_feature_operation(
+            ENDPOINT_ID, feature, operation, instance=instance
+        )
 
-    assert _sent_request(session_request) == {
+    expected_request = {
         "endpointId": ENDPOINT_ID,
-        "featureName": "toggle",
+        "featureName": feature,
         "featureOperationName": operation,
-        "instance": "11",
     }
+    if instance is not None:
+        expected_request["instance"] = instance
+    assert _sent_request(session_request) == expected_request
     assert (
-        f"Feature set: toggle[11].{operation} on {ENDPOINT_ID} [SUCCESS]" in caplog.text
+        f"Feature set: {feature}[{instance or ''}].{operation} on {ENDPOINT_ID}"
+        " [SUCCESS]" in caplog.text
     )
 
 
@@ -83,7 +93,7 @@ async def test_set_feature_sends_payload(api: AmazonEchoApi) -> None:
     """A command payload is sent with the request."""
     session_request = _mock_response(api, _fixture("turn_on"))
 
-    await api.async_set_feature(
+    await api.call_feature_operation(
         ENDPOINT_ID, "toggle", "turnOn", command_payload={"value": 1}
     )
 
@@ -128,7 +138,9 @@ async def test_set_feature_rejected(
     _mock_response(api, _fixture(fixture))
 
     with pytest.raises(CannotSetFeature, match=re.escape(message)):
-        await api.async_set_feature(endpoint_id, "toggle", operation, instance=instance)
+        await api.call_feature_operation(
+            endpoint_id, "toggle", operation, instance=instance
+        )
 
 
 @pytest.mark.parametrize(
@@ -161,4 +173,4 @@ async def test_set_feature_malformed_responses_raise(
     _mock_response(api, response)
 
     with pytest.raises(CannotSetFeature, match=re.escape(message)):
-        await api.async_set_feature(ENDPOINT_ID, "toggle", "turnOn")
+        await api.call_feature_operation(ENDPOINT_ID, "toggle", "turnOn")

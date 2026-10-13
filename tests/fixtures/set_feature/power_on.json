@@ -1,0 +1,22 @@
+[
+  {
+    "data": {
+      "setEndpointFeatures": {
+        "featureControlResponses": [
+          {
+            "endpointId": "amzn1.alexa.endpoint.00000000-0000-0000-0000-000000000000",
+            "featureName": "power",
+            "instance": null,
+            "featureOperationName": "turnOn",
+            "code": "SUCCESS"
+          }
+        ],
+        "errors": []
+      }
+    },
+    "extensions": {
+      "requestID": "0000000000000000POWR",
+      "duration": 412
+    }
+  }
+]
