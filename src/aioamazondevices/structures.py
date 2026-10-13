@@ -70,7 +70,7 @@ class AmazonDeviceFeature:
     precision: float | None
     unit_of_measure: str | None
     # raw configuration section, its shape depends on the feature
-    configuration: dict[str, Any]
+    raw_configuration: dict[str, Any]
 
 
 @dataclass

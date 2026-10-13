@@ -90,7 +90,7 @@ def _parse_features(
             maximum_value=supported_range.get("maximumValue"),
             precision=supported_range.get("precision"),
             unit_of_measure=_endpoint_text(configuration, "unitOfMeasure"),
-            configuration=configuration,
+            raw_configuration=configuration,
         )
 
     return features
