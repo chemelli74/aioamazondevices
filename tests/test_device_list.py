@@ -239,6 +239,35 @@ async def test_endpoint_data_reads_a_single_endpoints_list(api: AmazonEchoApi) -
 
 
 @pytest.mark.anyio
+async def test_endpoint_data_graphql_errors_return_nothing(
+    api: AmazonEchoApi, caplog: pytest.LogCaptureFixture
+) -> None:
+    """GraphQL errors are logged and no endpoints are returned."""
+    handler = api._device_handler
+    response = {"errors": [{"message": "Boom", "path": ["listEndpoints"]}]}
+    handler._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
+    handler._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
+
+    assert await handler._get_devices_endpoint_data() == {}
+    assert "Error running query: QUERY_DEVICE_DATA - Boom" in caplog.text
+
+
+@pytest.mark.anyio
+async def test_endpoint_data_malformed_returns_nothing(
+    api: AmazonEchoApi, caplog: pytest.LogCaptureFixture
+) -> None:
+    """A response without endpoints is logged as malformed."""
+    handler = api._device_handler
+    handler._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
+    handler._http_wrapper.response_to_json = AsyncMock(  # type: ignore[method-assign]
+        return_value={"data": {"listEndpoints": None}}
+    )
+
+    assert await handler._get_devices_endpoint_data() == {}
+    assert "Malformed endpoint data received" in caplog.text
+
+
+@pytest.mark.anyio
 async def test_devices_v2_data_enriches_the_endpoint_device(api: AmazonEchoApi) -> None:
     """Voice specific data comes from devices-v2, the rest from the endpoint."""
     handler = api._device_handler
