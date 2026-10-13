@@ -26,7 +26,12 @@ from aioamazondevices.const.queries import QUERY_DEVICE_DATA, QUERY_DEVICE_FEATU
 from aioamazondevices.exceptions import CannotRestartDevice, CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceFeature
-from aioamazondevices.utils import _LOGGER, format_graphql_error, parse_device_details
+from aioamazondevices.utils import (
+    _LOGGER,
+    check_and_log_graphql_errors,
+    parse_device_details,
+    scrub_fields,
+)
 
 
 def _endpoint_text(endpoint: dict[str, Any], key: str) -> str | None:
@@ -355,12 +360,17 @@ class AmazonDeviceHandler:
 
         endpoint_data = await self._http_wrapper.response_to_json(raw_resp, "endpoint")
 
+        if check_and_log_graphql_errors("QUERY_DEVICE_DATA", endpoint_data):
+            return {}
+
         if (
             not (data := endpoint_data.get("data"))
             or not (endpoints_list := data.get("listEndpoints"))
             or not (raw_endpoints := endpoints_list.get("endpoints"))
         ):
-            format_graphql_error(endpoint_data)
+            _LOGGER.error(
+                "Malformed endpoint data received: %s", scrub_fields(endpoint_data)
+            )
             return {}
 
         devices_endpoints: dict[str, dict[str, Any]] = {}
@@ -407,7 +417,7 @@ class AmazonDeviceHandler:
             raw_resp, "endpoint features"
         )
 
-        if format_graphql_error(endpoints_features):
+        if check_and_log_graphql_errors("QUERY_DEVICE_FEATURES", endpoints_features):
             # Explicit error in returned data
             return {}
 
