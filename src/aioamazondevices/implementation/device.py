@@ -290,14 +290,14 @@ class AmazonDeviceHandler:
             return {}
 
         if not (
-            raw_endpoints := validate_graphql_endpoint_shape(
+            endpoints := validate_graphql_endpoint_shape(
                 "QUERY_DEVICE_DATA", endpoint_data
             )
         ):
             return {}
 
         devices_endpoints: dict[str, dict[str, Any]] = {}
-        for endpoint in raw_endpoints:
+        for endpoint in endpoints:
             # save looking up sensor data on apps
             if (endpoint.get("alexaEnabledMetadata") or {}).get("category") == "APP":
                 continue
