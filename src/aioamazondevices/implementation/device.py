@@ -29,7 +29,7 @@ from aioamazondevices.utils import (
     _LOGGER,
     check_and_log_graphql_errors,
     parse_device_details,
-    scrub_fields,
+    validate_graphql_endpoint_shape,
 )
 
 
@@ -289,14 +289,11 @@ class AmazonDeviceHandler:
         if check_and_log_graphql_errors("QUERY_DEVICE_DATA", endpoint_data):
             return {}
 
-        if (
-            not (data := endpoint_data.get("data"))
-            or not (endpoints_list := data.get("listEndpoints"))
-            or not (raw_endpoints := endpoints_list.get("endpoints"))
-        ):
-            _LOGGER.error(
-                "Malformed endpoint data received: %s", scrub_fields(endpoint_data)
+        if not (
+            raw_endpoints := validate_graphql_endpoint_shape(
+                "QUERY_DEVICE_DATA", endpoint_data
             )
+        ):
             return {}
 
         devices_endpoints: dict[str, dict[str, Any]] = {}

@@ -11,7 +11,7 @@ from email.message import EmailMessage
 from email.parser import BytesParser
 from email.policy import default
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import orjson
 
@@ -213,6 +213,30 @@ def check_and_log_graphql_errors(
         _LOGGER.error("Error running query: %s - %s for path %s", query_name, msg, path)
 
     return True
+
+
+def validate_graphql_endpoint_shape(
+    query_name: str, endpoint_resp: dict[str, Any]
+) -> list[dict[str, Any]] | None:
+    """Return the endpoints of a GraphQL listEndpoints response."""
+    response = endpoint_resp
+    if ARRAY_WRAPPER in response:
+        responses = response[ARRAY_WRAPPER]
+        response = responses[0] if responses and isinstance(responses[0], dict) else {}
+
+    if (
+        not (data := response.get("data"))
+        or not (endpoints_list := data.get("listEndpoints"))
+        or not (endpoints := endpoints_list.get("endpoints"))
+    ):
+        _LOGGER.error(
+            "Malformed endpoint data received in %s: %s",
+            query_name,
+            scrub_fields(endpoint_resp),
+        )
+        return None
+
+    return cast("list[dict[str, Any]]", endpoints)
 
 
 def string_recursive_parse(
