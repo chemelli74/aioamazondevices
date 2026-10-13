@@ -6,6 +6,7 @@
 import json
 import logging
 import re
+from collections.abc import Callable
 from typing import Any, cast
 from unittest.mock import AsyncMock, MagicMock
 
@@ -14,6 +15,7 @@ import pytest
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.exceptions import CannotSetFeature
 from aioamazondevices.implementation.feature import OPERATION_NAME
+from aioamazondevices.structures import AmazonDevice, AmazonDeviceFeature
 
 from .const import FIXTURES_DIR
 
@@ -32,6 +34,35 @@ def _fixture(name: str) -> list[dict[str, Any]]:
 def _result(result: dict[str, Any] | None) -> list[dict[str, Any]]:
     """Wrap a setEndpointFeatures result in a GraphQL response."""
     return [{"data": {OPERATION_NAME: result}}]
+
+
+def _feature(*operations: str) -> AmazonDeviceFeature:
+    """Build a feature supporting the given operations."""
+    return AmazonDeviceFeature(
+        properties=[],
+        supported_operations=list(operations),
+        supported_modes=[],
+        friendly_name=None,
+        minimum_value=None,
+        maximum_value=None,
+        precision=None,
+        unit_of_measure=None,
+        raw_configuration={},
+    )
+
+
+@pytest.fixture
+def device(make_device: Callable[..., AmazonDevice]) -> AmazonDevice:
+    """Return a device exposing a toggle (with instances) and a power feature."""
+    device = make_device("SERIAL")
+    device.endpoint_id = ENDPOINT_ID
+    # turnEgg is declared so Amazon's rejection of it can still be exercised
+    toggle = _feature("turnOn", "turnOff", "turnEgg")
+    device.features = {
+        "toggle": {"11": toggle, "21": toggle},
+        "power": {"": _feature("turnOn", "turnOff")},
+    }
+    return device
 
 
 def _mock_response(api: AmazonEchoApi, response: JsonBody) -> AsyncMock:
@@ -61,6 +92,7 @@ def _sent_request(session_request: AsyncMock) -> dict[str, Any]:
 @pytest.mark.anyio
 async def test_set_feature_success(
     api: AmazonEchoApi,
+    device: AmazonDevice,
     caplog: pytest.LogCaptureFixture,
     fixture: str,
     request_args: tuple[str, str, str | None],
@@ -70,9 +102,7 @@ async def test_set_feature_success(
     session_request = _mock_response(api, _fixture(fixture))
 
     with caplog.at_level(logging.DEBUG):
-        await api.call_feature_operation(
-            ENDPOINT_ID, feature, operation, instance=instance
-        )
+        await api.call_feature_operation(device, feature, operation, instance=instance)
 
     expected_request = {
         "endpointId": ENDPOINT_ID,
@@ -89,12 +119,14 @@ async def test_set_feature_success(
 
 
 @pytest.mark.anyio
-async def test_set_feature_sends_payload(api: AmazonEchoApi) -> None:
+async def test_set_feature_sends_payload(
+    api: AmazonEchoApi, device: AmazonDevice
+) -> None:
     """A command payload is sent with the request."""
     session_request = _mock_response(api, _fixture("turn_on"))
 
     await api.call_feature_operation(
-        ENDPOINT_ID, "toggle", "turnOn", command_payload={"value": 1}
+        device, "toggle", "turnOn", command_payload={"value": 1}, instance="11"
     )
 
     assert _sent_request(session_request)["payload"] == {"value": 1}
@@ -129,18 +161,17 @@ async def test_set_feature_sends_payload(api: AmazonEchoApi) -> None:
 @pytest.mark.anyio
 async def test_set_feature_rejected(
     api: AmazonEchoApi,
+    device: AmazonDevice,
     fixture: str,
     request_args: tuple[str, str, str],
     message: str,
 ) -> None:
     """Each rejection Amazon returns raises CannotSetFeature."""
-    endpoint_id, operation, instance = request_args
+    device.endpoint_id, operation, instance = request_args
     _mock_response(api, _fixture(fixture))
 
     with pytest.raises(CannotSetFeature, match=re.escape(message)):
-        await api.call_feature_operation(
-            endpoint_id, "toggle", operation, instance=instance
-        )
+        await api.call_feature_operation(device, "toggle", operation, instance=instance)
 
 
 @pytest.mark.parametrize(
@@ -166,6 +197,7 @@ async def test_set_feature_rejected(
 @pytest.mark.anyio
 async def test_set_feature_malformed_responses_raise(
     api: AmazonEchoApi,
+    device: AmazonDevice,
     response: JsonBody,
     message: str,
 ) -> None:
@@ -173,4 +205,73 @@ async def test_set_feature_malformed_responses_raise(
     _mock_response(api, response)
 
     with pytest.raises(CannotSetFeature, match=re.escape(message)):
-        await api.call_feature_operation(ENDPOINT_ID, "toggle", "turnOn")
+        await api.call_feature_operation(device, "toggle", "turnOn", instance="11")
+
+
+@pytest.mark.parametrize(
+    ("request_args", "message"),
+    [
+        (
+            ("light", "turnOn", None),
+            "Device (Echo SERIAL) does not have feature: light.",
+        ),
+        (
+            ("toggle", "turnOn", "99"),
+            "Device (Echo SERIAL) does not have feature: toggle instance: 99.",
+        ),
+        (
+            ("toggle", "turnOn", None),
+            "Device (Echo SERIAL) does not have feature: toggle.",
+        ),
+        (
+            ("toggle", "setColor", "11"),
+            (
+                "Operation: setColor not valid for device (Echo SERIAL)"
+                " feature: toggle instance: 11."
+            ),
+        ),
+        (
+            ("power", "setColor", None),
+            "Operation: setColor not valid for device (Echo SERIAL) feature: power.",
+        ),
+    ],
+    ids=[
+        "unknown_feature",
+        "unknown_instance",
+        "missing_instance",
+        "unsupported_operation_with_instance",
+        "unsupported_operation",
+    ],
+)
+@pytest.mark.anyio
+async def test_set_feature_invalid_request_raises(
+    api: AmazonEchoApi,
+    device: AmazonDevice,
+    request_args: tuple[str, str, str | None],
+    message: str,
+) -> None:
+    """Requests the device does not support raise without contacting Amazon."""
+    feature, operation, instance = request_args
+    session_request = _mock_response(api, _fixture("turn_on"))
+
+    with pytest.raises(CannotSetFeature, match=re.escape(message)):
+        await api.call_feature_operation(device, feature, operation, instance=instance)
+
+    session_request.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_set_feature_without_endpoint_raises(
+    api: AmazonEchoApi, device: AmazonDevice
+) -> None:
+    """A device without an endpoint ID raises without contacting Amazon."""
+    device.endpoint_id = None
+    session_request = _mock_response(api, _fixture("turn_on"))
+
+    with pytest.raises(
+        CannotSetFeature,
+        match=re.escape("Device (Echo SERIAL) does not have an endpoint ID."),
+    ):
+        await api.call_feature_operation(device, "toggle", "turnOn", instance="11")
+
+    session_request.assert_not_called()
