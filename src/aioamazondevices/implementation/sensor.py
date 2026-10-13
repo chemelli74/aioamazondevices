@@ -10,7 +10,7 @@ from typing import Any
 from yarl import URL
 
 from aioamazondevices.const.devices import SPEAKER_GROUP_FAMILY
-from aioamazondevices.const.http import ARRAY_WRAPPER, REQUEST_AGENT, URI_NEXUS_GRAPHQL
+from aioamazondevices.const.http import REQUEST_AGENT, URI_NEXUS_GRAPHQL
 from aioamazondevices.const.queries import QUERY_SENSOR_STATE
 from aioamazondevices.const.schedules import (
     NOTIFICATION_ALARM,
@@ -24,7 +24,11 @@ from aioamazondevices.const.sensors import (
 )
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
-from aioamazondevices.utils import _LOGGER, format_graphql_error
+from aioamazondevices.utils import (
+    _LOGGER,
+    check_and_log_graphql_errors,
+    validate_graphql_endpoint_shape,
+)
 
 
 def _parse_sample_timestamp(
@@ -266,17 +270,15 @@ class AmazonSensorHandler:
 
         sensors_state = await self._http_wrapper.response_to_json(raw_resp, "sensors")
 
-        if format_graphql_error(sensors_state):
+        if check_and_log_graphql_errors("QUERY_SENSOR_STATE", sensors_state):
             # Explicit error in returned data
             return {}
 
-        if (
-            not (arr := sensors_state.get(ARRAY_WRAPPER))
-            or not (data := arr[0].get("data"))
-            or not (endpoints_list := data.get("listEndpoints"))
-            or not (endpoints := endpoints_list.get("endpoints"))
+        if not (
+            endpoints := validate_graphql_endpoint_shape(
+                "QUERY_SENSOR_STATE", sensors_state
+            )
         ):
-            _LOGGER.error("Malformed sensor state data received: %s", sensors_state)
             return {}
 
         return {

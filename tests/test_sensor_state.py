@@ -5,10 +5,13 @@
 
 from collections.abc import Callable
 from typing import Any
+from unittest.mock import AsyncMock
 
 import pytest
 
+from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.devices import DEVICE_TYPE_AQM
+from aioamazondevices.const.http import ARRAY_WRAPPER
 from aioamazondevices.implementation import sensor as sensor_module
 from aioamazondevices.implementation.sensor import parse_graphql_feature_to_sensor
 from aioamazondevices.structures import AmazonDevice
@@ -170,3 +173,63 @@ async def test_device_specific_sensor_without_name_uses_fallback(
 
     assert sensors["rangeValue-1"].value == TEST_RANGE_VALUE
     assert sensors["rangeValue-1"].scale == "ppm"
+
+
+@pytest.mark.anyio
+async def test_endpoint_states_graphql_errors_return_nothing(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """GraphQL errors are logged and no sensor states are returned."""
+    handler = api._sensor_handler
+    device = make_device(TEST_SERIAL_1)
+    device.endpoint_id = "endpoint-1"
+    handler._final_devices = {TEST_SERIAL_1: device}
+    response = {"errors": [{"message": "Boom", "path": ["listEndpoints"]}]}
+    handler._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
+    handler._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
+
+    assert await handler._get_endpoint_states() == {}
+    assert "Error running query: QUERY_SENSOR_STATE - Boom" in caplog.text
+
+
+@pytest.mark.anyio
+async def test_endpoint_states_malformed_returns_nothing(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A response without endpoints is logged as malformed."""
+    handler = api._sensor_handler
+    device = make_device(TEST_SERIAL_1)
+    device.endpoint_id = "endpoint-1"
+    handler._final_devices = {TEST_SERIAL_1: device}
+    response = {ARRAY_WRAPPER: [{"data": {"listEndpoints": None}}]}
+    handler._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
+    handler._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
+
+    assert await handler._get_endpoint_states() == {}
+    assert "Malformed endpoint data received in QUERY_SENSOR_STATE" in caplog.text
+
+
+@pytest.mark.anyio
+async def test_endpoint_states_are_keyed_by_endpoint_id(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+) -> None:
+    """Endpoint states are keyed by endpoint ID, skipping those without one."""
+    handler = api._sensor_handler
+    device = make_device(TEST_SERIAL_1)
+    device.endpoint_id = "endpoint-1"
+    handler._final_devices = {TEST_SERIAL_1: device}
+    endpoint = {"endpointId": "endpoint-1", "features": []}
+    response = {
+        ARRAY_WRAPPER: [
+            {"data": {"listEndpoints": {"endpoints": [endpoint, {"features": []}]}}}
+        ]
+    }
+    handler._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
+    handler._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
+
+    assert await handler._get_endpoint_states() == {"endpoint-1": endpoint}
