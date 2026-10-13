@@ -31,6 +31,8 @@ class AmazonDeviceSensor:
     error_type: str | None
     error_msg: str | None
     scale: str | None
+    feature_name: str
+    instance: str
     time_of_sample: datetime | None = None
 
 
@@ -170,6 +172,9 @@ class AmazonPushMessage(StrEnum):
 
     # DND
     DoNotDisturbChange = "PUSH_DND_STATE_CHANGE"
+
+    # Smart Home - This is generated inside the code, not sent by Amazon
+    SmartHome = "FDAL_UPDATE"
 
 
 @dataclass

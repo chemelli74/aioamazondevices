@@ -1,5 +1,38 @@
 # Changelog
 
+## v16.5.0 (2026-10-11)
+
+### Features
+
+- Make sensor parsing generic ([`5add2d9`](https://github.com/chemelli74/aioamazondevices/commit/5add2d9ad31c8350ea2fbb8e9fca10bc848e7dca))
+
+
+## v16.4.0 (2026-10-11)
+
+### Features
+
+- Add smart home push events ([`c7edba8`](https://github.com/chemelli74/aioamazondevices/commit/c7edba88f8d6ededaea273c28cbb8c1fb3798157))
+
+
+### Build system
+
+- Bump node feature to 2.1.1 ([`efa6a97`](https://github.com/chemelli74/aioamazondevices/commit/efa6a97113e6fbc93dc1d2ef4c722c0af358d698))
+- Bump multidict from 6.7.1 to 6.9.1 in the uv group across 1 directory ([`b0581f2`](https://github.com/chemelli74/aioamazondevices/commit/b0581f2d6ae5de882825a4fe0e6ee65f073a866a))
+
+
+## v16.3.4 (2026-10-11)
+
+### Bug fixes
+
+- Update dependency aiohttp to v3.14.5 ([`311729a`](https://github.com/chemelli74/aioamazondevices/commit/311729acb5039a77b236ec4568b5052812883f8e))
+
+
+### Build system
+
+- Add gh cli to devcontainer ([`c4591a5`](https://github.com/chemelli74/aioamazondevices/commit/c4591a507be2feea051a385219f15772f2bed055))
+- Avoid bumping package.json when building environment ([`96e4570`](https://github.com/chemelli74/aioamazondevices/commit/96e4570a1c8e7a25fbff08e974d95c702227ddc6))
+
+
 ## v16.3.3 (2026-10-07)
 
 ### Bug fixes
