@@ -24,7 +24,7 @@ from aioamazondevices.const.sensors import (
 )
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
-from aioamazondevices.utils import _LOGGER, format_graphql_error
+from aioamazondevices.utils import _LOGGER, check_and_log_graphql_errors
 
 
 def _parse_sample_timestamp(
@@ -266,7 +266,7 @@ class AmazonSensorHandler:
 
         sensors_state = await self._http_wrapper.response_to_json(raw_resp, "sensors")
 
-        if format_graphql_error(sensors_state):
+        if check_and_log_graphql_errors("QUERY_SENSOR_STATE", sensors_state):
             # Explicit error in returned data
             return {}
 

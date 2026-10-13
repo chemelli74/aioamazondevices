@@ -3,9 +3,12 @@
 
 """Tests for utility helpers."""
 
+from typing import Any
+
 import pytest
 
-from aioamazondevices.utils import parse_device_details
+from aioamazondevices.const.http import ARRAY_WRAPPER
+from aioamazondevices.utils import check_and_log_graphql_errors, parse_device_details
 
 
 @pytest.mark.parametrize(
@@ -71,3 +74,47 @@ def test_parse_device_details_none() -> None:
 
     assert model is None
     assert hardware_version is None
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        {"data": {}},
+        {"errors": []},
+        {ARRAY_WRAPPER: [{"data": {}}]},
+    ],
+)
+def test_check_and_log_graphql_errors_no_errors(
+    response: dict[str, Any], caplog: pytest.LogCaptureFixture
+) -> None:
+    """Responses without errors are not flagged."""
+    assert not check_and_log_graphql_errors("TEST_QUERY", response)
+    assert not caplog.records
+
+
+def test_check_and_log_graphql_errors_logs_every_error(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Every error is logged with the query name."""
+    response = {
+        "errors": [
+            {"message": "First failure", "path": ["listEndpoints"]},
+            {},
+        ]
+    }
+
+    assert check_and_log_graphql_errors("TEST_QUERY", response)
+    assert [record.getMessage() for record in caplog.records] == [
+        "Error running query: TEST_QUERY - First failure for path ['listEndpoints']",
+        "Error running query: TEST_QUERY - Unknown error for path Unknown path",
+    ]
+
+
+def test_check_and_log_graphql_errors_array_wrapper(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Errors nested in the array wrapper are found."""
+    response = {ARRAY_WRAPPER: [{"errors": [{"message": "Boom", "path": "x"}]}]}
+
+    assert check_and_log_graphql_errors("TEST_QUERY", response)
+    assert "Error running query: TEST_QUERY - Boom for path x" in caplog.text

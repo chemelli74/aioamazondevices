@@ -192,19 +192,26 @@ def parse_device_details(model: str | None) -> tuple[str | None, str | None]:
     return model, None
 
 
-def format_graphql_error(graphql_response: dict[str, Any]) -> bool:
-    """Format human readable e rror from malformed data."""
-    if graphql_response.get(ARRAY_WRAPPER):
-        error = graphql_response[ARRAY_WRAPPER][0].get("errors", [])
-    else:
-        error = graphql_response.get("errors", [])
+def check_and_log_graphql_errors(
+    query_name: str, graphql_response: dict[str, Any]
+) -> bool:
+    """Check for GraphQL errors and log them.
 
-    if not error:
+    Returns True if errors were found, False otherwise.
+    """
+    if graphql_response.get(ARRAY_WRAPPER):
+        errors = graphql_response[ARRAY_WRAPPER][0].get("errors", [])
+    else:
+        errors = graphql_response.get("errors", [])
+
+    if not errors:
         return False
 
-    msg = error[0].get("message", "Unknown error")
-    path = error[0].get("path", "Unknown path")
-    _LOGGER.error("Error retrieving devices state: %s for path %s", msg, path)
+    for error in errors:
+        msg = error.get("message", "Unknown error")
+        path = error.get("path", "Unknown path")
+        _LOGGER.error("Error running query: %s - %s for path %s", query_name, msg, path)
+
     return True
 
 
