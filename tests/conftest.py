@@ -74,6 +74,7 @@ def make_device() -> Callable[..., AmazonDevice]:
             communication_settings={},
             parent_clusters=[],
             voice_control_supported=voice_control_supported,
+            features={},
         )
 
     return _make_device

@@ -1,5 +1,18 @@
 # Changelog
 
+## v16.6.0 (2026-10-13)
+
+### Features
+
+- Store device feature metadata ([`a8fd5da`](https://github.com/chemelli74/aioamazondevices/commit/a8fd5da6c141101c7eb49276423864e64d1dc9df))
+
+
+### Refactoring
+
+- Validation of endpoint response ([`b813a7a`](https://github.com/chemelli74/aioamazondevices/commit/b813a7a915b26f207976fbe0216a3a8c1b56df7d))
+- Tidy up graphql error logging ([`e94004d`](https://github.com/chemelli74/aioamazondevices/commit/e94004d6fe486d30bc84067bc85782990f8e5b9c))
+
+
 ## v16.5.0 (2026-10-11)
 
 ### Features
