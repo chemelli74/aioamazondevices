@@ -11,7 +11,7 @@ from email.message import EmailMessage
 from email.parser import BytesParser
 from email.policy import default
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 import orjson
 
@@ -219,16 +219,15 @@ def validate_graphql_endpoint_shape(
     query_name: str, endpoint_resp: dict[str, Any]
 ) -> list[dict[str, Any]] | None:
     """Return the endpoints of a GraphQL listEndpoints response."""
-    response = endpoint_resp
-    if ARRAY_WRAPPER in response:
-        responses = response[ARRAY_WRAPPER]
-        response = responses[0] if responses and isinstance(responses[0], dict) else {}
+    try:
+        response = endpoint_resp
+        if ARRAY_WRAPPER in response:
+            response = response[ARRAY_WRAPPER][0]
+        endpoints = response["data"]["listEndpoints"]["endpoints"]
+    except (KeyError, IndexError, TypeError):
+        endpoints = None
 
-    if (
-        not (data := response.get("data"))
-        or not (endpoints_list := data.get("listEndpoints"))
-        or not (endpoints := endpoints_list.get("endpoints"))
-    ):
+    if not endpoints or not isinstance(endpoints, list):
         _LOGGER.error(
             "Malformed endpoint data received in %s: %s",
             query_name,
@@ -236,7 +235,7 @@ def validate_graphql_endpoint_shape(
         )
         return None
 
-    return cast("list[dict[str, Any]]", endpoints)
+    return endpoints
 
 
 def string_recursive_parse(
