@@ -205,3 +205,43 @@ This package was created with
 [Copier](https://copier.readthedocs.io/) and the
 [browniebroke/pypackage-template](https://github.com/browniebroke/pypackage-template)
 project template.
+
+### Separate announcement display text
+
+Announcements use the spoken message as the display text by default. To change
+only the screen content, pass the optional keyword argument `display_text`:
+
+```python
+await api.call_alexa_announcement(
+    device,
+    "Eksplifai version 1 32 0 is ready.",
+    display_text="Xplify version 1.32.0 is ready.",
+)
+```
+
+Omitting `display_text`, or passing `None`, preserves the existing behavior.
+An empty string requests an empty display body. The display title remains unchanged.
+This option uses plain text and does not change speech speed or enable SSML.
+
+### SSML announcements
+
+Use `speech_type="ssml"` to request formatted speech. Plain text remains the default.
+Provide a separate `display_text` for SSML messages to keep markup off the screen:
+
+```python
+await api.call_alexa_announcement(
+    device,
+    '<speak><sub alias="Example">EXAMPLE</sub> is ready.</speak>',
+    display_text="EXAMPLE is ready.",
+    speech_type="ssml",
+)
+```
+
+The library rejects unknown speech types and malformed XML before queuing.
+SSML requires a `speak` root. XML declarations that start with `<!` are rejected,
+including document type definitions and entity declarations.
+This checks XML structure, not the complete Amazon SSML specification.
+Escape untrusted text before embedding it in SSML. Do not treat generated text as trusted markup.
+Amazon can reject or ignore unsupported tags even when the XML is valid.
+The queue keeps text and SSML messages separate when it groups announcements.
+SSML support builds on the optional announcement display text.
