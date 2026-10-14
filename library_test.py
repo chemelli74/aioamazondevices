@@ -333,6 +333,7 @@ async def main() -> None:
             device_notifications = notifications.get(device.serial_number, {})
             print(f"   Device notifications: {len(device_notifications)}")
             print(f"   Device communications: {device_comm_settings}")
+            print(f"   Device features: {list(device.features.keys())}")
             dev_index += 1
         print("-" * 20)
 
