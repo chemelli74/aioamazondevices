@@ -137,7 +137,7 @@ def parse_graphql_feature_to_sensor(
             if error_type == "NOT_FOUND":
                 continue
 
-            sensor_name = feature_property_name
+            sensor_name = sensor_template.get("name") or feature_property_name
             if device_specific_override is not None:
                 sensor_name = (
                     device_specific_override.get("name")
@@ -153,6 +153,7 @@ def parse_graphql_feature_to_sensor(
                 error_msg,
                 scale,
                 feature_name=feature_name,
+                property_name=feature_property_name,
                 instance=instance,
                 time_of_sample=time_of_sample,
             )

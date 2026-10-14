@@ -9,6 +9,7 @@ SENSOR_STATE_OFF = "NOT_DETECTED"
 
 # Sensors templates, keyed by feature name and then by property name
 # This determines how to parse the feature
+# An optional "name" replaces the property name as the sensor name
 SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
     "temperatureSensor": {
         "temperature": {
