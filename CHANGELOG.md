@@ -1,5 +1,24 @@
 # Changelog
 
+## v16.8.0 (2026-10-14)
+
+### Features
+
+- Allow name overide on sensors ([`f78ebeb`](https://github.com/chemelli74/aioamazondevices/commit/f78ebeb689bceb1e38e87c4405a626590f325a18))
+
+
+## v16.7.0 (2026-10-14)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`e0ffac0`](https://github.com/chemelli74/aioamazondevices/commit/e0ffac026be3c413ab55ec377789de510b5f83b1))
+
+
+### Features
+
+- Support optional display text for announcements ([`2116186`](https://github.com/chemelli74/aioamazondevices/commit/211618634f936fa2610c1d805580a0023f44d6cd))
+
+
 ## v16.6.0 (2026-10-13)
 
 ### Features

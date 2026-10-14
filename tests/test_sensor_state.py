@@ -102,6 +102,35 @@ def _range_endpoint(instance: str) -> dict[str, Any]:
 
 
 @pytest.mark.anyio
+async def test_sensor_template_name_override(
+    make_device: Callable[..., AmazonDevice],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A template name replaces the property name as the sensor name."""
+    monkeypatch.setitem(
+        sensor_module.SENSOR_TEMPLATES,
+        "temperatureSensor",
+        {
+            "temperature": {
+                "key": "value",
+                "subkey": "value",
+                "scale": "scale",
+                "name": "Room Temperature",
+            }
+        },
+    )
+
+    sensors = parse_graphql_feature_to_sensor(
+        _temperature_endpoint("value"), make_device(TEST_SERIAL_1)
+    )
+
+    assert list(sensors) == ["Room Temperature"]
+    assert sensors["Room Temperature"].name == "Room Temperature"
+    assert sensors["Room Temperature"].value == TEST_TEMPERATURE
+    assert sensors["Room Temperature"].property_name == "temperature"
+
+
+@pytest.mark.anyio
 async def test_unknown_feature_is_skipped(
     make_device: Callable[..., AmazonDevice],
 ) -> None:
@@ -126,6 +155,7 @@ async def test_device_specific_sensor_uses_override(
     assert sensors["Humidity"].value == TEST_RANGE_VALUE
     assert sensors["Humidity"].scale == "%"
     assert sensors["Humidity"].feature_name == "range"
+    assert sensors["Humidity"].property_name == "rangeValue"
     assert sensors["Humidity"].instance == "4"
 
 
