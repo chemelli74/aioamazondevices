@@ -360,7 +360,7 @@ class AmazonHttpWrapper:
             )
 
         resp: ClientResponse | None = None
-        retry_delays = [0, 2, 5, 8, 12, 21] if not fail_fast else [0]
+        retry_delays = [0, 2, 5] if not fail_fast else [0]
         for delay in retry_delays:
             if delay:
                 _LOGGER.info(
