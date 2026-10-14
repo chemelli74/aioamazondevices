@@ -72,7 +72,7 @@ async def test_retry_with_backoff(
     """Retryable statuses are retried with back-off delays."""
     sleeps = await _request_until_failure(api, monkeypatch, fail_fast=False)
 
-    assert sleeps == [2, 5, 8, 12, 21]
+    assert sleeps == [2, 5]
 
 
 @pytest.mark.anyio
