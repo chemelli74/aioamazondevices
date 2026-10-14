@@ -99,7 +99,10 @@ class AmazonDevice:
     media_player_supported: bool
     communication_settings: dict[str, str]
     voice_control_supported: bool
+    # features split by property: those with a sensor template for this device
+    # type, then all the others, so a feature can be in both
     features: dict[str, dict[str, AmazonDeviceFeature]]
+    unsupported_features: dict[str, dict[str, AmazonDeviceFeature]]
 
 
 class AmazonSequenceType(StrEnum):

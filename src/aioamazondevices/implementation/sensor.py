@@ -51,6 +51,28 @@ def _parse_sample_timestamp(
         return None
 
 
+def is_templated_feature(device_type: str, feature_name: str, instance: str) -> bool:
+    """Return whether a feature instance is parsed into sensors for a device type.
+
+    A feature is templated when it has a sensor template and is either common
+    to all devices or enabled for this device type and instance.
+    """
+    if feature_name not in SENSOR_TEMPLATES:
+        return False
+    return feature_name in COMMON_SENSORS or instance in SPECIFIC_SENSORS.get(
+        device_type, {}
+    ).get(feature_name, {})
+
+
+def templated_properties(
+    device_type: str, feature_name: str, instance: str
+) -> set[str]:
+    """Return the properties of a feature instance parsed into sensors."""
+    if not is_templated_feature(device_type, feature_name, instance):
+        return set()
+    return set(SENSOR_TEMPLATES[feature_name])
+
+
 def parse_graphql_feature_to_sensor(
     endpoint: dict[str, Any], device: AmazonDevice
 ) -> dict[str, AmazonDeviceSensor]:
@@ -65,17 +87,18 @@ def parse_graphql_feature_to_sensor(
             # Skip features that are not in the predefined list
             continue
 
-        device_specific_override: dict[str, str | None] | None
-        if feature_name in COMMON_SENSORS:
-            device_specific_override = None
-        elif instance in (instances := device_specific_features.get(feature_name, {})):
-            device_specific_override = instances[instance]
-        else:
+        if not is_templated_feature(device.device_type, feature_name, instance):
             _LOGGER.debug(
                 "Skip feature (%s) not enabled for this device type / instance",
                 feature_name,
             )
             continue
+
+        device_specific_override: dict[str, str | None] | None = (
+            None
+            if feature_name in COMMON_SENSORS
+            else device_specific_features[feature_name][instance]
+        )
 
         for feature_property in feature.get("properties") or []:
             feature_property_name = feature_property.get("name")

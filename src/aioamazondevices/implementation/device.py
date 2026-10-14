@@ -3,6 +3,7 @@
 
 """Implementation of device handling for Amazon devices."""
 
+from dataclasses import replace
 from http import HTTPMethod
 from typing import Any
 
@@ -24,6 +25,7 @@ from aioamazondevices.const.http import (
 from aioamazondevices.const.queries import QUERY_DEVICE_DATA, QUERY_DEVICE_FEATURES
 from aioamazondevices.exceptions import CannotRestartDevice, CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
+from aioamazondevices.implementation.sensor import templated_properties
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceFeature
 from aioamazondevices.utils import (
     _LOGGER,
@@ -44,6 +46,11 @@ def _endpoint_device_type(endpoint: dict[str, Any]) -> str | None:
     return _endpoint_text(legacy_identifiers.get("dmsIdentifier") or {}, "deviceType")
 
 
+def _device_type(endpoint: dict[str, Any], base_device: dict[str, Any] | None) -> str:
+    """Return the device type, preferring the GraphQL endpoint one."""
+    return _endpoint_device_type(endpoint) or (base_device or {}).get("deviceType", "")
+
+
 def _endpoint_entity_id(endpoint: dict[str, Any]) -> str | None:
     """Return the legacy entity ID of a GraphQL endpoint."""
     legacy_identifiers = endpoint.get("legacyIdentifiers") or {}
@@ -51,14 +58,24 @@ def _endpoint_entity_id(endpoint: dict[str, Any]) -> str | None:
 
 
 def _parse_features(
-    endpoint_state: dict[str, Any],
-) -> dict[str, dict[str, AmazonDeviceFeature]]:
-    """Return the features of an endpoint, keyed by feature name and instance.
+    endpoint_state: dict[str, Any], device_type: str
+) -> tuple[
+    dict[str, dict[str, AmazonDeviceFeature]],
+    dict[str, dict[str, AmazonDeviceFeature]],
+]:
+    """Return the supported and unsupported features of an endpoint.
 
-    Features without an instance are keyed by an empty string, so the result
-    only has string keys and can be serialised to JSON.
+    The split is by property: the properties with a sensor template for the
+    device type are supported, the others are not, so a feature can be in
+    both with different properties. A feature without supported properties
+    is unsupported even when it has no properties at all.
+
+    Both are keyed by feature name and instance; features without an instance
+    are keyed by an empty string, so the result only has string keys and can
+    be serialised to JSON.
     """
     features: dict[str, dict[str, AmazonDeviceFeature]] = {}
+    unsupported_features: dict[str, dict[str, AmazonDeviceFeature]] = {}
     for feature in endpoint_state.get("features") or []:
         if not (name := feature.get("name")):
             continue
@@ -73,17 +90,17 @@ def _parse_features(
         supported_range = configuration.get("supportedRange") or {}
 
         instance = feature.get("instance") or ""
-        features.setdefault(name, {})[instance] = AmazonDeviceFeature(
+        properties = [
+            prop["name"] for prop in feature.get("properties") or [] if prop.get("name")
+        ]
+        templated = templated_properties(device_type, name, instance)
+        parsed_feature = AmazonDeviceFeature(
             supported_operations=[
                 operation["name"]
                 for operation in feature.get("operations") or []
                 if operation.get("name")
             ],
-            properties=[
-                prop["name"]
-                for prop in feature.get("properties") or []
-                if prop.get("name")
-            ],
+            properties=properties,
             supported_modes=supported_modes,
             friendly_name=_endpoint_text(configuration, "friendlyName"),
             minimum_value=supported_range.get("minimumValue"),
@@ -93,7 +110,18 @@ def _parse_features(
             raw_configuration=configuration,
         )
 
-    return features
+        supported = [prop for prop in properties if prop in templated]
+        unsupported = [prop for prop in properties if prop not in templated]
+        if supported:
+            features.setdefault(name, {})[instance] = replace(
+                parsed_feature, properties=supported
+            )
+        if unsupported or not supported:
+            unsupported_features.setdefault(name, {})[instance] = replace(
+                parsed_feature, properties=unsupported
+            )
+
+    return features, unsupported_features
 
 
 def _resolve_model_details(
@@ -202,15 +230,22 @@ class AmazonDeviceHandler:
             if endpoint_features := endpoints_features.get(
                 endpoint.get("endpointId", "")
             ):
-                features = _parse_features(endpoint_features)
+                features, unsupported_features = _parse_features(
+                    endpoint_features, _device_type(endpoint, base_device)
+                )
             elif known_device := self._final_devices.get(serial_number):
                 # keep the last known features when the lookup fails
                 features = known_device.features
+                unsupported_features = known_device.unsupported_features
             else:
-                features = {}
+                features, unsupported_features = {}, {}
 
             devices[serial_number] = self._build_device(
-                serial_number, endpoint, base_device, features
+                serial_number,
+                endpoint,
+                base_device,
+                features,
+                unsupported_features,
             )
 
         # Speaker groups are not exposed as endpoints by GraphQL
@@ -222,7 +257,7 @@ class AmazonDeviceHandler:
                 continue
 
             devices[serial_number] = self._build_device(
-                serial_number, {}, base_device, {}
+                serial_number, {}, base_device, {}, {}
             )
 
         # backfill device types for cluster members, now that they are all built
@@ -241,6 +276,7 @@ class AmazonDeviceHandler:
         endpoint: dict[str, Any],
         base_device: dict[str, Any] | None,
         features: dict[str, dict[str, AmazonDeviceFeature]],
+        unsupported_features: dict[str, dict[str, AmazonDeviceFeature]],
     ) -> AmazonDevice:
         """Build a device from its GraphQL endpoint and devices-v2 data.
 
@@ -258,7 +294,7 @@ class AmazonDeviceHandler:
         account_name = _endpoint_text(endpoint, "friendlyNameObject") or base.get(
             "accountName", ""
         )
-        device_type = _endpoint_device_type(endpoint) or base.get("deviceType", "")
+        device_type = _device_type(endpoint, base_device)
         # devices-v2 is the only source of a device family, so a device that
         # has no devices-v2 data at all is a different case to one whose data
         # does not name a family
@@ -307,6 +343,7 @@ class AmazonDeviceHandler:
             # only devices-v2 devices can be spoken to, speaker groups aside
             voice_control_supported=bool(base) and family != SPEAKER_GROUP_FAMILY,
             features=features,
+            unsupported_features=unsupported_features,
         )
 
     async def _get_base_devices_data(self) -> dict[str, dict[str, Any]]:
