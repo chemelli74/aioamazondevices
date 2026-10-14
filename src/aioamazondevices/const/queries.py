@@ -328,6 +328,31 @@ fragment EndpointState on Endpoint {
         timeOfSample
         timeOfLastChange
       }
+      ... on ToggleState {
+        toggleStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on DetectionSensitivity {
+        detectionSensitivityValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on EnablementState {
+        enablementStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on DetectionRange {
+        detectionRangeValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on DetectionTechnology {
+        detectionTechnologyValue
+        timeOfSample
+        timeOfLastChange
+      }
     }
   }
 }

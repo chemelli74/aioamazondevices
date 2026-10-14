@@ -3,6 +3,7 @@
 
 """Tests for sensor state parsing in AmazonSensorHandler."""
 
+import re
 from collections.abc import Callable
 from typing import Any
 from unittest.mock import AsyncMock
@@ -12,6 +13,8 @@ import pytest
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.devices import DEVICE_TYPE_AQM
 from aioamazondevices.const.http import ARRAY_WRAPPER
+from aioamazondevices.const.queries import QUERY_SENSOR_STATE
+from aioamazondevices.const.sensors import SENSOR_TEMPLATES
 from aioamazondevices.implementation import sensor as sensor_module
 from aioamazondevices.implementation.sensor import parse_graphql_feature_to_sensor
 from aioamazondevices.structures import AmazonDevice
@@ -99,6 +102,92 @@ def _range_endpoint(instance: str) -> dict[str, Any]:
             }
         ]
     }
+
+
+@pytest.mark.parametrize(
+    "value_key",
+    sorted(
+        {
+            template["key"]
+            for properties in SENSOR_TEMPLATES.values()
+            for template in properties.values()
+            if template["key"]
+        }
+    ),
+)
+def test_sensor_template_key_is_queried(value_key: str) -> None:
+    """Every sensor template value key is requested by the sensor state query."""
+    assert re.search(rf"\b{value_key}\b", QUERY_SENSOR_STATE)
+
+
+@pytest.mark.anyio
+async def test_motion_sensor_properties_are_read(
+    make_device: Callable[..., AmazonDevice],
+) -> None:
+    """All motion sensor properties are parsed, using the API property names."""
+    values = {
+        ("detectionState", "DetectionState"): "DETECTED",
+        ("detectionSensitivity", "DetectionSensitivity"): "MEDIUM",
+        ("enablement", "EnablementState"): "ENABLED",
+        ("detectionRange", "DetectionRange"): "HIGH",
+        ("detectionTechnology", "DetectionTechnology"): "ULTRASONIC_BASIC",
+    }
+    endpoint = {
+        "features": [
+            {
+                "name": "motionSensor",
+                "instance": None,
+                "properties": [
+                    {
+                        "name": name,
+                        "type": "RETRIEVABLE",
+                        "error": None,
+                        "__typename": typename,
+                        f"{typename[0].lower()}{typename[1:]}Value": value,
+                    }
+                    for (name, typename), value in values.items()
+                ],
+            }
+        ]
+    }
+
+    sensors = parse_graphql_feature_to_sensor(endpoint, make_device(TEST_SERIAL_1))
+
+    assert {name: sensor.value for name, sensor in sensors.items()} == {
+        name: value for (name, _), value in values.items()
+    }
+
+
+@pytest.mark.anyio
+async def test_aqm_led_toggle_is_read(
+    make_device: Callable[..., AmazonDevice],
+) -> None:
+    """The AQM LED toggle instance is exposed as a named sensor."""
+    endpoint = {
+        "features": [
+            {
+                "name": "toggle",
+                "instance": "11",
+                "properties": [
+                    {
+                        "name": "toggleState",
+                        "type": "RETRIEVABLE",
+                        "error": None,
+                        "__typename": "ToggleState",
+                        "toggleStateValue": "ON",
+                    }
+                ],
+            }
+        ]
+    }
+
+    sensors = parse_graphql_feature_to_sensor(
+        endpoint, _make_typed_device(make_device, DEVICE_TYPE_AQM)
+    )
+
+    assert sensors["LED"].value == "ON"
+    assert sensors["LED"].feature_name == "toggle"
+    assert sensors["LED"].instance == "11"
 
 
 @pytest.mark.anyio

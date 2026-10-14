@@ -23,6 +23,26 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
             "subkey": None,
             "scale": None,
         },
+        "detectionSensitivity": {
+            "key": "detectionSensitivityValue",
+            "subkey": None,
+            "scale": None,
+        },
+        "enablement": {
+            "key": "enablementStateValue",
+            "subkey": None,
+            "scale": None,
+        },
+        "detectionRange": {
+            "key": "detectionRangeValue",
+            "subkey": None,
+            "scale": None,
+        },
+        "detectionTechnology": {
+            "key": "detectionTechnologyValue",
+            "subkey": None,
+            "scale": None,
+        },
     },
     "lightSensor": {
         "illuminance": {
@@ -42,6 +62,13 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
         "rangeValue": {
             "key": "rangeValue",
             "subkey": "value",
+            "scale": None,
+        },
+    },
+    "toggle": {
+        "toggleState": {
+            "key": "toggleStateValue",
+            "subkey": None,
             "scale": None,
         },
     },
@@ -83,6 +110,12 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
                 "name": "Air Quality",
                 "scale": None,
             },
+        },
+        "toggle": {
+            "11": {
+                "name": "LED",
+                "scale": None,
+            }
         },
     }
 }
