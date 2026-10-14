@@ -3,8 +3,14 @@
 
 """Shared test data constants for aioamazondevices tests."""
 
+from pathlib import Path
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
 TEST_EMAIL = "test@example.com"
 TEST_PASSWORD = "password"  # noqa: S105
 
 TEST_SERIAL_1 = "1234"
 TEST_SERIAL_2 = "5678"
+
+TEST_CSRF = "csrf-token"

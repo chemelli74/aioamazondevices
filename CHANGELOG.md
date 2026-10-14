@@ -1,5 +1,94 @@
 # Changelog
 
+## v16.6.0 (2026-10-13)
+
+### Features
+
+- Store device feature metadata ([`a8fd5da`](https://github.com/chemelli74/aioamazondevices/commit/a8fd5da6c141101c7eb49276423864e64d1dc9df))
+
+
+### Refactoring
+
+- Validation of endpoint response ([`b813a7a`](https://github.com/chemelli74/aioamazondevices/commit/b813a7a915b26f207976fbe0216a3a8c1b56df7d))
+- Tidy up graphql error logging ([`e94004d`](https://github.com/chemelli74/aioamazondevices/commit/e94004d6fe486d30bc84067bc85782990f8e5b9c))
+
+
+## v16.5.0 (2026-10-11)
+
+### Features
+
+- Make sensor parsing generic ([`5add2d9`](https://github.com/chemelli74/aioamazondevices/commit/5add2d9ad31c8350ea2fbb8e9fca10bc848e7dca))
+
+
+## v16.4.0 (2026-10-11)
+
+### Features
+
+- Add smart home push events ([`c7edba8`](https://github.com/chemelli74/aioamazondevices/commit/c7edba88f8d6ededaea273c28cbb8c1fb3798157))
+
+
+### Build system
+
+- Bump node feature to 2.1.1 ([`efa6a97`](https://github.com/chemelli74/aioamazondevices/commit/efa6a97113e6fbc93dc1d2ef4c722c0af358d698))
+- Bump multidict from 6.7.1 to 6.9.1 in the uv group across 1 directory ([`b0581f2`](https://github.com/chemelli74/aioamazondevices/commit/b0581f2d6ae5de882825a4fe0e6ee65f073a866a))
+
+
+## v16.3.4 (2026-10-11)
+
+### Bug fixes
+
+- Update dependency aiohttp to v3.14.5 ([`311729a`](https://github.com/chemelli74/aioamazondevices/commit/311729acb5039a77b236ec4568b5052812883f8e))
+
+
+### Build system
+
+- Add gh cli to devcontainer ([`c4591a5`](https://github.com/chemelli74/aioamazondevices/commit/c4591a507be2feea051a385219f15772f2bed055))
+- Avoid bumping package.json when building environment ([`96e4570`](https://github.com/chemelli74/aioamazondevices/commit/96e4570a1c8e7a25fbff08e974d95c702227ddc6))
+
+
+## v16.3.3 (2026-10-07)
+
+### Bug fixes
+
+- Update python dependencies ([`6c18d5e`](https://github.com/chemelli74/aioamazondevices/commit/6c18d5e4aeaf3838859d777ed8c2f0126084b62c))
+
+
+### Build system
+
+- Bump lower bounds, lockfile and mypy hook pins ([`ff95183`](https://github.com/chemelli74/aioamazondevices/commit/ff9518359f87959164e21594af105b7743992916))
+
+
+## v16.3.2 (2026-10-07)
+
+### Bug fixes
+
+- Cookie handling in aiohttp ([`f3318d1`](https://github.com/chemelli74/aioamazondevices/commit/f3318d15faee9a652427c4afe8b55e41a62babac))
+
+
+## v16.3.1 (2026-09-30)
+
+### Bug fixes
+
+- Improve online/offline state ([`6edb263`](https://github.com/chemelli74/aioamazondevices/commit/6edb263b080785754859f2a3a3e8d07b66b46b19))
+
+
+### Build system
+
+- Format version_variables on one line ([`d0fef23`](https://github.com/chemelli74/aioamazondevices/commit/d0fef239491453676c336c52d644af9fa88fa3eb))
+- Pin mypy hook deps for local and ci alignment ([`b25a54d`](https://github.com/chemelli74/aioamazondevices/commit/b25a54df72409b125ef28a9db5fa94b26f0a577a))
+- Remove unused ruff ignores ([`5a9fc6e`](https://github.com/chemelli74/aioamazondevices/commit/5a9fc6ed6cc8093bddfc2e84363d53f2c57feebe))
+- Remove stale codespell skip list ([`534b396`](https://github.com/chemelli74/aioamazondevices/commit/534b396f7e5888d0d26159c144f74e8f1d6a3bcb))
+- Measure coverage on all modules ([`c9e2a3c`](https://github.com/chemelli74/aioamazondevices/commit/c9e2a3c89ff6dd2432f91293f0f7808359d67b2b))
+- Fix ruff known-first-party package name ([`cb3a61a`](https://github.com/chemelli74/aioamazondevices/commit/cb3a61a425261ef23bbd1d9bac719ed49d4e385d))
+- Replace unmaintained labels tool ([`8b2105b`](https://github.com/chemelli74/aioamazondevices/commit/8b2105ba8bb61484d3ea01bcbb94077264026786))
+
+
+### Refactoring
+
+- Drop dead httpx code ([`0095712`](https://github.com/chemelli74/aioamazondevices/commit/0095712ad4a46635e74460589b343e914bac0e66))
+- Drive devices from graphql ([`5bc9028`](https://github.com/chemelli74/aioamazondevices/commit/5bc90285f2ac6fc3568fc029cb62f0bd8ea18be5))
+
+
 ## v16.3.0 (2026-09-15)
 
 ### Features

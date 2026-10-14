@@ -149,7 +149,6 @@ class AmazonEchoApi:
         # force initial refresh
         initial_time = datetime.now(UTC) - timedelta(days=2)
         self._last_daily_refresh: datetime = initial_time
-        self._last_endpoint_refresh: datetime = initial_time
 
         self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
@@ -247,33 +246,17 @@ class AmazonEchoApi:
                 str(timedelta(minutes=round(delta_daily.total_seconds() / 60))),
             )
             # Request various data that doesn't change that often
-            await self._device_handler.get_base_devices()
+            await self._device_handler.update_devices()
             await self._media_handler.update_music_providers()
             await self._sequence_handler.update_routines()
             await self._todo_handler.update_lists()
 
             self._last_daily_refresh = datetime.now(UTC)
 
-        # Only refresh endpoint data if we have no endpoints yet
-        # or if it's been a while since the last refresh
-        delta_endpoints = datetime.now(UTC) - self._last_endpoint_refresh
-        endpoint_refresh_needed = delta_endpoints >= timedelta(days=1)
-        endpoints_recently_checked = delta_endpoints < timedelta(minutes=30)
-        if (
-            not self._device_handler.endpoints and not endpoints_recently_checked
-        ) or endpoint_refresh_needed:
-            _LOGGER.debug(
-                "Refreshing endpoint data after %s",
-                str(timedelta(minutes=round(delta_endpoints.total_seconds() / 60))),
-            )
-            # Set device endpoint data
-            await self._device_handler.set_device_endpoints_data()
-            self._last_endpoint_refresh = datetime.now(UTC)
-
-        # Resolve the default device only once base and endpoint devices are
-        # loaded: sensor-only devices (e.g. Amazon Air Quality Monitor) are
-        # created by set_device_endpoints_data() and would otherwise be missed,
-        # aborting the refresh with NoOnlineDevicesError.
+        # Resolve the default device only once devices are loaded: sensor-only
+        # devices (e.g. Amazon Air Quality Monitor) are created by
+        # update_devices() and would otherwise be missed, aborting the refresh
+        # with NoOnlineDevicesError.
         await self._init_default_device()
 
     async def get_devices_data(
@@ -291,7 +274,6 @@ class AmazonEchoApi:
         )
         await self._sensor_handler.update_sensor_data(
             self._device_handler.devices,
-            self._device_handler.endpoints,
             notifications,
             communications,
         )
