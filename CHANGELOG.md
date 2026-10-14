@@ -1,5 +1,12 @@
 # Changelog
 
+## v16.8.0 (2026-10-14)
+
+### Features
+
+- Allow name overide on sensors ([`f78ebeb`](https://github.com/chemelli74/aioamazondevices/commit/f78ebeb689bceb1e38e87c4405a626590f325a18))
+
+
 ## v16.7.0 (2026-10-14)
 
 ### Documentation
