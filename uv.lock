@@ -31,7 +31,7 @@ requires-dist = [
     { name = "beautifulsoup4" },
     { name = "httpx", extras = ["http2"] },
     { name = "langcodes" },
-    { name = "orjson", specifier = ">=3.13.0,<4" },
+    { name = "orjson", specifier = ">=3.11.9,<4" },
     { name = "python-dateutil" },
 ]
 
