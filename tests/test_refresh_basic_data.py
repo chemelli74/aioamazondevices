@@ -20,30 +20,25 @@ async def test_refresh_resolves_default_device_from_endpoint_only_account(
 ) -> None:
     """Endpoint-only devices (e.g. Air Quality Monitor) resolve as default device.
 
-    Regression test: the Air Quality Monitor is created by
-    set_device_endpoints_data(), so resolving the default device before that call
-    aborted the whole refresh with NoOnlineDevicesError on accounts without an
-    Echo device.
+    Regression test: the Air Quality Monitor is created by update_devices(), so
+    resolving the default device before that call aborted the whole refresh with
+    NoOnlineDevicesError on accounts without an Echo device.
     """
     call_order: list[str] = []
 
-    async def _get_base_devices() -> None:
-        call_order.append("get_base_devices")
-
-    async def _set_device_endpoints_data() -> None:
-        call_order.append("set_device_endpoints_data")
+    async def _update_devices() -> None:
+        call_order.append("update_devices")
         api._device_handler._final_devices[TEST_SERIAL_1] = make_device(
             TEST_SERIAL_1, online=True
         )
 
-    api._device_handler.get_base_devices = _get_base_devices  # type: ignore[method-assign]
-    api._device_handler.set_device_endpoints_data = _set_device_endpoints_data  # type: ignore[method-assign]
+    api._device_handler.update_devices = _update_devices  # type: ignore[method-assign]
     api._media_handler.update_music_providers = AsyncMock()  # type: ignore[method-assign]
     api._sequence_handler.update_routines = AsyncMock()  # type: ignore[method-assign]
     api._todo_handler.update_lists = AsyncMock()  # type: ignore[method-assign]
 
     await api._refresh_basic_data()
 
-    assert call_order == ["get_base_devices", "set_device_endpoints_data"]
+    assert call_order == ["update_devices"]
     default_device = await api.get_default_device()
     assert default_device.serial_number == TEST_SERIAL_1

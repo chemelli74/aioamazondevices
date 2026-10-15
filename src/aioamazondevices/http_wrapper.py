@@ -7,7 +7,7 @@ import asyncio
 import base64
 import secrets
 from http import HTTPMethod, HTTPStatus
-from http.cookies import Morsel
+from http.cookies import Morsel, SimpleCookie
 from typing import Any, cast
 
 import orjson
@@ -66,7 +66,6 @@ class AmazonSessionStateData:
         self._login_password: str = login_password
         self._login_stored_data: dict[str, Any] = login_data or {}
         self.country_specific_data(login_site)
-        self._account_customer_id: str | None = None
 
     @property
     def country_code(self) -> str:
@@ -126,12 +125,12 @@ class AmazonSessionStateData:
     @property
     def account_customer_id(self) -> str | None:
         """Return account customer id."""
-        return self._account_customer_id
+        return self._login_stored_data.get("account_customer_id")
 
     @account_customer_id.setter
     def account_customer_id(self, customer_id: str | None) -> None:
         """Set account customer id."""
-        self._account_customer_id = customer_id
+        self._login_stored_data["account_customer_id"] = customer_id
 
     def country_specific_data(self, login_site: str) -> None:
         """Set country specific data."""
@@ -386,8 +385,8 @@ class AmazonHttpWrapper:
             _LOGGER.error("No response received from %s", url)
             raise CannotConnect(f"No response received from {url}")
 
-        if csrf := resp.cookies.get(CSRF_COOKIE, Morsel()).value:
-            self._csrf_cookie = csrf
+        if csrf_value := resp.cookies.get(CSRF_COOKIE, Morsel()).value:
+            self._csrf_cookie = csrf_value
             _LOGGER.debug("CSRF cookie value: <%s> [%s]", self._csrf_cookie, url)
 
         content_type: str = resp.headers.get("Content-Type", "")
@@ -466,4 +465,14 @@ class AmazonHttpWrapper:
 
     async def set_cookies(self, cookies: dict[str, str], domain_url: URL) -> None:
         """Set session cookies."""
-        self._session.cookie_jar.update_cookies(cookies, domain_url)
+        # Set an explicit domain attribute so cookies match all subdomains.
+        # aiohttp 3.14.4 changed how it handles cookies domains
+        domain = (domain_url.host or "").lstrip(".")
+        jar_cookies: SimpleCookie = SimpleCookie()
+        for name, value in cookies.items():
+            jar_cookies[name] = value
+            jar_cookies[name]["domain"] = f".{domain}"
+            jar_cookies[name]["path"] = "/"
+        self._session.cookie_jar.update_cookies(
+            jar_cookies, URL.build(scheme="https", host=domain)
+        )

@@ -31,6 +31,10 @@ class AmazonDeviceSensor:
     error_type: str | None
     error_msg: str | None
     scale: str | None
+    feature_name: str
+    property_name: str
+    instance: str
+    time_of_sample: datetime | None = None
 
 
 @dataclass
@@ -51,6 +55,23 @@ class AmazonSchedule:
     status: str
     label: str
     next_occurrence: datetime | None
+
+
+@dataclass
+class AmazonDeviceFeature:
+    """Amazon device feature class."""
+
+    properties: list[str]
+    supported_operations: list[str]
+    supported_modes: list[str]
+    friendly_name: str | None
+    # range features only
+    minimum_value: float | None
+    maximum_value: float | None
+    precision: float | None
+    unit_of_measure: str | None
+    # raw configuration section, its shape depends on the feature
+    raw_configuration: dict[str, Any]
 
 
 @dataclass
@@ -79,6 +100,7 @@ class AmazonDevice:
     media_player_supported: bool
     communication_settings: dict[str, str]
     voice_control_supported: bool
+    features: dict[str, dict[str, AmazonDeviceFeature]]
 
 
 class AmazonSequenceType(StrEnum):
@@ -167,6 +189,12 @@ class AmazonPushMessage(StrEnum):
     # Matter
     MatterDeviceFound = "MATTER_SETUP_NOTIFICATION"
 
+    # DND
+    DoNotDisturbChange = "PUSH_DND_STATE_CHANGE"
+
+    # Smart Home - This is generated inside the code, not sent by Amazon
+    SmartHome = "FDAL_UPDATE"
+
 
 @dataclass
 class AmazonSequenceNode:
@@ -188,6 +216,9 @@ class AmazonVocalRecord:
     intent: str
     title: str
     sub_title: str
+    # Speaker recognised by an Alexa voice profile, when Amazon provides one
+    person_first_name: str | None = None
+    person_type: str | None = None
 
 
 class AmazonListType(StrEnum):

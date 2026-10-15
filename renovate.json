@@ -25,6 +25,14 @@
       "datasourceTemplate": "python-version",
       "versioningTemplate": "python",
       "autoReplaceStringTemplate": "Programming Language :: Python :: {{{currentValue}}}\",\n    \"Programming Language :: Python :: {{{newValue}}}\", # renovate: customPinnedDependency=python,datasource=python-version"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [".pre-commit-config.yaml"],
+      "matchStrings": [
+        "\\s-\\s(?<depName>[A-Za-z0-9][A-Za-z0-9._-]*)==(?<currentValue>[^\\s#]+)"
+      ],
+      "datasourceTemplate": "pypi"
     }
   ],
   "packageRules": [
@@ -55,9 +63,21 @@
     {
       "matchManagers": ["github-actions"],
       "addLabels": ["github_actions"]
+    },
+    {
+      "matchManagers": ["pep621"],
+      "rangeStrategy": "bump"
+    },
+    {
+      "description": "Keep the mypy hook pins consistent with each other and pyproject",
+      "matchManagers": ["pep621", "custom.regex"],
+      "matchDatasources": ["pypi"],
+      "matchFileNames": ["pyproject.toml", ".pre-commit-config.yaml"],
+      "matchPackageNames": ["!uv"],
+      "groupName": "python dependencies"
     }
   ],
   "lockFileMaintenance": {
-    "enabled": false
+    "enabled": true
   }
 }

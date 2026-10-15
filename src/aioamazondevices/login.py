@@ -3,7 +3,6 @@
 
 """Login module for Amazon devices."""
 
-import asyncio
 import base64
 import hashlib
 import secrets
@@ -11,10 +10,8 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from http import HTTPMethod, HTTPStatus
 from typing import Any, cast
-from urllib.parse import parse_qs
 
 from bs4 import BeautifulSoup, Tag
-from multidict import MultiDictProxy
 from yarl import URL
 
 from .capabilities import DEVICE_CAPABILITIES
@@ -29,19 +26,15 @@ from .const.http import (
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     URI_CAPABILITIES,
-    URI_DEVICES,
     URI_REGISTER,
     URI_SIGNIN,
+    URI_USERS_ME,
     URI_WELCOME,
-)
-from .const.metadata import (
-    CUSTOMER_ACCOUNT_DELAY_BETWEEN_RETRIES,
-    CUSTOMER_ACCOUNT_MAX_RETRIES,
 )
 from .exceptions import (
     CannotAuthenticate,
     CannotRegisterDevice,
-    CannotRetrieveData,
+    MissingCountryError,
     WrongMethod,
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
@@ -131,10 +124,13 @@ class AmazonLogin:
         if not isinstance(form, Tag):
             raise CannotAuthenticate("Unable to find form in login response")
 
-        inputs = {}
+        inputs: dict[str, str] = {}
         for field in form.find_all("input"):
             if isinstance(field, Tag) and field.get("type", "") == "hidden":
-                inputs[field["name"]] = field.get("value", "")
+                name = field.get("name")
+                value = field.get("value", "")
+                if isinstance(name, str) and isinstance(value, str):
+                    inputs[name] = value
 
         return inputs
 
@@ -151,17 +147,12 @@ class AmazonLogin:
 
     def _extract_code_from_url(self, url: URL) -> str:
         """Extract the access token from url query after login."""
-        parsed_url: dict[str, list[str]] = {}
-        if isinstance(url.query, bytes):
-            parsed_url = parse_qs(url.query.decode())
-        elif isinstance(url.query, MultiDictProxy):
-            for key, value in url.query.items():
-                parsed_url[key] = [value]
-        else:
+        code: str | None = url.query.get("openid.oa2.authorization_code")
+        if code is None:
             raise CannotAuthenticate(
                 f"Unable to extract authorization code from url: {url}"
             )
-        return parsed_url["openid.oa2.authorization_code"][0]
+        return code
 
     async def _register_device(
         self,
@@ -397,7 +388,11 @@ class AmazonLogin:
             obfuscate_email(self._session_state_data.login_email),
         )
 
-        await self.obtain_account_customer_id()
+        if not self._session_state_data.account_customer_id:
+            await self.obtain_account_customer_id()
+
+        # Register device capabilities each time as they can be updated over time
+        await self._register_device_capabilities()
 
         return self._session_state_data.login_stored_data
 
@@ -462,50 +457,14 @@ class AmazonLogin:
 
     async def obtain_account_customer_id(self) -> None:
         """Find account customer id."""
-        for retry_count in range(CUSTOMER_ACCOUNT_MAX_RETRIES):
-            if not self._session_state_data.account_customer_id:
-                # allow time for device to be registered
-                await asyncio.sleep(CUSTOMER_ACCOUNT_DELAY_BETWEEN_RETRIES)
+        _, raw_resp = await self._http_wrapper.session_request(
+            method=HTTPMethod.GET,
+            url=URL.joinpath(self._session_state_data.alexa_website_url, URI_USERS_ME),
+        )
 
-            _LOGGER.debug(
-                "Lookup customer account ID (attempt %d/%d)",
-                retry_count + 1,
-                CUSTOMER_ACCOUNT_MAX_RETRIES,
-            )
-            _, raw_resp = await self._http_wrapper.session_request(
-                method=HTTPMethod.GET,
-                url=URL.joinpath(
-                    self._session_state_data.alexa_website_url, URI_DEVICES
-                ),
-            )
+        json_data = await self._http_wrapper.response_to_json(raw_resp, "users/me")
 
-            json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
+        if not json_data.get("countryOfResidence"):
+            raise MissingCountryError
 
-            for device in json_data.get("devices", []):
-                dev_serial = device.get("serialNumber")
-                if not dev_serial:
-                    _LOGGER.warning(
-                        "Skipping device without serial number: %s",
-                        device["accountName"],
-                    )
-                    continue
-                if device["deviceType"] != AMAZON_DEVICE_TYPE:
-                    continue
-
-                this_device_serial = self._session_state_data.login_stored_data[
-                    "device_info"
-                ]["device_serial_number"]
-
-                for subdevice in device["appDeviceList"]:
-                    if subdevice["serialNumber"] == this_device_serial:
-                        account_owner_customer_id = device["deviceOwnerCustomerId"]
-                        _LOGGER.debug(
-                            "Setting account owner: %s",
-                            account_owner_customer_id,
-                        )
-                        self._session_state_data.account_customer_id = (
-                            account_owner_customer_id
-                        )
-                        return
-        if not self._session_state_data.account_customer_id:
-            raise CannotRetrieveData("Cannot find account owner customer ID")
+        self._session_state_data.account_customer_id = json_data["id"]
