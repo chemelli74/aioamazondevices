@@ -26,6 +26,7 @@ lint.ignore = [
 ]
 "scripts/*" = [
     "INP001",    # Missing an __init__.py file
+    "T201",      # `print` found
 ]
 "tests/*" = [
     "S101",     # Use of `assert` detected

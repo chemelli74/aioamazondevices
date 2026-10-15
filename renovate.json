@@ -75,6 +75,21 @@
       "matchFileNames": ["pyproject.toml", ".pre-commit-config.yaml"],
       "matchPackageNames": ["!uv"],
       "groupName": "python dependencies"
+    },
+    {
+      "description": "Pinned to Home Assistant package_constraints.txt, synced by scripts/ha_constraints.py",
+      "matchPackageNames": [
+        "aiohttp",
+        "anyio",
+        "attrs",
+        "h11",
+        "httpcore",
+        "httpx",
+        "orjson",
+        "propcache",
+        "yarl"
+      ],
+      "enabled": false
     }
   ],
   "lockFileMaintenance": {
