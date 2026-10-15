@@ -3,6 +3,7 @@
 
 """Tests for the Amazon login flow."""
 
+from contextlib import AbstractContextManager, nullcontext
 from unittest.mock import AsyncMock
 
 import pytest
@@ -95,37 +96,47 @@ async def test_login_stored_data_without_data_raises(api: AmazonEchoApi) -> None
 
 
 @pytest.mark.anyio
-async def test_obtain_account_customer_id(api: AmazonEchoApi) -> None:
-    """The account customer id is read from users/me."""
-    login = api._login
-    login._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
-    login._http_wrapper.response_to_json = AsyncMock(  # type: ignore[method-assign]
-        return_value={"id": "CUSTOMER_ID", "countryOfResidence": "US"}
-    )
-
-    await login.obtain_account_customer_id()
-
-    assert login._session_state_data.account_customer_id == "CUSTOMER_ID"
-
-
-@pytest.mark.anyio
 @pytest.mark.parametrize(
-    "response",
+    ("response", "expected_customer_id", "expectation"),
     [
-        pytest.param({"id": "CUSTOMER_ID"}, id="missing"),
-        pytest.param({"id": "CUSTOMER_ID", "countryOfResidence": None}, id="none"),
-        pytest.param({"id": "CUSTOMER_ID", "countryOfResidence": ""}, id="empty"),
+        pytest.param(
+            {"id": "CUSTOMER_ID", "countryOfResidence": "US"},
+            "CUSTOMER_ID",
+            nullcontext(),
+            id="country_set",
+        ),
+        pytest.param(
+            {"id": "CUSTOMER_ID"},
+            None,
+            pytest.raises(CannotAuthenticate, match="Country of residence"),
+            id="country_missing",
+        ),
+        pytest.param(
+            {"id": "CUSTOMER_ID", "countryOfResidence": None},
+            None,
+            pytest.raises(CannotAuthenticate, match="Country of residence"),
+            id="country_none",
+        ),
+        pytest.param(
+            {"id": "CUSTOMER_ID", "countryOfResidence": ""},
+            None,
+            pytest.raises(CannotAuthenticate, match="Country of residence"),
+            id="country_empty",
+        ),
     ],
 )
-async def test_obtain_account_customer_id_without_country(
-    api: AmazonEchoApi, response: dict[str, str | None]
+async def test_obtain_account_customer_id(
+    api: AmazonEchoApi,
+    response: dict[str, str | None],
+    expected_customer_id: str | None,
+    expectation: AbstractContextManager[object],
 ) -> None:
-    """An account without a country of residence fails authentication."""
+    """The customer id is stored only when a country of residence is set."""
     login = api._login
     login._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
     login._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
 
-    with pytest.raises(CannotAuthenticate, match="Country of residence"):
+    with expectation:
         await login.obtain_account_customer_id()
 
-    assert login._session_state_data.account_customer_id is None
+    assert login._session_state_data.account_customer_id == expected_customer_id
