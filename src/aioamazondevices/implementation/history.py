@@ -3,7 +3,6 @@
 
 """Module to handle Alexa vocal history setting."""
 
-import asyncio
 from datetime import UTC, datetime, timedelta
 from http import HTTPMethod
 from typing import Any
@@ -21,8 +20,6 @@ from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonVocalRecord
 from aioamazondevices.utils import _LOGGER
-
-BACKEND_REFRESH_WAIT_SECONDS = 2
 
 
 class AmazonHistoryHandler:
@@ -79,9 +76,6 @@ class AmazonHistoryHandler:
 
     async def get_vocal_history(self) -> dict[str, AmazonVocalRecord]:
         """Get vocal history."""
-        # Give backend the time to update
-        await asyncio.sleep(BACKEND_REFRESH_WAIT_SECONDS)
-
         history_json = await self._vocal_history_json()
 
         records: dict[str, AmazonVocalRecord] = {}
