@@ -11,7 +11,11 @@ from bs4 import BeautifulSoup
 from yarl import URL
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.exceptions import CannotAuthenticate, WrongMethod
+from aioamazondevices.exceptions import (
+    CannotAuthenticate,
+    MissingCountryError,
+    WrongMethod,
+)
 
 from .const import FIXTURES_DIR
 
@@ -108,19 +112,19 @@ async def test_login_stored_data_without_data_raises(api: AmazonEchoApi) -> None
         pytest.param(
             {"id": "CUSTOMER_ID"},
             None,
-            pytest.raises(CannotAuthenticate, match="Country of residence"),
+            pytest.raises(MissingCountryError),
             id="country_missing",
         ),
         pytest.param(
             {"id": "CUSTOMER_ID", "countryOfResidence": None},
             None,
-            pytest.raises(CannotAuthenticate, match="Country of residence"),
+            pytest.raises(MissingCountryError),
             id="country_none",
         ),
         pytest.param(
             {"id": "CUSTOMER_ID", "countryOfResidence": ""},
             None,
-            pytest.raises(CannotAuthenticate, match="Country of residence"),
+            pytest.raises(MissingCountryError),
             id="country_empty",
         ),
     ],
