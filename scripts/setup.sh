@@ -7,6 +7,10 @@ set -e
 # Use copy mode for UV to avoid hardlink warnings on different filesystems
 export UV_LINK_MODE=copy
 
+# Don't sync into an environment inherited from another project (e.g. a shared
+# devcontainer exporting UV_PROJECT_ENVIRONMENT): always use this repo's .venv
+unset UV_PROJECT_ENVIRONMENT VIRTUAL_ENV
+
 # Find the absolute path of the directory where this script resides
 SETUP_SCRIPT_DIR=$(cd -- "$(dirname -- "$0")" &>/dev/null && pwd)
 
