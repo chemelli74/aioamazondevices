@@ -22,6 +22,7 @@ from aioamazondevices.implementation.todo import AmazonToDoHandler
 
 from . import __version__
 from .const.history import (
+    HISTORY_INITIAL_DELAY_SECONDS,
     HISTORY_PROBE_ATTEMPTS,
     HISTORY_RETRY_DELAY_SECONDS,
 )
@@ -423,6 +424,7 @@ class AmazonEchoApi:
     async def _probe_vocal_history(self, serial: str) -> None:
         """Wait for a fresh history record for the Echo that sent the EQ push."""
         try:
+            await asyncio.sleep(HISTORY_INITIAL_DELAY_SECONDS)
             for attempt in range(1, HISTORY_PROBE_ATTEMPTS + 1):
                 if not self.on_history_event.frozen:
                     return

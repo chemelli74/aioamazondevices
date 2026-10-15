@@ -16,6 +16,12 @@ from aioamazondevices.structures import AmazonVocalRecord
 from .const import TEST_SERIAL_1, TEST_SERIAL_2
 
 
+@pytest.fixture(autouse=True)
+def no_initial_history_delay(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep probe tests fast unless they explicitly test the initial delay."""
+    monkeypatch.setattr(api_module, "HISTORY_INITIAL_DELAY_SECONDS", 0)
+
+
 def _record(timestamp: int, *, reply: str = "") -> AmazonVocalRecord:
     """Build a history record using an Amazon timestamp."""
     return AmazonVocalRecord(
@@ -37,6 +43,33 @@ def _subscribe(api: AmazonEchoApi) -> list[dict[str, AmazonVocalRecord]]:
     api.on_history_event.append(on_history)
     api.on_history_event.freeze()
     return received
+
+
+@pytest.mark.anyio
+async def test_probe_waits_before_first_fetch_but_not_before_each_retry(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Apply the initial delay once, with the retry delay between fetches."""
+    _subscribe(api)
+    initial_delay = 3.5
+    retry_delay = 4
+    monkeypatch.setattr(api_module, "HISTORY_INITIAL_DELAY_SECONDS", initial_delay)
+    monkeypatch.setattr(api_module, "HISTORY_RETRY_DELAY_SECONDS", retry_delay)
+    order: list[str | float] = []
+
+    async def sleep(delay: float) -> None:
+        order.append(delay)
+
+    async def fetch() -> dict[str, AmazonVocalRecord]:
+        order.append("fetch")
+        return {TEST_SERIAL_1: _record(100)} if order.count("fetch") > 1 else {}
+
+    monkeypatch.setattr(api_module.asyncio, "sleep", sleep)
+    monkeypatch.setattr(api, "_shared_vocal_history_fetch", fetch)
+
+    await api._probe_vocal_history(TEST_SERIAL_1)
+
+    assert order == [initial_delay, "fetch", retry_delay, "fetch"]
 
 
 @pytest.mark.anyio
