@@ -463,4 +463,9 @@ class AmazonLogin:
 
         json_data = await self._http_wrapper.response_to_json(raw_resp, "users/me")
 
+        if not json_data.get("countryOfResidence"):
+            raise CannotAuthenticate(
+                "Country of residence is not set.  Please update your Amazon account."
+            )
+
         self._session_state_data.account_customer_id = json_data["id"]
