@@ -430,7 +430,17 @@ class AmazonEchoApi:
                     return
 
                 # All Echo candidates in this round can examine one response.
-                vocal_history = await self._shared_vocal_history_fetch()
+                try:
+                    vocal_history = await self._shared_vocal_history_fetch()
+                except (AmazonError, TimeoutError):
+                    _LOGGER.debug(
+                        "History fetch failed for EQ serial=%s (attempt %s/%s)",
+                        serial,
+                        attempt,
+                        HISTORY_PROBE_ATTEMPTS,
+                        exc_info=True,
+                    )
+                    vocal_history = {}
                 record = vocal_history.get(serial)
                 if (
                     record is not None

@@ -5,12 +5,13 @@
 
 import asyncio
 from datetime import UTC, datetime
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, call
 
 import pytest
 
 from aioamazondevices import api as api_module
 from aioamazondevices.api import AmazonEchoApi
+from aioamazondevices.exceptions import AmazonError
 from aioamazondevices.structures import AmazonVocalRecord
 
 from .const import TEST_SERIAL_1, TEST_SERIAL_2
@@ -405,3 +406,46 @@ async def test_history_sync_does_not_regress_timestamp_baseline(
 
     assert await api.sync_history_state() == {TEST_SERIAL_1: older}
     assert api._last_emitted_history[TEST_SERIAL_1] == latest_timestamp
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("error_type", [AmazonError, TimeoutError])
+@pytest.mark.parametrize("recovers", [True, False], ids=["recovers", "exhausts"])
+async def test_history_fetch_errors_count_as_attempts_and_allow_new_fetch(
+    api: AmazonEchoApi,
+    monkeypatch: pytest.MonkeyPatch,
+    error_type: type[Exception],
+    recovers: bool,
+) -> None:
+    """Failed shared fetches are replaced on retry within the attempt budget."""
+    received = _subscribe(api)
+    fresh = _record(100)
+    fetch = AsyncMock(
+        side_effect=(
+            [error_type("temporary failure"), {TEST_SERIAL_1: fresh}]
+            if recovers
+            else error_type("persistent failure")
+        )
+    )
+    sleep = AsyncMock()
+    monkeypatch.setattr(api._history_handler, "get_vocal_history", fetch)
+    monkeypatch.setattr(api_module.asyncio, "sleep", sleep)
+
+    await api._handle_eq_event_as_history_proxy(
+        {"dopplerId": {"deviceSerialNumber": TEST_SERIAL_1}}
+    )
+    task = api._history_probe_tasks[TEST_SERIAL_1]
+    await task
+
+    expected_attempts = 2 if recovers else api_module.HISTORY_PROBE_ATTEMPTS
+    assert fetch.await_count == expected_attempts
+    assert sleep.await_args_list == [call(0)] + [
+        call(api_module.HISTORY_RETRY_DELAY_SECONDS)
+    ] * (expected_attempts - 1)
+    assert received == ([{TEST_SERIAL_1: fresh}] if recovers else [])
+    assert api._last_emitted_history == (
+        {TEST_SERIAL_1: fresh.timestamp} if recovers else {}
+    )
+    assert task.exception() is None
+    assert not api._history_probe_tasks
+    assert not api._history_activity_timestamps
