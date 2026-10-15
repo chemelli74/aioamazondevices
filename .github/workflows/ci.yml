@@ -23,7 +23,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
-          python-version: "3.14" # renovate: customPinnedDependency=python,datasource=python-version
+          python-version: "3.15" # renovate: customPinnedDependency=python,datasource=python-version
       - uses: j178/prek-action@1382ad72dea72f9d53832f2bcb65b3e87a947204 # v3.0.1
 
   # Make sure commit messages follow the conventional commits convention:
@@ -107,7 +107,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
-          python-version: "3.14" # renovate: customPinnedDependency=python,datasource=python-version
+          python-version: "3.15" # renovate: customPinnedDependency=python,datasource=python-version
 
       # Do a dry run of PSR
       - name: Test release
