@@ -22,11 +22,11 @@ classifiers = [
 ]
 dependencies = [
 "aiohttp (>=3.14.5)",
-"anyio (>=4.15.1)",
+"anyio (>=4.14.2)",
 "beautifulsoup4",
 "httpx[http2]",
 "langcodes",
-"orjson (>=3.13.0,<4)",
+"orjson (>=3.11.9,<4)",
 "python-dateutil",
 ]
 
@@ -41,6 +41,20 @@ dev = [
     "pytest>=9.1.1,<10",
     "pytest-cov>=7.1.0,<8",
     "types-python-dateutil>=2.9.0.20260807,<3",
+]
+
+[tool.uv]
+# Mirror Home Assistant package_constraints.txt, managed by scripts/ha_constraints.py
+constraint-dependencies = [
+    "aiohttp==3.14.5",
+    "anyio==4.14.2",
+    "attrs==26.1.0",
+    "h11==0.16.0",
+    "httpcore==1.0.9",
+    "httpx==0.28.1",
+    "orjson==3.11.9",
+    "propcache==0.5.4",
+    "yarl==1.25.1",
 ]
 
 [tool.uv-version]
