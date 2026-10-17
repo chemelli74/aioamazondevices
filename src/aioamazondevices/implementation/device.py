@@ -25,7 +25,7 @@ from aioamazondevices.const.http import (
 from aioamazondevices.const.queries import QUERY_DEVICE_DATA, QUERY_DEVICE_FEATURES
 from aioamazondevices.exceptions import CannotRestartDevice, CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.implementation.sensor import templated_properties
+from aioamazondevices.implementation.sensor_templates import sensor_spec
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceFeature
 from aioamazondevices.utils import (
     _LOGGER,
@@ -68,7 +68,8 @@ def _parse_features(
     The split is by property: the properties with a sensor template for the
     device type are supported, the others are not, so a feature can be in
     both with different properties. A feature without supported properties
-    is unsupported even when it has no properties at all.
+    is unsupported even when it has no properties at all. Supported features
+    map each property to the key of its sensor.
 
     Both are keyed by feature name and instance; features without an instance
     are keyed by an empty string, so the result only has string keys and can
@@ -93,7 +94,11 @@ def _parse_features(
         properties = [
             prop["name"] for prop in feature.get("properties") or [] if prop.get("name")
         ]
-        templated = templated_properties(device_type, name, instance)
+        sensor_keys = {
+            prop: spec.key
+            for prop in properties
+            if (spec := sensor_spec(device_type, name, instance, prop))
+        }
         parsed_feature = AmazonDeviceFeature(
             supported_operations=[
                 operation["name"]
@@ -110,11 +115,11 @@ def _parse_features(
             raw_configuration=configuration,
         )
 
-        supported = [prop for prop in properties if prop in templated]
-        unsupported = [prop for prop in properties if prop not in templated]
+        supported = [prop for prop in properties if prop in sensor_keys]
+        unsupported = [prop for prop in properties if prop not in sensor_keys]
         if supported:
             features.setdefault(name, {})[instance] = replace(
-                parsed_feature, properties=supported
+                parsed_feature, properties=supported, sensor_keys=sensor_keys
             )
         if unsupported or not supported:
             unsupported_features.setdefault(name, {})[instance] = replace(

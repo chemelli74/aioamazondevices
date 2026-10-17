@@ -17,12 +17,8 @@ from aioamazondevices.const.schedules import (
     NOTIFICATION_REMINDER,
     NOTIFICATION_TIMER,
 )
-from aioamazondevices.const.sensors import (
-    COMMON_SENSORS,
-    SENSOR_TEMPLATES,
-    SPECIFIC_SENSORS,
-)
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
+from aioamazondevices.implementation.sensor_templates import sensor_spec
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 from aioamazondevices.utils import (
     _LOGGER,
@@ -51,59 +47,24 @@ def _parse_sample_timestamp(
         return None
 
 
-def is_templated_feature(device_type: str, feature_name: str, instance: str) -> bool:
-    """Return whether a feature instance is parsed into sensors for a device type.
-
-    A feature is templated when it has a sensor template and is either common
-    to all devices or enabled for this device type and instance.
-    """
-    if feature_name not in SENSOR_TEMPLATES:
-        return False
-    return feature_name in COMMON_SENSORS or instance in SPECIFIC_SENSORS.get(
-        device_type, {}
-    ).get(feature_name, {})
-
-
-def templated_properties(
-    device_type: str, feature_name: str, instance: str
-) -> set[str]:
-    """Return the properties of a feature instance parsed into sensors."""
-    if not is_templated_feature(device_type, feature_name, instance):
-        return set()
-    return set(SENSOR_TEMPLATES[feature_name])
-
-
 def parse_graphql_feature_to_sensor(
     endpoint: dict[str, Any], device: AmazonDevice
 ) -> dict[str, AmazonDeviceSensor]:
     """Transform the GraphQL feature into AmazonDeviceSensor(s)."""
     device_sensors: dict[str, AmazonDeviceSensor] = {}
     serial_number = device.serial_number
-    device_specific_features = SPECIFIC_SENSORS.get(device.device_type, {})
     for feature in endpoint.get("features", {}):
         feature_name: str = feature.get("name") or ""
         instance: str = feature.get("instance") or ""
-        if (feature_template := SENSOR_TEMPLATES.get(feature_name)) is None:
-            # Skip features that are not in the predefined list
-            continue
-
-        if not is_templated_feature(device.device_type, feature_name, instance):
-            _LOGGER.debug(
-                "Skip feature (%s) not enabled for this device type / instance",
-                feature_name,
-            )
-            continue
-
-        device_specific_override: dict[str, str | None] | None = (
-            None
-            if feature_name in COMMON_SENSORS
-            else device_specific_features[feature_name][instance]
-        )
 
         for feature_property in feature.get("properties") or []:
-            feature_property_name = feature_property.get("name")
-            if (sensor_template := feature_template.get(feature_property_name)) is None:
-                # Skip properties that are not in the predefined list
+            feature_property_name = feature_property.get("name") or ""
+            if (
+                spec := sensor_spec(
+                    device.device_type, feature_name, instance, feature_property_name
+                )
+            ) is None:
+                # Skip properties without a template for this device type
                 continue
 
             value: str | int | float = "n/a"
@@ -121,7 +82,7 @@ def parse_graphql_feature_to_sensor(
             error_msg = api_error.get("message")
             if not error:
                 try:
-                    value_raw = feature_property[sensor_template["key"]]
+                    value_raw = feature_property[spec.template["key"] or ""]
                     if not value_raw:
                         _LOGGER.warning(
                             "Sensor %s [device %s] ignored due to empty value",
@@ -131,12 +92,12 @@ def parse_graphql_feature_to_sensor(
                         continue
                     scale = (
                         value_raw[scale_template]
-                        if (scale_template := sensor_template["scale"])
+                        if (scale_template := spec.template["scale"])
                         else None
                     )
                     value = (
                         value_raw[subkey_template]
-                        if (subkey_template := sensor_template["subkey"])
+                        if (subkey_template := spec.template["subkey"])
                         else value_raw
                     )
 
@@ -160,16 +121,11 @@ def parse_graphql_feature_to_sensor(
             if error_type == "NOT_FOUND":
                 continue
 
-            sensor_name = feature_property_name
-            if device_specific_override is not None:
-                sensor_name = (
-                    device_specific_override.get("name")
-                    or f"{feature_property_name}-{instance}"
-                )
-                scale = device_specific_override.get("scale")
+            if spec.override is not None:
+                scale = spec.override.get("scale")
 
-            device_sensors[sensor_name] = AmazonDeviceSensor(
-                sensor_name,
+            device_sensors[spec.key] = AmazonDeviceSensor(
+                spec.key,
                 value,
                 error,
                 error_type,

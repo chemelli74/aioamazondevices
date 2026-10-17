@@ -472,8 +472,17 @@ async def test_features_are_read_for_the_built_devices(
     )
 
     assert handler.devices[TEST_SERIAL_1].features == {
-        "temperatureSensor": {"": _feature(properties=["temperature"])},
-        "motionSensor": {"": _feature(properties=["detectionState"])},
+        "temperatureSensor": {
+            "": _feature(
+                properties=["temperature"], sensor_keys={"temperature": "temperature"}
+            )
+        },
+        "motionSensor": {
+            "": _feature(
+                properties=["detectionState"],
+                sensor_keys={"detectionState": "detectionState"},
+            )
+        },
     }
     assert handler.devices[TEST_SERIAL_1].unsupported_features == {
         "motionSensor": {"": _feature(properties=["sensitivity"])},
@@ -506,7 +515,11 @@ async def test_features_are_read_for_the_built_devices(
         },
     }
     assert handler.devices[TEST_SERIAL_AQM].features == {
-        "range": {"4": _feature(properties=["rangeValue"])},
+        "range": {
+            "4": _feature(
+                properties=["rangeValue"], sensor_keys={"rangeValue": "Humidity"}
+            )
+        },
     }
     assert handler.devices[TEST_SERIAL_AQM].unsupported_features == {
         "range": {"1": _feature(properties=["rangeValue"])},

@@ -12,7 +12,7 @@ import pytest
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.devices import DEVICE_TYPE_AQM
 from aioamazondevices.const.http import ARRAY_WRAPPER
-from aioamazondevices.implementation import sensor as sensor_module
+from aioamazondevices.implementation import sensor_templates
 from aioamazondevices.implementation.sensor import parse_graphql_feature_to_sensor
 from aioamazondevices.structures import AmazonDevice
 
@@ -161,7 +161,7 @@ async def test_device_specific_sensor_without_name_uses_fallback(
 ) -> None:
     """An override without a name is keyed by property name and instance."""
     monkeypatch.setitem(
-        sensor_module.SPECIFIC_SENSORS,
+        sensor_templates.SPECIFIC_SENSORS,
         "TESTTYPE",
         {"range": {"1": {"scale": "ppm"}}},
     )
