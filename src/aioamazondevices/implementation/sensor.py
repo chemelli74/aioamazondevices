@@ -132,6 +132,7 @@ def parse_graphql_feature_to_sensor(
                 error_msg,
                 scale,
                 feature_name=feature_name,
+                property_name=feature_property_name,
                 instance=instance,
                 time_of_sample=time_of_sample,
             )
