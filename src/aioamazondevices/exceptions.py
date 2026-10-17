@@ -46,5 +46,9 @@ class AVSStreamEndedUnexpectedly(AmazonError):
     """Exception raised when the AVS stream ends unexpectedly."""
 
 
+class MissingCountryError(AmazonError):
+    """Exception raised when countryOfResidence is not set."""
+
+
 class CannotSetFeature(AmazonError):
     """Exception raised when setting an endpoint feature fails."""

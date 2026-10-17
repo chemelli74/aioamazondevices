@@ -32,6 +32,7 @@ class AmazonDeviceSensor:
     error_msg: str | None
     scale: str | None
     feature_name: str
+    property_name: str
     instance: str
     time_of_sample: datetime | None = None
 

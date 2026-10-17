@@ -1,5 +1,36 @@
 # Changelog
 
+## v16.8.1 (2026-10-15)
+
+### Bug fixes
+
+- Validate country of residence is set ([`da622bd`](https://github.com/chemelli74/aioamazondevices/commit/da622bd5dabdc894340f19e40ef97b4d8e83c5ad))
+
+
+### Build system
+
+- Don't sync into an inherited uv_project_environment ([`3d0d71d`](https://github.com/chemelli74/aioamazondevices/commit/3d0d71d30aece33b12eec7e1fb9f72f5d311c706))
+
+
+## v16.8.0 (2026-10-14)
+
+### Features
+
+- Allow name overide on sensors ([`f78ebeb`](https://github.com/chemelli74/aioamazondevices/commit/f78ebeb689bceb1e38e87c4405a626590f325a18))
+
+
+## v16.7.0 (2026-10-14)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`e0ffac0`](https://github.com/chemelli74/aioamazondevices/commit/e0ffac026be3c413ab55ec377789de510b5f83b1))
+
+
+### Features
+
+- Support optional display text for announcements ([`2116186`](https://github.com/chemelli74/aioamazondevices/commit/211618634f936fa2610c1d805580a0023f44d6cd))
+
+
 ## v16.6.0 (2026-10-13)
 
 ### Features
