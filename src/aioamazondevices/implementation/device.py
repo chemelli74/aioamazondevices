@@ -181,11 +181,20 @@ class AmazonDeviceHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
         self._final_devices: dict[str, AmazonDevice] = {}
+        self._endpoint_states: dict[str, dict[str, Any]] = {}
 
     @property
     def devices(self) -> dict[str, AmazonDevice]:
         """Return the final devices list."""
         return self._final_devices
+
+    @property
+    def endpoint_states(self) -> dict[str, dict[str, Any]]:
+        """Return the raw endpoint features of the last full refresh.
+
+        keyed by endpoint ID.
+        """
+        return self._endpoint_states
 
     async def update_devices(self) -> None:
         """Build the list of devices we are interested in.
@@ -279,6 +288,7 @@ class AmazonDeviceHandler:
                 )
 
         self._final_devices = devices
+        self._endpoint_states = endpoints_features
 
     def _build_device(
         self,
@@ -342,7 +352,6 @@ class AmazonDeviceHandler:
             hardware_version=hardware_version,
             entity_id=_endpoint_entity_id(endpoint),
             endpoint_id=endpoint.get("endpointId"),
-            sensors={},
             notifications_supported=any(
                 capability in capabilities
                 for capability in ["REMINDERS", "TIMERS_AND_ALARMS"]
@@ -461,15 +470,14 @@ class AmazonDeviceHandler:
         )
 
         if check_and_log_graphql_errors("QUERY_DEVICE_FEATURES", endpoints_features):
-            # Explicit error in returned data
-            return {}
+            raise CannotRetrieveData("Error retrieving endpoint features")
 
         if not (
             endpoints := validate_graphql_endpoint_shape(
                 "QUERY_DEVICE_FEATURES", endpoints_features
             )
         ):
-            return {}
+            raise CannotRetrieveData("No endpoint features received")
 
         return {
             endpoint["endpointId"]: endpoint

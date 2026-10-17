@@ -29,6 +29,11 @@ from .const.metadata import (
     VOLUME_MAX,
     VOLUME_MIN,
 )
+from .const.schedules import (
+    NOTIFICATION_ALARM,
+    NOTIFICATION_REMINDER,
+    NOTIFICATION_TIMER,
+)
 from .exceptions import NoOnlineDevicesError
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
@@ -39,6 +44,7 @@ from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
 from .structures import (
     AmazonDevice,
+    AmazonDeviceSensor,
     AmazonDropInStatus,
     AmazonListEvent,
     AmazonListEventType,
@@ -155,6 +161,7 @@ class AmazonEchoApi:
         self.on_history_event = Signal[dict[str, AmazonVocalRecord]](self)
         self.on_todo_event = Signal[AmazonListEvent](self)
         self.on_dnd_event = Signal[dict[str, bool]](self)
+        self.on_sensor_event: Signal[()] = Signal(self)
 
     @property
     def domain(self) -> str:
@@ -175,6 +182,11 @@ class AmazonEchoApi:
     def todo_lists(self) -> list[AmazonListInfo]:
         """Return ToDo lists."""
         return self._todo_handler.lists
+
+    @property
+    def sensors(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
+        """Return sensors keyed by serial number, then sensor key."""
+        return self._sensor_handler.sensors
 
     async def get_default_device(self) -> AmazonDevice:
         """Return default device."""
@@ -247,6 +259,10 @@ class AmazonEchoApi:
             )
             # Request various data that doesn't change that often
             await self._device_handler.update_devices()
+            # device query has all initial state to sync sensors
+            self._sensor_handler.full_sensor_sync(
+                self._device_handler.devices, self._device_handler.endpoint_states
+            )
             await self._media_handler.update_music_providers()
             await self._sequence_handler.update_routines()
             await self._todo_handler.update_lists()
@@ -266,19 +282,59 @@ class AmazonEchoApi:
         # Perform a refresh to ensure your data is as up-to-date as possible.
         await self._refresh_basic_data()
 
+        devices = self._device_handler.devices
         notifications = await self._notification_handler.get_notifications()
         communications = (
             await self._communication_handler.get_communication_preferences(
-                list(self._device_handler.devices.values())
+                list(devices.values())
             )
         )
-        await self._sensor_handler.update_sensor_data(
-            self._device_handler.devices,
-            notifications,
-            communications,
-        )
+        self._update_device_settings(devices, notifications, communications)
 
-        return self._device_handler.devices
+        # pushed sensors are synced by the device refresh, the rest are polled
+        await self._sensor_handler.update_polled_sensors()
+        # devices are rebuilt by a refresh, so always reapply online status
+        self._sensor_handler.update_device_online_statuses(devices)
+
+        return devices
+
+    def _update_device_settings(
+        self,
+        devices: dict[str, AmazonDevice],
+        notifications: dict[str, dict[str, Any]] | None,
+        communications: dict[str, dict[str, str]],
+    ) -> None:
+        """Update communication settings and notifications of all devices."""
+        for device in devices.values():
+            device.communication_settings = (
+                communications.get(device.serial_number) or {}
+            )
+
+            if notifications is None:
+                continue  # notifications were not obtained, do not update
+
+            # Clear old notifications to handle cancelled ones
+            device.notifications = {}
+
+            # Update notifications
+            device_notifications = notifications.get(device.serial_number, {})
+
+            # Add only supported notification types
+            for capability, notification_type in [
+                ("REMINDERS", NOTIFICATION_REMINDER),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_TIMER),
+            ]:
+                if (
+                    capability in device.capabilities
+                    and notification_type in device_notifications
+                    and (
+                        notification_object := device_notifications.get(
+                            notification_type
+                        )
+                    )
+                ):
+                    device.notifications[notification_type] = notification_object
 
     async def start_http2_processing(
         self,
@@ -329,8 +385,44 @@ class AmazonEchoApi:
                 await self._handle_item_change_event(payload)
             case AmazonPushMessage.DoNotDisturbChange.value:
                 await self._handle_dnd_event(payload)
+            case AmazonPushMessage.SmartHome.value:
+                await self._handle_smart_home_event(payload)
             case _:
                 _LOGGER.debug("Unhandled push event type: %s", event_type)
+
+    async def _handle_smart_home_event(self, payload: dict[str, Any]) -> None:
+        # the endpoint ID is under "entity" and "data" holds the changed
+        # features, in the same shape as a GraphQL endpoint state
+        entity = payload.get("entity")
+        endpoint_id = entity.get("id") if isinstance(entity, dict) else None
+        endpoint_state = payload.get("data")
+        if not isinstance(endpoint_id, str) or not isinstance(endpoint_state, dict):
+            _LOGGER.warning(
+                "Received malformed smart home event: %s", scrub_fields(payload)
+            )
+            return
+        if not self._sensor_handler.is_tracked_endpoint(endpoint_id):
+            _LOGGER.debug("Ignoring smart home event for untracked endpoint")
+            return
+        sensor_values = self._sensor_handler.parse_endpoint_state(
+            endpoint_id, endpoint_state
+        )
+        # check for material change prior to storing
+        changed = self._sensor_handler.has_changes(sensor_values)
+        # update value
+        self._sensor_handler.store_values(sensor_values)
+        if not changed:
+            # value has not changed so do not notify subscribers
+            return
+        # might not be needed (check reachability)
+        self._sensor_handler.update_device_online_statuses(self._device_handler.devices)
+        await self._emit_sensor_event()
+
+    async def _emit_sensor_event(self) -> None:
+        """Notify subscribers that sensor state has changed."""
+        if self.on_sensor_event.frozen:
+            _LOGGER.debug("Emitting sensor state event to subscribers")
+            await self.on_sensor_event.send()
 
     async def _handle_volume_change_event(self, payload: dict[str, Any]) -> None:
         # Ensure initial full sync happens before applying incremental updates
