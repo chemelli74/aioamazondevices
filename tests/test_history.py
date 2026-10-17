@@ -8,7 +8,6 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from aioamazondevices.implementation import history as history_module
 from aioamazondevices.implementation.history import AmazonHistoryHandler
 
 from .const import TEST_SERIAL_1
@@ -45,9 +44,8 @@ def _record(persons_info: PersonsInfo | _Absent) -> dict[str, Any]:
 
 
 @pytest.fixture
-def handler(monkeypatch: pytest.MonkeyPatch) -> AmazonHistoryHandler:
-    """Return a history handler that skips the backend refresh wait."""
-    monkeypatch.setattr(history_module, "BACKEND_REFRESH_WAIT_SECONDS", 0)
+def handler() -> AmazonHistoryHandler:
+    """Return a history handler with mocked HTTP and session state."""
     return AmazonHistoryHandler(AsyncMock(), AsyncMock())
 
 
