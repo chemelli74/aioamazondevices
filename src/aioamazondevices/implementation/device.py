@@ -65,15 +65,11 @@ def _parse_features(
 ]:
     """Return the supported and unsupported features of an endpoint.
 
-    The split is by property: the properties with a sensor template for the
-    device type are supported, the others are not, so a feature can be in
-    both with different properties. A feature without supported properties
-    is unsupported even when it has no properties at all. Supported features
-    map each property to the key of its sensor.
-
     Both are keyed by feature name and instance; features without an instance
-    are keyed by an empty string, so the result only has string keys and can
-    be serialised to JSON.
+    are keyed by an empty string, so the result only has string keys.
+
+    This is at property level so a feature with multiple properties could
+    appear in both sets (with different properties).
     """
     features: dict[str, dict[str, AmazonDeviceFeature]] = {}
     unsupported_features: dict[str, dict[str, AmazonDeviceFeature]] = {}
@@ -113,6 +109,7 @@ def _parse_features(
             precision=supported_range.get("precision"),
             unit_of_measure=_endpoint_text(configuration, "unitOfMeasure"),
             raw_configuration=configuration,
+            sensor_keys={},
         )
 
         supported = []

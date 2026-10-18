@@ -101,6 +101,7 @@ def _feature(**overrides: object) -> AmazonDeviceFeature:
         "precision": None,
         "unit_of_measure": None,
         "raw_configuration": {},
+        "sensor_keys": {},
     }
     return AmazonDeviceFeature(**(fields | overrides))
 

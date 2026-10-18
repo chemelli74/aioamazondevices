@@ -4,7 +4,7 @@
 """Structures module for Amazon devices."""
 
 from collections.abc import Callable, Coroutine
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
 from os import PathLike
@@ -73,7 +73,7 @@ class AmazonDeviceFeature:
     # raw configuration section, its shape depends on the feature
     raw_configuration: dict[str, Any]
     # supported features only: property name -> key of its sensor
-    sensor_keys: dict[str, str] = field(default_factory=dict)
+    sensor_keys: dict[str, str]
 
 
 @dataclass
