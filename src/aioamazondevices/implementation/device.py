@@ -115,12 +115,20 @@ def _parse_features(
             raw_configuration=configuration,
         )
 
-        supported = [prop for prop in properties if prop in sensor_keys]
-        unsupported = [prop for prop in properties if prop not in sensor_keys]
+        supported = []
+        unsupported = []
+
+        for prop in properties:
+            if prop in sensor_keys:
+                supported.append(prop)
+            else:
+                unsupported.append(prop)
+
         if supported:
             features.setdefault(name, {})[instance] = replace(
                 parsed_feature, properties=supported, sensor_keys=sensor_keys
             )
+
         if unsupported or not supported:
             unsupported_features.setdefault(name, {})[instance] = replace(
                 parsed_feature, properties=unsupported
