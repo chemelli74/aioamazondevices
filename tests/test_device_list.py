@@ -101,6 +101,7 @@ def _feature(**overrides: object) -> AmazonDeviceFeature:
         "precision": None,
         "unit_of_measure": None,
         "raw_configuration": {},
+        "sensor_keys": {},
     }
     return AmazonDeviceFeature(**(fields | overrides))
 
@@ -386,7 +387,7 @@ async def test_empty_endpoint_response_raises_without_known_devices(
 async def test_features_are_read_for_the_built_devices(
     api: AmazonEchoApi, endpoints_features: AsyncMock
 ) -> None:
-    """Features are keyed by name and instance, for built devices only."""
+    """Feature properties are split by sensor template, by name and instance."""
     handler = api._device_handler
     range_configuration = {
         "friendlyName": _text("Fan level"),
@@ -421,8 +422,28 @@ async def test_features_are_read_for_the_built_devices(
             "operations": [{"name": "setRangeValue"}],
             "configuration": range_configuration,
         },
+        # common sensor features are supported on every device type
+        {
+            "name": "temperatureSensor",
+            "instance": None,
+            "properties": [{"name": "temperature"}],
+            "configuration": None,
+        },
+        # only the templated properties of a feature are supported
+        {
+            "name": "motionSensor",
+            "instance": None,
+            "properties": [{"name": "detectionState"}, {"name": "sensitivity"}],
+            "configuration": None,
+        },
         # features without a name are skipped
         {"name": None, "instance": None, "operations": None, "configuration": None},
+    ]
+    aqm_features: list[dict[str, Any]] = [
+        # an instance with a specific sensor template for the device type
+        {"name": "range", "instance": "4", "properties": [{"name": "rangeValue"}]},
+        # the same feature on an instance without one
+        {"name": "range", "instance": "1", "properties": [{"name": "rangeValue"}]},
     ]
     _patch_sources(
         handler,
@@ -437,7 +458,11 @@ async def test_features_are_read_for_the_built_devices(
         f"endpoint-{TEST_SERIAL_1}": {
             "endpointId": f"endpoint-{TEST_SERIAL_1}",
             "features": features,
-        }
+        },
+        f"endpoint-{TEST_SERIAL_AQM}": {
+            "endpointId": f"endpoint-{TEST_SERIAL_AQM}",
+            "features": aqm_features,
+        },
     }
 
     await handler.update_devices()
@@ -448,6 +473,20 @@ async def test_features_are_read_for_the_built_devices(
     )
 
     assert handler.devices[TEST_SERIAL_1].features == {
+        "temperatureSensor": {
+            "": _feature(
+                properties=["temperature"], sensor_keys={"temperature": "temperature"}
+            )
+        },
+        "motionSensor": {
+            "": _feature(
+                properties=["detectionState"],
+                sensor_keys={"detectionState": "detectionState"},
+            )
+        },
+    }
+    assert handler.devices[TEST_SERIAL_1].unsupported_features == {
+        "motionSensor": {"": _feature(properties=["sensitivity"])},
         "power": {"": _feature(supported_operations=["turnOn", "turnOff"])},
         "mode": {
             "Fan.Speed": _feature(
@@ -476,7 +515,16 @@ async def test_features_are_read_for_the_built_devices(
             )
         },
     }
-    assert handler.devices[TEST_SERIAL_AQM].features == {}
+    assert handler.devices[TEST_SERIAL_AQM].features == {
+        "range": {
+            "4": _feature(
+                properties=["rangeValue"], sensor_keys={"rangeValue": "Humidity"}
+            )
+        },
+    }
+    assert handler.devices[TEST_SERIAL_AQM].unsupported_features == {
+        "range": {"1": _feature(properties=["rangeValue"])},
+    }
 
 
 @pytest.mark.anyio
@@ -496,13 +544,18 @@ async def test_known_features_survive_a_failed_features_lookup(
         }
     }
     await handler.update_devices()
-    known_features = handler.devices[TEST_SERIAL_1].features
-    assert known_features == {"power": {"": _feature(supported_operations=["turnOn"])}}
+    known_device = handler.devices[TEST_SERIAL_1]
+    assert known_device.features == {}
+    assert known_device.unsupported_features == {
+        "power": {"": _feature(supported_operations=["turnOn"])}
+    }
 
     endpoints_features.return_value = {}
     await handler.update_devices()
 
-    assert handler.devices[TEST_SERIAL_1].features == known_features
+    device = handler.devices[TEST_SERIAL_1]
+    assert device.features == known_device.features
+    assert device.unsupported_features == known_device.unsupported_features
 
 
 @pytest.mark.anyio

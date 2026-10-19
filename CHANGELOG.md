@@ -1,5 +1,17 @@
 # Changelog
 
+## v16.9.0 (2026-10-19)
+
+### Features
+
+- Split supported features ([`002d51b`](https://github.com/chemelli74/aioamazondevices/commit/002d51b2cbae37b47da2492d5ecd37d763a2ec83))
+
+
+### Build system
+
+- Always use the repository .venv for uv ([`d114493`](https://github.com/chemelli74/aioamazondevices/commit/d114493e6b6689a76c543913199c0a59d34aa604))
+
+
 ## v16.8.1 (2026-10-15)
 
 ### Bug fixes

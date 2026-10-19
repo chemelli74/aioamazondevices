@@ -17,12 +17,8 @@ from aioamazondevices.const.schedules import (
     NOTIFICATION_REMINDER,
     NOTIFICATION_TIMER,
 )
-from aioamazondevices.const.sensors import (
-    COMMON_SENSORS,
-    SENSOR_TEMPLATES,
-    SPECIFIC_SENSORS,
-)
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
+from aioamazondevices.implementation.sensor_templates import sensor_spec
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 from aioamazondevices.utils import (
     _LOGGER,
@@ -57,30 +53,18 @@ def parse_graphql_feature_to_sensor(
     """Transform the GraphQL feature into AmazonDeviceSensor(s)."""
     device_sensors: dict[str, AmazonDeviceSensor] = {}
     serial_number = device.serial_number
-    device_specific_features = SPECIFIC_SENSORS.get(device.device_type, {})
     for feature in endpoint.get("features", {}):
         feature_name: str = feature.get("name") or ""
         instance: str = feature.get("instance") or ""
-        if (feature_template := SENSOR_TEMPLATES.get(feature_name)) is None:
-            # Skip features that are not in the predefined list
-            continue
-
-        device_specific_override: dict[str, str | None] | None
-        if feature_name in COMMON_SENSORS:
-            device_specific_override = None
-        elif instance in (instances := device_specific_features.get(feature_name, {})):
-            device_specific_override = instances[instance]
-        else:
-            _LOGGER.debug(
-                "Skip feature (%s) not enabled for this device type / instance",
-                feature_name,
-            )
-            continue
 
         for feature_property in feature.get("properties") or []:
-            feature_property_name = feature_property.get("name")
-            if (sensor_template := feature_template.get(feature_property_name)) is None:
-                # Skip properties that are not in the predefined list
+            feature_property_name = feature_property.get("name") or ""
+            if (
+                spec := sensor_spec(
+                    device.device_type, feature_name, instance, feature_property_name
+                )
+            ) is None:
+                # Skip properties without a template for this device type
                 continue
 
             value: str | int | float = "n/a"
@@ -98,7 +82,7 @@ def parse_graphql_feature_to_sensor(
             error_msg = api_error.get("message")
             if not error:
                 try:
-                    value_raw = feature_property[sensor_template["key"]]
+                    value_raw = feature_property[spec.template["key"] or ""]
                     if not value_raw:
                         _LOGGER.warning(
                             "Sensor %s [device %s] ignored due to empty value",
@@ -108,12 +92,12 @@ def parse_graphql_feature_to_sensor(
                         continue
                     scale = (
                         value_raw[scale_template]
-                        if (scale_template := sensor_template["scale"])
+                        if (scale_template := spec.template["scale"])
                         else None
                     )
                     value = (
                         value_raw[subkey_template]
-                        if (subkey_template := sensor_template["subkey"])
+                        if (subkey_template := spec.template["subkey"])
                         else value_raw
                     )
 
@@ -137,16 +121,11 @@ def parse_graphql_feature_to_sensor(
             if error_type == "NOT_FOUND":
                 continue
 
-            sensor_name = sensor_template.get("name") or feature_property_name
-            if device_specific_override is not None:
-                sensor_name = (
-                    device_specific_override.get("name")
-                    or f"{feature_property_name}-{instance}"
-                )
-                scale = device_specific_override.get("scale")
+            if spec.override is not None:
+                scale = spec.override.get("scale")
 
-            device_sensors[sensor_name] = AmazonDeviceSensor(
-                sensor_name,
+            device_sensors[spec.key] = AmazonDeviceSensor(
+                spec.key,
                 value,
                 error,
                 error_type,
