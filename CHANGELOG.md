@@ -1,5 +1,29 @@
 # Changelog
 
+## v16.9.0 (2026-10-19)
+
+### Features
+
+- Split supported features ([`002d51b`](https://github.com/chemelli74/aioamazondevices/commit/002d51b2cbae37b47da2492d5ecd37d763a2ec83))
+
+
+### Build system
+
+- Always use the repository .venv for uv ([`d114493`](https://github.com/chemelli74/aioamazondevices/commit/d114493e6b6689a76c543913199c0a59d34aa604))
+
+
+## v16.8.1 (2026-10-15)
+
+### Bug fixes
+
+- Validate country of residence is set ([`da622bd`](https://github.com/chemelli74/aioamazondevices/commit/da622bd5dabdc894340f19e40ef97b4d8e83c5ad))
+
+
+### Build system
+
+- Don't sync into an inherited uv_project_environment ([`3d0d71d`](https://github.com/chemelli74/aioamazondevices/commit/3d0d71d30aece33b12eec7e1fb9f72f5d311c706))
+
+
 ## v16.8.0 (2026-10-14)
 
 ### Features

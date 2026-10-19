@@ -34,6 +34,7 @@ from .const.http import (
 from .exceptions import (
     CannotAuthenticate,
     CannotRegisterDevice,
+    MissingCountryError,
     WrongMethod,
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
@@ -462,5 +463,8 @@ class AmazonLogin:
         )
 
         json_data = await self._http_wrapper.response_to_json(raw_resp, "users/me")
+
+        if not json_data.get("countryOfResidence"):
+            raise MissingCountryError
 
         self._session_state_data.account_customer_id = json_data["id"]
