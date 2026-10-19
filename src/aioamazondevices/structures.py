@@ -72,6 +72,8 @@ class AmazonDeviceFeature:
     unit_of_measure: str | None
     # raw configuration section, its shape depends on the feature
     raw_configuration: dict[str, Any]
+    # supported features only: property name -> key of its sensor
+    sensor_keys: dict[str, str]
 
 
 @dataclass
@@ -100,7 +102,11 @@ class AmazonDevice:
     media_player_supported: bool
     communication_settings: dict[str, str]
     voice_control_supported: bool
+    # features split by property: those with a sensor template for this device
+    # type, then all the others, so a feature can be in both. Support depends
+    # only on the template, not on the current value or a NOT_FOUND error.
     features: dict[str, dict[str, AmazonDeviceFeature]]
+    unsupported_features: dict[str, dict[str, AmazonDeviceFeature]]
 
 
 class AmazonSequenceType(StrEnum):
