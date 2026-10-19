@@ -16,7 +16,10 @@ from aioamazondevices.const.http import REQUEST_AGENT, URI_NEXUS_GRAPHQL
 from aioamazondevices.const.queries import QUERY_POLLED_SENSOR_STATE
 from aioamazondevices.const.sensors import POLLED_SENSOR_FEATURES
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.implementation.sensor_templates import SensorSpec, sensor_spec
+from aioamazondevices.implementation.sensor_templates import (
+    SensorDefinition,
+    resolve_sensor_definition,
+)
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 from aioamazondevices.utils import (
     _LOGGER,
@@ -32,13 +35,13 @@ type SensorId = tuple[str, str, str, str]
 class _TrackedSensor:
     """A sensor we track, resolved once per sync.
 
-    Holds the resolved spec so we don't need to reprocess
+    Holds the resolved definition so we don't need to reprocess
     the sensor templates when applying an update.
     """
 
     serial_number: str
     feature_name: str
-    spec: SensorSpec
+    sensor_definition: SensorDefinition
 
 
 @dataclass(frozen=True)
@@ -85,12 +88,12 @@ def _parse_property(
     *,
     feature_name: str,
     instance: str,
-    spec: SensorSpec,
+    sensor_definition: SensorDefinition,
     serial_number: str,
 ) -> AmazonDeviceSensor | None:
     """Parse a single GraphQL property into a sensor, None if it cannot be used."""
     property_name: str = feature_property.get("name") or ""
-    template = spec.template
+    template = sensor_definition.template
     value: str | int | float = "n/a"
     scale: str | None = None
     time_of_sample = _parse_sample_timestamp(
@@ -142,14 +145,11 @@ def _parse_property(
             error_msg,
         )
 
-    if error_type == "NOT_FOUND":
-        return None
-
-    if spec.override is not None:
-        scale = spec.override.get("scale")
+    if sensor_definition.override is not None:
+        scale = sensor_definition.override.get("scale")
 
     return AmazonDeviceSensor(
-        spec.key,
+        sensor_definition.key,
         value,
         error,
         error_type,
@@ -162,13 +162,14 @@ def _parse_property(
     )
 
 
-def _iter_endpoint_sensors(
+def parse_graphql_feature_to_sensor(
     endpoint: dict[str, Any], device: AmazonDevice
-) -> Iterator[tuple[_TrackedSensor, AmazonDeviceSensor]]:
-    """Yield (tracked sensor, current value) for each tracked sensor."""
+) -> dict[str, AmazonDeviceSensor]:
+    """Transform the GraphQL feature into AmazonDeviceSensor(s)."""
+    device_sensors: dict[str, AmazonDeviceSensor] = {}
     for feature_name, instance, feature_property in _iter_endpoint_properties(endpoint):
         if (
-            spec := sensor_spec(
+            sensor_definition := resolve_sensor_definition(
                 device.device_type,
                 feature_name,
                 instance,
@@ -181,21 +182,73 @@ def _iter_endpoint_sensors(
             feature_property,
             feature_name=feature_name,
             instance=instance,
-            spec=spec,
+            sensor_definition=sensor_definition,
             serial_number=device.serial_number,
         )
-        if sensor is None:
+        if sensor is not None:
+            device_sensors[sensor.name] = sensor
+    return device_sensors
+
+
+def _tracked_sensors(device: AmazonDevice) -> Iterator[tuple[SensorId, _TrackedSensor]]:
+    """Yield (sensor ID, tracked sensor) for each supported feature property.
+
+    Support comes from the device features, not from the current values, so a
+    sensor without a value or with a NOT_FOUND error is still tracked.
+    """
+    for feature_name, instances in device.features.items():
+        for instance, feature in instances.items():
+            for property_name in feature.sensor_keys:
+                if (
+                    sensor_definition := resolve_sensor_definition(
+                        device.device_type, feature_name, instance, property_name
+                    )
+                ) is None:
+                    continue
+                sensor_id: SensorId = (
+                    device.endpoint_id or "",
+                    feature_name,
+                    instance,
+                    property_name,
+                )
+                yield (
+                    sensor_id,
+                    _TrackedSensor(
+                        device.serial_number, feature_name, sensor_definition
+                    ),
+                )
+
+
+def _parse_tracked_values(
+    endpoint_id: str,
+    endpoint_state: dict[str, Any],
+    tracked_sensors: dict[SensorId, _TrackedSensor],
+) -> list[SensorValue]:
+    """Parse the values of tracked sensors from an endpoint state."""
+    sensor_values: list[SensorValue] = []
+    for feature_name, instance, feature_property in _iter_endpoint_properties(
+        endpoint_state
+    ):
+        sensor_id: SensorId = (
+            endpoint_id,
+            feature_name,
+            instance,
+            feature_property.get("name") or "",
+        )
+        if (tracked := tracked_sensors.get(sensor_id)) is None:
             continue
-        yield _TrackedSensor(device.serial_number, feature_name, spec), sensor
-
-
-def parse_graphql_feature_to_sensor(
-    endpoint: dict[str, Any], device: AmazonDevice
-) -> dict[str, AmazonDeviceSensor]:
-    """Transform the GraphQL feature into AmazonDeviceSensor(s)."""
-    return {
-        sensor.name: sensor for _, sensor in _iter_endpoint_sensors(endpoint, device)
-    }
+        if (
+            sensor := _parse_property(
+                feature_property,
+                feature_name=feature_name,
+                instance=instance,
+                sensor_definition=tracked.sensor_definition,
+                serial_number=tracked.serial_number,
+            )
+        ) is None:
+            continue
+        sensor_values.append(SensorValue(tracked.serial_number, sensor))
+    return sensor_values
 
 
 def _is_older(sensor: AmazonDeviceSensor, current: AmazonDeviceSensor | None) -> bool:
@@ -251,7 +304,11 @@ class AmazonSensorHandler:
         devices: dict[str, AmazonDevice],
         endpoint_states: dict[str, dict[str, Any]],
     ) -> None:
-        """Rebuild the sensors and tracked sensors from full endpoint states."""
+        """Rebuild the sensors and tracked sensors from full endpoint states.
+
+        Tracked sensors are the supported features of each device, values are
+        filled in from the endpoint states.
+        """
         sensors: dict[str, dict[str, AmazonDeviceSensor]] = {}
         tracked_sensors: dict[SensorId, _TrackedSensor] = {}
         missing: list[str] = []
@@ -262,20 +319,19 @@ class AmazonSensorHandler:
                 missing.append(serial_number)
                 continue
 
+            device_tracked = dict(_tracked_sensors(device))
+            tracked_sensors.update(device_tracked)
+
             previous = self._sensors.get(serial_number, {})
             device_sensors: dict[str, AmazonDeviceSensor] = {}
-            for tracked, sensor in _iter_endpoint_sensors(endpoint_state, device):
+            for sensor_value in _parse_tracked_values(
+                device.endpoint_id, endpoint_state, device_tracked
+            ):
+                sensor = sensor_value.sensor
                 current = previous.get(sensor.name)
                 device_sensors[sensor.name] = (
                     current if current and _is_older(sensor, current) else sensor
                 )
-                sensor_id: SensorId = (
-                    device.endpoint_id,
-                    sensor.feature_name,
-                    sensor.instance,
-                    sensor.property_name,
-                )
-                tracked_sensors[sensor_id] = tracked
             if device_sensors:
                 sensors[serial_number] = device_sensors
 
@@ -312,7 +368,7 @@ class AmazonSensorHandler:
     def _polled_sensors(self) -> set[tuple[str, str]]:
         """Return (serial number, sensor key) of every polled sensor."""
         return {
-            (tracked.serial_number, tracked.spec.key)
+            (tracked.serial_number, tracked.sensor_definition.key)
             for tracked in self._tracked_sensors.values()
             if tracked.feature_name in POLLED_SENSOR_FEATURES
         }
@@ -325,30 +381,7 @@ class AmazonSensorHandler:
         self, endpoint_id: str, endpoint_state: dict[str, Any]
     ) -> list[SensorValue]:
         """Parse the values of tracked sensors from an endpoint state."""
-        sensor_values: list[SensorValue] = []
-        for feature_name, instance, feature_property in _iter_endpoint_properties(
-            endpoint_state
-        ):
-            sensor_id: SensorId = (
-                endpoint_id,
-                feature_name,
-                instance,
-                feature_property.get("name") or "",
-            )
-            if (tracked := self._tracked_sensors.get(sensor_id)) is None:
-                continue
-            if (
-                sensor := _parse_property(
-                    feature_property,
-                    feature_name=feature_name,
-                    instance=instance,
-                    spec=tracked.spec,
-                    serial_number=tracked.serial_number,
-                )
-            ) is None:
-                continue
-            sensor_values.append(SensorValue(tracked.serial_number, sensor))
-        return sensor_values
+        return _parse_tracked_values(endpoint_id, endpoint_state, self._tracked_sensors)
 
     def _stored(self, sensor_value: SensorValue) -> AmazonDeviceSensor | None:
         """Return the sensor currently held for a value."""

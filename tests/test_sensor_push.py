@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
+from aioamazondevices.implementation.device import _parse_features
 from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.structures import AmazonDevice
 
@@ -55,6 +56,24 @@ def _reachability(status: str) -> dict[str, Any]:
     }
 
 
+def _not_found(feature: dict[str, Any]) -> dict[str, Any]:
+    """Return a feature whose properties Amazon reports as NOT_FOUND."""
+    return feature | {
+        "properties": [
+            {"name": prop["name"], "error": {"type": "NOT_FOUND", "message": "x"}}
+            for prop in feature["properties"]
+        ]
+    }
+
+
+def _supports(device: AmazonDevice, *features: dict[str, Any]) -> AmazonDevice:
+    """Set the supported features of a device, as the device handler does."""
+    device.features, _ = _parse_features(
+        {"features": list(features)}, device.device_type
+    )
+    return device
+
+
 def _endpoint(*features: dict[str, Any]) -> dict[str, Any]:
     return {"endpointId": ENDPOINT, "features": list(features)}
 
@@ -75,9 +94,10 @@ def _store(handler: AmazonSensorHandler, *features: dict[str, Any]) -> None:
 
 @pytest.fixture
 def devices(make_device: Callable[..., AmazonDevice]) -> dict[str, AmazonDevice]:
-    """Return a single device with an endpoint."""
+    """Return a single device with an endpoint and temperature and illuminance."""
     device = make_device(TEST_SERIAL_1)
     device.endpoint_id = ENDPOINT
+    _supports(device, _temperature(0), _illuminance(0))
     return {TEST_SERIAL_1: device}
 
 
@@ -172,9 +192,9 @@ async def test_poll_only_requests_endpoints_with_polled_sensors(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Endpoints whose sensors are all pushed are left out of the poll."""
-    polled = make_device(TEST_SERIAL_1)
+    polled = _supports(make_device(TEST_SERIAL_1), _illuminance(0))
     polled.endpoint_id = ENDPOINT
-    pushed_only = make_device(TEST_SERIAL_2)
+    pushed_only = _supports(make_device(TEST_SERIAL_2), _temperature(0))
     pushed_only.endpoint_id = "endpoint-2"
     handler = api._sensor_handler
     handler.full_sensor_sync(
@@ -200,6 +220,7 @@ async def test_poll_without_polled_sensors_makes_no_request(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """No query is sent when no endpoint has a polled sensor."""
+    _supports(devices[TEST_SERIAL_1], _temperature(0))
     handler = api._sensor_handler
     handler.full_sensor_sync(
         devices, {ENDPOINT: _endpoint(_temperature(SYNCED_TEMPERATURE))}
@@ -288,6 +309,89 @@ async def test_poll_error_flags_errored(
     assert api.sensors[TEST_SERIAL_1]["illuminance"].error_type == "TIMEOUT"
 
 
+async def test_poll_not_found_flags_errored_without_warning(
+    api: AmazonEchoApi,
+    handler: AmazonSensorHandler,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A polled NOT_FOUND sensor is errored, not missing, and recovers on a value."""
+    _stub_poll(monkeypatch, handler, {ENDPOINT: _endpoint(_not_found(_illuminance(0)))})
+
+    await handler.update_polled_sensors()
+
+    sensor = api.sensors[TEST_SERIAL_1]["illuminance"]
+    assert sensor.error
+    assert sensor.error_type == "NOT_FOUND"
+    assert "Sensors missing from poll" not in caplog.text
+
+    _stub_poll(
+        monkeypatch, handler, {ENDPOINT: _endpoint(_illuminance(POLLED_ILLUMINANCE))}
+    )
+    await handler.update_polled_sensors()
+
+    sensor = api.sensors[TEST_SERIAL_1]["illuminance"]
+    assert not sensor.error
+    assert sensor.value == POLLED_ILLUMINANCE
+
+
+async def test_sync_keeps_not_found_supported_sensor(
+    api: AmazonEchoApi,
+    devices: dict[str, AmazonDevice],
+) -> None:
+    """A supported sensor that is NOT_FOUND at sync is stored as errored."""
+    handler = api._sensor_handler
+    handler.full_sensor_sync(
+        devices,
+        {
+            ENDPOINT: _endpoint(
+                _temperature(SYNCED_TEMPERATURE), _not_found(_illuminance(0))
+            )
+        },
+    )
+
+    sensor = api.sensors[TEST_SERIAL_1]["illuminance"]
+    assert sensor.error
+    assert sensor.error_type == "NOT_FOUND"
+
+    _store(handler, _illuminance(POLLED_ILLUMINANCE))
+
+    assert api.sensors[TEST_SERIAL_1]["illuminance"].value == POLLED_ILLUMINANCE
+
+
+async def test_sync_tracks_supported_sensor_without_value(
+    api: AmazonEchoApi,
+    devices: dict[str, AmazonDevice],
+) -> None:
+    """A supported sensor absent from the sync is tracked, and filled by a push."""
+    handler = api._sensor_handler
+    handler.full_sensor_sync(
+        devices, {ENDPOINT: _endpoint(_illuminance(SYNCED_ILLUMINANCE))}
+    )
+    assert "temperature" not in api.sensors[TEST_SERIAL_1]
+
+    _store(handler, _temperature(PUSHED_TEMPERATURE))
+
+    assert api.sensors[TEST_SERIAL_1]["temperature"].value == PUSHED_TEMPERATURE
+
+
+async def test_sync_only_tracks_supported_features(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+) -> None:
+    """A templated property is not tracked unless it is a supported feature."""
+    device = make_device(TEST_SERIAL_1)
+    device.endpoint_id = ENDPOINT
+    handler = api._sensor_handler
+    handler.full_sensor_sync(
+        {TEST_SERIAL_1: device},
+        {ENDPOINT: _endpoint(_temperature(SYNCED_TEMPERATURE))},
+    )
+
+    assert TEST_SERIAL_1 not in api.sensors
+    assert not handler.is_tracked_endpoint(ENDPOINT)
+
+
 @pytest.mark.usefixtures("handler")
 async def test_malformed_smart_home_event_is_logged(
     api: AmazonEchoApi, caplog: pytest.LogCaptureFixture
@@ -314,7 +418,7 @@ async def test_is_tracked_endpoint(handler: AmazonSensorHandler) -> None:
 async def test_push_for_untracked_property_is_dropped(
     api: AmazonEchoApi, handler: AmazonSensorHandler
 ) -> None:
-    """Properties not seen at sync time give no sensor_values."""
+    """Properties not in the device's supported features give no sensor_values."""
     assert handler.parse_endpoint_state(ENDPOINT, _endpoint(_reachability("OK"))) == []
     assert "reachability" not in api.sensors[TEST_SERIAL_1]
 
@@ -383,6 +487,7 @@ async def test_reachability_sets_online(
     api: AmazonEchoApi, devices: dict[str, AmazonDevice]
 ) -> None:
     """A pushed reachability change is reflected in the device online status."""
+    _supports(devices[TEST_SERIAL_1], _reachability("OK"))
     handler = api._sensor_handler
     handler.full_sensor_sync(devices, {ENDPOINT: _endpoint(_reachability("OK"))})
     handler.update_device_online_statuses(devices)
