@@ -130,5 +130,5 @@ where = ["src"]
 include = ["aioamazondevices*"]
 
 [build-system]
-requires = ["setuptools>=84.1.0", "wheel"]
+requires = ["setuptools>=84.2.0", "wheel"]
 build-backend = "setuptools.build_meta"
