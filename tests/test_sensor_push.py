@@ -3,6 +3,7 @@
 
 """Tests for sensor sync, poll and push handling in AmazonSensorHandler."""
 
+import logging
 from collections.abc import Callable
 from typing import Any
 
@@ -473,6 +474,17 @@ async def test_malformed_smart_home_event_is_logged(
 
     assert caplog.text.count("Received malformed smart home event") == len(payloads)
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == SYNCED_TEMPERATURE
+
+
+async def test_unknown_push_event_is_ignored(
+    api: AmazonEchoApi, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Push events of an unknown type are logged and otherwise ignored."""
+    caplog.set_level(logging.DEBUG)
+
+    await api._http2_push_event_handler("UNKNOWN_EVENT", {})
+
+    assert "Unhandled push event type: UNKNOWN_EVENT" in caplog.text
 
 
 async def test_is_tracked_endpoint(handler: AmazonSensorHandler) -> None:
