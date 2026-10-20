@@ -414,8 +414,6 @@ class AmazonEchoApi:
         if not changed:
             # value has not changed so do not notify subscribers
             return
-        # might not be needed (check reachability)
-        self._sensor_handler.update_device_online_statuses(self._device_handler.devices)
         await self._emit_sensor_event()
 
     async def _emit_sensor_event(self) -> None:

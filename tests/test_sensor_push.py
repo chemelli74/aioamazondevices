@@ -486,7 +486,7 @@ async def test_older_push_is_ignored(
 async def test_reachability_sets_online(
     api: AmazonEchoApi, devices: dict[str, AmazonDevice]
 ) -> None:
-    """A pushed reachability change is reflected in the device online status."""
+    """A polled reachability change is reflected in the device online status."""
     _supports(devices[TEST_SERIAL_1], _reachability("OK"))
     handler = api._sensor_handler
     handler.full_sensor_sync(devices, {ENDPOINT: _endpoint(_reachability("OK"))})
