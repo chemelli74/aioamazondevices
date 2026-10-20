@@ -11,6 +11,7 @@ from datetime import UTC, datetime, timedelta
 from http import HTTPMethod, HTTPStatus
 from typing import Any, cast
 
+from aiohttp import ClientResponse
 from bs4 import BeautifulSoup, Tag
 from yarl import URL
 
@@ -23,6 +24,9 @@ from .const.http import (
     AMAZON_DEVICE_TYPE,
     DEFAULT_SITE,
     FE_SITE,
+    LOGIN_FORM_EMAIL,
+    LOGIN_FORM_OTP,
+    LOGIN_FORM_PASSWORD,
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     URI_CAPABILITIES,
@@ -117,13 +121,28 @@ class AmazonLogin:
         url = URL.joinpath(self._session_state_data.retail_site_url, URI_SIGNIN)
         return url.with_query(oauth_params)
 
-    def _get_inputs_from_soup(self, soup: BeautifulSoup) -> dict[str, str]:
-        """Extract hidden form input fields from a Amazon login page."""
-        form = soup.find("form", {"name": "signIn"}) or soup.find("form")
+    def _find_form(
+        self, soup: BeautifulSoup, candidates: tuple[tuple[str, str], ...]
+    ) -> Tag:
+        """Find the first form matching any of the candidate attributes."""
+        for attr, value in candidates:
+            form = soup.find("form", attrs={attr: value})
+            if isinstance(form, Tag):
+                return form
 
-        if not isinstance(form, Tag):
-            raise CannotAuthenticate("Unable to find form in login response")
+        _LOGGER.debug(
+            "Cannot find form %s, page has forms: %s",
+            candidates,
+            [
+                f.get("id") or f.get("name")
+                for f in soup.find_all("form")
+                if isinstance(f, Tag)
+            ],
+        )
+        raise CannotAuthenticate(f"Unable to find {candidates} in login response")
 
+    def _get_inputs_from_form(self, form: Tag) -> dict[str, str]:
+        """Extract hidden input fields from an Amazon login form."""
         inputs: dict[str, str] = {}
         for field in form.find_all("input"):
             if isinstance(field, Tag) and field.get("type", "") == "hidden":
@@ -134,16 +153,34 @@ class AmazonLogin:
 
         return inputs
 
-    def _get_request_from_soup(self, soup: BeautifulSoup) -> tuple[str, URL]:
+    def _get_request_from_form(self, form: Tag, base_url: URL) -> tuple[str, URL]:
         """Extract URL and method for the next request."""
-        _LOGGER.debug("Get request data from HTML source")
-        form = soup.find("form", {"name": "signIn"}) or soup.find("form")
-        if isinstance(form, Tag):
-            method = form.get("method")
-            url = form.get("action")
-            if isinstance(method, str) and isinstance(url, str):
-                return method, URL(url)
+        method = form.get("method")
+        url = form.get("action")
+        if isinstance(method, str) and isinstance(url, str):
+            # Form actions are relative to the page they were served from
+            return method, base_url.join(URL(url))
         raise CannotAuthenticate("Unable to extract form data from response")
+
+    async def _submit_form(
+        self,
+        soup: BeautifulSoup,
+        base_url: URL,
+        candidates: tuple[tuple[str, str], ...],
+        fields: dict[str, str],
+    ) -> tuple[BeautifulSoup, ClientResponse]:
+        """Submit a login form with its hidden inputs plus the given fields."""
+        form = self._find_form(soup, candidates)
+        method, url = self._get_request_from_form(form, base_url)
+        inputs = self._get_inputs_from_form(form)
+        inputs.update(fields)
+
+        _LOGGER.debug("Submit form %s to %s", form.get("id") or form.get("name"), url)
+        return await self._http_wrapper.session_request(
+            method=method,
+            url=url,
+            input_data=inputs,
+        )
 
     def _extract_code_from_url(self, url: URL) -> str:
         """Extract the access token from url query after login."""
@@ -306,34 +343,30 @@ class AmazonLogin:
     ) -> dict[str, str | bytes]:
         """Login interactive via oauth URL."""
         code_verifier = self._create_code_verifier()
-        login_url, login_soup = await self._oauth_login(code_verifier)
+        login_soup, login_resp = await self._oauth_login(code_verifier)
 
         # appears that if users in Japan login with english set as language
         # in OAuth URL, they get a captcha challenge.
         # so if we detect this captcha then retry with Japanese language
         if login_soup.find("form", id="cvf-aamation-challenge-form"):
             _LOGGER.debug("Captcha challenge found, retrying with Japanese")
-            login_url, login_soup = await self._oauth_login(
+            login_soup, login_resp = await self._oauth_login(
                 code_verifier, registration_language="ja_JP"
             )
 
-        if not login_soup.find("input", id="auth-mfa-otpcode"):
-            _LOGGER.debug(
-                'Cannot find "auth-mfa-otpcode" in html source [%s]', login_url
-            )
-            raise CannotAuthenticate("MFA OTP code not found on login page")
+        login_soup, login_resp = await self._submit_form(
+            login_soup,
+            login_resp.url,
+            LOGIN_FORM_PASSWORD,
+            {"password": self._session_state_data.login_password},
+        )
 
-        login_method, login_url = self._get_request_from_soup(login_soup)
-
-        login_inputs = self._get_inputs_from_soup(login_soup)
-        login_inputs["otpCode"] = otp_code
-        login_inputs["mfaSubmit"] = "Submit"
-        login_inputs["rememberDevice"] = "false"
-
-        login_soup, login_resp = await self._http_wrapper.session_request(
-            method=login_method,
-            url=login_url,
-            input_data=login_inputs,
+        # mfaSubmit and rememberDevice are only on the classic MFA form
+        login_soup, login_resp = await self._submit_form(
+            login_soup,
+            login_resp.url,
+            LOGIN_FORM_OTP,
+            {"otpCode": otp_code, "mfaSubmit": "Submit", "rememberDevice": "false"},
         )
         _LOGGER.debug("Login response url:%s", login_resp.url)
 
@@ -348,7 +381,8 @@ class AmazonLogin:
 
     async def _oauth_login(
         self, code_verifier: bytes, registration_language: str = "en-US"
-    ) -> tuple[URL, BeautifulSoup]:
+    ) -> tuple[BeautifulSoup, ClientResponse]:
+        """Open the OAuth sign-in page and submit the email."""
         client_id = self._build_client_id()
 
         _LOGGER.debug("Build oauth URL")
@@ -356,23 +390,17 @@ class AmazonLogin:
             code_verifier, client_id, registration_language
         )
 
-        login_soup, _ = await self._http_wrapper.session_request(
+        login_soup, login_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
             url=login_url,
         )
-        login_method, login_url = self._get_request_from_soup(login_soup)
-        login_inputs = self._get_inputs_from_soup(login_soup)
-        login_inputs["email"] = self._session_state_data.login_email
-        login_inputs["password"] = self._session_state_data.login_password
 
-        _LOGGER.debug("Register at %s", login_url)
-        login_soup, _ = await self._http_wrapper.session_request(
-            method=login_method,
-            url=login_url,
-            input_data=login_inputs,
+        return await self._submit_form(
+            login_soup,
+            login_resp.url,
+            LOGIN_FORM_EMAIL,
+            {"email": self._session_state_data.login_email},
         )
-
-        return login_url, login_soup
 
     async def login_mode_stored_data(self) -> dict[str, Any]:
         """Login to Amazon using previously stored data."""
