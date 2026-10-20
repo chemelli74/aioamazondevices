@@ -70,6 +70,22 @@ async def test_unreadable_sensor_is_skipped(
     assert "ignored due to errors in feature" in caplog.text
 
 
+@pytest.mark.anyio
+async def test_empty_sensor_value_is_skipped(
+    make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A property without a value is dropped."""
+    endpoint = _temperature_endpoint("value")
+    endpoint["features"][0]["properties"][0]["value"] = None
+
+    sensors = sync_sensors(endpoint, make_device(TEST_SERIAL_1))
+
+    assert sensors == {}
+    assert "ignored due to empty value" in caplog.text
+
+
 def _make_typed_device(
     make_device: Callable[..., AmazonDevice], device_type: str
 ) -> AmazonDevice:

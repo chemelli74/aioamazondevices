@@ -124,12 +124,36 @@ async def test_restarted_processing_is_not_a_reconnect(
     client._has_connected = True
 
     async def _stop_after_one_run(_delay: float) -> _TaskAction:
-        return _TaskAction.STOP
+        client._stop_event.set()
+        return _TaskAction.RECONNECT_IMMEDIATE
 
     monkeypatch.setattr(client, "_run_tasks", _stop_after_one_run)
     await client._orchestrate_tasks()
 
     assert not client._has_connected
+
+
+async def test_start_and_stop_http2_processing(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Starting subscribes to reconnects, stopping drops the client."""
+    api._session_state_data.login_stored_data = {"customer_info": {"home_region": "eu"}}
+    monkeypatch.setattr(AmazonHTTP2Client, "start_processing", AsyncMock())
+    monkeypatch.setattr(AmazonHTTP2Client, "stop_processing", AsyncMock())
+
+    await api.start_http2_processing(MagicMock())
+    client = api._http2_client
+    # starting again reuses the client, without subscribing twice
+    await api.start_http2_processing(MagicMock())
+
+    assert client is not None
+    assert api._http2_client is client
+    assert list(client.on_reconnected) == [api._http2_reconnected_handler]
+    assert client.on_reconnected.frozen
+
+    await api.stop_http2_processing()
+
+    assert api._http2_client is None
 
 
 async def test_reconnect_resyncs_pushed_state(synced_api: AmazonEchoApi) -> None:
@@ -217,6 +241,10 @@ async def test_failed_sensor_resync_is_retried_on_next_poll(
     sensor = synced_api.sensors[TEST_SERIAL_1]["temperature"]
     assert sensor.value == RESYNCED_TEMPERATURE
 
+    # once resynced, later polls do not resync again
+    await synced_api.get_devices_data()
+    resynced_features.assert_awaited_once()  # type: ignore[attr-defined]
+
 
 async def test_failed_dnd_resync_falls_back_to_push(
     synced_api: AmazonEchoApi,
@@ -256,3 +284,32 @@ async def test_stop_cancels_resync(
     assert task is not None
     assert task.cancelled()
     assert synced_api._resync_task is None
+
+
+async def test_cancelled_stop_is_propagated(
+    synced_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Cancelling the stop itself is not swallowed while waiting for the resync."""
+    holding = asyncio.Event()
+
+    async def _get_endpoints_features(_ids: list[str]) -> dict[str, Any]:
+        try:
+            await asyncio.Event().wait()
+        except asyncio.CancelledError:
+            # ignore the stop's cancel, so the stop is left waiting
+            holding.set()
+            await asyncio.Event().wait()
+        return {}
+
+    monkeypatch.setattr(
+        synced_api._device_handler, "_get_endpoints_features", _get_endpoints_features
+    )
+
+    await synced_api._http2_reconnected_handler()
+    await asyncio.sleep(0)
+    stop = asyncio.create_task(synced_api.stop_http2_processing())
+    await holding.wait()
+
+    stop.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await stop

@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
+from aioamazondevices.const.devices import DEVICE_TYPE_AQM, SPEAKER_GROUP_FAMILY
 from aioamazondevices.implementation.device import _parse_features
 from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.structures import AmazonDevice
@@ -370,7 +371,11 @@ async def test_sync_tracks_supported_sensor_without_value(
     )
     assert "temperature" not in api.sensors[TEST_SERIAL_1]
 
-    _store(handler, _temperature(PUSHED_TEMPERATURE))
+    sensor_values = handler.parse_endpoint_state(
+        ENDPOINT, _endpoint(_temperature(PUSHED_TEMPERATURE))
+    )
+    assert handler.has_changes(sensor_values)
+    handler.store_values(sensor_values)
 
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == PUSHED_TEMPERATURE
 
@@ -390,6 +395,67 @@ async def test_sync_only_tracks_supported_features(
 
     assert TEST_SERIAL_1 not in api.sensors
     assert not handler.is_tracked_endpoint(ENDPOINT)
+
+
+async def test_sync_skips_features_without_definition(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+) -> None:
+    """A feature with no sensor definition for the device type is not tracked."""
+    aqm_humidity = {
+        "name": "range",
+        "instance": "4",
+        "properties": [{"name": "rangeValue", "rangeValue": {"value": 40}}],
+    }
+    device = make_device(TEST_SERIAL_1)
+    device.endpoint_id = ENDPOINT
+    device.device_type = DEVICE_TYPE_AQM
+    _supports(device, aqm_humidity)
+    # range sensors are only defined for the air quality monitor
+    device.device_type = "OTHER"
+
+    handler = api._sensor_handler
+    handler.full_sensor_sync({TEST_SERIAL_1: device}, {ENDPOINT: _endpoint()})
+
+    assert not handler.is_tracked_endpoint(ENDPOINT)
+
+
+async def test_poll_missing_sensor_without_value_is_not_created(
+    api: AmazonEchoApi,
+    devices: dict[str, AmazonDevice],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A polled sensor that never had a value is not created by a failed poll."""
+    handler = api._sensor_handler
+    handler.full_sensor_sync(
+        devices, {ENDPOINT: _endpoint(_temperature(SYNCED_TEMPERATURE))}
+    )
+    _stub_poll(monkeypatch, handler, {})
+
+    await handler.update_polled_sensors()
+
+    assert "illuminance" not in api.sensors[TEST_SERIAL_1]
+
+
+async def test_speaker_group_online_follows_members(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+) -> None:
+    """A speaker group is online only when all its members are."""
+    group = make_device("GROUP", device_family=SPEAKER_GROUP_FAMILY)
+    group.device_cluster_members = {TEST_SERIAL_1: None, TEST_SERIAL_2: None}
+    devices = {
+        "GROUP": group,
+        TEST_SERIAL_1: make_device(TEST_SERIAL_1, online=True),
+        TEST_SERIAL_2: make_device(TEST_SERIAL_2, online=False),
+    }
+
+    api._sensor_handler.update_device_online_statuses(devices)
+    assert not group.online
+
+    devices[TEST_SERIAL_2].online = True
+    api._sensor_handler.update_device_online_statuses(devices)
+    assert group.online
 
 
 @pytest.mark.usefixtures("handler")
