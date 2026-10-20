@@ -396,9 +396,6 @@ class AmazonSensorHandler:
         self, endpoint_ids: list[str]
     ) -> dict[str, dict[str, Any]]:
         """Retrieve the polled sensor states of the given endpoints, keyed by ID."""
-        if not endpoint_ids:
-            return {}
-
         payload = [
             {
                 "operationName": "getPolledSensorState",
