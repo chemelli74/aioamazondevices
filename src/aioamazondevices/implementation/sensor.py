@@ -162,34 +162,6 @@ def _parse_property(
     )
 
 
-def parse_graphql_feature_to_sensor(
-    endpoint: dict[str, Any], device: AmazonDevice
-) -> dict[str, AmazonDeviceSensor]:
-    """Transform the GraphQL feature into AmazonDeviceSensor(s)."""
-    device_sensors: dict[str, AmazonDeviceSensor] = {}
-    for feature_name, instance, feature_property in _iter_endpoint_properties(endpoint):
-        if (
-            sensor_definition := resolve_sensor_definition(
-                device.device_type,
-                feature_name,
-                instance,
-                feature_property.get("name") or "",
-            )
-        ) is None:
-            # Skip properties without a template for this device type
-            continue
-        sensor = _parse_property(
-            feature_property,
-            feature_name=feature_name,
-            instance=instance,
-            sensor_definition=sensor_definition,
-            serial_number=device.serial_number,
-        )
-        if sensor is not None:
-            device_sensors[sensor.name] = sensor
-    return device_sensors
-
-
 def _tracked_sensors(device: AmazonDevice) -> Iterator[tuple[SensorId, _TrackedSensor]]:
     """Yield (sensor ID, tracked sensor) for each supported feature property.
 

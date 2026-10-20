@@ -13,8 +13,7 @@ from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.devices import DEVICE_TYPE_AQM
 from aioamazondevices.const.http import ARRAY_WRAPPER
 from aioamazondevices.implementation import sensor_templates
-from aioamazondevices.implementation.sensor import parse_graphql_feature_to_sensor
-from aioamazondevices.structures import AmazonDevice
+from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 
 from .const import TEST_SERIAL_1
 
@@ -46,11 +45,10 @@ def _temperature_endpoint(value_key: str) -> dict[str, Any]:
 @pytest.mark.anyio
 async def test_sensor_value_is_read(
     make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
 ) -> None:
     """A value under the expected key is parsed."""
-    sensors = parse_graphql_feature_to_sensor(
-        _temperature_endpoint("value"), make_device(TEST_SERIAL_1)
-    )
+    sensors = sync_sensors(_temperature_endpoint("value"), make_device(TEST_SERIAL_1))
 
     assert sensors["temperature"].value == TEST_TEMPERATURE
     assert sensors["temperature"].scale == "CELSIUS"
@@ -60,10 +58,11 @@ async def test_sensor_value_is_read(
 @pytest.mark.anyio
 async def test_unreadable_sensor_is_skipped(
     make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A value we cannot parse is dropped, not reported as a valid 'n/a'."""
-    sensors = parse_graphql_feature_to_sensor(
+    sensors = sync_sensors(
         _temperature_endpoint("temperatureValue"), make_device(TEST_SERIAL_1)
     )
 
@@ -104,6 +103,7 @@ def _range_endpoint(instance: str) -> dict[str, Any]:
 @pytest.mark.anyio
 async def test_sensor_template_name_override(
     make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A template name replaces the property name as the sensor name."""
@@ -120,9 +120,7 @@ async def test_sensor_template_name_override(
         },
     )
 
-    sensors = parse_graphql_feature_to_sensor(
-        _temperature_endpoint("value"), make_device(TEST_SERIAL_1)
-    )
+    sensors = sync_sensors(_temperature_endpoint("value"), make_device(TEST_SERIAL_1))
 
     assert list(sensors) == ["Room Temperature"]
     assert sensors["Room Temperature"].name == "Room Temperature"
@@ -133,11 +131,12 @@ async def test_sensor_template_name_override(
 @pytest.mark.anyio
 async def test_unknown_feature_is_skipped(
     make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
 ) -> None:
     """A feature with no sensor template is ignored."""
     endpoint = {"features": [{"name": "unknownFeature", "properties": []}]}
 
-    sensors = parse_graphql_feature_to_sensor(endpoint, make_device(TEST_SERIAL_1))
+    sensors = sync_sensors(endpoint, make_device(TEST_SERIAL_1))
 
     assert sensors == {}
 
@@ -145,9 +144,10 @@ async def test_unknown_feature_is_skipped(
 @pytest.mark.anyio
 async def test_device_specific_sensor_uses_override(
     make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
 ) -> None:
     """A device type specific instance takes its name and scale from the override."""
-    sensors = parse_graphql_feature_to_sensor(
+    sensors = sync_sensors(
         _range_endpoint("4"),
         _make_typed_device(make_device, DEVICE_TYPE_AQM),
     )
@@ -162,9 +162,10 @@ async def test_device_specific_sensor_uses_override(
 @pytest.mark.anyio
 async def test_device_specific_sensor_unknown_instance_is_skipped(
     make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
 ) -> None:
     """An instance not listed for the device type is ignored."""
-    sensors = parse_graphql_feature_to_sensor(
+    sensors = sync_sensors(
         _range_endpoint("99"),
         _make_typed_device(make_device, DEVICE_TYPE_AQM),
     )
@@ -175,11 +176,10 @@ async def test_device_specific_sensor_unknown_instance_is_skipped(
 @pytest.mark.anyio
 async def test_device_specific_sensor_other_device_type_is_skipped(
     make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
 ) -> None:
     """A non generic feature is ignored on device types that do not enable it."""
-    sensors = parse_graphql_feature_to_sensor(
-        _range_endpoint("4"), make_device(TEST_SERIAL_1)
-    )
+    sensors = sync_sensors(_range_endpoint("4"), make_device(TEST_SERIAL_1))
 
     assert sensors == {}
 
@@ -187,6 +187,7 @@ async def test_device_specific_sensor_other_device_type_is_skipped(
 @pytest.mark.anyio
 async def test_device_specific_sensor_without_name_uses_fallback(
     make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """An override without a name is keyed by property name and instance."""
@@ -196,7 +197,7 @@ async def test_device_specific_sensor_without_name_uses_fallback(
         {"range": {"1": {"scale": "ppm"}}},
     )
 
-    sensors = parse_graphql_feature_to_sensor(
+    sensors = sync_sensors(
         _range_endpoint("1"),
         _make_typed_device(make_device, "TESTTYPE"),
     )
