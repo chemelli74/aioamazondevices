@@ -328,6 +328,46 @@ fragment EndpointState on Endpoint {
         timeOfSample
         timeOfLastChange
       }
+      ... on DetectionSensitivity {
+        detectionSensitivityValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on DetectionRange {
+        detectionRangeValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on DetectionTechnology {
+        detectionTechnologyValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on EnablementState {
+        enablementStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on Power {
+        powerStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ToggleState {
+        toggleStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on Brightness {
+        brightnessStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on Color {
+        colorStateValue { hue saturation brightness }
+        timeOfSample
+        timeOfLastChange
+      }
     }
   }
 }

@@ -24,6 +24,27 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
             "subkey": None,
             "scale": None,
         },
+        "detectionSensitivity": {
+            "key": "detectionSensitivityValue",
+            "subkey": None,
+            "scale": None,
+        },
+        "detectionRange": {
+            "key": "detectionRangeValue",
+            "subkey": None,
+            "scale": None,
+        },
+        "detectionTechnology": {
+            "key": "detectionTechnologyValue",
+            "subkey": None,
+            "scale": None,
+        },
+        "enablement": {
+            "name": "motionSensor-enabled",
+            "key": "enablementStateValue",
+            "subkey": None,
+            "scale": None,
+        },
     },
     "lightSensor": {
         "illuminance": {
@@ -43,6 +64,34 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
         "rangeValue": {
             "key": "rangeValue",
             "subkey": "value",
+            "scale": None,
+        },
+    },
+    "power": {
+        "powerState": {
+            "key": "powerStateValue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
+    "toggle": {
+        "toggleState": {
+            "key": "toggleStateValue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
+    "brightness": {
+        "brightness": {
+            "key": "brightnessStateValue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
+    "color": {
+        "color": {
+            "key": "colorStateValue",
+            "subkey": "hue",
             "scale": None,
         },
     },
