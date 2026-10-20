@@ -68,7 +68,7 @@ async def test_probe_waits_before_first_fetch_but_not_before_each_retry(
     monkeypatch.setattr(api_module.asyncio, "sleep", sleep)
     monkeypatch.setattr(api, "_shared_vocal_history_fetch", fetch)
 
-    await api._probe_vocal_history(TEST_SERIAL_1)
+    await api._probe_vocal_history(TEST_SERIAL_1, 100)
 
     assert order == [initial_delay, "fetch", retry_delay, "fetch"]
 
@@ -130,12 +130,12 @@ async def test_probe_retries_until_matching_reply_and_deduplicates(
     monkeypatch.setattr(api, "_shared_vocal_history_fetch", fetch)
     monkeypatch.setattr(api_module, "HISTORY_RETRY_DELAY_SECONDS", 0)
 
-    await api._probe_vocal_history(TEST_SERIAL_1)
+    await api._probe_vocal_history(TEST_SERIAL_1, 1_000_000)
     initial_fetches = 2
     assert fetch.await_count == initial_fetches
     fetch.return_value = {TEST_SERIAL_1: fresh}
     fetch.side_effect = None
-    await api._probe_vocal_history(TEST_SERIAL_1)
+    await api._probe_vocal_history(TEST_SERIAL_1, 1_000_000)
 
     assert received == [{TEST_SERIAL_1: fresh}]
     assert fetch.await_count == initial_fetches + api_module.HISTORY_PROBE_ATTEMPTS
@@ -219,8 +219,8 @@ async def test_push_during_probe_runs_again_for_latest_activity(
     expected_fetches = 2
     assert fetch_count == expected_fetches
     assert [call.args for call in probe.await_args_list] == [
-        (TEST_SERIAL_1,),
-        (TEST_SERIAL_1,),
+        (TEST_SERIAL_1, 1_000_000),
+        (TEST_SERIAL_1, 1_020_000),
     ]
     assert received == (
         [{TEST_SERIAL_1: old}, {TEST_SERIAL_1: newer}]
@@ -305,7 +305,7 @@ async def test_probe_expires_without_fresh_history(
     monkeypatch.setattr(api, "_shared_vocal_history_fetch", fetch)
     monkeypatch.setattr(api_module, "HISTORY_RETRY_DELAY_SECONDS", 0)
 
-    await api._probe_vocal_history(TEST_SERIAL_1)
+    await api._probe_vocal_history(TEST_SERIAL_1, 100)
 
     assert fetch.await_count == api_module.HISTORY_PROBE_ATTEMPTS
     assert not received
@@ -383,7 +383,7 @@ async def test_startup_baseline_is_not_emitted_again(
     monkeypatch.setattr(api_module, "HISTORY_RETRY_DELAY_SECONDS", 0)
 
     await api.sync_history_state()
-    await api._probe_vocal_history(TEST_SERIAL_1)
+    await api._probe_vocal_history(TEST_SERIAL_1, 100)
 
     assert not received
     assert api._last_emitted_history == {TEST_SERIAL_1: baseline.timestamp}
@@ -419,7 +419,7 @@ async def test_history_fetch_errors_count_as_attempts_and_allow_new_fetch(
 ) -> None:
     """Failed shared fetches are replaced on retry within the attempt budget."""
     received = _subscribe(api)
-    fresh = _record(100)
+    fresh = _record(int(datetime.now(UTC).timestamp() * 1000))
     fetch = AsyncMock(
         side_effect=(
             [error_type("temporary failure"), {TEST_SERIAL_1: fresh}]
@@ -449,3 +449,56 @@ async def test_history_fetch_errors_count_as_attempts_and_allow_new_fetch(
     assert task.exception() is None
     assert not api._history_probe_tasks
     assert not api._history_activity_timestamps
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("offset_ms", [-60_001, -60_000, -1, 0, 60_000, 60_001])
+@pytest.mark.parametrize("baseline", [None, 1_000_000])
+async def test_probe_bounds_freshness_and_preserves_duplicate_suppression(
+    api: AmazonEchoApi,
+    monkeypatch: pytest.MonkeyPatch,
+    offset_ms: int,
+    baseline: int | None,
+) -> None:
+    """Bound both ends of freshness even without a startup baseline."""
+    received = _subscribe(api)
+    push_timestamp = 1_000_000
+    record = _record(push_timestamp + offset_ms)
+    if baseline is not None:
+        api._last_emitted_history[TEST_SERIAL_1] = baseline
+    fetch = AsyncMock(return_value={TEST_SERIAL_1: record})
+    monkeypatch.setattr(api, "_shared_vocal_history_fetch", fetch)
+    monkeypatch.setattr(api_module, "HISTORY_RETRY_DELAY_SECONDS", 0)
+
+    await api._probe_vocal_history(TEST_SERIAL_1, push_timestamp)
+
+    window_ms = 60_000
+    accepted = abs(offset_ms) <= window_ms and record.timestamp > (baseline or 0)
+    assert received == ([{TEST_SERIAL_1: record}] if accepted else [])
+    assert fetch.await_count == (1 if accepted else api_module.HISTORY_PROBE_ATTEMPTS)
+    assert api._last_emitted_history == (
+        {TEST_SERIAL_1: record.timestamp}
+        if accepted
+        else ({TEST_SERIAL_1: baseline} if baseline is not None else {})
+    )
+
+
+@pytest.mark.anyio
+async def test_probe_retries_stale_unseen_history_until_recent_record(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Unseen stale history must not consume the push or advance deduplication."""
+    received = _subscribe(api)
+    api._last_emitted_history[TEST_SERIAL_1] = 900_000
+    stale = _record(939_999)
+    recent = _record(999_000)
+    fetch = AsyncMock(side_effect=[{TEST_SERIAL_1: stale}, {TEST_SERIAL_1: recent}])
+    monkeypatch.setattr(api, "_shared_vocal_history_fetch", fetch)
+    monkeypatch.setattr(api_module, "HISTORY_RETRY_DELAY_SECONDS", 0)
+
+    await api._probe_vocal_history(TEST_SERIAL_1, 1_000_000)
+
+    expected_attempts = 2
+    assert fetch.await_count == expected_attempts
+    assert received == [{TEST_SERIAL_1: recent}]
+    assert api._last_emitted_history == {TEST_SERIAL_1: recent.timestamp}

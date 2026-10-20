@@ -22,6 +22,7 @@ from aioamazondevices.implementation.todo import AmazonToDoHandler
 
 from . import __version__
 from .const.history import (
+    HISTORY_FRESHNESS_WINDOW_MS,
     HISTORY_INITIAL_DELAY_SECONDS,
     HISTORY_PROBE_ATTEMPTS,
     HISTORY_RETRY_DELAY_SECONDS,
@@ -413,7 +414,7 @@ class AmazonEchoApi:
         try:
             while True:
                 activity_timestamp_ms = self._history_activity_timestamps[serial]
-                await self._probe_vocal_history(serial)
+                await self._probe_vocal_history(serial, activity_timestamp_ms)
                 if self._history_activity_timestamps[serial] <= activity_timestamp_ms:
                     return
         finally:
@@ -421,7 +422,9 @@ class AmazonEchoApi:
                 self._history_probe_tasks.pop(serial, None)
                 self._history_activity_timestamps.pop(serial, None)
 
-    async def _probe_vocal_history(self, serial: str) -> None:
+    async def _probe_vocal_history(
+        self, serial: str, activity_timestamp_ms: int
+    ) -> None:
         """Wait for a fresh history record for the Echo that sent the EQ push."""
         try:
             await asyncio.sleep(HISTORY_INITIAL_DELAY_SECONDS)
@@ -444,6 +447,8 @@ class AmazonEchoApi:
                 record = vocal_history.get(serial)
                 if (
                     record is not None
+                    and abs(record.timestamp - activity_timestamp_ms)
+                    <= HISTORY_FRESHNESS_WINDOW_MS
                     and record.timestamp > self._last_emitted_history.get(serial, 0)
                 ):
                     self._last_emitted_history[serial] = record.timestamp
