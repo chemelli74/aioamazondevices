@@ -151,6 +151,11 @@ class AmazonEchoApi:
         self._dnd_initialized: bool = False
         self._dnd_lock = asyncio.Lock()
         self._http2_client: AmazonHTTP2Client | None = None
+        # resync of pushed state after the HTTP2 stream reconnects
+        self._resync_task: asyncio.Task[None] | None = None
+        self._resync_pending: bool = False
+        # set when a sensor resync failed, so the next poll retries it
+        self._sensor_resync_required: bool = False
 
         # force initial refresh
         initial_time = datetime.now(UTC) - timedelta(days=2)
@@ -263,6 +268,7 @@ class AmazonEchoApi:
             self._sensor_handler.full_sensor_sync(
                 self._device_handler.devices, self._device_handler.endpoint_states
             )
+            self._sensor_resync_required = False
             await self._media_handler.update_music_providers()
             await self._sequence_handler.update_routines()
             await self._todo_handler.update_lists()
@@ -290,6 +296,10 @@ class AmazonEchoApi:
             )
         )
         self._update_device_settings(devices, notifications, communications)
+
+        # retry a resync that failed after an HTTP2 reconnect
+        if self._sensor_resync_required:
+            await self._resync_sensors()
 
         # pushed sensors are synced by the device refresh, the rest are polled
         await self._sensor_handler.update_polled_sensors()
@@ -360,6 +370,8 @@ class AmazonEchoApi:
             )
             self._http2_client.on_push_event.append(self._http2_push_event_handler)
             self._http2_client.on_push_event.freeze()
+            self._http2_client.on_reconnected.append(self._http2_reconnected_handler)
+            self._http2_client.on_reconnected.freeze()
 
         return await self._http2_client.start_processing()
 
@@ -368,6 +380,70 @@ class AmazonEchoApi:
         if self._http2_client:
             await self._http2_client.stop_processing()
             self._http2_client = None
+
+        if (resync_task := self._resync_task) and not resync_task.done():
+            resync_task.cancel()
+            try:
+                await resync_task
+            except asyncio.CancelledError:
+                if (t := asyncio.current_task()) and t.cancelling():
+                    raise
+        self._resync_task = None
+        self._resync_pending = False
+
+    async def _http2_reconnected_handler(self) -> None:
+        """Resync pushed state in the background, as pushes may have been missed.
+
+        Runs as a separate task so the stream is not blocked by the queries,
+        and a failed query cannot take the stream down.
+        """
+        if self._resync_task and not self._resync_task.done():
+            # reconnected again mid-resync, run once more when it completes
+            self._resync_pending = True
+            return
+        self._resync_task = asyncio.create_task(
+            self._resync_after_reconnect(), name="aioamazondevices_resync"
+        )
+
+    async def _resync_after_reconnect(self) -> None:
+        """Resync all pushed state, best effort."""
+        while True:
+            self._resync_pending = False
+            _LOGGER.debug("HTTP2 stream reconnected, resyncing pushed state")
+
+            try:
+                await self._resync_sensors()
+            except Exception as err:  # noqa: BLE001
+                _LOGGER.warning(
+                    "Sensor resync after HTTP2 reconnect failed, "
+                    "retrying on next poll: %s",
+                    err,
+                )
+                self._sensor_resync_required = True
+
+            # on failure the flags stay cleared, so the next push event
+            # triggers the full sync before applying its update
+            self._dnd_initialized = False
+            self._device_volumes_initialized = False
+            for sync_call in (self.sync_dnd_state, self.sync_media_state):
+                try:
+                    await sync_call()
+                except Exception as err:  # noqa: BLE001
+                    _LOGGER.warning(
+                        "%s after HTTP2 reconnect failed: %s", sync_call.__name__, err
+                    )
+
+            if not self._resync_pending:
+                return
+
+    async def _resync_sensors(self) -> None:
+        """Resync sensors from the endpoint states of the known devices."""
+        await self._device_handler.update_endpoint_states()
+        self._sensor_handler.full_sensor_sync(
+            self._device_handler.devices, self._device_handler.endpoint_states
+        )
+        self._sensor_resync_required = False
+        await self._emit_sensor_event()
 
     async def _http2_push_event_handler(
         self, event_type: str, payload: dict[str, Any]
