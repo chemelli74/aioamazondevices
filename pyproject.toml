@@ -46,7 +46,7 @@ dev = [
 
 [tool.uv-version]
 # Source of truth for the uv version. All other version references must be derived from this value.
-version = "0.13.2" # renovate: depName=uv datasource=pypi
+version = "0.13.4" # renovate: depName=uv datasource=pypi
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
@@ -130,5 +130,5 @@ where = ["src"]
 include = ["aioamazondevices*"]
 
 [build-system]
-requires = ["setuptools>=84.2.0", "wheel"]
+requires = ["setuptools>=84.2.1", "wheel"]
 build-backend = "setuptools.build_meta"
