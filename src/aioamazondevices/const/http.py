@@ -55,12 +55,6 @@ URI_NOTIFICATIONS = "api/notifications"
 URI_REBOOT = "v1/alexa/device/reboot/{device_type}/{serial_number}"
 URI_REGISTER = "auth/register"
 URI_SIGNIN = "ap/signin"
-
-# Login form attributes, in order of preference. Without JavaScript Amazon
-# may fall back from the unified /ax/claim pages to the classic /ap/signin ones
-LOGIN_FORM_EMAIL = (("id", "ap_login_form"),)
-LOGIN_FORM_PASSWORD = (("id", "unified-password-form"), ("name", "signIn"))
-LOGIN_FORM_OTP = (("id", "unified-otp-form"), ("id", "auth-mfa-form"))
 URI_TODO_BASE = "alexashoppinglists/api/v2/lists"
 URI_TOKEN = "auth/token"  # noqa: S105
 URI_USERS_ME = "api/users/me"
