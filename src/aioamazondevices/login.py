@@ -148,6 +148,14 @@ class AmazonLogin:
                 return method, base_url.join(URL(url))
         raise CannotAuthenticate("Unable to extract form data from response")
 
+    def _check_login_error(self, soup: BeautifulSoup) -> None:
+        """Raise if the login page reports an error (wrong email, OTP, etc.)."""
+        for box_id in ("auth-error-message-box", "auth-warning-message-box"):
+            if box := soup.find(id=box_id):
+                message = " ".join(box.get_text().split())
+                _LOGGER.debug("Login error reported by Amazon: %s", message)
+                raise CannotAuthenticate(message)
+
     def _extract_code_from_url(self, url: URL) -> str:
         """Extract the access token from url query after login."""
         code: str | None = url.query.get("openid.oa2.authorization_code")
@@ -339,6 +347,7 @@ class AmazonLogin:
             input_data=login_inputs,
         )
         _LOGGER.debug("Login response url:%s", login_resp.url)
+        self._check_login_error(login_soup)
 
         authcode = self._extract_code_from_url(login_resp.url)
         _LOGGER.debug("Login extracted authcode: %s", authcode)
@@ -381,6 +390,7 @@ class AmazonLogin:
                 url=login_url,
                 input_data=login_inputs,
             )
+            self._check_login_error(login_soup)
 
         return login_resp.url, login_soup
 
