@@ -49,6 +49,7 @@ from .structures import (
     AmazonMusicProvider,
     AmazonPushMessage,
     AmazonSaveDataConfig,
+    AmazonSchedule,
     AmazonSequenceType,
     AmazonVocalRecord,
     AmazonVolumeState,
@@ -266,19 +267,32 @@ class AmazonEchoApi:
         # Perform a refresh to ensure your data is as up-to-date as possible.
         await self._refresh_basic_data()
 
+        devices = self._device_handler.devices
         notifications = await self._notification_handler.get_notifications()
         communications = (
             await self._communication_handler.get_communication_preferences(
-                list(self._device_handler.devices.values())
+                list(devices.values())
             )
         )
-        await self._sensor_handler.update_sensor_data(
-            self._device_handler.devices,
-            notifications,
-            communications,
-        )
+        await self._sensor_handler.update_sensor_data(devices)
 
-        return self._device_handler.devices
+        self._update_device_settings(devices, notifications, communications)
+
+        return devices
+
+    def _update_device_settings(
+        self,
+        devices: dict[str, AmazonDevice],
+        notifications: dict[str, dict[str, AmazonSchedule]] | None,
+        communications: dict[str, dict[str, str]],
+    ) -> None:
+        """Update communication settings and notifications of all devices."""
+        for device in devices.values():
+            device.communication_settings = (
+                communications.get(device.serial_number) or {}
+            )
+
+        self._notification_handler.update_device_notifications(devices, notifications)
 
     async def start_http2_processing(
         self,
