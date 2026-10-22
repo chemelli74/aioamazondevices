@@ -4,13 +4,15 @@
 """Tests for the volume push-event handling in AmazonEchoApi."""
 
 import asyncio
+from collections.abc import Callable
 
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.structures import AmazonVolumeState
+from aioamazondevices.structures import AmazonDevice, AmazonVolumeState
 
 SERIAL = "SERIAL"
+GROUP_SERIAL = "GROUP_SERIAL"
 
 
 def _volume_payload(serial: str, volume: int) -> dict[str, object]:
@@ -81,3 +83,53 @@ async def test_volume_event_not_overwritten_by_in_flight_sync(
     await asyncio.gather(sync_task, event_task)
 
     assert api._media_handler._device_volumes == {SERIAL: AmazonVolumeState(50, False)}
+
+
+@pytest.mark.anyio
+async def test_volume_event_updates_parent_speaker_group(
+    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
+) -> None:
+    """A member's volume push recalculates its speaker group's volume."""
+    api._device_volumes_initialized = True
+    api._media_handler._device_volumes = {
+        SERIAL: AmazonVolumeState(10, False),
+        "OTHER": AmazonVolumeState(30, False),
+    }
+
+    member = make_device(SERIAL)
+    member.parent_clusters = [GROUP_SERIAL, "MISSING_GROUP"]
+    group = make_device(GROUP_SERIAL)
+    group.device_cluster_members = {SERIAL: None, "OTHER": None}
+    api._device_handler._final_devices = {SERIAL: member, GROUP_SERIAL: group}
+
+    await api._handle_volume_change_event(_volume_payload(SERIAL, 50))
+
+    assert api._media_handler._device_volumes[GROUP_SERIAL] == AmazonVolumeState(
+        40, False
+    )
+    assert "MISSING_GROUP" not in api._media_handler._device_volumes
+
+
+@pytest.mark.anyio
+async def test_volume_event_for_unknown_device_updates_cache_only(
+    api: AmazonEchoApi,
+) -> None:
+    """A push for a serial not in the device list still updates its volume."""
+    api._device_volumes_initialized = True
+
+    await api._handle_volume_change_event(_volume_payload(SERIAL, 50))
+
+    assert api._media_handler._device_volumes == {SERIAL: AmazonVolumeState(50, False)}
+
+
+@pytest.mark.anyio
+async def test_volume_event_without_serial_leaves_cache_unchanged(
+    api: AmazonEchoApi,
+) -> None:
+    """A payload with no device serial changes nothing."""
+    api._device_volumes_initialized = True
+    api._media_handler._device_volumes = {SERIAL: AmazonVolumeState(10, False)}
+
+    await api._handle_volume_change_event({"volumeSetting": 50, "isMuted": False})
+
+    assert api._media_handler._device_volumes == {SERIAL: AmazonVolumeState(10, False)}
