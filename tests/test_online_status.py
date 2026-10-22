@@ -91,18 +91,26 @@ async def test_speaker_group_follows_members(
 
 
 async def test_get_devices_data_updates_online_status(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A poll derives online status from the refreshed sensors."""
     device = make_device(TEST_SERIAL_1, online=True)
     devices = {TEST_SERIAL_1: device}
     api._device_handler._final_devices = devices
-    api._refresh_basic_data = AsyncMock()  # type: ignore[method-assign]
-    api._notification_handler.get_notifications = AsyncMock(return_value=None)  # type: ignore[method-assign]
-    api._communication_handler.get_communication_preferences = AsyncMock(  # type: ignore[method-assign]
-        return_value={}
+    monkeypatch.setattr(api, "_refresh_basic_data", AsyncMock())
+    monkeypatch.setattr(
+        api._notification_handler,
+        "get_notifications",
+        AsyncMock(return_value=None),
     )
-    api._sensor_handler.update_sensor_data = AsyncMock()  # type: ignore[method-assign]
+    monkeypatch.setattr(
+        api._communication_handler,
+        "get_communication_preferences",
+        AsyncMock(return_value={}),
+    )
+    monkeypatch.setattr(api._sensor_handler, "update_sensor_data", AsyncMock())
     device.sensors = {"reachability": _reachability("UNREACHABLE")}
 
     assert await api.get_devices_data() is devices
