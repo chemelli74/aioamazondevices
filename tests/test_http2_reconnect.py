@@ -6,6 +6,7 @@
 import asyncio
 import contextlib
 from collections.abc import AsyncIterator, Callable
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
@@ -65,27 +66,56 @@ def _temperature(value: float) -> dict[str, Any]:
     }
 
 
+@dataclass
+class _SyncMocks:
+    """Stubs for the syncs a reconnect runs."""
+
+    get_endpoints_features: AsyncMock = field(default_factory=AsyncMock)
+    sync_do_not_disturb_status: AsyncMock = field(default_factory=AsyncMock)
+    sync_device_volumes: AsyncMock = field(default_factory=AsyncMock)
+    sync_media_state: AsyncMock = field(default_factory=AsyncMock)
+
+
+@pytest.fixture
+def sync_mocks() -> _SyncMocks:
+    """Return the stubs used by synced_api."""
+    return _SyncMocks()
+
+
 @pytest.fixture
 def synced_api(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
     sync_sensors: Callable[..., Any],
+    sync_mocks: _SyncMocks,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> AmazonEchoApi:
     """Return an API with a temperature sensor synced and other syncs stubbed."""
     device = make_device(TEST_SERIAL_1)
     sync_sensors({"features": [_temperature(SYNCED_TEMPERATURE)]}, device)
     api._device_handler._final_devices = {TEST_SERIAL_1: device}
-    api._device_handler._get_endpoints_features = AsyncMock(  # type: ignore[method-assign]
-        return_value={
-            device.endpoint_id: {
-                "endpointId": device.endpoint_id,
-                "features": [_temperature(RESYNCED_TEMPERATURE)],
-            }
+    sync_mocks.get_endpoints_features.return_value = {
+        device.endpoint_id: {
+            "endpointId": device.endpoint_id,
+            "features": [_temperature(RESYNCED_TEMPERATURE)],
         }
+    }
+    monkeypatch.setattr(
+        api._device_handler,
+        "_get_endpoints_features",
+        sync_mocks.get_endpoints_features,
     )
-    api._dnd_handler.sync_do_not_disturb_status = AsyncMock()  # type: ignore[method-assign]
-    api._media_handler.sync_device_volumes = AsyncMock()  # type: ignore[method-assign]
-    api._media_handler.sync_media_state = AsyncMock()  # type: ignore[method-assign]
+    monkeypatch.setattr(
+        api._dnd_handler,
+        "sync_do_not_disturb_status",
+        sync_mocks.sync_do_not_disturb_status,
+    )
+    monkeypatch.setattr(
+        api._media_handler, "sync_device_volumes", sync_mocks.sync_device_volumes
+    )
+    monkeypatch.setattr(
+        api._media_handler, "sync_media_state", sync_mocks.sync_media_state
+    )
     return api
 
 
@@ -156,7 +186,9 @@ async def test_start_and_stop_http2_processing(
     assert api._http2_client is None
 
 
-async def test_reconnect_resyncs_pushed_state(synced_api: AmazonEchoApi) -> None:
+async def test_reconnect_resyncs_pushed_state(
+    synced_api: AmazonEchoApi, sync_mocks: _SyncMocks
+) -> None:
     """A reconnect resyncs sensors, DnD and media, and notifies subscribers."""
     events = 0
 
@@ -172,9 +204,9 @@ async def test_reconnect_resyncs_pushed_state(synced_api: AmazonEchoApi) -> None
     sensor = synced_api.sensors[TEST_SERIAL_1]["temperature"]
     assert sensor.value == RESYNCED_TEMPERATURE
     assert events == 1
-    synced_api._dnd_handler.sync_do_not_disturb_status.assert_awaited_once()  # type: ignore[attr-defined]
-    synced_api._media_handler.sync_device_volumes.assert_awaited_once()  # type: ignore[attr-defined]
-    synced_api._media_handler.sync_media_state.assert_awaited_once()  # type: ignore[attr-defined]
+    sync_mocks.sync_do_not_disturb_status.assert_awaited_once()
+    sync_mocks.sync_device_volumes.assert_awaited_once()
+    sync_mocks.sync_media_state.assert_awaited_once()
     assert synced_api._dnd_initialized
     assert synced_api._device_volumes_initialized
 
@@ -212,28 +244,43 @@ async def test_reconnect_during_resync_runs_once_more(
 
 async def test_failed_sensor_resync_is_retried_on_next_poll(
     synced_api: AmazonEchoApi,
+    sync_mocks: _SyncMocks,
     caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A failed sensor resync is logged, the rest still runs, the poll retries."""
-    get_features = AsyncMock(side_effect=CannotRetrieveData("Boom"))
-    resynced_features = synced_api._device_handler._get_endpoints_features
-    synced_api._device_handler._get_endpoints_features = get_features  # type: ignore[method-assign]
+    resynced_features = sync_mocks.get_endpoints_features
+    monkeypatch.setattr(
+        synced_api._device_handler,
+        "_get_endpoints_features",
+        AsyncMock(side_effect=CannotRetrieveData("Boom")),
+    )
 
     await _resync(synced_api)
 
     assert "Sensor resync after HTTP2 reconnect failed" in caplog.text
-    synced_api._dnd_handler.sync_do_not_disturb_status.assert_awaited_once()  # type: ignore[attr-defined]
-    synced_api._media_handler.sync_media_state.assert_awaited_once()  # type: ignore[attr-defined]
+    sync_mocks.sync_do_not_disturb_status.assert_awaited_once()
+    sync_mocks.sync_media_state.assert_awaited_once()
 
-    synced_api._device_handler._get_endpoints_features = resynced_features  # type: ignore[method-assign]
+    monkeypatch.setattr(
+        synced_api._device_handler, "_get_endpoints_features", resynced_features
+    )
     # daily refresh not due, so only the retry can resync the sensors
     synced_api._last_daily_refresh = datetime.now(UTC)
     synced_api._default_device_serial = TEST_SERIAL_1
-    synced_api._notification_handler.get_notifications = AsyncMock(return_value=None)  # type: ignore[method-assign]
-    synced_api._communication_handler.get_communication_preferences = AsyncMock(  # type: ignore[method-assign]
-        return_value={}
+    monkeypatch.setattr(
+        synced_api._notification_handler,
+        "get_notifications",
+        AsyncMock(return_value=None),
     )
-    synced_api._sensor_handler.update_polled_sensors = AsyncMock()  # type: ignore[method-assign]
+    monkeypatch.setattr(
+        synced_api._communication_handler,
+        "get_communication_preferences",
+        AsyncMock(return_value={}),
+    )
+    monkeypatch.setattr(
+        synced_api._sensor_handler, "update_polled_sensors", AsyncMock()
+    )
 
     await synced_api.get_devices_data()
 
@@ -243,17 +290,15 @@ async def test_failed_sensor_resync_is_retried_on_next_poll(
 
     # once resynced, later polls do not resync again
     await synced_api.get_devices_data()
-    resynced_features.assert_awaited_once()  # type: ignore[attr-defined]
+    resynced_features.assert_awaited_once()
 
 
 async def test_failed_dnd_resync_falls_back_to_push(
-    synced_api: AmazonEchoApi,
+    synced_api: AmazonEchoApi, sync_mocks: _SyncMocks
 ) -> None:
     """A failed DnD resync leaves the next push event to do the full sync."""
     synced_api._dnd_initialized = True
-    synced_api._dnd_handler.sync_do_not_disturb_status = AsyncMock(  # type: ignore[method-assign]
-        side_effect=CannotRetrieveData("Boom")
-    )
+    sync_mocks.sync_do_not_disturb_status.side_effect = CannotRetrieveData("Boom")
 
     await _resync(synced_api)
 
