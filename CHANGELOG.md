@@ -1,5 +1,12 @@
 # Changelog
 
+## v16.9.2 (2026-10-22)
+
+### Bug fixes
+
+- Improve wording on login errors ([`2ee7172`](https://github.com/chemelli74/aioamazondevices/commit/2ee7172192d16caffc8356e37e68fcf7bb710930))
+
+
 ## v16.9.1 (2026-10-22)
 
 ### Bug fixes
