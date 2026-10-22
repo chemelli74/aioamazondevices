@@ -146,6 +146,7 @@ class AmazonEchoApi:
         self._device_volumes_initialized: bool = False
         self._dnd_initialized: bool = False
         self._dnd_lock = asyncio.Lock()
+        self._device_volumes_lock = asyncio.Lock()
         self._http2_client: AmazonHTTP2Client | None = None
         # resync of pushed state after the HTTP2 stream reconnects
         self._resync_task: asyncio.Task[None] | None = None
@@ -471,30 +472,29 @@ class AmazonEchoApi:
             await self.on_sensor_event.send()
 
     async def _handle_volume_change_event(self, payload: dict[str, Any]) -> None:
-        # Ensure initial full sync happens before applying incremental updates
-        if not self._device_volumes_initialized:
-            await self._media_handler.sync_device_volumes()
-            self._device_volumes_initialized = True
+        # The lock serializes the full sync with incremental updates, so that a
+        # sync response predating this event cannot overwrite it.
+        async with self._device_volumes_lock:
+            # Ensure initial full sync happens before applying incremental updates
+            if not self._device_volumes_initialized:
+                await self._media_handler.sync_device_volumes()
+                self._device_volumes_initialized = True
 
-        serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
-        if serial:
-            volume = AmazonVolumeState(
-                payload.get("volumeSetting"), payload.get("isMuted")
-            )
-            # check if device is part of a cluster
-            self._media_handler.update_cached_device_volume(serial, volume)
-            volume_device: AmazonDevice | None = self._device_handler.devices.get(
-                serial, None
-            )
-            if volume_device:
-                for parent_serial in volume_device.parent_clusters:
-                    if parent_cluster := (
-                        self._device_handler.devices.get(parent_serial, None)
-                    ):
-                        self._media_handler.update_cached_speaker_group_volume(
-                            parent_serial,
-                            list(parent_cluster.device_cluster_members),
-                        )
+            if serial := payload.get("dopplerId", {}).get("deviceSerialNumber"):
+                volume = AmazonVolumeState(
+                    payload.get("volumeSetting"), payload.get("isMuted")
+                )
+                # check if device is part of a cluster
+                self._media_handler.update_cached_device_volume(serial, volume)
+                if volume_device := self._device_handler.devices.get(serial):
+                    for parent_serial in volume_device.parent_clusters:
+                        if parent_cluster := self._device_handler.devices.get(
+                            parent_serial
+                        ):
+                            self._media_handler.update_cached_speaker_group_volume(
+                                parent_serial,
+                                list(parent_cluster.device_cluster_members),
+                            )
 
         await self._emit_volume_state_event()
 
@@ -703,8 +703,10 @@ class AmazonEchoApi:
         This will be called at startup to sync media state of all devices
         and can be called later to refresh media state.
         """
-        await self._media_handler.sync_device_volumes()
-        self._device_volumes_initialized = True
+        async with self._device_volumes_lock:
+            await self._media_handler.sync_device_volumes()
+            self._device_volumes_initialized = True
+
         await self._emit_volume_state_event()
         await self._media_handler.sync_media_state(self._device_handler.devices)
         await self._emit_media_state_event()

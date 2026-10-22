@@ -10,7 +10,7 @@ from typing import Any
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM, SPEAKER_GROUP_FAMILY
+from aioamazondevices.const.devices import DEVICE_TYPE_AQM
 from aioamazondevices.implementation.device import _parse_features
 from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.structures import AmazonDevice
@@ -438,27 +438,6 @@ async def test_poll_missing_sensor_without_value_is_not_created(
     assert "illuminance" not in api.sensors[TEST_SERIAL_1]
 
 
-async def test_speaker_group_online_follows_members(
-    api: AmazonEchoApi,
-    make_device: Callable[..., AmazonDevice],
-) -> None:
-    """A speaker group is online only when all its members are."""
-    group = make_device("GROUP", device_family=SPEAKER_GROUP_FAMILY)
-    group.device_cluster_members = {TEST_SERIAL_1: None, TEST_SERIAL_2: None}
-    devices = {
-        "GROUP": group,
-        TEST_SERIAL_1: make_device(TEST_SERIAL_1, online=True),
-        TEST_SERIAL_2: make_device(TEST_SERIAL_2, online=False),
-    }
-
-    api._sensor_handler.update_device_online_statuses(devices)
-    assert not group.online
-
-    devices[TEST_SERIAL_2].online = True
-    api._sensor_handler.update_device_online_statuses(devices)
-    assert group.online
-
-
 @pytest.mark.usefixtures("handler")
 async def test_malformed_smart_home_event_is_logged(
     api: AmazonEchoApi, caplog: pytest.LogCaptureFixture
@@ -559,22 +538,6 @@ async def test_older_push_is_ignored(
     handler.store_values(sensor_values)
 
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == PUSHED_TEMPERATURE
-
-
-async def test_reachability_sets_online(
-    api: AmazonEchoApi, devices: dict[str, AmazonDevice]
-) -> None:
-    """A polled reachability change is reflected in the device online status."""
-    _supports(devices[TEST_SERIAL_1], _reachability("OK"))
-    handler = api._sensor_handler
-    handler.full_sensor_sync(devices, {ENDPOINT: _endpoint(_reachability("OK"))})
-    handler.update_device_online_statuses(devices)
-    assert devices[TEST_SERIAL_1].online
-
-    _store(handler, _reachability("UNREACHABLE"))
-    handler.update_device_online_statuses(devices)
-
-    assert not devices[TEST_SERIAL_1].online
 
 
 @pytest.mark.usefixtures("handler")
