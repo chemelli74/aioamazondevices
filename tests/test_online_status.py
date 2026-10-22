@@ -17,11 +17,11 @@ from .const import TEST_SERIAL_1, TEST_SERIAL_2
 pytestmark = pytest.mark.anyio
 
 
-def _reachability(value: str) -> AmazonDeviceSensor:
+def _reachability(value: str, *, error: bool = False) -> AmazonDeviceSensor:
     return AmazonDeviceSensor(
         "reachability",
         value,
-        False,
+        error,
         None,
         None,
         None,
@@ -52,6 +52,18 @@ async def test_online_status_kept_without_reachability(
 ) -> None:
     """A device without a reachability sensor keeps its online status."""
     device = make_device(TEST_SERIAL_1, online=False)
+
+    api._sensor_handler.update_device_online_statuses({TEST_SERIAL_1: device})
+
+    assert device.online is False
+
+
+async def test_online_status_kept_on_reachability_error(
+    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
+) -> None:
+    """A reachability sensor that failed to refresh keeps the online status."""
+    device = make_device(TEST_SERIAL_1, online=False)
+    device.sensors = {"reachability": _reachability("OK", error=True)}
 
     api._sensor_handler.update_device_online_statuses({TEST_SERIAL_1: device})
 

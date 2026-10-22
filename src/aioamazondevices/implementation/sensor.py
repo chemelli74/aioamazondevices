@@ -209,7 +209,9 @@ class AmazonSensorHandler:
     def update_device_online_statuses(self, devices: dict[str, AmazonDevice]) -> None:
         """Derive device online status from the reachability sensors."""
         for device in devices.values():
-            if reachability := device.sensors.get("reachability"):
+            # a failed refresh keeps the last value, so it says nothing new
+            reachability = device.sensors.get("reachability")
+            if reachability and not reachability.error:
                 device.online = reachability.value == "OK"
 
         # base online status of speaker groups on their members
