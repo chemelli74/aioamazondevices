@@ -1,5 +1,17 @@
 # Changelog
 
+## v16.9.1 (2026-10-22)
+
+### Bug fixes
+
+- Update login for new process ([`5411dee`](https://github.com/chemelli74/aioamazondevices/commit/5411dee920b058d9cebdf6bac1e9684d6a7fbc80))
+
+
+### Build system
+
+- Stop bumping the python minor/major version ([`10530ca`](https://github.com/chemelli74/aioamazondevices/commit/10530cad6b7fa10654cc912fe210bac9e0fa2ac7))
+
+
 ## v16.9.0 (2026-10-19)
 
 ### Features
