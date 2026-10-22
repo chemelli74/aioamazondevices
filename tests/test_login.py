@@ -230,8 +230,60 @@ async def test_login_interactive_oauth_wrong_email(api: AmazonEchoApi) -> None:
 
 
 @pytest.mark.anyio
-async def test_login_interactive_oauth_wrong_otp(api: AmazonEchoApi) -> None:
-    """A rejected OTP fails authentication with Amazon's message."""
+@pytest.mark.parametrize(
+    ("final_page", "match"),
+    [
+        pytest.param(
+            ERROR_BOX.format(kind="error", message="The code is not valid") + MFA_PAGE,
+            "The code is not valid",
+            id="error_box",
+        ),
+        pytest.param("", "Unable to extract authorization code", id="no_error_box"),
+    ],
+)
+async def test_login_interactive_oauth_no_code(
+    api: AmazonEchoApi, final_page: str, match: str
+) -> None:
+    """Without an authorization code, Amazon's message is used when present."""
+    login = api._login
+    login._http_wrapper.session_request = AsyncMock(  # type: ignore[method-assign]
+        side_effect=[
+            _page(EMAIL_PAGE, SIGNIN_URL),
+            _page(PASSWORD_PAGE, URL("https://www.amazon.com/ax/claim")),
+            _page(MFA_PAGE, SIGNIN_URL),
+            _page(final_page, SIGNIN_URL),
+        ]
+    )
+
+    with pytest.raises(CannotAuthenticate, match=match):
+        await login._login_mode_interactive_oauth("123456")
+
+
+@pytest.mark.anyio
+async def test_login_interactive_oauth_unexpected_page(api: AmazonEchoApi) -> None:
+    """The password is not posted to a page that does not ask for it."""
+    login = api._login
+    session_request = AsyncMock(
+        side_effect=[
+            _page(EMAIL_PAGE, SIGNIN_URL),
+            _page(
+                '<form id="verify-form" method="post" action="verify"></form>',
+                SIGNIN_URL,
+            ),
+        ]
+    )
+    login._http_wrapper.session_request = session_request  # type: ignore[method-assign]
+
+    with pytest.raises(CannotAuthenticate, match="MFA OTP code not found"):
+        await login._login_mode_interactive_oauth("123456")
+
+    for call in session_request.await_args_list:
+        assert "password" not in (call.kwargs.get("input_data") or {})
+
+
+@pytest.mark.anyio
+async def test_login_interactive_oauth_code_with_warning(api: AmazonEchoApi) -> None:
+    """An authorization code wins over a warning box on the final page."""
     login = api._login
     login._http_wrapper.session_request = AsyncMock(  # type: ignore[method-assign]
         side_effect=[
@@ -239,15 +291,15 @@ async def test_login_interactive_oauth_wrong_otp(api: AmazonEchoApi) -> None:
             _page(PASSWORD_PAGE, URL("https://www.amazon.com/ax/claim")),
             _page(MFA_PAGE, SIGNIN_URL),
             _page(
-                ERROR_BOX.format(kind="error", message="The code is not valid")
-                + MFA_PAGE,
-                SIGNIN_URL,
+                ERROR_BOX.format(kind="warning", message="Enable cookies"),
+                MAPLANDING_URL.with_query({"openid.oa2.authorization_code": "AN1"}),
             ),
         ]
     )
 
-    with pytest.raises(CannotAuthenticate, match="The code is not valid"):
-        await login._login_mode_interactive_oauth("123456")
+    result = await login._login_mode_interactive_oauth("123456")
+
+    assert result["authorization_code"] == "AN1"
 
 
 @pytest.mark.anyio

@@ -347,9 +347,13 @@ class AmazonLogin:
             input_data=login_inputs,
         )
         _LOGGER.debug("Login response url:%s", login_resp.url)
-        self._check_login_error(login_soup)
 
-        authcode = self._extract_code_from_url(login_resp.url)
+        try:
+            authcode = self._extract_code_from_url(login_resp.url)
+        except CannotAuthenticate:
+            # Prefer Amazon's own message (e.g. invalid OTP) when available
+            self._check_login_error(login_soup)
+            raise
         _LOGGER.debug("Login extracted authcode: %s", authcode)
 
         return {
@@ -378,6 +382,11 @@ class AmazonLogin:
             ("email", self._session_state_data.login_email),
             ("password", self._session_state_data.login_password),
         ):
+            # Stop if Amazon returned a different page (captcha, verification...)
+            if not login_soup.find("input", {"name": field}):
+                _LOGGER.debug("Login page does not ask for %s", field)
+                break
+
             login_method, login_url = self._get_request_from_soup(
                 login_soup, login_resp.url
             )
