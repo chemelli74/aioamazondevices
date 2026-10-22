@@ -594,11 +594,20 @@ async def test_endpoints_features_are_keyed_by_endpoint_id(
 @pytest.mark.parametrize(
     "response",
     [
-        {ARRAY_WRAPPER: [{"errors": [{"message": "boom", "path": ["x"]}]}]},
-        {},
-        {ARRAY_WRAPPER: [{"data": None}]},
-        {ARRAY_WRAPPER: [{"data": {"listEndpoints": None}}]},
-        {ARRAY_WRAPPER: [{"data": {"listEndpoints": {"endpoints": []}}}]},
+        pytest.param(
+            {ARRAY_WRAPPER: [{"errors": [{"message": "boom", "path": ["x"]}]}]},
+            id="graphql-errors",
+        ),
+        pytest.param({}, id="empty-response"),
+        pytest.param({ARRAY_WRAPPER: [{"data": None}]}, id="null-data"),
+        pytest.param(
+            {ARRAY_WRAPPER: [{"data": {"listEndpoints": None}}]},
+            id="null-list-endpoints",
+        ),
+        pytest.param(
+            {ARRAY_WRAPPER: [{"data": {"listEndpoints": {"endpoints": []}}}]},
+            id="no-endpoints",
+        ),
     ],
 )
 async def test_bad_endpoints_features_response_raises(
