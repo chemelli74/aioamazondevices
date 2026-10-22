@@ -27,59 +27,56 @@ TIMER = cast("AmazonSchedule", object())
 ALARM = cast("AmazonSchedule", object())
 
 
-async def test_only_supported_notifications_are_applied(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
+@pytest.mark.parametrize(
+    ("capabilities", "notifications", "expected"),
+    [
+        pytest.param(
+            ["REMINDERS"],
+            {
+                TEST_SERIAL_1: {
+                    NOTIFICATION_REMINDER: REMINDER,
+                    NOTIFICATION_TIMER: TIMER,
+                }
+            },
+            {NOTIFICATION_REMINDER: REMINDER},
+            id="only-supported-applied",
+        ),
+        pytest.param(
+            ["TIMERS_AND_ALARMS"],
+            {
+                TEST_SERIAL_1: {
+                    NOTIFICATION_ALARM: ALARM,
+                    NOTIFICATION_REMINDER: REMINDER,
+                    NOTIFICATION_TIMER: TIMER,
+                }
+            },
+            {NOTIFICATION_ALARM: ALARM, NOTIFICATION_TIMER: TIMER},
+            id="timers-and-alarms",
+        ),
+        pytest.param(
+            ["REMINDERS"],
+            None,
+            {NOTIFICATION_ALARM: ALARM},
+            id="missing-keeps-previous",
+        ),
+    ],
+)
+async def test_update_device_notifications(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    capabilities: list[str],
+    notifications: dict[str, dict[str, AmazonSchedule]] | None,
+    expected: dict[str, AmazonSchedule],
 ) -> None:
-    """Notifications are replaced, keeping only types the device supports."""
-    device = make_device(TEST_SERIAL_1, capabilities=["REMINDERS"])
+    """Notifications are replaced with supported types, or kept if unavailable."""
+    device = make_device(TEST_SERIAL_1, capabilities=capabilities)
     device.notifications = {NOTIFICATION_ALARM: ALARM}
-    notifications = {
-        TEST_SERIAL_1: {
-            NOTIFICATION_REMINDER: REMINDER,
-            NOTIFICATION_TIMER: TIMER,
-        }
-    }
 
     api._notification_handler.update_device_notifications(
         {TEST_SERIAL_1: device}, notifications
     )
 
-    assert device.notifications == {NOTIFICATION_REMINDER: REMINDER}
-
-
-async def test_timers_and_alarms_are_applied(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
-) -> None:
-    """Timers and alarms are both applied for TIMERS_AND_ALARMS devices."""
-    device = make_device(TEST_SERIAL_1, capabilities=["TIMERS_AND_ALARMS"])
-    notifications = {
-        TEST_SERIAL_1: {
-            NOTIFICATION_ALARM: ALARM,
-            NOTIFICATION_REMINDER: REMINDER,
-            NOTIFICATION_TIMER: TIMER,
-        }
-    }
-
-    api._notification_handler.update_device_notifications(
-        {TEST_SERIAL_1: device}, notifications
-    )
-
-    assert device.notifications == {
-        NOTIFICATION_ALARM: ALARM,
-        NOTIFICATION_TIMER: TIMER,
-    }
-
-
-async def test_missing_notifications_keep_previous(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
-) -> None:
-    """Notifications that could not be retrieved leave the previous ones alone."""
-    device = make_device(TEST_SERIAL_1, capabilities=["REMINDERS"])
-    device.notifications = {NOTIFICATION_REMINDER: REMINDER}
-
-    api._notification_handler.update_device_notifications({TEST_SERIAL_1: device}, None)
-
-    assert device.notifications == {NOTIFICATION_REMINDER: REMINDER}
+    assert device.notifications == expected
 
 
 async def test_communication_settings_are_applied(
