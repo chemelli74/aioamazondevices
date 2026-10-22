@@ -172,8 +172,6 @@ class AmazonSensorHandler:
 
             if sensors:
                 device.sensors = sensors
-                if reachability_sensor := sensors.get("reachability"):
-                    device.online = reachability_sensor.value == "OK"
             else:
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
@@ -208,12 +206,18 @@ class AmazonSensorHandler:
                 ):
                     device.notifications[notification_type] = notification_object
 
+    def update_device_online_statuses(self, devices: dict[str, AmazonDevice]) -> None:
+        """Derive device online status from the reachability sensors."""
+        for device in devices.values():
+            if reachability := device.sensors.get("reachability"):
+                device.online = reachability.value == "OK"
+
         # base online status of speaker groups on their members
-        for device in self._final_devices.values():
+        for device in devices.values():
             if device.device_family == SPEAKER_GROUP_FAMILY:
                 device.online = all(
                     d.online
-                    for d in self._final_devices.values()
+                    for d in devices.values()
                     if d.serial_number in device.device_cluster_members
                 )
 

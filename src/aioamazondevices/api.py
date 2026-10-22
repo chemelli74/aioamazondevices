@@ -277,6 +277,7 @@ class AmazonEchoApi:
             notifications,
             communications,
         )
+        self._sensor_handler.update_device_online_statuses(self._device_handler.devices)
 
         return self._device_handler.devices
 
