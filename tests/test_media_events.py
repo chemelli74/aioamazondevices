@@ -13,12 +13,12 @@ import pytest
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.structures import AmazonDevice
 
-SERIAL = "SERIAL"
+from .const import TEST_SERIAL_1
 
 
 def _media_sessions(state: str) -> dict[str, Any]:
     """Build a media sessions response with the given player state."""
-    return {SERIAL: {"nowPlayingData": {"playerState": state}}}
+    return {TEST_SERIAL_1: {"nowPlayingData": {"playerState": state}}}
 
 
 @pytest.mark.anyio
@@ -28,8 +28,10 @@ async def test_media_state_not_overwritten_by_in_flight_sync(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A sync started mid-sync survives the stale response of the first one."""
-    device = dataclasses.replace(make_device(SERIAL), media_player_supported=True)
-    devices = {SERIAL: device}
+    device = dataclasses.replace(
+        make_device(TEST_SERIAL_1), media_player_supported=True
+    )
+    devices = {TEST_SERIAL_1: device}
 
     started = asyncio.Event()
     release = asyncio.Event()
@@ -56,4 +58,4 @@ async def test_media_state_not_overwritten_by_in_flight_sync(
     await asyncio.gather(sync_task, event_task)
 
     media_states = await api._media_handler.media_states
-    assert media_states[SERIAL].player_state == "PLAYING"
+    assert media_states[TEST_SERIAL_1].player_state == "PLAYING"

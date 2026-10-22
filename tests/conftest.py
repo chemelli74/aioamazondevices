@@ -5,6 +5,8 @@
 
 from collections.abc import AsyncIterator, Callable
 from pathlib import Path
+from typing import Any
+from unittest.mock import AsyncMock
 
 import pytest
 from aiohttp import ClientSession
@@ -37,6 +39,26 @@ def api(client_session: ClientSession, tmp_path: Path) -> AmazonEchoApi:
         TEST_PASSWORD,
         save_data=AmazonSaveDataConfig(path=tmp_path),
     )
+
+
+@pytest.fixture
+def mock_json_response(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> Callable[[dict[str, Any]], AsyncMock]:
+    """Return a setter making every request return the given JSON response.
+
+    The setter returns the session_request mock, to assert on the request.
+    """
+
+    def _mock_json_response(response: dict[str, Any]) -> AsyncMock:
+        session_request = AsyncMock(return_value=(None, None))
+        monkeypatch.setattr(api._http_wrapper, "session_request", session_request)
+        monkeypatch.setattr(
+            api._http_wrapper, "response_to_json", AsyncMock(return_value=response)
+        )
+        return session_request
+
+    return _mock_json_response
 
 
 @pytest.fixture
