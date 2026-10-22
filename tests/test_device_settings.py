@@ -4,7 +4,6 @@
 """Tests for applying notifications and communication settings to devices."""
 
 from collections.abc import Callable
-from typing import cast
 from unittest.mock import AsyncMock
 
 import pytest
@@ -17,16 +16,23 @@ from aioamazondevices.const.schedules import (
 )
 from aioamazondevices.structures import AmazonDevice, AmazonSchedule
 
-from .const import TEST_SERIAL_1
+from .const import TEST_SERIAL_1, TEST_SERIAL_2
 
-pytestmark = pytest.mark.anyio
+
+def _schedule(schedule_type: str) -> AmazonSchedule:
+    """Build a schedule of the given type."""
+    return AmazonSchedule(
+        type=schedule_type, status="ON", label="", next_occurrence=None
+    )
+
 
 COMMUNICATIONS = {TEST_SERIAL_1: {"communicationsEnabled": "true"}}
-REMINDER = cast("AmazonSchedule", object())
-TIMER = cast("AmazonSchedule", object())
-ALARM = cast("AmazonSchedule", object())
+REMINDER = _schedule(NOTIFICATION_REMINDER)
+TIMER = _schedule(NOTIFICATION_TIMER)
+ALARM = _schedule(NOTIFICATION_ALARM)
 
 
+@pytest.mark.anyio
 @pytest.mark.parametrize(
     ("capabilities", "notifications", "expected"),
     [
@@ -79,37 +85,47 @@ async def test_update_device_notifications(
     assert device.notifications == expected
 
 
+@pytest.mark.anyio
 async def test_communication_settings_are_applied(
     api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
 ) -> None:
     """Communication settings are set, and cleared for devices without any."""
     device = make_device(TEST_SERIAL_1)
-    other = make_device("other")
+    other = make_device(TEST_SERIAL_2)
     other.communication_settings = {"communicationsEnabled": "false"}
 
     api._update_device_settings(
-        {TEST_SERIAL_1: device, "other": other}, None, COMMUNICATIONS
+        {TEST_SERIAL_1: device, TEST_SERIAL_2: other}, None, COMMUNICATIONS
     )
 
     assert device.communication_settings == COMMUNICATIONS[TEST_SERIAL_1]
     assert other.communication_settings == {}
 
 
+@pytest.mark.anyio
 async def test_get_devices_data_applies_settings(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A poll applies notifications and communication settings, then sensors."""
     device = make_device(TEST_SERIAL_1, capabilities=["REMINDERS"])
     devices = {TEST_SERIAL_1: device}
     api._device_handler._final_devices = devices
-    api._refresh_basic_data = AsyncMock()  # type: ignore[method-assign]
-    api._notification_handler.get_notifications = AsyncMock(  # type: ignore[method-assign]
-        return_value={TEST_SERIAL_1: {NOTIFICATION_REMINDER: REMINDER}}
-    )
     get_communications = AsyncMock(return_value=COMMUNICATIONS)
-    api._communication_handler.get_communication_preferences = get_communications  # type: ignore[method-assign]
     update_sensor_data = AsyncMock()
-    api._sensor_handler.update_sensor_data = update_sensor_data  # type: ignore[method-assign]
+    monkeypatch.setattr(api, "_refresh_basic_data", AsyncMock())
+    monkeypatch.setattr(
+        api._notification_handler,
+        "get_notifications",
+        AsyncMock(return_value={TEST_SERIAL_1: {NOTIFICATION_REMINDER: REMINDER}}),
+    )
+    monkeypatch.setattr(
+        api._communication_handler,
+        "get_communication_preferences",
+        get_communications,
+    )
+    monkeypatch.setattr(api._sensor_handler, "update_sensor_data", update_sensor_data)
 
     assert await api.get_devices_data() is devices
 
