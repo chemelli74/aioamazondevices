@@ -1,5 +1,17 @@
 # Changelog
 
+## v16.9.3 (2026-10-22)
+
+### Bug fixes
+
+- Raise when endpoint features cannot be retrieved ([`011585a`](https://github.com/chemelli74/aioamazondevices/commit/011585afa9b741097be54e55f9640aacb1b356f3))
+
+
+### Refactoring
+
+- Rename sensor spec to feature property definition ([`e59b06c`](https://github.com/chemelli74/aioamazondevices/commit/e59b06c773ee61c7750f526c8b8c2b49fa84c594))
+
+
 ## v16.9.2 (2026-10-22)
 
 ### Bug fixes

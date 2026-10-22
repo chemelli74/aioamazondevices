@@ -12,13 +12,10 @@ from yarl import URL
 from aioamazondevices.const.devices import SPEAKER_GROUP_FAMILY
 from aioamazondevices.const.http import REQUEST_AGENT, URI_NEXUS_GRAPHQL
 from aioamazondevices.const.queries import QUERY_SENSOR_STATE
-from aioamazondevices.const.schedules import (
-    NOTIFICATION_ALARM,
-    NOTIFICATION_REMINDER,
-    NOTIFICATION_TIMER,
-)
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.implementation.sensor_templates import sensor_spec
+from aioamazondevices.implementation.feature_property_definitions import (
+    resolve_feature_property_definition,
+)
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 from aioamazondevices.utils import (
     _LOGGER,
@@ -60,7 +57,7 @@ def parse_graphql_feature_to_sensor(
         for feature_property in feature.get("properties") or []:
             feature_property_name = feature_property.get("name") or ""
             if (
-                spec := sensor_spec(
+                definition := resolve_feature_property_definition(
                     device.device_type, feature_name, instance, feature_property_name
                 )
             ) is None:
@@ -82,7 +79,7 @@ def parse_graphql_feature_to_sensor(
             error_msg = api_error.get("message")
             if not error:
                 try:
-                    value_raw = feature_property[spec.template["key"] or ""]
+                    value_raw = feature_property[definition.template["key"] or ""]
                     if not value_raw:
                         _LOGGER.warning(
                             "Sensor %s [device %s] ignored due to empty value",
@@ -92,12 +89,12 @@ def parse_graphql_feature_to_sensor(
                         continue
                     scale = (
                         value_raw[scale_template]
-                        if (scale_template := spec.template["scale"])
+                        if (scale_template := definition.template["scale"])
                         else None
                     )
                     value = (
                         value_raw[subkey_template]
-                        if (subkey_template := spec.template["subkey"])
+                        if (subkey_template := definition.template["subkey"])
                         else value_raw
                     )
 
@@ -121,11 +118,11 @@ def parse_graphql_feature_to_sensor(
             if error_type == "NOT_FOUND":
                 continue
 
-            if spec.override is not None:
-                scale = spec.override.get("scale")
+            if definition.override is not None:
+                scale = definition.override.get("scale")
 
-            device_sensors[spec.key] = AmazonDeviceSensor(
-                spec.key,
+            device_sensors[definition.key] = AmazonDeviceSensor(
+                definition.key,
                 value,
                 error,
                 error_type,
@@ -156,8 +153,6 @@ class AmazonSensorHandler:
     async def update_sensor_data(
         self,
         devices: dict[str, AmazonDevice],
-        notifications: dict[str, dict[str, Any]] | None,
-        communications: dict[str, dict[str, str]],
     ) -> None:
         """Update sensors data for all devices."""
         self._final_devices = devices
@@ -175,36 +170,6 @@ class AmazonSensorHandler:
             else:
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
-
-            device.communication_settings = (
-                communications.get(device.serial_number) or {}
-            )
-
-            if notifications is None:
-                continue  # notifications were not obtained, do not update
-
-            # Clear old notifications to handle cancelled ones
-            device.notifications = {}
-
-            # Update notifications
-            device_notifications = notifications.get(device.serial_number, {})
-
-            # Add only supported notification types
-            for capability, notification_type in [
-                ("REMINDERS", NOTIFICATION_REMINDER),
-                ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
-                ("TIMERS_AND_ALARMS", NOTIFICATION_TIMER),
-            ]:
-                if (
-                    capability in device.capabilities
-                    and notification_type in device_notifications
-                    and (
-                        notification_object := device_notifications.get(
-                            notification_type
-                        )
-                    )
-                ):
-                    device.notifications[notification_type] = notification_object
 
     def update_device_online_statuses(self, devices: dict[str, AmazonDevice]) -> None:
         """Derive device online status from the reachability sensors."""

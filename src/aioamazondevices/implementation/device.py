@@ -25,7 +25,9 @@ from aioamazondevices.const.http import (
 from aioamazondevices.const.queries import QUERY_DEVICE_DATA, QUERY_DEVICE_FEATURES
 from aioamazondevices.exceptions import CannotRestartDevice, CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.implementation.sensor_templates import sensor_spec
+from aioamazondevices.implementation.feature_property_definitions import (
+    resolve_feature_property_definition,
+)
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceFeature
 from aioamazondevices.utils import (
     _LOGGER,
@@ -91,9 +93,13 @@ def _parse_features(
             prop["name"] for prop in feature.get("properties") or [] if prop.get("name")
         ]
         sensor_keys = {
-            prop: spec.key
+            prop: definition.key
             for prop in properties
-            if (spec := sensor_spec(device_type, name, instance, prop))
+            if (
+                definition := resolve_feature_property_definition(
+                    device_type, name, instance, prop
+                )
+            )
         }
         parsed_feature = AmazonDeviceFeature(
             supported_operations=[
@@ -461,15 +467,14 @@ class AmazonDeviceHandler:
         )
 
         if check_and_log_graphql_errors("QUERY_DEVICE_FEATURES", endpoints_features):
-            # Explicit error in returned data
-            return {}
+            raise CannotRetrieveData("Error retrieving endpoint features")
 
         if not (
             endpoints := validate_graphql_endpoint_shape(
                 "QUERY_DEVICE_FEATURES", endpoints_features
             )
         ):
-            return {}
+            raise CannotRetrieveData("No endpoint features received")
 
         return {
             endpoint["endpointId"]: endpoint
