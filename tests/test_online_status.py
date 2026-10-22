@@ -14,10 +14,9 @@ from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 
 from .const import TEST_SERIAL_1, TEST_SERIAL_2
 
-pytestmark = pytest.mark.anyio
-
 
 def _reachability(value: str, *, error: bool = False) -> AmazonDeviceSensor:
+    """Build a reachability sensor."""
     return AmazonDeviceSensor(
         "reachability",
         value,
@@ -31,7 +30,14 @@ def _reachability(value: str, *, error: bool = False) -> AmazonDeviceSensor:
     )
 
 
-@pytest.mark.parametrize(("value", "online"), [("OK", True), ("UNREACHABLE", False)])
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("value", "online"),
+    [
+        pytest.param("OK", True, id="reachable"),
+        pytest.param("UNREACHABLE", False, id="unreachable"),
+    ],
+)
 async def test_online_status_follows_reachability(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
@@ -47,30 +53,39 @@ async def test_online_status_follows_reachability(
     assert device.online is online
 
 
-async def test_online_status_kept_without_reachability(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "sensors",
+    [
+        pytest.param({}, id="no-reachability-sensor"),
+        pytest.param(
+            {"reachability": _reachability("OK", error=True)},
+            id="reachability-sensor-error",
+        ),
+    ],
+)
+async def test_online_status_kept_without_valid_reachability(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    sensors: dict[str, AmazonDeviceSensor],
 ) -> None:
-    """A device without a reachability sensor keeps its online status."""
+    """A missing or failed reachability sensor keeps the online status."""
     device = make_device(TEST_SERIAL_1, online=False)
+    device.sensors = sensors
 
     api._sensor_handler.update_device_online_statuses({TEST_SERIAL_1: device})
 
     assert device.online is False
 
 
-async def test_online_status_kept_on_reachability_error(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
-) -> None:
-    """A reachability sensor that failed to refresh keeps the online status."""
-    device = make_device(TEST_SERIAL_1, online=False)
-    device.sensors = {"reachability": _reachability("OK", error=True)}
-
-    api._sensor_handler.update_device_online_statuses({TEST_SERIAL_1: device})
-
-    assert device.online is False
-
-
-@pytest.mark.parametrize(("value", "online"), [("OK", True), ("UNREACHABLE", False)])
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("value", "online"),
+    [
+        pytest.param("OK", True, id="member-reachable"),
+        pytest.param("UNREACHABLE", False, id="member-unreachable"),
+    ],
+)
 async def test_speaker_group_follows_members(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
@@ -90,6 +105,7 @@ async def test_speaker_group_follows_members(
     assert group.online is online
 
 
+@pytest.mark.anyio
 async def test_get_devices_data_updates_online_status(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
