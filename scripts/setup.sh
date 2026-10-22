@@ -30,5 +30,6 @@ fi
 uv sync --frozen --all-groups
 prek install --overwrite
 prek install --hook-type commit-msg --overwrite
+prek install --hook-type pre-push --overwrite
 
 npm ci

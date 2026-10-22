@@ -12,6 +12,17 @@ repos:
       - id: check-xml
       - id: check-yaml
       - id: detect-private-key
+  - repo: local
+    hooks:
+      - id: no-push-to-main
+        name: don't push to main
+        language: system
+        entry: >-
+          bash -c '[ "$PRE_COMMIT_REMOTE_BRANCH" != "refs/heads/main" ] ||
+          { echo "Pushing directly to main is not allowed, push a feature branch and open a PR"; exit 1; }'
+        always_run: true
+        pass_filenames: false
+        stages: [pre-push]
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 0.13.5 # renovate: customPinnedDependency=uv,datasource=pypi
     hooks:

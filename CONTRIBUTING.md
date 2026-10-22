@@ -78,6 +78,7 @@ Ready to contribute? Here's how to set yourself up for local development.
    ```shell
    $ prek install
    $ prek install --hook-type commit-msg
+   $ prek install --hook-type pre-push
    ```
 
 7. Commit your changes and push your branch to GitHub:
