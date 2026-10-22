@@ -267,6 +267,7 @@ async def test_login_interactive_oauth_unexpected_page(api: AmazonEchoApi) -> No
         side_effect=[
             _page(EMAIL_PAGE, SIGNIN_URL),
             _page(
+                "<title>Verify it's you</title>"
                 '<form id="verify-form" method="post" action="verify"></form>',
                 SIGNIN_URL,
             ),
@@ -274,7 +275,9 @@ async def test_login_interactive_oauth_unexpected_page(api: AmazonEchoApi) -> No
     )
     login._http_wrapper.session_request = session_request  # type: ignore[method-assign]
 
-    with pytest.raises(CannotAuthenticate, match="MFA OTP code not found"):
+    with pytest.raises(
+        CannotAuthenticate, match="Unexpected login page 'Verify it's you'"
+    ):
         await login._login_mode_interactive_oauth("123456")
 
     for call in session_request.await_args_list:

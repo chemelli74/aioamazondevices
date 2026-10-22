@@ -329,10 +329,14 @@ class AmazonLogin:
             )
 
         if not login_soup.find("input", id="auth-mfa-otpcode"):
+            # e.g. captcha, email verification or an unsupported MFA method
+            title = login_soup.title.get_text(strip=True) if login_soup.title else ""
             _LOGGER.debug(
                 'Cannot find "auth-mfa-otpcode" in html source [%s]', login_url
             )
-            raise CannotAuthenticate("MFA OTP code not found on login page")
+            raise CannotAuthenticate(
+                f"Unexpected login page '{title or 'unknown'}', expected OTP code entry"
+            )
 
         login_method, login_url = self._get_request_from_soup(login_soup, login_url)
 
