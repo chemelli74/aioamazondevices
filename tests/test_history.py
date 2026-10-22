@@ -74,10 +74,13 @@ async def test_vocal_history_exposes_speaker(
     handler: AmazonHistoryHandler,
     persons_info: PersonsInfo | _Absent,
     expected: tuple[str | None, str | None],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The recognised speaker is taken from personsInfo, absent when unknown."""
-    handler._vocal_history_json = AsyncMock(  # type: ignore[method-assign]
-        return_value={"alexaHistoryRecords": [_record(persons_info)]}
+    monkeypatch.setattr(
+        handler,
+        "_vocal_history_json",
+        AsyncMock(return_value={"alexaHistoryRecords": [_record(persons_info)]}),
     )
 
     records = await handler.get_vocal_history()
