@@ -7,34 +7,33 @@ import pytest
 
 from aioamazondevices.const.devices import DEVICE_TYPE_AQM
 from aioamazondevices.const.sensors import SENSOR_TEMPLATES
-from aioamazondevices.implementation import sensor_templates
-from aioamazondevices.implementation.sensor_templates import resolve_sensor_definition
+from aioamazondevices.implementation import feature_property_definitions
+from aioamazondevices.implementation.feature_property_definitions import (
+    resolve_feature_property_definition,
+)
 
 
 def test_common_sensor_is_keyed_by_property() -> None:
     """A common sensor has no override and is keyed by its property name."""
-    sensor_definition = resolve_sensor_definition(
+    definition = resolve_feature_property_definition(
         "ANYTYPE", "temperatureSensor", "", "temperature"
     )
 
-    assert sensor_definition is not None
-    assert sensor_definition.key == "temperature"
-    assert (
-        sensor_definition.template
-        == SENSOR_TEMPLATES["temperatureSensor"]["temperature"]
-    )
-    assert sensor_definition.override is None
+    assert definition is not None
+    assert definition.key == "temperature"
+    assert definition.template == SENSOR_TEMPLATES["temperatureSensor"]["temperature"]
+    assert definition.override is None
 
 
 def test_specific_sensor_uses_override_name() -> None:
     """A device specific instance is keyed by its override name."""
-    sensor_definition = resolve_sensor_definition(
+    definition = resolve_feature_property_definition(
         DEVICE_TYPE_AQM, "range", "4", "rangeValue"
     )
 
-    assert sensor_definition is not None
-    assert sensor_definition.key == "Humidity"
-    assert sensor_definition.override == {"name": "Humidity", "scale": "%"}
+    assert definition is not None
+    assert definition.key == "Humidity"
+    assert definition.override == {"name": "Humidity", "scale": "%"}
 
 
 def test_specific_sensor_without_name_uses_fallback(
@@ -42,15 +41,15 @@ def test_specific_sensor_without_name_uses_fallback(
 ) -> None:
     """An override without a name is keyed by property name and instance."""
     monkeypatch.setitem(
-        sensor_templates.SPECIFIC_SENSORS, "TESTTYPE", {"range": {"1": {}}}
+        feature_property_definitions.SPECIFIC_SENSORS, "TESTTYPE", {"range": {"1": {}}}
     )
 
-    sensor_definition = resolve_sensor_definition(
+    definition = resolve_feature_property_definition(
         "TESTTYPE", "range", "1", "rangeValue"
     )
 
-    assert sensor_definition is not None
-    assert sensor_definition.key == "rangeValue-1"
+    assert definition is not None
+    assert definition.key == "rangeValue-1"
 
 
 @pytest.mark.parametrize(
@@ -71,6 +70,8 @@ def test_untemplated_property_has_no_definition(
 ) -> None:
     """Properties without a template for the device type have no definition."""
     assert (
-        resolve_sensor_definition(device_type, feature_name, instance, property_name)
+        resolve_feature_property_definition(
+            device_type, feature_name, instance, property_name
+        )
         is None
     )
