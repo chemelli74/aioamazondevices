@@ -601,15 +601,16 @@ async def test_endpoints_features_are_keyed_by_endpoint_id(
         {ARRAY_WRAPPER: [{"data": {"listEndpoints": {"endpoints": []}}}]},
     ],
 )
-async def test_bad_endpoints_features_response_returns_nothing(
+async def test_bad_endpoints_features_response_raises(
     api: AmazonEchoApi, response: dict[str, Any]
 ) -> None:
-    """GraphQL errors and malformed data give no features."""
+    """GraphQL errors and malformed or empty data fail the refresh."""
     handler = api._device_handler
     handler._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
     handler._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
 
-    assert await _get_endpoints_features(handler, ["endpoint-1"]) == {}
+    with pytest.raises(CannotRetrieveData):
+        await _get_endpoints_features(handler, ["endpoint-1"])
 
 
 @pytest.mark.anyio
