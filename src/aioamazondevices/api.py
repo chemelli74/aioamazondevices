@@ -392,20 +392,16 @@ class AmazonEchoApi:
                 await self._media_handler.sync_device_volumes()
                 self._device_volumes_initialized = True
 
-            serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
-            if serial:
+            if serial := payload.get("dopplerId", {}).get("deviceSerialNumber"):
                 volume = AmazonVolumeState(
                     payload.get("volumeSetting"), payload.get("isMuted")
                 )
                 # check if device is part of a cluster
                 self._media_handler.update_cached_device_volume(serial, volume)
-                volume_device: AmazonDevice | None = self._device_handler.devices.get(
-                    serial, None
-                )
-                if volume_device:
+                if volume_device := self._device_handler.devices.get(serial):
                     for parent_serial in volume_device.parent_clusters:
-                        if parent_cluster := (
-                            self._device_handler.devices.get(parent_serial, None)
+                        if parent_cluster := self._device_handler.devices.get(
+                            parent_serial
                         ):
                             self._media_handler.update_cached_speaker_group_volume(
                                 parent_serial,
