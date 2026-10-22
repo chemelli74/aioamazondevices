@@ -12,11 +12,6 @@ from yarl import URL
 from aioamazondevices.const.devices import SPEAKER_GROUP_FAMILY
 from aioamazondevices.const.http import REQUEST_AGENT, URI_NEXUS_GRAPHQL
 from aioamazondevices.const.queries import QUERY_SENSOR_STATE
-from aioamazondevices.const.schedules import (
-    NOTIFICATION_ALARM,
-    NOTIFICATION_REMINDER,
-    NOTIFICATION_TIMER,
-)
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.implementation.sensor_templates import sensor_spec
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
@@ -156,8 +151,6 @@ class AmazonSensorHandler:
     async def update_sensor_data(
         self,
         devices: dict[str, AmazonDevice],
-        notifications: dict[str, dict[str, Any]] | None,
-        communications: dict[str, dict[str, str]],
     ) -> None:
         """Update sensors data for all devices."""
         self._final_devices = devices
@@ -177,36 +170,6 @@ class AmazonSensorHandler:
             else:
                 for device_sensor in device.sensors.values():
                     device_sensor.error = True
-
-            device.communication_settings = (
-                communications.get(device.serial_number) or {}
-            )
-
-            if notifications is None:
-                continue  # notifications were not obtained, do not update
-
-            # Clear old notifications to handle cancelled ones
-            device.notifications = {}
-
-            # Update notifications
-            device_notifications = notifications.get(device.serial_number, {})
-
-            # Add only supported notification types
-            for capability, notification_type in [
-                ("REMINDERS", NOTIFICATION_REMINDER),
-                ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
-                ("TIMERS_AND_ALARMS", NOTIFICATION_TIMER),
-            ]:
-                if (
-                    capability in device.capabilities
-                    and notification_type in device_notifications
-                    and (
-                        notification_object := device_notifications.get(
-                            notification_type
-                        )
-                    )
-                ):
-                    device.notifications[notification_type] = notification_object
 
         # base online status of speaker groups on their members
         for device in self._final_devices.values():

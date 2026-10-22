@@ -29,6 +29,11 @@ from .const.metadata import (
     VOLUME_MAX,
     VOLUME_MIN,
 )
+from .const.schedules import (
+    NOTIFICATION_ALARM,
+    NOTIFICATION_REMINDER,
+    NOTIFICATION_TIMER,
+)
 from .exceptions import NoOnlineDevicesError
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
@@ -266,19 +271,56 @@ class AmazonEchoApi:
         # Perform a refresh to ensure your data is as up-to-date as possible.
         await self._refresh_basic_data()
 
+        devices = self._device_handler.devices
         notifications = await self._notification_handler.get_notifications()
         communications = (
             await self._communication_handler.get_communication_preferences(
-                list(self._device_handler.devices.values())
+                list(devices.values())
             )
         )
-        await self._sensor_handler.update_sensor_data(
-            self._device_handler.devices,
-            notifications,
-            communications,
-        )
+        self._update_device_settings(devices, notifications, communications)
 
-        return self._device_handler.devices
+        await self._sensor_handler.update_sensor_data(devices)
+
+        return devices
+
+    def _update_device_settings(
+        self,
+        devices: dict[str, AmazonDevice],
+        notifications: dict[str, dict[str, Any]] | None,
+        communications: dict[str, dict[str, str]],
+    ) -> None:
+        """Update communication settings and notifications of all devices."""
+        for device in devices.values():
+            device.communication_settings = (
+                communications.get(device.serial_number) or {}
+            )
+
+            if notifications is None:
+                continue  # notifications were not obtained, do not update
+
+            # Clear old notifications to handle cancelled ones
+            device.notifications = {}
+
+            # Update notifications
+            device_notifications = notifications.get(device.serial_number, {})
+
+            # Add only supported notification types
+            for capability, notification_type in [
+                ("REMINDERS", NOTIFICATION_REMINDER),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
+                ("TIMERS_AND_ALARMS", NOTIFICATION_TIMER),
+            ]:
+                if (
+                    capability in device.capabilities
+                    and notification_type in device_notifications
+                    and (
+                        notification_object := device_notifications.get(
+                            notification_type
+                        )
+                    )
+                ):
+                    device.notifications[notification_type] = notification_object
 
     async def start_http2_processing(
         self,
