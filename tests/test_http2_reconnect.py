@@ -6,7 +6,8 @@
 import asyncio
 import contextlib
 from collections.abc import AsyncIterator
-from unittest.mock import AsyncMock, MagicMock
+from dataclasses import dataclass, field
+from unittest.mock import AsyncMock, MagicMock, call
 
 import pytest
 
@@ -14,8 +15,6 @@ from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.http import REFRESH_ACCESS_TOKEN
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.implementation.http2 import AmazonHTTP2Client, _TaskAction
-
-pytestmark = pytest.mark.anyio
 
 
 def _http2_client() -> AmazonHTTP2Client:
@@ -26,7 +25,7 @@ def _http2_client() -> AmazonHTTP2Client:
         REFRESH_ACCESS_TOKEN: "token",
     }
 
-    async def _no_chunks() -> AsyncIterator[bytes]:
+    async def aiter_bytes() -> AsyncIterator[bytes]:
         for chunk in list[bytes]():
             yield chunk
 
@@ -35,23 +34,40 @@ def _http2_client() -> AmazonHTTP2Client:
         http_version="HTTP/2",
         headers={"content-type": 'multipart/related; boundary="b"'},
     )
-    response.aiter_bytes = _no_chunks
+    response.aiter_bytes = aiter_bytes
 
     @contextlib.asynccontextmanager
-    async def _stream(*_args: object, **_kwargs: object) -> AsyncIterator[MagicMock]:
+    async def stream(*_args: object, **_kwargs: object) -> AsyncIterator[MagicMock]:
         yield response
 
     httpx_client = MagicMock()
-    httpx_client.stream = _stream
+    httpx_client.stream = stream
     return AmazonHTTP2Client(MagicMock(), session_state_data, httpx_client)
 
 
+@dataclass
+class _SyncMocks:
+    """The stubbed DnD and media syncs."""
+
+    dnd: AsyncMock = field(default_factory=AsyncMock)
+    volumes: AsyncMock = field(default_factory=AsyncMock)
+    media: AsyncMock = field(default_factory=AsyncMock)
+
+
 @pytest.fixture
-def synced_api(api: AmazonEchoApi) -> AmazonEchoApi:
+def sync_mocks() -> _SyncMocks:
+    """Return the mocks the DnD and media syncs are stubbed with."""
+    return _SyncMocks()
+
+
+@pytest.fixture
+def synced_api(
+    api: AmazonEchoApi, sync_mocks: _SyncMocks, monkeypatch: pytest.MonkeyPatch
+) -> AmazonEchoApi:
     """Return an API with the DnD and media syncs stubbed."""
-    api._dnd_handler.sync_do_not_disturb_status = AsyncMock()  # type: ignore[method-assign]
-    api._media_handler.sync_device_volumes = AsyncMock()  # type: ignore[method-assign]
-    api._media_handler.sync_media_state = AsyncMock()  # type: ignore[method-assign]
+    monkeypatch.setattr(api._dnd_handler, "sync_do_not_disturb_status", sync_mocks.dnd)
+    monkeypatch.setattr(api._media_handler, "sync_device_volumes", sync_mocks.volumes)
+    monkeypatch.setattr(api._media_handler, "sync_media_state", sync_mocks.media)
     return api
 
 
@@ -62,26 +78,23 @@ async def _resync(api: AmazonEchoApi) -> None:
     await api._resync_task
 
 
+@pytest.mark.anyio
 async def test_reconnected_is_only_sent_after_first_connect() -> None:
     """Opening the stream for the first time is not a reconnect."""
     client = _http2_client()
-    reconnects = 0
-
-    async def _on_reconnected() -> None:
-        nonlocal reconnects
-        reconnects += 1
-
-    client.on_reconnected.append(_on_reconnected)
+    on_reconnected = AsyncMock()
+    client.on_reconnected.append(on_reconnected)
     client.on_reconnected.freeze()
 
     await client._stream_and_process()
-    assert reconnects == 0
+    on_reconnected.assert_not_awaited()
 
     await client._stream_and_process()
     await client._stream_and_process()
-    assert reconnects == 2  # noqa: PLR2004
+    assert on_reconnected.await_args_list == [call(), call()]
 
 
+@pytest.mark.anyio
 async def test_restarted_processing_is_not_a_reconnect(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -89,16 +102,17 @@ async def test_restarted_processing_is_not_a_reconnect(
     client = _http2_client()
     client._has_connected = True
 
-    async def _stop_after_one_run(_delay: float) -> _TaskAction:
+    async def run_tasks(_delay: float) -> _TaskAction:
         client._stop_event.set()
         return _TaskAction.RECONNECT_IMMEDIATE
 
-    monkeypatch.setattr(client, "_run_tasks", _stop_after_one_run)
+    monkeypatch.setattr(client, "_run_tasks", run_tasks)
     await client._orchestrate_tasks()
 
     assert not client._has_connected
 
 
+@pytest.mark.anyio
 async def test_start_and_stop_http2_processing(
     api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -109,7 +123,7 @@ async def test_start_and_stop_http2_processing(
 
     await api.start_http2_processing(MagicMock())
     client = api._http2_client
-    # starting again reuses the client, without subscribing twice
+    # Starting again reuses the client, without subscribing twice.
     await api.start_http2_processing(MagicMock())
 
     assert client is not None
@@ -122,32 +136,27 @@ async def test_start_and_stop_http2_processing(
     assert api._http2_client is None
 
 
-async def test_reconnect_resyncs_pushed_state(synced_api: AmazonEchoApi) -> None:
+@pytest.mark.anyio
+async def test_reconnect_resyncs_pushed_state(
+    synced_api: AmazonEchoApi, sync_mocks: _SyncMocks
+) -> None:
     """A reconnect resyncs DnD and media."""
     await _resync(synced_api)
 
-    synced_api._dnd_handler.sync_do_not_disturb_status.assert_awaited_once()  # type: ignore[attr-defined]
-    synced_api._media_handler.sync_device_volumes.assert_awaited_once()  # type: ignore[attr-defined]
-    synced_api._media_handler.sync_media_state.assert_awaited_once()  # type: ignore[attr-defined]
+    sync_mocks.dnd.assert_awaited_once()
+    sync_mocks.volumes.assert_awaited_once()
+    sync_mocks.media.assert_awaited_once()
     assert synced_api._dnd_initialized
     assert synced_api._device_volumes_initialized
 
 
+@pytest.mark.anyio
 async def test_reconnect_during_resync_runs_once_more(
-    synced_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+    synced_api: AmazonEchoApi, sync_mocks: _SyncMocks
 ) -> None:
     """Reconnects while a resync is running are coalesced into one more resync."""
     release = asyncio.Event()
-    syncs = 0
-
-    async def _sync_dnd() -> None:
-        nonlocal syncs
-        syncs += 1
-        await release.wait()
-
-    monkeypatch.setattr(
-        synced_api._dnd_handler, "sync_do_not_disturb_status", _sync_dnd
-    )
+    sync_mocks.dnd.side_effect = release.wait
 
     await synced_api._http2_reconnected_handler()
     task = synced_api._resync_task
@@ -160,39 +169,38 @@ async def test_reconnect_during_resync_runs_once_more(
     assert task is not None
     await task
 
-    assert syncs == 2  # noqa: PLR2004
+    assert sync_mocks.dnd.await_args_list == [call(), call()]
 
 
+@pytest.mark.anyio
 async def test_failed_dnd_resync_falls_back_to_push(
     synced_api: AmazonEchoApi,
+    sync_mocks: _SyncMocks,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A failed DnD resync is logged, media still resyncs, push does the sync."""
     synced_api._dnd_initialized = True
-    synced_api._dnd_handler.sync_do_not_disturb_status = AsyncMock(  # type: ignore[method-assign]
-        side_effect=CannotRetrieveData("Boom")
-    )
+    sync_mocks.dnd.side_effect = CannotRetrieveData("Boom")
 
     await _resync(synced_api)
 
     assert "sync_dnd_state after HTTP2 reconnect failed" in caplog.text
     assert not synced_api._dnd_initialized
-    synced_api._media_handler.sync_media_state.assert_awaited_once()  # type: ignore[attr-defined]
+    sync_mocks.media.assert_awaited_once()
 
 
+@pytest.mark.anyio
 async def test_stop_cancels_resync(
-    synced_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+    synced_api: AmazonEchoApi, sync_mocks: _SyncMocks
 ) -> None:
     """Stopping HTTP2 processing cancels an in-flight resync."""
     started = asyncio.Event()
 
-    async def _sync_dnd() -> None:
+    async def sync_do_not_disturb_status() -> None:
         started.set()
         await asyncio.Event().wait()
 
-    monkeypatch.setattr(
-        synced_api._dnd_handler, "sync_do_not_disturb_status", _sync_dnd
-    )
+    sync_mocks.dnd.side_effect = sync_do_not_disturb_status
 
     await synced_api._http2_reconnected_handler()
     task = synced_api._resync_task
@@ -205,23 +213,22 @@ async def test_stop_cancels_resync(
     assert synced_api._resync_task is None
 
 
+@pytest.mark.anyio
 async def test_cancelled_stop_is_propagated(
-    synced_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+    synced_api: AmazonEchoApi, sync_mocks: _SyncMocks
 ) -> None:
     """Cancelling the stop itself is not swallowed while waiting for the resync."""
     holding = asyncio.Event()
 
-    async def _sync_dnd() -> None:
+    async def sync_do_not_disturb_status() -> None:
         try:
             await asyncio.Event().wait()
         except asyncio.CancelledError:
-            # ignore the stop's cancel, so the stop is left waiting
+            # Swallow the stop's cancel, so the stop is left waiting.
             holding.set()
             await asyncio.Event().wait()
 
-    monkeypatch.setattr(
-        synced_api._dnd_handler, "sync_do_not_disturb_status", _sync_dnd
-    )
+    sync_mocks.dnd.side_effect = sync_do_not_disturb_status
 
     await synced_api._http2_reconnected_handler()
     await asyncio.sleep(0)
