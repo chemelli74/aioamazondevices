@@ -16,9 +16,9 @@ from aioamazondevices.const.http import REQUEST_AGENT, URI_NEXUS_GRAPHQL
 from aioamazondevices.const.queries import QUERY_POLLED_SENSOR_STATE
 from aioamazondevices.const.sensors import POLLED_SENSOR_FEATURES
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.implementation.sensor_templates import (
-    SensorDefinition,
-    resolve_sensor_definition,
+from aioamazondevices.implementation.feature_property_definitions import (
+    FeaturePropertyDefinition,
+    resolve_feature_property_definition,
 )
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 from aioamazondevices.utils import (
@@ -41,7 +41,7 @@ class _TrackedSensor:
 
     serial_number: str
     feature_name: str
-    sensor_definition: SensorDefinition
+    definition: FeaturePropertyDefinition
 
 
 @dataclass(frozen=True)
@@ -88,12 +88,12 @@ def _parse_property(
     *,
     feature_name: str,
     instance: str,
-    sensor_definition: SensorDefinition,
+    definition: FeaturePropertyDefinition,
     serial_number: str,
 ) -> AmazonDeviceSensor | None:
     """Parse a single GraphQL property into a sensor, None if it cannot be used."""
     property_name: str = feature_property.get("name") or ""
-    template = sensor_definition.template
+    template = definition.template
     value: str | int | float = "n/a"
     scale: str | None = None
     time_of_sample = _parse_sample_timestamp(
@@ -145,11 +145,11 @@ def _parse_property(
             error_msg,
         )
 
-    if sensor_definition.override is not None:
-        scale = sensor_definition.override.get("scale")
+    if definition.override is not None:
+        scale = definition.override.get("scale")
 
     return AmazonDeviceSensor(
-        sensor_definition.key,
+        definition.key,
         value,
         error,
         error_type,
@@ -172,7 +172,7 @@ def _tracked_sensors(device: AmazonDevice) -> Iterator[tuple[SensorId, _TrackedS
         for instance, feature in instances.items():
             for property_name in feature.sensor_keys:
                 if (
-                    sensor_definition := resolve_sensor_definition(
+                    definition := resolve_feature_property_definition(
                         device.device_type, feature_name, instance, property_name
                     )
                 ) is None:
@@ -185,9 +185,7 @@ def _tracked_sensors(device: AmazonDevice) -> Iterator[tuple[SensorId, _TrackedS
                 )
                 yield (
                     sensor_id,
-                    _TrackedSensor(
-                        device.serial_number, feature_name, sensor_definition
-                    ),
+                    _TrackedSensor(device.serial_number, feature_name, definition),
                 )
 
 
@@ -214,7 +212,7 @@ def _parse_tracked_values(
                 feature_property,
                 feature_name=feature_name,
                 instance=instance,
-                sensor_definition=tracked.sensor_definition,
+                definition=tracked.definition,
                 serial_number=tracked.serial_number,
             )
         ) is None:
@@ -340,7 +338,7 @@ class AmazonSensorHandler:
     def _polled_sensors(self) -> set[tuple[str, str]]:
         """Return (serial number, sensor key) of every polled sensor."""
         return {
-            (tracked.serial_number, tracked.sensor_definition.key)
+            (tracked.serial_number, tracked.definition.key)
             for tracked in self._tracked_sensors.values()
             if tracked.feature_name in POLLED_SENSOR_FEATURES
         }

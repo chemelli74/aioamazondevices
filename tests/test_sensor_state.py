@@ -12,7 +12,7 @@ import pytest
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.devices import DEVICE_TYPE_AQM
 from aioamazondevices.const.http import ARRAY_WRAPPER
-from aioamazondevices.implementation import sensor_templates
+from aioamazondevices.implementation import feature_property_definitions
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 
 from .const import TEST_SERIAL_1
@@ -124,7 +124,7 @@ async def test_sensor_template_name_override(
 ) -> None:
     """A template name replaces the property name as the sensor name."""
     monkeypatch.setitem(
-        sensor_templates.SENSOR_TEMPLATES,
+        feature_property_definitions.SENSOR_TEMPLATES,
         "temperatureSensor",
         {
             "temperature": {
@@ -208,7 +208,7 @@ async def test_device_specific_sensor_without_name_uses_fallback(
 ) -> None:
     """An override without a name is keyed by property name and instance."""
     monkeypatch.setitem(
-        sensor_templates.SPECIFIC_SENSORS,
+        feature_property_definitions.SPECIFIC_SENSORS,
         "TESTTYPE",
         {"range": {"1": {"scale": "ppm"}}},
     )
