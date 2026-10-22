@@ -8,26 +8,33 @@ import pytest
 from aioamazondevices.const.devices import DEVICE_TYPE_AQM
 from aioamazondevices.const.sensors import SENSOR_TEMPLATES
 from aioamazondevices.implementation import sensor_templates
-from aioamazondevices.implementation.sensor_templates import sensor_spec
+from aioamazondevices.implementation.sensor_templates import resolve_sensor_definition
 
 
 def test_common_sensor_is_keyed_by_property() -> None:
     """A common sensor has no override and is keyed by its property name."""
-    spec = sensor_spec("ANYTYPE", "temperatureSensor", "", "temperature")
+    sensor_definition = resolve_sensor_definition(
+        "ANYTYPE", "temperatureSensor", "", "temperature"
+    )
 
-    assert spec is not None
-    assert spec.key == "temperature"
-    assert spec.template == SENSOR_TEMPLATES["temperatureSensor"]["temperature"]
-    assert spec.override is None
+    assert sensor_definition is not None
+    assert sensor_definition.key == "temperature"
+    assert (
+        sensor_definition.template
+        == SENSOR_TEMPLATES["temperatureSensor"]["temperature"]
+    )
+    assert sensor_definition.override is None
 
 
 def test_specific_sensor_uses_override_name() -> None:
     """A device specific instance is keyed by its override name."""
-    spec = sensor_spec(DEVICE_TYPE_AQM, "range", "4", "rangeValue")
+    sensor_definition = resolve_sensor_definition(
+        DEVICE_TYPE_AQM, "range", "4", "rangeValue"
+    )
 
-    assert spec is not None
-    assert spec.key == "Humidity"
-    assert spec.override == {"name": "Humidity", "scale": "%"}
+    assert sensor_definition is not None
+    assert sensor_definition.key == "Humidity"
+    assert sensor_definition.override == {"name": "Humidity", "scale": "%"}
 
 
 def test_specific_sensor_without_name_uses_fallback(
@@ -38,10 +45,12 @@ def test_specific_sensor_without_name_uses_fallback(
         sensor_templates.SPECIFIC_SENSORS, "TESTTYPE", {"range": {"1": {}}}
     )
 
-    spec = sensor_spec("TESTTYPE", "range", "1", "rangeValue")
+    sensor_definition = resolve_sensor_definition(
+        "TESTTYPE", "range", "1", "rangeValue"
+    )
 
-    assert spec is not None
-    assert spec.key == "rangeValue-1"
+    assert sensor_definition is not None
+    assert sensor_definition.key == "rangeValue-1"
 
 
 @pytest.mark.parametrize(
@@ -57,8 +66,11 @@ def test_specific_sensor_without_name_uses_fallback(
         (DEVICE_TYPE_AQM, "range", "99", "rangeValue"),
     ],
 )
-def test_untemplated_property_has_no_spec(
+def test_untemplated_property_has_no_definition(
     device_type: str, feature_name: str, instance: str, property_name: str
 ) -> None:
-    """Properties without a template for the device type have no spec."""
-    assert sensor_spec(device_type, feature_name, instance, property_name) is None
+    """Properties without a template for the device type have no definition."""
+    assert (
+        resolve_sensor_definition(device_type, feature_name, instance, property_name)
+        is None
+    )

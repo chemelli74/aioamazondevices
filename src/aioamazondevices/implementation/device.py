@@ -25,7 +25,7 @@ from aioamazondevices.const.http import (
 from aioamazondevices.const.queries import QUERY_DEVICE_DATA, QUERY_DEVICE_FEATURES
 from aioamazondevices.exceptions import CannotRestartDevice, CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.implementation.sensor_templates import sensor_spec
+from aioamazondevices.implementation.sensor_templates import resolve_sensor_definition
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceFeature
 from aioamazondevices.utils import (
     _LOGGER,
@@ -91,9 +91,13 @@ def _parse_features(
             prop["name"] for prop in feature.get("properties") or [] if prop.get("name")
         ]
         sensor_keys = {
-            prop: spec.key
+            prop: sensor_definition.key
             for prop in properties
-            if (spec := sensor_spec(device_type, name, instance, prop))
+            if (
+                sensor_definition := resolve_sensor_definition(
+                    device_type, name, instance, prop
+                )
+            )
         }
         parsed_feature = AmazonDeviceFeature(
             supported_operations=[

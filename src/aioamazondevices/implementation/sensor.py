@@ -18,7 +18,7 @@ from aioamazondevices.const.schedules import (
     NOTIFICATION_TIMER,
 )
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.implementation.sensor_templates import sensor_spec
+from aioamazondevices.implementation.sensor_templates import resolve_sensor_definition
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 from aioamazondevices.utils import (
     _LOGGER,
@@ -60,7 +60,7 @@ def parse_graphql_feature_to_sensor(
         for feature_property in feature.get("properties") or []:
             feature_property_name = feature_property.get("name") or ""
             if (
-                spec := sensor_spec(
+                sensor_definition := resolve_sensor_definition(
                     device.device_type, feature_name, instance, feature_property_name
                 )
             ) is None:
@@ -82,7 +82,9 @@ def parse_graphql_feature_to_sensor(
             error_msg = api_error.get("message")
             if not error:
                 try:
-                    value_raw = feature_property[spec.template["key"] or ""]
+                    value_raw = feature_property[
+                        sensor_definition.template["key"] or ""
+                    ]
                     if not value_raw:
                         _LOGGER.warning(
                             "Sensor %s [device %s] ignored due to empty value",
@@ -92,12 +94,12 @@ def parse_graphql_feature_to_sensor(
                         continue
                     scale = (
                         value_raw[scale_template]
-                        if (scale_template := spec.template["scale"])
+                        if (scale_template := sensor_definition.template["scale"])
                         else None
                     )
                     value = (
                         value_raw[subkey_template]
-                        if (subkey_template := spec.template["subkey"])
+                        if (subkey_template := sensor_definition.template["subkey"])
                         else value_raw
                     )
 
@@ -121,11 +123,11 @@ def parse_graphql_feature_to_sensor(
             if error_type == "NOT_FOUND":
                 continue
 
-            if spec.override is not None:
-                scale = spec.override.get("scale")
+            if sensor_definition.override is not None:
+                scale = sensor_definition.override.get("scale")
 
-            device_sensors[spec.key] = AmazonDeviceSensor(
-                spec.key,
+            device_sensors[sensor_definition.key] = AmazonDeviceSensor(
+                sensor_definition.key,
                 value,
                 error,
                 error_type,
