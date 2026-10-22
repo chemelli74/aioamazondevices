@@ -5,6 +5,7 @@
 
 from collections.abc import Callable
 from typing import cast
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -95,3 +96,27 @@ async def test_communication_settings_are_applied(
 
     assert device.communication_settings == COMMUNICATIONS[TEST_SERIAL_1]
     assert other.communication_settings == {}
+
+
+async def test_get_devices_data_applies_settings(
+    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
+) -> None:
+    """A poll applies notifications and communication settings, then sensors."""
+    device = make_device(TEST_SERIAL_1, capabilities=["REMINDERS"])
+    devices = {TEST_SERIAL_1: device}
+    api._device_handler._final_devices = devices
+    api._refresh_basic_data = AsyncMock()  # type: ignore[method-assign]
+    api._notification_handler.get_notifications = AsyncMock(  # type: ignore[method-assign]
+        return_value={TEST_SERIAL_1: {NOTIFICATION_REMINDER: REMINDER}}
+    )
+    get_communications = AsyncMock(return_value=COMMUNICATIONS)
+    api._communication_handler.get_communication_preferences = get_communications  # type: ignore[method-assign]
+    update_sensor_data = AsyncMock()
+    api._sensor_handler.update_sensor_data = update_sensor_data  # type: ignore[method-assign]
+
+    assert await api.get_devices_data() is devices
+
+    get_communications.assert_awaited_once_with([device])
+    update_sensor_data.assert_awaited_once_with(devices)
+    assert device.notifications == {NOTIFICATION_REMINDER: REMINDER}
+    assert device.communication_settings == COMMUNICATIONS[TEST_SERIAL_1]
