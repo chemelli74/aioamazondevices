@@ -1,5 +1,30 @@
 # Changelog
 
+## v16.9.4 (2026-10-22)
+
+### Bug fixes
+
+- Resync dnd and media state after http2 reconnect ([`148f4c7`](https://github.com/chemelli74/aioamazondevices/commit/148f4c763d5264fd01ef0c8e8e3b26a756ca8cc4))
+
+
+### Refactoring
+
+- Derive online status separately from sensor update ([`61feef9`](https://github.com/chemelli74/aioamazondevices/commit/61feef926bd684b15cdc7dcf5c7c2270253613de))
+- Move notification and communication settings ([`5ca0beb`](https://github.com/chemelli74/aioamazondevices/commit/5ca0beb455c8d4cee6d6eec75320361a0cca9ba4))
+
+
+## v16.9.3 (2026-10-22)
+
+### Bug fixes
+
+- Raise when endpoint features cannot be retrieved ([`011585a`](https://github.com/chemelli74/aioamazondevices/commit/011585afa9b741097be54e55f9640aacb1b356f3))
+
+
+### Refactoring
+
+- Rename sensor spec to feature property definition ([`e59b06c`](https://github.com/chemelli74/aioamazondevices/commit/e59b06c773ee61c7750f526c8b8c2b49fa84c594))
+
+
 ## v16.9.2 (2026-10-22)
 
 ### Bug fixes

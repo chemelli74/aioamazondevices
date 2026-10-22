@@ -467,15 +467,14 @@ class AmazonDeviceHandler:
         )
 
         if check_and_log_graphql_errors("QUERY_DEVICE_FEATURES", endpoints_features):
-            # Explicit error in returned data
-            return {}
+            raise CannotRetrieveData("Error retrieving endpoint features")
 
         if not (
             endpoints := validate_graphql_endpoint_shape(
                 "QUERY_DEVICE_FEATURES", endpoints_features
             )
         ):
-            return {}
+            raise CannotRetrieveData("No endpoint features received")
 
         return {
             endpoint["endpointId"]: endpoint
