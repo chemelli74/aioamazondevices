@@ -274,9 +274,9 @@ class AmazonEchoApi:
                 list(devices.values())
             )
         )
-        self._update_device_settings(devices, notifications, communications)
-
         await self._sensor_handler.update_sensor_data(devices)
+
+        self._update_device_settings(devices, notifications, communications)
 
         return devices
 
