@@ -6,6 +6,7 @@
 import logging
 from collections.abc import Callable
 from typing import Any
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -16,8 +17,6 @@ from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.structures import AmazonDevice
 
 from .const import TEST_SERIAL_1, TEST_SERIAL_2
-
-pytestmark = pytest.mark.anyio
 
 ENDPOINT = "endpoint-1"
 SYNCED_TEMPERATURE = 20.0
@@ -90,7 +89,7 @@ def _push(*features: dict[str, Any], endpoint_id: str = ENDPOINT) -> dict[str, A
 
 
 def _store(handler: AmazonSensorHandler, *features: dict[str, Any]) -> None:
-    """Store the tracked sensor_values of the test endpoint."""
+    """Store the tracked values of the test endpoint."""
     handler.store_values(handler.parse_endpoint_state(ENDPOINT, _endpoint(*features)))
 
 
@@ -124,24 +123,21 @@ def _stub_poll(
     monkeypatch: pytest.MonkeyPatch,
     handler: AmazonSensorHandler,
     response: dict[str, dict[str, Any]],
-) -> list[list[str]]:
-    """Stub the poll query with a response, recording the requested IDs."""
-    calls: list[list[str]] = []
-
-    async def _get_polled_sensor_states(endpoint_ids: list[str]) -> dict[str, Any]:
-        calls.append(sorted(endpoint_ids))
-        return response
-
-    monkeypatch.setattr(handler, "_get_polled_sensor_states", _get_polled_sensor_states)
-    return calls
+) -> AsyncMock:
+    """Stub the poll query with a response, returning the mock to assert on."""
+    get_polled_sensor_states = AsyncMock(return_value=response)
+    monkeypatch.setattr(handler, "_get_polled_sensor_states", get_polled_sensor_states)
+    return get_polled_sensor_states
 
 
+@pytest.mark.anyio
 @pytest.mark.usefixtures("handler")
 async def test_sync_builds_store(api: AmazonEchoApi) -> None:
     """A sync fills the store keyed by serial and sensor key."""
     assert set(api.sensors[TEST_SERIAL_1]) == {"temperature", "illuminance"}
 
 
+@pytest.mark.anyio
 async def test_sync_missing_endpoint_drops_sensors(
     api: AmazonEchoApi,
     handler: AmazonSensorHandler,
@@ -156,6 +152,7 @@ async def test_sync_missing_endpoint_drops_sensors(
     assert f"Devices missing from sensor sync: ['{TEST_SERIAL_1}']" in caplog.text
 
 
+@pytest.mark.anyio
 async def test_older_sync_does_not_overwrite_push(
     api: AmazonEchoApi,
     handler: AmazonSensorHandler,
@@ -169,13 +166,14 @@ async def test_older_sync_does_not_overwrite_push(
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == PUSHED_TEMPERATURE
 
 
+@pytest.mark.anyio
 async def test_poll_only_updates_polled_sensors(
     api: AmazonEchoApi,
     handler: AmazonSensorHandler,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A poll writes polled sensors and leaves pushed ones alone."""
-    calls = _stub_poll(
+    get_polled_sensor_states = _stub_poll(
         monkeypatch,
         handler,
         {ENDPOINT: _endpoint(_illuminance(POLLED_ILLUMINANCE))},
@@ -183,11 +181,12 @@ async def test_poll_only_updates_polled_sensors(
 
     await handler.update_polled_sensors()
 
-    assert calls == [[ENDPOINT]]
+    get_polled_sensor_states.assert_awaited_once_with([ENDPOINT])
     assert api.sensors[TEST_SERIAL_1]["illuminance"].value == POLLED_ILLUMINANCE
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == SYNCED_TEMPERATURE
 
 
+@pytest.mark.anyio
 async def test_poll_only_requests_endpoints_with_polled_sensors(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
@@ -209,13 +208,14 @@ async def test_poll_only_requests_endpoints_with_polled_sensors(
             },
         },
     )
-    calls = _stub_poll(monkeypatch, handler, {})
+    get_polled_sensor_states = _stub_poll(monkeypatch, handler, {})
 
     await handler.update_polled_sensors()
 
-    assert calls == [[ENDPOINT]]
+    get_polled_sensor_states.assert_awaited_once_with([ENDPOINT])
 
 
+@pytest.mark.anyio
 async def test_poll_without_polled_sensors_makes_no_request(
     api: AmazonEchoApi,
     devices: dict[str, AmazonDevice],
@@ -227,13 +227,14 @@ async def test_poll_without_polled_sensors_makes_no_request(
     handler.full_sensor_sync(
         devices, {ENDPOINT: _endpoint(_temperature(SYNCED_TEMPERATURE))}
     )
-    calls = _stub_poll(monkeypatch, handler, {})
+    get_polled_sensor_states = _stub_poll(monkeypatch, handler, {})
 
     await handler.update_polled_sensors()
 
-    assert calls == []
+    get_polled_sensor_states.assert_not_awaited()
 
 
+@pytest.mark.anyio
 async def test_poll_ignores_unselected_properties(
     api: AmazonEchoApi,
     handler: AmazonSensorHandler,
@@ -257,39 +258,34 @@ async def test_poll_ignores_unselected_properties(
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == SYNCED_TEMPERATURE
 
 
-async def test_poll_missing_endpoint_flags_polled_errored(
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "response",
+    [
+        pytest.param({}, id="missing-endpoint"),
+        pytest.param({ENDPOINT: _endpoint()}, id="missing-sensor"),
+    ],
+)
+async def test_poll_missing_sensor_flags_errored(
     api: AmazonEchoApi,
     handler: AmazonSensorHandler,
-    monkeypatch: pytest.MonkeyPatch,
+    response: dict[str, dict[str, Any]],
     caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """A failed poll flags only polled sensors as errored."""
-    _stub_poll(monkeypatch, handler, {})
+    """Polled sensors missing from the response are flagged errored and logged."""
+    _stub_poll(monkeypatch, handler, response)
 
     await handler.update_polled_sensors()
 
     assert api.sensors[TEST_SERIAL_1]["illuminance"].error
     assert not api.sensors[TEST_SERIAL_1]["temperature"].error
-    assert "Sensors missing from poll" in caplog.text
-
-
-async def test_poll_missing_sensor_flags_errored(
-    api: AmazonEchoApi,
-    handler: AmazonSensorHandler,
-    monkeypatch: pytest.MonkeyPatch,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """A polled sensor missing from its endpoint's response is flagged as errored."""
-    _stub_poll(monkeypatch, handler, {ENDPOINT: _endpoint()})
-
-    await handler.update_polled_sensors()
-
-    assert api.sensors[TEST_SERIAL_1]["illuminance"].error
     assert f"Sensors missing from poll: [('{TEST_SERIAL_1}', 'illuminance')]" in (
         caplog.text
     )
 
 
+@pytest.mark.anyio
 async def test_poll_error_flags_errored(
     api: AmazonEchoApi,
     handler: AmazonSensorHandler,
@@ -311,6 +307,7 @@ async def test_poll_error_flags_errored(
     assert api.sensors[TEST_SERIAL_1]["illuminance"].error_type == "TIMEOUT"
 
 
+@pytest.mark.anyio
 async def test_poll_not_found_flags_errored_without_warning(
     api: AmazonEchoApi,
     handler: AmazonSensorHandler,
@@ -337,6 +334,7 @@ async def test_poll_not_found_flags_errored_without_warning(
     assert sensor.value == POLLED_ILLUMINANCE
 
 
+@pytest.mark.anyio
 async def test_sync_keeps_not_found_supported_sensor(
     api: AmazonEchoApi,
     devices: dict[str, AmazonDevice],
@@ -361,6 +359,7 @@ async def test_sync_keeps_not_found_supported_sensor(
     assert api.sensors[TEST_SERIAL_1]["illuminance"].value == POLLED_ILLUMINANCE
 
 
+@pytest.mark.anyio
 async def test_sync_tracks_supported_sensor_without_value(
     api: AmazonEchoApi,
     devices: dict[str, AmazonDevice],
@@ -381,6 +380,7 @@ async def test_sync_tracks_supported_sensor_without_value(
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == PUSHED_TEMPERATURE
 
 
+@pytest.mark.anyio
 async def test_sync_only_tracks_supported_features(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
@@ -398,6 +398,7 @@ async def test_sync_only_tracks_supported_features(
     assert not handler.is_tracked_endpoint(ENDPOINT)
 
 
+@pytest.mark.anyio
 async def test_sync_skips_features_without_definition(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
@@ -412,7 +413,7 @@ async def test_sync_skips_features_without_definition(
     device.endpoint_id = ENDPOINT
     device.device_type = DEVICE_TYPE_AQM
     _supports(device, aqm_humidity)
-    # range sensors are only defined for the air quality monitor
+    # Range sensors are only defined for the air quality monitor.
     device.device_type = "OTHER"
 
     handler = api._sensor_handler
@@ -421,6 +422,7 @@ async def test_sync_skips_features_without_definition(
     assert not handler.is_tracked_endpoint(ENDPOINT)
 
 
+@pytest.mark.anyio
 async def test_poll_missing_sensor_without_value_is_not_created(
     api: AmazonEchoApi,
     devices: dict[str, AmazonDevice],
@@ -438,23 +440,27 @@ async def test_poll_missing_sensor_without_value_is_not_created(
     assert "illuminance" not in api.sensors[TEST_SERIAL_1]
 
 
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "payload",
+    [
+        pytest.param({"data": {"features": []}}, id="no-entity"),
+        pytest.param({"entity": {"id": ENDPOINT}}, id="no-data"),
+        pytest.param({"entity": None, "data": {}}, id="null-entity"),
+    ],
+)
 @pytest.mark.usefixtures("handler")
 async def test_malformed_smart_home_event_is_logged(
-    api: AmazonEchoApi, caplog: pytest.LogCaptureFixture
+    api: AmazonEchoApi, payload: dict[str, Any], caplog: pytest.LogCaptureFixture
 ) -> None:
     """Events without an entity ID or data are logged and change nothing."""
-    payloads: list[dict[str, Any]] = [
-        {"data": {"features": []}},
-        {"entity": {"id": ENDPOINT}},
-        {"entity": None, "data": {}},
-    ]
-    for payload in payloads:
-        await api._http2_push_event_handler("FDAL_UPDATE", payload)
+    await api._http2_push_event_handler("FDAL_UPDATE", payload)
 
-    assert caplog.text.count("Received malformed smart home event") == len(payloads)
+    assert "Received malformed smart home event" in caplog.text
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == SYNCED_TEMPERATURE
 
 
+@pytest.mark.anyio
 async def test_unknown_push_event_is_ignored(
     api: AmazonEchoApi, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -466,20 +472,23 @@ async def test_unknown_push_event_is_ignored(
     assert "Unhandled push event type: UNKNOWN_EVENT" in caplog.text
 
 
+@pytest.mark.anyio
 async def test_is_tracked_endpoint(handler: AmazonSensorHandler) -> None:
     """Only endpoints with a tracked sensor are tracked."""
     assert handler.is_tracked_endpoint(ENDPOINT)
     assert not handler.is_tracked_endpoint("lightbulb")
 
 
+@pytest.mark.anyio
 async def test_push_for_untracked_property_is_dropped(
     api: AmazonEchoApi, handler: AmazonSensorHandler
 ) -> None:
-    """Properties not in the device's supported features give no sensor_values."""
+    """Properties not in the device's supported features give no values."""
     assert handler.parse_endpoint_state(ENDPOINT, _endpoint(_reachability("OK"))) == []
     assert "reachability" not in api.sensors[TEST_SERIAL_1]
 
 
+@pytest.mark.anyio
 async def test_parse_endpoint_state_does_not_store(
     api: AmazonEchoApi, handler: AmazonSensorHandler
 ) -> None:
@@ -494,6 +503,7 @@ async def test_parse_endpoint_state_does_not_store(
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == SYNCED_TEMPERATURE
 
 
+@pytest.mark.anyio
 async def test_push_updates_tracked_sensor(
     api: AmazonEchoApi, handler: AmazonSensorHandler
 ) -> None:
@@ -509,6 +519,7 @@ async def test_push_updates_tracked_sensor(
     assert not handler.has_changes(sensor_values)
 
 
+@pytest.mark.anyio
 async def test_newer_sample_of_same_value_is_stored(
     api: AmazonEchoApi, handler: AmazonSensorHandler
 ) -> None:
@@ -525,6 +536,7 @@ async def test_newer_sample_of_same_value_is_stored(
     assert sensor.time_of_sample == sensor_values[0].sensor.time_of_sample
 
 
+@pytest.mark.anyio
 async def test_older_push_is_ignored(
     api: AmazonEchoApi, handler: AmazonSensorHandler
 ) -> None:
@@ -540,6 +552,7 @@ async def test_older_push_is_ignored(
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == PUSHED_TEMPERATURE
 
 
+@pytest.mark.anyio
 @pytest.mark.usefixtures("handler")
 async def test_smart_home_event_is_emitted(
     api: AmazonEchoApi,
@@ -547,16 +560,11 @@ async def test_smart_home_event_is_emitted(
 ) -> None:
     """Subscribers are notified of a changed sensor only.
 
-    Repeated sensor_values, untracked endpoints and malformed events notify nothing.
+    Repeated values, untracked endpoints and malformed events notify nothing.
     """
     api._device_handler._final_devices = devices
-    events = 0
-
-    async def _on_sensor_event() -> None:
-        nonlocal events
-        events += 1
-
-    api.on_sensor_event.append(_on_sensor_event)
+    on_sensor_event = AsyncMock()
+    api.on_sensor_event.append(on_sensor_event)
     api.on_sensor_event.freeze()
 
     payload = _push(_temperature(PUSHED_TEMPERATURE))
@@ -567,5 +575,5 @@ async def test_smart_home_event_is_emitted(
     )
     await api._http2_push_event_handler("FDAL_UPDATE", {"data": {}})
 
-    assert events == 1
+    on_sensor_event.assert_awaited_once()
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == PUSHED_TEMPERATURE
