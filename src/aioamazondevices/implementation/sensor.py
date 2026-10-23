@@ -4,7 +4,7 @@
 """Sensor module for Amazon devices."""
 
 from collections.abc import Iterator
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from datetime import datetime
 from http import HTTPMethod
 from typing import Any
@@ -234,14 +234,21 @@ def _is_older(sensor: AmazonDeviceSensor, current: AmazonDeviceSensor | None) ->
 def _is_change(sensor: AmazonDeviceSensor, current: AmazonDeviceSensor | None) -> bool:
     """Return True if a value differs from the one already held.
 
-    A newer sample of the same value is not a change, and an older sample
-    is never stored, so it is not one either.
+    The sample time is ignored, so a newer sample of the same value is not a change.
     """
-    if current is None:
-        return True
-    if _is_older(sensor, current):
-        return False
-    return replace(sensor, time_of_sample=current.time_of_sample) != current
+    return current is None or (
+        sensor.value,
+        sensor.error,
+        sensor.error_type,
+        sensor.error_msg,
+        sensor.scale,
+    ) != (
+        current.value,
+        current.error,
+        current.error_type,
+        current.error_msg,
+        current.scale,
+    )
 
 
 class AmazonSensorHandler:
@@ -263,6 +270,8 @@ class AmazonSensorHandler:
         self._endpoints: frozenset[str] = frozenset()
         # endpoints with at least one sensor Amazon does not push
         self._polled_endpoints: frozenset[str] = frozenset()
+        # (serial number, sensor key) of every sensor Amazon does not push
+        self._polled_sensors: frozenset[tuple[str, str]] = frozenset()
 
     @property
     def sensors(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
@@ -308,13 +317,17 @@ class AmazonSensorHandler:
         if missing:
             _LOGGER.error("Devices missing from sensor sync: %s", missing)
 
+        polled = [
+            (sensor_id[0], tracked)
+            for sensor_id, tracked in tracked_sensors.items()
+            if tracked.feature_name in POLLED_SENSOR_FEATURES
+        ]
         self._sensors = sensors
         self._tracked_sensors = tracked_sensors
         self._endpoints = frozenset(sensor_id[0] for sensor_id in tracked_sensors)
-        self._polled_endpoints = frozenset(
-            sensor_id[0]
-            for sensor_id, tracked in tracked_sensors.items()
-            if tracked.feature_name in POLLED_SENSOR_FEATURES
+        self._polled_endpoints = frozenset(endpoint_id for endpoint_id, _ in polled)
+        self._polled_sensors = frozenset(
+            (tracked.serial_number, tracked.definition.key) for _, tracked in polled
         )
 
     async def update_polled_sensors(self) -> None:
@@ -329,19 +342,11 @@ class AmazonSensorHandler:
             self.store_values(sensor_values)
             polled.update((v.serial_number, v.sensor.name) for v in sensor_values)
 
-        if missing := self._polled_sensors() - polled:
+        if missing := self._polled_sensors - polled:
             _LOGGER.warning("Sensors missing from poll: %s", sorted(missing))
             for serial_number, sensor_key in missing:
                 if sensor := self._sensors.get(serial_number, {}).get(sensor_key):
                     sensor.error = True
-
-    def _polled_sensors(self) -> set[tuple[str, str]]:
-        """Return (serial number, sensor key) of every polled sensor."""
-        return {
-            (tracked.serial_number, tracked.definition.key)
-            for tracked in self._tracked_sensors.values()
-            if tracked.feature_name in POLLED_SENSOR_FEATURES
-        }
 
     def is_tracked_endpoint(self, endpoint_id: str) -> bool:
         """Return True if the endpoint has at least one tracked sensor."""
@@ -353,27 +358,22 @@ class AmazonSensorHandler:
         """Parse the values of tracked sensors from an endpoint state."""
         return _parse_tracked_values(endpoint_id, endpoint_state, self._tracked_sensors)
 
-    def _stored(self, sensor_value: SensorValue) -> AmazonDeviceSensor | None:
-        """Return the sensor currently held for a value."""
-        return self._sensors.get(sensor_value.serial_number, {}).get(
-            sensor_value.sensor.name
-        )
+    def store_values(self, sensor_values: list[SensorValue]) -> bool:
+        """Store values, skipping any sampled before the sensor currently held.
 
-    def has_changes(self, sensor_values: list[SensorValue]) -> bool:
-        """Return True if any value differs from the sensor currently held."""
-        return any(
-            _is_change(sensor_value.sensor, self._stored(sensor_value))
-            for sensor_value in sensor_values
-        )
-
-    def store_values(self, sensor_values: list[SensorValue]) -> None:
-        """Store values, skipping any sampled before the sensor currently held."""
+        Returns True if any stored value changed. A newer sample of the same
+        value is stored, but is not a change.
+        """
+        changed = False
         for sensor_value in sensor_values:
-            if _is_older(sensor_value.sensor, self._stored(sensor_value)):
+            sensor = sensor_value.sensor
+            device_sensors = self._sensors.setdefault(sensor_value.serial_number, {})
+            current = device_sensors.get(sensor.name)
+            if _is_older(sensor, current):
                 continue
-            self._sensors.setdefault(sensor_value.serial_number, {})[
-                sensor_value.sensor.name
-            ] = sensor_value.sensor
+            device_sensors[sensor.name] = sensor
+            changed = changed or _is_change(sensor, current)
+        return changed
 
     def update_device_online_statuses(self, devices: dict[str, AmazonDevice]) -> None:
         """Derive device online status from the reachability sensors."""
