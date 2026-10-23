@@ -1,5 +1,12 @@
 # Changelog
 
+## v16.11.0 (2026-10-23)
+
+### Features
+
+- Store primary display category ([`0ff7e0b`](https://github.com/chemelli74/aioamazondevices/commit/0ff7e0b856261486742685a4195e66cdb09ed2ab))
+
+
 ## v16.10.0 (2026-10-23)
 
 ### Features
