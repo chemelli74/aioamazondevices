@@ -3,7 +3,7 @@
 
 """Metadata constants for Amazon device sensors."""
 
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM
+from aioamazondevices.const.devices import DEVICE_TYPE_AQM, DEVICE_TYPE_GLOW
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
@@ -94,5 +94,36 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
                 "scale": None,
             },
         },
-    }
+    },
+    DEVICE_TYPE_GLOW: {
+        "power": {
+            "": {
+                "name": "Power",
+                "device_grouping": "LIGHT",
+            }
+        },
+        "brightness": {
+            "": {
+                "name": "Brightness",
+                "scale": "%",
+                "device_grouping": "LIGHT",
+            }
+        },
+        "color": {
+            "": {
+                "name": "Color",
+                "device_grouping": "LIGHT",
+            }
+        },
+        "mode": {
+            "1": {
+                "name": "mode",
+            }
+        },
+        "toggle": {
+            "3": {
+                "name": "Tap to change",
+            }
+        },
+    },
 }
