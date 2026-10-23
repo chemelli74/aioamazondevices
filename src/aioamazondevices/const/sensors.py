@@ -46,6 +46,41 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
             "scale": None,
         },
     },
+    "power": {
+        "powerState": {
+            "key": "powerStateValue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
+    "brightness": {
+        "brightness": {
+            "key": "brightnessStateValue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
+    "color": {
+        "color": {
+            "key": "colorStateValue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
+    "mode": {
+        "mode": {
+            "key": "modeValue",
+            "subkey": "value",
+            "scale": None,
+        },
+    },
+    "toggle": {
+        "toggleState": {
+            "key": "toggleStateValue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
 }
 
 # These templates will be applied to all devices
