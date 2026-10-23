@@ -53,6 +53,12 @@ def _device_type(endpoint: dict[str, Any], base_device: dict[str, Any] | None) -
     return _endpoint_device_type(endpoint) or (base_device or {}).get("deviceType", "")
 
 
+def _endpoint_primary_display_category(endpoint: dict[str, Any]) -> str:
+    """Return the primary display category of a GraphQL endpoint."""
+    display_categories = endpoint.get("displayCategories") or {}
+    return (display_categories.get("primary") or {}).get("value") or "UNKNOWN"
+
+
 def _endpoint_entity_id(endpoint: dict[str, Any]) -> str | None:
     """Return the legacy entity ID of a GraphQL endpoint."""
     legacy_identifiers = endpoint.get("legacyIdentifiers") or {}
@@ -328,6 +334,7 @@ class AmazonDeviceHandler:
             capabilities=capabilities,
             device_family=family,
             device_type=device_type,
+            primary_display_category=_endpoint_primary_display_category(endpoint),
             device_owner_customer_id=owner_customer_id or account_customer_id or "n/a",
             household_device=bool(owner_customer_id)
             and owner_customer_id == account_customer_id,
