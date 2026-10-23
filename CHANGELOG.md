@@ -1,5 +1,17 @@
 # Changelog
 
+## v16.10.0 (2026-10-23)
+
+### Features
+
+- Add templates for additional features ([`80437eb`](https://github.com/chemelli74/aioamazondevices/commit/80437eb3549e4b64134ce8c4bba2317b9609fae7))
+
+
+### Testing
+
+- Standardise tests ([`a0f6134`](https://github.com/chemelli74/aioamazondevices/commit/a0f61349f553d71039cad306e766632249581645))
+
+
 ## v16.9.4 (2026-10-22)
 
 ### Bug fixes
