@@ -78,6 +78,7 @@ def make_device() -> Callable[..., AmazonDevice]:
             capabilities=capabilities if capabilities is not None else [],
             device_family=device_family,
             device_type="A1B2C3",
+            primary_display_category="ALEXA_VOICE_ENABLED",
             device_owner_customer_id="CUSTOMER_ID",
             household_device=False,
             device_cluster_members={},
