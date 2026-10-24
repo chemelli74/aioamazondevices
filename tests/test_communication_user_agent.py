@@ -26,19 +26,15 @@ async def test_communications_use_app_agent_and_other_requests_keep_browser(
         if request.headers.get("User-Agent") != REQUEST_AGENT["Amazon"]:
             return web.Response(status=503, text="Service Temporarily Unavailable")
         if request.method == HTTPMethod.GET:
-            assert request.query.getall("devicePreferences") == [
-                "communications",
-                "dropin",
-                "announcements",
-            ]
+            assert request.query.getall("devicePreferences") == ["announcements"]
             received.append(("GET", None))
             return web.json_response(
                 {
                     "devicePermissionsPreferences": [
                         {
-                            "devicePreference": "communications",
+                            "devicePreference": "announcements",
                             "allowed": True,
-                            "state": "ON",
+                            "state": "OFF",
                         }
                     ]
                 }
@@ -47,22 +43,50 @@ async def test_communications_use_app_agent_and_other_requests_keep_browser(
         received.append((request.match_info["preference"], await request.json()))
         return web.json_response({})
 
+    async def identity(request: web.Request) -> web.Response:  # noqa: ARG001
+        return web.json_response({"homeGroupId": "HOMEGROUP_ID"})
+
+    async def homegroup_devices(request: web.Request) -> web.Response:  # noqa: ARG001
+        return web.json_response(
+            {
+                "devices": [
+                    {
+                        "deviceSerialNumber": "device",
+                        "deviceType": "A1B2C3",
+                        "deviceName": "Echo device",
+                        "deviceStatus": {
+                            "deviceCommsAvailability": "ON",
+                            "deviceDropInAvailability": "ON",
+                            "announcementAvailability": "ON",
+                        },
+                    }
+                ]
+            }
+        )
+
     async def unrelated(request: web.Request) -> web.Response:
         assert request.headers["User-Agent"] == REQUEST_AGENT["Browser"]
         return web.Response(text="ok")
 
     app = web.Application()
+    app.router.add_get("/users/{user}/identities", identity)
+    app.router.add_get("/homegroups/{homegroup}/devices", homegroup_devices)
     app.router.add_get("/devicesTypes/{type}/deviceId/{serial}/preferences", handler)
     app.router.add_patch(
         "/devicesTypes/{type}/deviceId/{serial}/preferences/{preference}", handler
     )
     app.router.add_get("/other", unrelated)
     async with TestServer(app) as server:
+        api._session_state_data.login_stored_data = {
+            "customer_info": {"user_id": "USER_ID"},
+            "website_cookies": {},
+            "store_authentication_cookie": {"cookie": "token"},
+        }
         prefs = api._communication_handler
         prefs._communication_site = server.make_url("/")
         device = make_device("device")
-        assert await prefs.get_communication_preferences([device]) == {
-            "device": {"communications": "ON"}
+        assert await prefs.get_communication_preferences() == {
+            "device": {"announcements": "OFF", "communications": "ON", "dropin": "ON"}
         }
         await prefs.set_communication_status(device, False)
         await prefs.set_announcement_status(device, True)
