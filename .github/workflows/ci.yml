@@ -5,6 +5,7 @@ on:
     branches:
       - main
   pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions: write-all
 
@@ -26,23 +27,14 @@ jobs:
           python-version: "3.15" # renovate: customPinnedDependency=python,datasource=python-version
       - uses: j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d # v3.1.0
 
-  ha-core-dev:
-    name: Home Assistant Core dev dependencies
+  ha-core-dependencies:
+    name: Home Assistant Core dependencies
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: chemelli74/ha-core-dependency-check/dev@f58f468f97ba4a0a2cd0e62dd9864baf9445d77c # v1.1.0
-
-  ha-core-release:
-    name: Home Assistant Core release dependencies
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-      - uses: chemelli74/ha-core-dependency-check/release@f58f468f97ba4a0a2cd0e62dd9864baf9445d77c # v1.1.0
+      - uses: chemelli74/ha-core-dependency-check/label@c036686f47c5badcb254d5cd3c93344ea8dd0bf8 # v1.2.0
 
   # Make sure commit messages follow the conventional commits convention:
   # https://www.conventionalcommits.org
@@ -105,7 +97,7 @@ jobs:
     needs:
       - test
       - lint
-      - ha-core-release
+      - ha-core-dependencies
       - commitlint
 
     runs-on: ubuntu-latest
@@ -161,3 +153,18 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ steps.release.outputs.tag }}
+
+  ci-success:
+    name: CI success
+    if: always()
+    needs:
+      - lint
+      - ha-core-dependencies
+      - commitlint
+      - test
+      - release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail unless every job succeeded
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+        run: exit 1
