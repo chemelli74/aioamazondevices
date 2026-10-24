@@ -97,7 +97,6 @@ class AmazonDevice:
     hardware_version: str | None
     entity_id: str | None
     endpoint_id: str | None
-    sensors: dict[str, AmazonDeviceSensor]
     notifications_supported: bool
     notifications: dict[str, AmazonSchedule]
     media_player_supported: bool

@@ -91,6 +91,15 @@ COMMON_SENSORS: list[str] = [
     "connectivity",
 ]
 
+# Features Amazon does not push over HTTP2, so they need polling
+POLLED_SENSOR_FEATURES: frozenset[str] = frozenset(
+    {
+        "connectivity",
+        "lightSensor",
+        "motionSensor",
+    }
+)
+
 # Device type specific sensors, keyed by device type, feature name and then instance
 SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
     DEVICE_TYPE_AQM: {

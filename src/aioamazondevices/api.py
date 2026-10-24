@@ -39,6 +39,7 @@ from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
 from .structures import (
     AmazonDevice,
+    AmazonDeviceSensor,
     AmazonDropInStatus,
     AmazonListEvent,
     AmazonListEventType,
@@ -146,10 +147,15 @@ class AmazonEchoApi:
         self._dnd_initialized: bool = False
         self._dnd_lock = asyncio.Lock()
         self._device_volumes_lock = asyncio.Lock()
+        # serializes the daily device refresh with a resync after reconnect,
+        # so a resync cannot apply endpoint states of an outdated device list
+        self._sensor_sync_lock = asyncio.Lock()
         self._http2_client: AmazonHTTP2Client | None = None
         # resync of pushed state after the HTTP2 stream reconnects
         self._resync_task: asyncio.Task[None] | None = None
         self._resync_pending: bool = False
+        # set when a sensor resync failed, so the next poll retries it
+        self._sensor_resync_required: bool = False
 
         # force initial refresh
         initial_time = datetime.now(UTC) - timedelta(days=2)
@@ -160,6 +166,7 @@ class AmazonEchoApi:
         self.on_history_event = Signal[dict[str, AmazonVocalRecord]](self)
         self.on_todo_event = Signal[AmazonListEvent](self)
         self.on_dnd_event = Signal[dict[str, bool]](self)
+        self.on_sensor_event: Signal[()] = Signal(self)
 
     @property
     def domain(self) -> str:
@@ -180,6 +187,11 @@ class AmazonEchoApi:
     def todo_lists(self) -> list[AmazonListInfo]:
         """Return ToDo lists."""
         return self._todo_handler.lists
+
+    @property
+    def sensors(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
+        """Return sensors keyed by serial number, then sensor key."""
+        return self._sensor_handler.sensors
 
     async def get_default_device(self) -> AmazonDevice:
         """Return default device."""
@@ -251,7 +263,13 @@ class AmazonEchoApi:
                 str(timedelta(minutes=round(delta_daily.total_seconds() / 60))),
             )
             # Request various data that doesn't change that often
-            await self._device_handler.update_devices()
+            async with self._sensor_sync_lock:
+                await self._device_handler.update_devices()
+                # device query has all initial state to sync sensors
+                self._sensor_handler.full_sensor_sync(
+                    self._device_handler.devices, self._device_handler.endpoint_states
+                )
+                self._sensor_resync_required = False
             await self._media_handler.update_music_providers()
             await self._sequence_handler.update_routines()
             await self._todo_handler.update_lists()
@@ -267,7 +285,12 @@ class AmazonEchoApi:
     async def get_devices_data(
         self,
     ) -> dict[str, AmazonDevice]:
-        """Get Amazon devices data."""
+        """Get Amazon devices data.
+
+        Only sensors Amazon does not push (e.g. motion, light, connectivity) are
+        refreshed by each call. Pushed sensors (e.g. temperature, air quality)
+        are refreshed by HTTP2 push events, so need start_http2_processing.
+        """
         # Perform a refresh to ensure your data is as up-to-date as possible.
         await self._refresh_basic_data()
 
@@ -278,10 +301,16 @@ class AmazonEchoApi:
                 list(devices.values())
             )
         )
-        await self._sensor_handler.update_sensor_data(devices)
-        self._sensor_handler.update_device_online_statuses(devices)
-
         self._update_device_settings(devices, notifications, communications)
+
+        # retry a resync that failed after an HTTP2 reconnect
+        if self._sensor_resync_required:
+            await self._resync_sensors()
+
+        # pushed sensors are synced by the device refresh, the rest are polled
+        await self._sensor_handler.update_polled_sensors()
+        # devices are rebuilt by a refresh, so always reapply online status
+        self._sensor_handler.update_device_online_statuses(devices)
 
         return devices
 
@@ -313,6 +342,9 @@ class AmazonEchoApi:
         httpx client must have http2 enabled and a timeout of None to
         allow for long-lived connections.
         Caller is responsible for ensuring its properly configured and closed after use.
+
+        Required for pushed sensors (e.g. temperature, air quality), which are
+        only refreshed by push events.
         """
         if not self._http2_client:
             self._http2_client = AmazonHTTP2Client(
@@ -364,6 +396,16 @@ class AmazonEchoApi:
             self._resync_pending = False
             _LOGGER.debug("HTTP2 stream reconnected, resyncing pushed state")
 
+            try:
+                await self._resync_sensors()
+            except Exception as err:  # noqa: BLE001
+                _LOGGER.warning(
+                    "Sensor resync after HTTP2 reconnect failed, "
+                    "retrying on next poll: %s",
+                    err,
+                )
+                self._sensor_resync_required = True
+
             # on failure the flags stay cleared, so the next push event
             # triggers the full sync before applying its update
             self._dnd_initialized = False
@@ -378,6 +420,16 @@ class AmazonEchoApi:
 
             if not self._resync_pending:
                 return
+
+    async def _resync_sensors(self) -> None:
+        """Resync sensors from the endpoint states of the known devices."""
+        async with self._sensor_sync_lock:
+            await self._device_handler.update_endpoint_states()
+            self._sensor_handler.full_sensor_sync(
+                self._device_handler.devices, self._device_handler.endpoint_states
+            )
+            self._sensor_resync_required = False
+        await self._emit_sensor_event()
 
     async def _http2_push_event_handler(
         self, event_type: str, payload: dict[str, Any]
@@ -395,8 +447,38 @@ class AmazonEchoApi:
                 await self._handle_item_change_event(payload)
             case AmazonPushMessage.DoNotDisturbChange.value:
                 await self._handle_dnd_event(payload)
+            case AmazonPushMessage.SmartHome.value:
+                await self._handle_smart_home_event(payload)
             case _:
                 _LOGGER.debug("Unhandled push event type: %s", event_type)
+
+    async def _handle_smart_home_event(self, payload: dict[str, Any]) -> None:
+        # the endpoint ID is under "entity" and "data" holds the changed
+        # features, in the same shape as a GraphQL endpoint state
+        entity = payload.get("entity")
+        endpoint_id = entity.get("id") if isinstance(entity, dict) else None
+        endpoint_state = payload.get("data")
+        if not isinstance(endpoint_id, str) or not isinstance(endpoint_state, dict):
+            _LOGGER.warning(
+                "Received malformed smart home event: %s", scrub_fields(payload)
+            )
+            return
+        if not self._sensor_handler.is_tracked_endpoint(endpoint_id):
+            _LOGGER.debug("Ignoring smart home event for untracked endpoint")
+            return
+        sensor_values = self._sensor_handler.parse_endpoint_state(
+            endpoint_id, endpoint_state
+        )
+        if not self._sensor_handler.store_values(sensor_values):
+            # value has not changed so do not notify subscribers
+            return
+        await self._emit_sensor_event()
+
+    async def _emit_sensor_event(self) -> None:
+        """Notify subscribers that sensor state has changed."""
+        if self.on_sensor_event.frozen:
+            _LOGGER.debug("Emitting sensor state event to subscribers")
+            await self.on_sensor_event.send()
 
     async def _handle_volume_change_event(self, payload: dict[str, Any]) -> None:
         # The lock serializes the full sync with incremental updates, so that a
