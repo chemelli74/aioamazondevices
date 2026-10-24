@@ -1,5 +1,75 @@
 # Changelog
 
+## v16.11.1 (2026-10-24)
+
+### Bug fixes
+
+- Relax anyio and orjson minimum versions ([`1325168`](https://github.com/chemelli74/aioamazondevices/commit/13251681662d509b657b2ee5ea2fd92a27f070bf))
+
+
+## v16.11.0 (2026-10-23)
+
+### Features
+
+- Store primary display category ([`0ff7e0b`](https://github.com/chemelli74/aioamazondevices/commit/0ff7e0b856261486742685a4195e66cdb09ed2ab))
+
+
+## v16.10.0 (2026-10-23)
+
+### Features
+
+- Add templates for additional features ([`80437eb`](https://github.com/chemelli74/aioamazondevices/commit/80437eb3549e4b64134ce8c4bba2317b9609fae7))
+
+
+### Testing
+
+- Standardise tests ([`a0f6134`](https://github.com/chemelli74/aioamazondevices/commit/a0f61349f553d71039cad306e766632249581645))
+
+
+## v16.9.4 (2026-10-22)
+
+### Bug fixes
+
+- Resync dnd and media state after http2 reconnect ([`148f4c7`](https://github.com/chemelli74/aioamazondevices/commit/148f4c763d5264fd01ef0c8e8e3b26a756ca8cc4))
+
+
+### Refactoring
+
+- Derive online status separately from sensor update ([`61feef9`](https://github.com/chemelli74/aioamazondevices/commit/61feef926bd684b15cdc7dcf5c7c2270253613de))
+- Move notification and communication settings ([`5ca0beb`](https://github.com/chemelli74/aioamazondevices/commit/5ca0beb455c8d4cee6d6eec75320361a0cca9ba4))
+
+
+## v16.9.3 (2026-10-22)
+
+### Bug fixes
+
+- Raise when endpoint features cannot be retrieved ([`011585a`](https://github.com/chemelli74/aioamazondevices/commit/011585afa9b741097be54e55f9640aacb1b356f3))
+
+
+### Refactoring
+
+- Rename sensor spec to feature property definition ([`e59b06c`](https://github.com/chemelli74/aioamazondevices/commit/e59b06c773ee61c7750f526c8b8c2b49fa84c594))
+
+
+## v16.9.2 (2026-10-22)
+
+### Bug fixes
+
+- Improve wording on login errors ([`2ee7172`](https://github.com/chemelli74/aioamazondevices/commit/2ee7172192d16caffc8356e37e68fcf7bb710930))
+
+
+## v16.9.1 (2026-10-22)
+
+### Bug fixes
+
+- Update login for new process ([`5411dee`](https://github.com/chemelli74/aioamazondevices/commit/5411dee920b058d9cebdf6bac1e9684d6a7fbc80))
+
+
+### Build system
+
+- Stop bumping the python minor/major version ([`10530ca`](https://github.com/chemelli74/aioamazondevices/commit/10530cad6b7fa10654cc912fe210bac9e0fa2ac7))
+
+
 ## v16.9.0 (2026-10-19)
 
 ### Features

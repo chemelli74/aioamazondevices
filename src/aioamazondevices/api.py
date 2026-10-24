@@ -49,6 +49,7 @@ from .structures import (
     AmazonMusicProvider,
     AmazonPushMessage,
     AmazonSaveDataConfig,
+    AmazonSchedule,
     AmazonSequenceType,
     AmazonVocalRecord,
     AmazonVolumeState,
@@ -144,7 +145,11 @@ class AmazonEchoApi:
         self._device_volumes_initialized: bool = False
         self._dnd_initialized: bool = False
         self._dnd_lock = asyncio.Lock()
+        self._device_volumes_lock = asyncio.Lock()
         self._http2_client: AmazonHTTP2Client | None = None
+        # resync of pushed state after the HTTP2 stream reconnects
+        self._resync_task: asyncio.Task[None] | None = None
+        self._resync_pending: bool = False
 
         # force initial refresh
         initial_time = datetime.now(UTC) - timedelta(days=2)
@@ -266,19 +271,33 @@ class AmazonEchoApi:
         # Perform a refresh to ensure your data is as up-to-date as possible.
         await self._refresh_basic_data()
 
+        devices = self._device_handler.devices
         notifications = await self._notification_handler.get_notifications()
         communications = (
             await self._communication_handler.get_communication_preferences(
-                list(self._device_handler.devices.values())
+                list(devices.values())
             )
         )
-        await self._sensor_handler.update_sensor_data(
-            self._device_handler.devices,
-            notifications,
-            communications,
-        )
+        await self._sensor_handler.update_sensor_data(devices)
+        self._sensor_handler.update_device_online_statuses(devices)
 
-        return self._device_handler.devices
+        self._update_device_settings(devices, notifications, communications)
+
+        return devices
+
+    def _update_device_settings(
+        self,
+        devices: dict[str, AmazonDevice],
+        notifications: dict[str, dict[str, AmazonSchedule]] | None,
+        communications: dict[str, dict[str, str]],
+    ) -> None:
+        """Update communication settings and notifications of all devices."""
+        for device in devices.values():
+            device.communication_settings = (
+                communications.get(device.serial_number) or {}
+            )
+
+        self._notification_handler.update_device_notifications(devices, notifications)
 
     async def start_http2_processing(
         self,
@@ -304,6 +323,8 @@ class AmazonEchoApi:
             )
             self._http2_client.on_push_event.append(self._http2_push_event_handler)
             self._http2_client.on_push_event.freeze()
+            self._http2_client.on_reconnected.append(self._http2_reconnected_handler)
+            self._http2_client.on_reconnected.freeze()
 
         return await self._http2_client.start_processing()
 
@@ -312,6 +333,51 @@ class AmazonEchoApi:
         if self._http2_client:
             await self._http2_client.stop_processing()
             self._http2_client = None
+
+        if (resync_task := self._resync_task) and not resync_task.done():
+            resync_task.cancel()
+            try:
+                await resync_task
+            except asyncio.CancelledError:
+                if (t := asyncio.current_task()) and t.cancelling():
+                    raise
+        self._resync_task = None
+        self._resync_pending = False
+
+    async def _http2_reconnected_handler(self) -> None:
+        """Resync pushed state in the background, as pushes may have been missed.
+
+        Runs as a separate task so the stream is not blocked by the queries,
+        and a failed query cannot take the stream down.
+        """
+        if self._resync_task and not self._resync_task.done():
+            # reconnected again mid-resync, run once more when it completes
+            self._resync_pending = True
+            return
+        self._resync_task = asyncio.create_task(
+            self._resync_after_reconnect(), name="aioamazondevices_resync"
+        )
+
+    async def _resync_after_reconnect(self) -> None:
+        """Resync all pushed state, best effort."""
+        while True:
+            self._resync_pending = False
+            _LOGGER.debug("HTTP2 stream reconnected, resyncing pushed state")
+
+            # on failure the flags stay cleared, so the next push event
+            # triggers the full sync before applying its update
+            self._dnd_initialized = False
+            self._device_volumes_initialized = False
+            for sync_call in (self.sync_dnd_state, self.sync_media_state):
+                try:
+                    await sync_call()
+                except Exception as err:  # noqa: BLE001
+                    _LOGGER.warning(
+                        "%s after HTTP2 reconnect failed: %s", sync_call.__name__, err
+                    )
+
+            if not self._resync_pending:
+                return
 
     async def _http2_push_event_handler(
         self, event_type: str, payload: dict[str, Any]
@@ -333,30 +399,29 @@ class AmazonEchoApi:
                 _LOGGER.debug("Unhandled push event type: %s", event_type)
 
     async def _handle_volume_change_event(self, payload: dict[str, Any]) -> None:
-        # Ensure initial full sync happens before applying incremental updates
-        if not self._device_volumes_initialized:
-            await self._media_handler.sync_device_volumes()
-            self._device_volumes_initialized = True
+        # The lock serializes the full sync with incremental updates, so that a
+        # sync response predating this event cannot overwrite it.
+        async with self._device_volumes_lock:
+            # Ensure initial full sync happens before applying incremental updates
+            if not self._device_volumes_initialized:
+                await self._media_handler.sync_device_volumes()
+                self._device_volumes_initialized = True
 
-        serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
-        if serial:
-            volume = AmazonVolumeState(
-                payload.get("volumeSetting"), payload.get("isMuted")
-            )
-            # check if device is part of a cluster
-            self._media_handler.update_cached_device_volume(serial, volume)
-            volume_device: AmazonDevice | None = self._device_handler.devices.get(
-                serial, None
-            )
-            if volume_device:
-                for parent_serial in volume_device.parent_clusters:
-                    if parent_cluster := (
-                        self._device_handler.devices.get(parent_serial, None)
-                    ):
-                        self._media_handler.update_cached_speaker_group_volume(
-                            parent_serial,
-                            list(parent_cluster.device_cluster_members),
-                        )
+            if serial := payload.get("dopplerId", {}).get("deviceSerialNumber"):
+                volume = AmazonVolumeState(
+                    payload.get("volumeSetting"), payload.get("isMuted")
+                )
+                # check if device is part of a cluster
+                self._media_handler.update_cached_device_volume(serial, volume)
+                if volume_device := self._device_handler.devices.get(serial):
+                    for parent_serial in volume_device.parent_clusters:
+                        if parent_cluster := self._device_handler.devices.get(
+                            parent_serial
+                        ):
+                            self._media_handler.update_cached_speaker_group_volume(
+                                parent_serial,
+                                list(parent_cluster.device_cluster_members),
+                            )
 
         await self._emit_volume_state_event()
 
@@ -565,8 +630,10 @@ class AmazonEchoApi:
         This will be called at startup to sync media state of all devices
         and can be called later to refresh media state.
         """
-        await self._media_handler.sync_device_volumes()
-        self._device_volumes_initialized = True
+        async with self._device_volumes_lock:
+            await self._media_handler.sync_device_volumes()
+            self._device_volumes_initialized = True
+
         await self._emit_volume_state_event()
         await self._media_handler.sync_media_state(self._device_handler.devices)
         await self._emit_media_state_event()

@@ -13,19 +13,19 @@ repos:
       - id: check-yaml
       - id: detect-private-key
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.13.4 # renovate: customPinnedDependency=uv,datasource=pypi
+    rev: 0.13.5 # renovate: customPinnedDependency=uv,datasource=pypi
     hooks:
       - id: uv-lock
         args: ["--check"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.1
+    rev: v0.17.2
     hooks:
       - id: ruff-check
         args:
           - --fix
       - id: ruff-format
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.19.2
+    rev: v4.19.3
     hooks:
       - id: commitizen
         stages: [commit-msg]
@@ -61,8 +61,8 @@ repos:
           - h2==4.4.1
           - httpx==0.28.1
           - langcodes==3.5.1
-          - multidict==7.1.0
+          - multidict==7.2.0
           - orjson==3.13.0
-          - python-dateutil==2.9.0.post0
-          - types-python-dateutil==2.9.0.20260807
+          - python-dateutil==3.0.0
+          - types-python-dateutil==2.9.0.20261021
           - yarl==1.25.1

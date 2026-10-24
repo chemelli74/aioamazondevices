@@ -50,24 +50,30 @@ async def test_get_default_device_returns_device_just_set(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    "persisted_serial",
+    "settings_bytes",
     [
-        pytest.param(TEST_SERIAL_1, id="persisted-serial-matches-device"),
-        pytest.param(TEST_SERIAL_2, id="persisted-serial-is-stale"),
+        pytest.param(
+            orjson.dumps({SETTINGS_DEFAULT_DEVICE: TEST_SERIAL_1}),
+            id="persisted-serial-matches-device",
+        ),
+        pytest.param(
+            orjson.dumps({SETTINGS_DEFAULT_DEVICE: TEST_SERIAL_2}),
+            id="persisted-serial-is-stale",
+        ),
+        pytest.param(b"not valid json", id="malformed-json"),
+        pytest.param(orjson.dumps([1, 2, 3]), id="non-object-json"),
     ],
 )
 async def test_init_default_device_resolves_persisted_or_falls_back(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
     tmp_path: Path,
-    persisted_serial: str,
+    settings_bytes: bytes,
 ) -> None:
-    """A matching persisted serial is used; a stale one falls back to online."""
+    """A matching persisted serial is used, otherwise the online device is."""
     online_device = make_device(TEST_SERIAL_1, online=True)
     api._device_handler._final_devices = {online_device.serial_number: online_device}
-    (tmp_path / SETTINGS_FILENAME).write_bytes(
-        orjson.dumps({SETTINGS_DEFAULT_DEVICE: persisted_serial})
-    )
+    (tmp_path / SETTINGS_FILENAME).write_bytes(settings_bytes)
 
     await api._init_default_device()
 
@@ -85,30 +91,6 @@ async def test_init_default_device_falls_back_to_first_online_device(
         offline_device.serial_number: offline_device,
         online_device.serial_number: online_device,
     }
-
-    await api._init_default_device()
-
-    assert await api.get_default_device() == online_device
-
-
-@pytest.mark.anyio
-@pytest.mark.parametrize(
-    "settings_bytes",
-    [
-        pytest.param(b"not valid json", id="malformed-json"),
-        pytest.param(orjson.dumps([1, 2, 3]), id="non-object-json"),
-    ],
-)
-async def test_init_default_device_ignores_invalid_settings_file(
-    api: AmazonEchoApi,
-    make_device: Callable[..., AmazonDevice],
-    tmp_path: Path,
-    settings_bytes: bytes,
-) -> None:
-    """Invalid settings.json content is treated as no persisted settings."""
-    online_device = make_device(TEST_SERIAL_1, online=True)
-    api._device_handler._final_devices = {online_device.serial_number: online_device}
-    (tmp_path / SETTINGS_FILENAME).write_bytes(settings_bytes)
 
     await api._init_default_device()
 
