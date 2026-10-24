@@ -192,6 +192,13 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/danielbrunt57">
+                    <img src="https://avatars.githubusercontent.com/u/49846893?v=4" width="100;" alt="danielbrunt57"/>
+                    <br />
+                    <sub><b>Daniel</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/BoBiene">
                     <img src="https://avatars.githubusercontent.com/u/23037659?v=4" width="100;" alt="BoBiene"/>
                     <br />
