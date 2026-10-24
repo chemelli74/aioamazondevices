@@ -132,40 +132,33 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/tronikos">
-                    <img src="https://avatars.githubusercontent.com/u/9987465?v=4" width="100;" alt="tronikos"/>
+                <a href="https://github.com/BoBiene">
+                    <img src="https://avatars.githubusercontent.com/u/23037659?v=4" width="100;" alt="BoBiene"/>
                     <br />
-                    <sub><b>tronikos</b></sub>
+                    <sub><b>Bo Biene</b></sub>
                 </a>
             </td>
 		</tr>
 		<tr>
             <td align="center">
-                <a href="https://github.com/uholland">
-                    <img src="https://avatars.githubusercontent.com/u/133651?v=4" width="100;" alt="uholland"/>
+                <a href="https://github.com/danielbrunt57">
+                    <img src="https://avatars.githubusercontent.com/u/49846893?v=4" width="100;" alt="danielbrunt57"/>
                     <br />
-                    <sub><b>Uwe Holland</b></sub>
+                    <sub><b>Daniel</b></sub>
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/stefan-schweiger">
-                    <img src="https://avatars.githubusercontent.com/u/3532342?v=4" width="100;" alt="stefan-schweiger"/>
+                <a href="https://github.com/eyadkobatte">
+                    <img src="https://avatars.githubusercontent.com/u/16541074?v=4" width="100;" alt="eyadkobatte"/>
                     <br />
-                    <sub><b>Stefan Schweiger</b></sub>
+                    <sub><b>Eyad Kobatte</b></sub>
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/maxmati">
-                    <img src="https://avatars.githubusercontent.com/u/509560?v=4" width="100;" alt="maxmati"/>
+                <a href="https://github.com/AzonInc">
+                    <img src="https://avatars.githubusercontent.com/u/11911587?v=4" width="100;" alt="AzonInc"/>
                     <br />
-                    <sub><b>Mateusz Nowotyński</b></sub>
-                </a>
-            </td>
-            <td align="center">
-                <a href="https://github.com/lonlazer">
-                    <img src="https://avatars.githubusercontent.com/u/19411776?v=4" width="100;" alt="lonlazer"/>
-                    <br />
-                    <sub><b>Léon</b></sub>
+                    <sub><b>Flo</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -176,33 +169,40 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/AzonInc">
-                    <img src="https://avatars.githubusercontent.com/u/11911587?v=4" width="100;" alt="AzonInc"/>
+                <a href="https://github.com/lonlazer">
+                    <img src="https://avatars.githubusercontent.com/u/19411776?v=4" width="100;" alt="lonlazer"/>
                     <br />
-                    <sub><b>Flo</b></sub>
+                    <sub><b>Léon</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/maxmati">
+                    <img src="https://avatars.githubusercontent.com/u/509560?v=4" width="100;" alt="maxmati"/>
+                    <br />
+                    <sub><b>Mateusz Nowotyński</b></sub>
                 </a>
             </td>
 		</tr>
 		<tr>
             <td align="center">
-                <a href="https://github.com/eyadkobatte">
-                    <img src="https://avatars.githubusercontent.com/u/16541074?v=4" width="100;" alt="eyadkobatte"/>
+                <a href="https://github.com/stefan-schweiger">
+                    <img src="https://avatars.githubusercontent.com/u/3532342?v=4" width="100;" alt="stefan-schweiger"/>
                     <br />
-                    <sub><b>Eyad Kobatte</b></sub>
+                    <sub><b>Stefan Schweiger</b></sub>
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/danielbrunt57">
-                    <img src="https://avatars.githubusercontent.com/u/49846893?v=4" width="100;" alt="danielbrunt57"/>
+                <a href="https://github.com/uholland">
+                    <img src="https://avatars.githubusercontent.com/u/133651?v=4" width="100;" alt="uholland"/>
                     <br />
-                    <sub><b>Daniel</b></sub>
+                    <sub><b>Uwe Holland</b></sub>
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/BoBiene">
-                    <img src="https://avatars.githubusercontent.com/u/23037659?v=4" width="100;" alt="BoBiene"/>
+                <a href="https://github.com/tronikos">
+                    <img src="https://avatars.githubusercontent.com/u/9987465?v=4" width="100;" alt="tronikos"/>
                     <br />
-                    <sub><b>Bo Biene</b></sub>
+                    <sub><b>tronikos</b></sub>
                 </a>
             </td>
 		</tr>
