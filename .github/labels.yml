@@ -10,6 +10,14 @@
   color: "d73a4a"
   description: "Something isn't working"
 
+- name: "core-beta-release"
+  color: "41bdf5"
+  description: "Meant for the next Home Assistant Core beta (checks dependencies against Core dev)"
+
+- name: "core-patch-release"
+  color: "18bcf2"
+  description: "Meant for a Home Assistant Core patch release (checks dependencies against the latest Core release)"
+
 - name: "dependencies"
   color: "0366d6"
   description: "Pull requests that update a dependency file"

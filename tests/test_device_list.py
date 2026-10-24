@@ -61,10 +61,15 @@ def _endpoint(
     device_type: str = "ECHO_TYPE",
     model: str | None = "Echo Dot (5th Gen)",
     manufacturer: str = "Amazon",
+    display_category: str = "ALEXA_VOICE_ENABLED",
 ) -> dict[str, Any]:
     """Build a GraphQL endpoint entry."""
     return {
         "endpointId": f"endpoint-{serial_number}",
+        "displayCategories": {
+            "all": [{"value": display_category}],
+            "primary": {"value": display_category},
+        },
         "friendlyNameObject": _text(f"Device {serial_number}"),
         "manufacturer": _text(manufacturer),
         "model": _text(model),
@@ -156,6 +161,7 @@ async def test_graphql_drives_the_device_list(
     assert device.model == "Echo Dot"
     assert device.hardware_version == "5th Gen"
     assert device.manufacturer == "Amazon"
+    assert device.primary_display_category == "ALEXA_VOICE_ENABLED"
     assert device.media_player_supported
     assert device.voice_control_supported
 
@@ -219,6 +225,8 @@ async def test_speaker_groups_are_added_from_devices_v2(
     assert not group.voice_control_supported
     assert group.endpoint_id is None
     assert group.entity_id is None
+    # no endpoint means no display category
+    assert group.primary_display_category == "UNKNOWN"
     # cluster member device types are backfilled
     assert group.device_cluster_members == {TEST_SERIAL_1: "ECHO_TYPE"}
     # speaker groups have no endpoint to query sensors on

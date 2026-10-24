@@ -1,5 +1,55 @@
 # Changelog
 
+## v16.11.3 (2026-10-24)
+
+### Bug fixes
+
+- Use global comms endpoint ([`92f6fd3`](https://github.com/chemelli74/aioamazondevices/commit/92f6fd3fff0d61702a81707d47733130cf1aeb7e))
+
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`429bb0b`](https://github.com/chemelli74/aioamazondevices/commit/429bb0bf4bb4a02cfaf473fe5f835ba343245ea8))
+
+
+## v16.11.2 (2026-10-24)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`071569c`](https://github.com/chemelli74/aioamazondevices/commit/071569c366865f04082e9e1f066b0a4201fc7a35))
+
+
+### Bug fixes
+
+- Use alexa app user-agent for communications preferences ([`00ee4c6`](https://github.com/chemelli74/aioamazondevices/commit/00ee4c675daac7b74b692e64eda926d1192f0495))
+
+
+## v16.11.1 (2026-10-24)
+
+### Bug fixes
+
+- Relax anyio and orjson minimum versions ([`1325168`](https://github.com/chemelli74/aioamazondevices/commit/13251681662d509b657b2ee5ea2fd92a27f070bf))
+
+
+## v16.11.0 (2026-10-23)
+
+### Features
+
+- Store primary display category ([`0ff7e0b`](https://github.com/chemelli74/aioamazondevices/commit/0ff7e0b856261486742685a4195e66cdb09ed2ab))
+
+
+## v16.10.0 (2026-10-23)
+
+### Features
+
+- Add templates for additional features ([`80437eb`](https://github.com/chemelli74/aioamazondevices/commit/80437eb3549e4b64134ce8c4bba2317b9609fae7))
+
+
+### Testing
+
+- Standardise tests ([`a0f6134`](https://github.com/chemelli74/aioamazondevices/commit/a0f61349f553d71039cad306e766632249581645))
+
+
 ## v16.9.4 (2026-10-22)
 
 ### Bug fixes
