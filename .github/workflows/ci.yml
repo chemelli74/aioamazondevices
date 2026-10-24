@@ -26,6 +26,24 @@ jobs:
           python-version: "3.15" # renovate: customPinnedDependency=python,datasource=python-version
       - uses: j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d # v3.1.0
 
+  ha-core-dev:
+    name: Home Assistant Core dev dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: chemelli74/ha-core-dependency-check/dev@922aaafe192311cd1cab0e68fb1dc388c3e7a038 # v1.0.0
+
+  ha-core-release:
+    name: Home Assistant Core release dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: chemelli74/ha-core-dependency-check/release@922aaafe192311cd1cab0e68fb1dc388c3e7a038 # v1.0.0
+
   # Make sure commit messages follow the conventional commits convention:
   # https://www.conventionalcommits.org
   commitlint:
@@ -87,6 +105,7 @@ jobs:
     needs:
       - test
       - lint
+      - ha-core-release
       - commitlint
 
     runs-on: ubuntu-latest
