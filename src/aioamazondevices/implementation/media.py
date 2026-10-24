@@ -14,6 +14,7 @@ from yarl import URL
 from aioamazondevices.const.http import (
     ARRAY_WRAPPER,
     HTTP_CONTENT_TYPE_STREAM,
+    URI_DEVICE_SPEAKER_VOLUME,
     URI_DEVICE_VOLUMES,
     URI_MEDIA_CONTROL,
     URI_MEDIA_STATE,
@@ -116,6 +117,33 @@ class AmazonMediaHandler:
             )
 
         self._device_volumes = _volumes
+
+    async def set_device_volume(self, device: AmazonDevice, volume: int) -> None:
+        """Set device volume."""
+        dev_volume = (await self.device_volumes).get(device.serial_number)
+        if not dev_volume:
+            raise ValueError(
+                f"Device <{device.serial_number}> not found in device volumes"
+            )
+        payload = {
+            "dsn": device.serial_number,
+            "deviceType": device.device_type,
+            "amount": volume - (dev_volume.volume or 0),
+            "volume": volume,
+            "muted": True,
+            "synchronous": True,
+        }
+        await self._http_wrapper.session_request(
+            method=HTTPMethod.PUT,
+            url=URL.joinpath(
+                self._session_state_data.alexa_website_url,
+                URI_DEVICE_SPEAKER_VOLUME.format(
+                    device_type=device.device_type, serial_number=device.serial_number
+                ),
+            ),
+            input_data=payload,
+            json_data=True,
+        )
 
     async def _get_media_states(self, device: AmazonDevice) -> dict[str, Any]:
         """Get media state for devices.
