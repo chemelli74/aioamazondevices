@@ -200,6 +200,8 @@ class AmazonHTTP2Client:
         self._avs_directive_site: str = HTTP2_SITE.format(region=region)
 
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
+        # sent when the stream reopens after a drop, as pushes may have been missed
+        self.on_reconnected: Signal[()] = Signal(self)
 
         self._on_reauth_required = on_reauth_required
 
@@ -209,6 +211,8 @@ class AmazonHTTP2Client:
         self._process_lock = asyncio.Lock()
 
         self._reconnect_attempt: int = 0
+        # whether the stream has been opened since processing started
+        self._has_connected: bool = False
 
     async def start_processing(self) -> asyncio.Task[None]:
         """Start background processing. Returns the task to the caller."""
@@ -251,6 +255,7 @@ class AmazonHTTP2Client:
         For a reauth, the on_reauth_required callback will be called and will exit.
         """
         self._reconnect_attempt = 0
+        self._has_connected = False
         while not self._stop_event.is_set():
             # exponential backoff with a max of 10 minutes between reconnect attempts
             # the backoff resets after a successful ping
@@ -512,6 +517,10 @@ class AmazonHTTP2Client:
 
             # Stream confirmed open — allow the ping loop to start firing.
             self._connected_event.set()
+
+            if self._has_connected and self.on_reconnected.frozen:
+                await self.on_reconnected.send()
+            self._has_connected = True
 
             avs_stream_parser = AvsDirectiveStreamParser(boundary)
 

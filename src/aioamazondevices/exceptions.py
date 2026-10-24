@@ -44,3 +44,7 @@ class UpdatedAVSSite(AmazonError):
 
 class AVSStreamEndedUnexpectedly(AmazonError):
     """Exception raised when the AVS stream ends unexpectedly."""
+
+
+class MissingCountryError(AmazonError):
+    """Exception raised when countryOfResidence is not set."""

@@ -7,12 +7,8 @@ from http import HTTPMethod
 
 from yarl import URL
 
-from aioamazondevices.const.http import (
-    COMM_SITE,
-    URI_COMM_IDENTITY,
-    URI_COMM_PREFERENCES,
-    URI_HOMEGROUP_DEVICES,
-)
+from aioamazondevices.const.devices import DEVICE_TYPE_AQM, SPEAKER_GROUP_FAMILY
+from aioamazondevices.const.http import COMM_SITE, REQUEST_AGENT, URI_COMM_PREFERENCES
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonDropInStatus
@@ -47,7 +43,11 @@ class AlexaCommunicationsHandler:
             preference,
         )
         await self._http_wrapper.session_request(
-            method=HTTPMethod.PATCH, url=url, input_data=payload, json_data=True
+            method=HTTPMethod.PATCH,
+            url=url,
+            input_data=payload,
+            json_data=True,
+            extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
         )
 
     async def set_communication_status(self, device: AmazonDevice, state: bool) -> None:
@@ -113,7 +113,10 @@ class AlexaCommunicationsHandler:
             url = url.with_query(query_string)
             try:
                 _, resp = await self._http_wrapper.session_request(
-                    method=HTTPMethod.GET, url=url, fail_fast=True
+                    method=HTTPMethod.GET,
+                    url=url,
+                    fail_fast=True,
+                    extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
                 )
             except CannotRetrieveData:
                 _LOGGER.warning(

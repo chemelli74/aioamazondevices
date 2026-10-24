@@ -3,9 +3,9 @@
 
 """Tests for the GraphQL driven device list."""
 
-from collections.abc import Iterator
+from collections.abc import Callable
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -61,10 +61,15 @@ def _endpoint(
     device_type: str = "ECHO_TYPE",
     model: str | None = "Echo Dot (5th Gen)",
     manufacturer: str = "Amazon",
+    display_category: str = "ALEXA_VOICE_ENABLED",
 ) -> dict[str, Any]:
     """Build a GraphQL endpoint entry."""
     return {
         "endpointId": f"endpoint-{serial_number}",
+        "displayCategories": {
+            "all": [{"value": display_category}],
+            "primary": {"value": display_category},
+        },
         "friendlyNameObject": _text(f"Device {serial_number}"),
         "manufacturer": _text(manufacturer),
         "model": _text(model),
@@ -78,15 +83,24 @@ def _endpoint(
 
 
 def _patch_sources(
+    monkeypatch: pytest.MonkeyPatch,
     handler: AmazonDeviceHandler,
     devices_endpoints: dict[str, dict[str, Any]],
-    base_devices: dict[str, dict[str, Any]],
+    base_devices: dict[str, dict[str, Any]] | AsyncMock,
 ) -> None:
     """Replace the two data sources of the device handler."""
-    handler._get_devices_endpoint_data = AsyncMock(  # type: ignore[method-assign]
-        return_value=devices_endpoints
+    monkeypatch.setattr(
+        handler,
+        "_get_devices_endpoint_data",
+        AsyncMock(return_value=devices_endpoints),
     )
-    handler._get_base_devices_data = AsyncMock(return_value=base_devices)  # type: ignore[method-assign]
+    monkeypatch.setattr(
+        handler,
+        "_get_base_devices_data",
+        base_devices
+        if isinstance(base_devices, AsyncMock)
+        else AsyncMock(return_value=base_devices),
+    )
 
 
 def _feature(**overrides: object) -> AmazonDeviceFeature:
@@ -101,24 +115,29 @@ def _feature(**overrides: object) -> AmazonDeviceFeature:
         "precision": None,
         "unit_of_measure": None,
         "raw_configuration": {},
+        "sensor_keys": {},
     }
     return AmazonDeviceFeature(**(fields | overrides))
 
 
 @pytest.fixture(autouse=True)
-def endpoints_features() -> Iterator[AsyncMock]:
+def endpoints_features(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
     """Replace the endpoint features lookup, returning no features by default."""
-    with patch.object(
-        AmazonDeviceHandler, "_get_endpoints_features", AsyncMock(return_value={})
-    ) as mock:
-        yield mock
+    get_endpoints_features = AsyncMock(return_value={})
+    monkeypatch.setattr(
+        AmazonDeviceHandler, "_get_endpoints_features", get_endpoints_features
+    )
+    return get_endpoints_features
 
 
 @pytest.mark.anyio
-async def test_graphql_drives_the_device_list(api: AmazonEchoApi) -> None:
+async def test_graphql_drives_the_device_list(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Only endpoints backed by devices-v2 data become voice devices."""
     handler = api._device_handler
     _patch_sources(
+        monkeypatch,
         handler,
         devices_endpoints={
             TEST_SERIAL_1: _endpoint(TEST_SERIAL_1),
@@ -142,15 +161,19 @@ async def test_graphql_drives_the_device_list(api: AmazonEchoApi) -> None:
     assert device.model == "Echo Dot"
     assert device.hardware_version == "5th Gen"
     assert device.manufacturer == "Amazon"
+    assert device.primary_display_category == "ALEXA_VOICE_ENABLED"
     assert device.media_player_supported
     assert device.voice_control_supported
 
 
 @pytest.mark.anyio
-async def test_air_quality_monitors_are_created(api: AmazonEchoApi) -> None:
+async def test_air_quality_monitors_are_created(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """AQM devices exist in the GraphQL data only and are still created."""
     handler = api._device_handler
     _patch_sources(
+        monkeypatch,
         handler,
         devices_endpoints={
             TEST_SERIAL_AQM: _endpoint(
@@ -175,10 +198,13 @@ async def test_air_quality_monitors_are_created(api: AmazonEchoApi) -> None:
 
 
 @pytest.mark.anyio
-async def test_speaker_groups_are_added_from_devices_v2(api: AmazonEchoApi) -> None:
+async def test_speaker_groups_are_added_from_devices_v2(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Speaker groups have no endpoint, so they come from devices-v2 data."""
     handler = api._device_handler
     _patch_sources(
+        monkeypatch,
         handler,
         devices_endpoints={TEST_SERIAL_1: _endpoint(TEST_SERIAL_1)},
         base_devices={
@@ -199,6 +225,8 @@ async def test_speaker_groups_are_added_from_devices_v2(api: AmazonEchoApi) -> N
     assert not group.voice_control_supported
     assert group.endpoint_id is None
     assert group.entity_id is None
+    # no endpoint means no display category
+    assert group.primary_display_category == "UNKNOWN"
     # cluster member device types are backfilled
     assert group.device_cluster_members == {TEST_SERIAL_1: "ECHO_TYPE"}
     # speaker groups have no endpoint to query sensors on
@@ -206,10 +234,13 @@ async def test_speaker_groups_are_added_from_devices_v2(api: AmazonEchoApi) -> N
 
 
 @pytest.mark.anyio
-async def test_device_without_a_family_is_unknown(api: AmazonEchoApi) -> None:
+async def test_device_without_a_family_is_unknown(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """A devices-v2 device with no family is unknown, not endpoint only."""
     handler = api._device_handler
     _patch_sources(
+        monkeypatch,
         handler,
         devices_endpoints={TEST_SERIAL_1: _endpoint(TEST_SERIAL_1)},
         base_devices={TEST_SERIAL_1: _base_device(TEST_SERIAL_1, device_family=None)},
@@ -221,10 +252,13 @@ async def test_device_without_a_family_is_unknown(api: AmazonEchoApi) -> None:
 
 
 @pytest.mark.anyio
-async def test_unsupported_endpoint_only_device_is_skipped(api: AmazonEchoApi) -> None:
+async def test_unsupported_endpoint_only_device_is_skipped(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Endpoint-only devices of an unhandled device type are not created."""
     handler = api._device_handler
     _patch_sources(
+        monkeypatch,
         handler,
         devices_endpoints={
             TEST_SERIAL_AQM: _endpoint(
@@ -242,7 +276,9 @@ async def test_unsupported_endpoint_only_device_is_skipped(api: AmazonEchoApi) -
 
 
 @pytest.mark.anyio
-async def test_endpoint_data_reads_a_single_endpoints_list(api: AmazonEchoApi) -> None:
+async def test_endpoint_data_reads_a_single_endpoints_list(
+    api: AmazonEchoApi, mock_json_response: Callable[[dict[str, Any]], AsyncMock]
+) -> None:
     """All devices are returned as one list, keyed by serial number."""
     handler = api._device_handler
     app_endpoint = _endpoint("APP-1")
@@ -261,8 +297,7 @@ async def test_endpoint_data_reads_a_single_endpoints_list(api: AmazonEchoApi) -
             }
         }
     }
-    handler._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
-    handler._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
+    mock_json_response(response)
 
     devices_endpoints = await handler._get_devices_endpoint_data()
 
@@ -270,36 +305,39 @@ async def test_endpoint_data_reads_a_single_endpoints_list(api: AmazonEchoApi) -
 
 
 @pytest.mark.anyio
-async def test_endpoint_data_graphql_errors_return_nothing(
-    api: AmazonEchoApi, caplog: pytest.LogCaptureFixture
+@pytest.mark.parametrize(
+    ("response", "message"),
+    [
+        pytest.param(
+            {"errors": [{"message": "Boom", "path": ["listEndpoints"]}]},
+            "Error running query: QUERY_DEVICE_DATA - Boom",
+            id="graphql-errors",
+        ),
+        pytest.param(
+            {"data": {"listEndpoints": None}},
+            "Malformed endpoint data received",
+            id="malformed",
+        ),
+    ],
+)
+async def test_bad_endpoint_data_response_returns_nothing(
+    api: AmazonEchoApi,
+    caplog: pytest.LogCaptureFixture,
+    mock_json_response: Callable[[dict[str, Any]], AsyncMock],
+    response: dict[str, Any],
+    message: str,
 ) -> None:
-    """GraphQL errors are logged and no endpoints are returned."""
-    handler = api._device_handler
-    response = {"errors": [{"message": "Boom", "path": ["listEndpoints"]}]}
-    handler._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
-    handler._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
+    """GraphQL errors and malformed responses are logged, returning no endpoints."""
+    mock_json_response(response)
 
-    assert await handler._get_devices_endpoint_data() == {}
-    assert "Error running query: QUERY_DEVICE_DATA - Boom" in caplog.text
+    assert await api._device_handler._get_devices_endpoint_data() == {}
+    assert message in caplog.text
 
 
 @pytest.mark.anyio
-async def test_endpoint_data_malformed_returns_nothing(
-    api: AmazonEchoApi, caplog: pytest.LogCaptureFixture
+async def test_devices_v2_data_enriches_the_endpoint_device(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A response without endpoints is logged as malformed."""
-    handler = api._device_handler
-    handler._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
-    handler._http_wrapper.response_to_json = AsyncMock(  # type: ignore[method-assign]
-        return_value={"data": {"listEndpoints": None}}
-    )
-
-    assert await handler._get_devices_endpoint_data() == {}
-    assert "Malformed endpoint data received" in caplog.text
-
-
-@pytest.mark.anyio
-async def test_devices_v2_data_enriches_the_endpoint_device(api: AmazonEchoApi) -> None:
     """Voice specific data comes from devices-v2, the rest from the endpoint."""
     handler = api._device_handler
     base_device = _base_device(
@@ -310,6 +348,7 @@ async def test_devices_v2_data_enriches_the_endpoint_device(api: AmazonEchoApi) 
     # only used when the endpoint reports no model at all
     base_device["deviceTypeFriendlyName"] = "Echo Show 8 (2nd Gen)"
     _patch_sources(
+        monkeypatch,
         handler,
         devices_endpoints={TEST_SERIAL_1: _endpoint(TEST_SERIAL_1, model=None)},
         base_devices={TEST_SERIAL_1: base_device},
@@ -340,11 +379,12 @@ async def test_devices_v2_data_enriches_the_endpoint_device(api: AmazonEchoApi) 
 
 @pytest.mark.anyio
 async def test_known_devices_survive_an_empty_endpoint_response(
-    api: AmazonEchoApi,
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A failed GraphQL call must not drop the devices we already know."""
     handler = api._device_handler
     _patch_sources(
+        monkeypatch,
         handler,
         devices_endpoints={TEST_SERIAL_1: _endpoint(TEST_SERIAL_1)},
         base_devices={TEST_SERIAL_1: _base_device(TEST_SERIAL_1)},
@@ -355,8 +395,9 @@ async def test_known_devices_survive_an_empty_endpoint_response(
 
     # the GraphQL call now returns nothing, devices-v2 is still fine
     base_devices = AsyncMock(return_value={TEST_SERIAL_1: _base_device(TEST_SERIAL_1)})
-    handler._get_devices_endpoint_data = AsyncMock(return_value={})  # type: ignore[method-assign]
-    handler._get_base_devices_data = base_devices  # type: ignore[method-assign]
+    _patch_sources(
+        monkeypatch, handler, devices_endpoints={}, base_devices=base_devices
+    )
 
     await handler.update_devices()
 
@@ -367,13 +408,14 @@ async def test_known_devices_survive_an_empty_endpoint_response(
 
 @pytest.mark.anyio
 async def test_empty_endpoint_response_raises_without_known_devices(
-    api: AmazonEchoApi,
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """With nothing to preserve, a failed GraphQL call stops the refresh."""
     handler = api._device_handler
     base_devices = AsyncMock(return_value={TEST_SERIAL_1: _base_device(TEST_SERIAL_1)})
-    handler._get_devices_endpoint_data = AsyncMock(return_value={})  # type: ignore[method-assign]
-    handler._get_base_devices_data = base_devices  # type: ignore[method-assign]
+    _patch_sources(
+        monkeypatch, handler, devices_endpoints={}, base_devices=base_devices
+    )
 
     with pytest.raises(CannotRetrieveData):
         await handler.update_devices()
@@ -384,9 +426,11 @@ async def test_empty_endpoint_response_raises_without_known_devices(
 
 @pytest.mark.anyio
 async def test_features_are_read_for_the_built_devices(
-    api: AmazonEchoApi, endpoints_features: AsyncMock
+    api: AmazonEchoApi,
+    endpoints_features: AsyncMock,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Features are keyed by name and instance, for built devices only."""
+    """Feature properties are split by sensor template, by name and instance."""
     handler = api._device_handler
     range_configuration = {
         "friendlyName": _text("Fan level"),
@@ -421,10 +465,31 @@ async def test_features_are_read_for_the_built_devices(
             "operations": [{"name": "setRangeValue"}],
             "configuration": range_configuration,
         },
+        # common sensor features are supported on every device type
+        {
+            "name": "temperatureSensor",
+            "instance": None,
+            "properties": [{"name": "temperature"}],
+            "configuration": None,
+        },
+        # only the templated properties of a feature are supported
+        {
+            "name": "motionSensor",
+            "instance": None,
+            "properties": [{"name": "detectionState"}, {"name": "sensitivity"}],
+            "configuration": None,
+        },
         # features without a name are skipped
         {"name": None, "instance": None, "operations": None, "configuration": None},
     ]
+    aqm_features: list[dict[str, Any]] = [
+        # an instance with a specific sensor template for the device type
+        {"name": "range", "instance": "4", "properties": [{"name": "rangeValue"}]},
+        # the same feature on an instance without one
+        {"name": "range", "instance": "1", "properties": [{"name": "rangeValue"}]},
+    ]
     _patch_sources(
+        monkeypatch,
         handler,
         devices_endpoints={
             TEST_SERIAL_1: _endpoint(TEST_SERIAL_1),
@@ -437,7 +502,11 @@ async def test_features_are_read_for_the_built_devices(
         f"endpoint-{TEST_SERIAL_1}": {
             "endpointId": f"endpoint-{TEST_SERIAL_1}",
             "features": features,
-        }
+        },
+        f"endpoint-{TEST_SERIAL_AQM}": {
+            "endpointId": f"endpoint-{TEST_SERIAL_AQM}",
+            "features": aqm_features,
+        },
     }
 
     await handler.update_devices()
@@ -448,6 +517,20 @@ async def test_features_are_read_for_the_built_devices(
     )
 
     assert handler.devices[TEST_SERIAL_1].features == {
+        "temperatureSensor": {
+            "": _feature(
+                properties=["temperature"], sensor_keys={"temperature": "temperature"}
+            )
+        },
+        "motionSensor": {
+            "": _feature(
+                properties=["detectionState"],
+                sensor_keys={"detectionState": "detectionState"},
+            )
+        },
+    }
+    assert handler.devices[TEST_SERIAL_1].unsupported_features == {
+        "motionSensor": {"": _feature(properties=["sensitivity"])},
         "power": {"": _feature(supported_operations=["turnOn", "turnOff"])},
         "mode": {
             "Fan.Speed": _feature(
@@ -476,16 +559,28 @@ async def test_features_are_read_for_the_built_devices(
             )
         },
     }
-    assert handler.devices[TEST_SERIAL_AQM].features == {}
+    assert handler.devices[TEST_SERIAL_AQM].features == {
+        "range": {
+            "4": _feature(
+                properties=["rangeValue"], sensor_keys={"rangeValue": "Humidity"}
+            )
+        },
+    }
+    assert handler.devices[TEST_SERIAL_AQM].unsupported_features == {
+        "range": {"1": _feature(properties=["rangeValue"])},
+    }
 
 
 @pytest.mark.anyio
 async def test_known_features_survive_a_failed_features_lookup(
-    api: AmazonEchoApi, endpoints_features: AsyncMock
+    api: AmazonEchoApi,
+    endpoints_features: AsyncMock,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A failed features lookup must not drop the features we already know."""
     handler = api._device_handler
     _patch_sources(
+        monkeypatch,
         handler,
         devices_endpoints={TEST_SERIAL_1: _endpoint(TEST_SERIAL_1)},
         base_devices={TEST_SERIAL_1: _base_device(TEST_SERIAL_1)},
@@ -496,18 +591,23 @@ async def test_known_features_survive_a_failed_features_lookup(
         }
     }
     await handler.update_devices()
-    known_features = handler.devices[TEST_SERIAL_1].features
-    assert known_features == {"power": {"": _feature(supported_operations=["turnOn"])}}
+    known_device = handler.devices[TEST_SERIAL_1]
+    assert known_device.features == {}
+    assert known_device.unsupported_features == {
+        "power": {"": _feature(supported_operations=["turnOn"])}
+    }
 
     endpoints_features.return_value = {}
     await handler.update_devices()
 
-    assert handler.devices[TEST_SERIAL_1].features == known_features
+    device = handler.devices[TEST_SERIAL_1]
+    assert device.features == known_device.features
+    assert device.unsupported_features == known_device.unsupported_features
 
 
 @pytest.mark.anyio
 async def test_endpoints_features_are_keyed_by_endpoint_id(
-    api: AmazonEchoApi,
+    api: AmazonEchoApi, mock_json_response: Callable[[dict[str, Any]], AsyncMock]
 ) -> None:
     """Endpoint features are read from the wrapped GraphQL response."""
     handler = api._device_handler
@@ -523,9 +623,7 @@ async def test_endpoints_features_are_keyed_by_endpoint_id(
             }
         ]
     }
-    session_request = AsyncMock(return_value=(None, None))
-    handler._http_wrapper.session_request = session_request  # type: ignore[method-assign]
-    handler._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
+    session_request = mock_json_response(response)
 
     endpoints_features = await _get_endpoints_features(
         handler, [f"endpoint-{TEST_SERIAL_1}"]
@@ -541,30 +639,43 @@ async def test_endpoints_features_are_keyed_by_endpoint_id(
 @pytest.mark.parametrize(
     "response",
     [
-        {ARRAY_WRAPPER: [{"errors": [{"message": "boom", "path": ["x"]}]}]},
-        {},
-        {ARRAY_WRAPPER: [{"data": None}]},
-        {ARRAY_WRAPPER: [{"data": {"listEndpoints": None}}]},
-        {ARRAY_WRAPPER: [{"data": {"listEndpoints": {"endpoints": []}}}]},
+        pytest.param(
+            {ARRAY_WRAPPER: [{"errors": [{"message": "boom", "path": ["x"]}]}]},
+            id="graphql-errors",
+        ),
+        pytest.param({}, id="empty-response"),
+        pytest.param({ARRAY_WRAPPER: [{"data": None}]}, id="null-data"),
+        pytest.param(
+            {ARRAY_WRAPPER: [{"data": {"listEndpoints": None}}]},
+            id="null-list-endpoints",
+        ),
+        pytest.param(
+            {ARRAY_WRAPPER: [{"data": {"listEndpoints": {"endpoints": []}}}]},
+            id="no-endpoints",
+        ),
     ],
 )
-async def test_bad_endpoints_features_response_returns_nothing(
-    api: AmazonEchoApi, response: dict[str, Any]
+async def test_bad_endpoints_features_response_raises(
+    api: AmazonEchoApi,
+    response: dict[str, Any],
+    mock_json_response: Callable[[dict[str, Any]], AsyncMock],
 ) -> None:
-    """GraphQL errors and malformed data give no features."""
+    """GraphQL errors and malformed or empty data fail the refresh."""
     handler = api._device_handler
-    handler._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
-    handler._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
+    mock_json_response(response)
 
-    assert await _get_endpoints_features(handler, ["endpoint-1"]) == {}
+    with pytest.raises(CannotRetrieveData):
+        await _get_endpoints_features(handler, ["endpoint-1"])
 
 
 @pytest.mark.anyio
-async def test_no_endpoints_skips_the_features_request(api: AmazonEchoApi) -> None:
+async def test_no_endpoints_skips_the_features_request(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Nothing is requested when there are no endpoints to query."""
     handler = api._device_handler
     session_request = AsyncMock()
-    handler._http_wrapper.session_request = session_request  # type: ignore[method-assign]
+    monkeypatch.setattr(handler._http_wrapper, "session_request", session_request)
 
     assert await _get_endpoints_features(handler, []) == {}
     session_request.assert_not_awaited()

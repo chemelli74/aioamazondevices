@@ -9,6 +9,7 @@ SENSOR_STATE_OFF = "NOT_DETECTED"
 
 # Sensors templates, keyed by feature name and then by property name
 # This determines how to parse the feature
+# An optional "name" replaces the property name as the sensor name
 SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
     "temperatureSensor": {
         "temperature": {
@@ -42,6 +43,41 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
         "rangeValue": {
             "key": "rangeValue",
             "subkey": "value",
+            "scale": None,
+        },
+    },
+    "power": {
+        "powerState": {
+            "key": "powerStateValue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
+    "brightness": {
+        "brightness": {
+            "key": "brightnessStateValue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
+    "color": {
+        "color": {
+            "key": "colorStateValue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
+    "mode": {
+        "mode": {
+            "key": "modeValue",
+            "subkey": "value",
+            "scale": None,
+        },
+    },
+    "toggle": {
+        "toggleState": {
+            "key": "toggleStateValue",
+            "subkey": None,
             "scale": None,
         },
     },
