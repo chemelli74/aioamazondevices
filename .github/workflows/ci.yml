@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: chemelli74/ha-core-dependency-check/dev@f58f468f97ba4a0a2cd0e62dd9864baf9445d77c # v1.1.0
+      - uses: chemelli74/ha-core-dependency-check/dev@c036686f47c5badcb254d5cd3c93344ea8dd0bf8 # v1.2.0
 
   ha-core-release:
     name: Home Assistant Core release dependencies
@@ -42,7 +42,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: chemelli74/ha-core-dependency-check/release@f58f468f97ba4a0a2cd0e62dd9864baf9445d77c # v1.1.0
+      - uses: chemelli74/ha-core-dependency-check/release@c036686f47c5badcb254d5cd3c93344ea8dd0bf8 # v1.2.0
 
   # Make sure commit messages follow the conventional commits convention:
   # https://www.conventionalcommits.org
