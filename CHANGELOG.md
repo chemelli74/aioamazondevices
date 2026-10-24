@@ -1,5 +1,12 @@
 # Changelog
 
+## v16.11.1 (2026-10-24)
+
+### Bug fixes
+
+- Relax anyio and orjson minimum versions ([`1325168`](https://github.com/chemelli74/aioamazondevices/commit/13251681662d509b657b2ee5ea2fd92a27f070bf))
+
+
 ## v16.11.0 (2026-10-23)
 
 ### Features
