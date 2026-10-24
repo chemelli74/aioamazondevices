@@ -7,8 +7,13 @@ from http import HTTPMethod
 
 from yarl import URL
 
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM, SPEAKER_GROUP_FAMILY
-from aioamazondevices.const.http import COMM_SITE, REQUEST_AGENT, URI_COMM_PREFERENCES
+from aioamazondevices.const.http import (
+    COMM_SITE,
+    REQUEST_AGENT,
+    URI_COMM_IDENTITY,
+    URI_COMM_PREFERENCES,
+    URI_HOMEGROUP_DEVICES,
+)
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.structures import AmazonDevice, AmazonDropInStatus
