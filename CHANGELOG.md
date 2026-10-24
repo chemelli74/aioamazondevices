@@ -1,5 +1,17 @@
 # Changelog
 
+## v16.11.3 (2026-10-24)
+
+### Bug fixes
+
+- Use global comms endpoint ([`92f6fd3`](https://github.com/chemelli74/aioamazondevices/commit/92f6fd3fff0d61702a81707d47733130cf1aeb7e))
+
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`429bb0b`](https://github.com/chemelli74/aioamazondevices/commit/429bb0bf4bb4a02cfaf473fe5f835ba343245ea8))
+
+
 ## v16.11.2 (2026-10-24)
 
 ### Documentation
