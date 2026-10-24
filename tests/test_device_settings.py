@@ -129,7 +129,7 @@ async def test_get_devices_data_applies_settings(
 
     assert await api.get_devices_data() is devices
 
-    get_communications.assert_awaited_once_with([device])
+    get_communications.assert_awaited_once_with()
     update_sensor_data.assert_awaited_once_with(devices)
     assert device.notifications == {NOTIFICATION_REMINDER: REMINDER}
     assert device.communication_settings == COMMUNICATIONS[TEST_SERIAL_1]

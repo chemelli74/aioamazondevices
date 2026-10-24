@@ -274,9 +274,7 @@ class AmazonEchoApi:
         devices = self._device_handler.devices
         notifications = await self._notification_handler.get_notifications()
         communications = (
-            await self._communication_handler.get_communication_preferences(
-                list(devices.values())
-            )
+            await self._communication_handler.get_communication_preferences()
         )
         await self._sensor_handler.update_sensor_data(devices)
         self._sensor_handler.update_device_online_statuses(devices)
