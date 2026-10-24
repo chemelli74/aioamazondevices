@@ -1,5 +1,17 @@
 # Changelog
 
+## v16.11.2 (2026-10-24)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`071569c`](https://github.com/chemelli74/aioamazondevices/commit/071569c366865f04082e9e1f066b0a4201fc7a35))
+
+
+### Bug fixes
+
+- Use alexa app user-agent for communications preferences ([`00ee4c6`](https://github.com/chemelli74/aioamazondevices/commit/00ee4c675daac7b74b692e64eda926d1192f0495))
+
+
 ## v16.11.1 (2026-10-24)
 
 ### Bug fixes
