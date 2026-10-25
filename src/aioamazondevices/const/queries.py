@@ -286,47 +286,30 @@ query getEndpointFeatures($endpointIds: [String]!) {
 }
 """
 
-QUERY_SENSOR_STATE = """
+QUERY_POLLED_SENSOR_STATE = """
 fragment EndpointState on Endpoint {
   endpointId: id
-  friendlyNameObject { value { text } }
   features {
     name
     instance
     properties {
-      name
-      type
-      accuracy
-      error { type message }
-      __typename
       ... on Illuminance {
+        name
+        error { type message }
         illuminanceValue { value }
         timeOfSample
-        timeOfLastChange
       }
       ... on Reachability {
+        name
+        error { type message }
         reachabilityStatusValue
         timeOfSample
-        timeOfLastChange
       }
       ... on DetectionState {
+        name
+        error { type message }
         detectionStateValue
         timeOfSample
-        timeOfLastChange
-      }
-      ... on TemperatureSensor {
-        name
-        value {
-          value
-          scale
-        }
-        timeOfSample
-        timeOfLastChange
-      }
-      ... on RangeValue {
-        rangeValue { value }
-        timeOfSample
-        timeOfLastChange
       }
       ... on DetectionSensitivity {
         detectionSensitivityValue
@@ -373,7 +356,7 @@ fragment EndpointState on Endpoint {
 }
 
 
-query getEndpointState($endpointIds: [String]!) {
+query getPolledSensorState($endpointIds: [String]!) {
   listEndpoints(
     listEndpointsInput: {
       latencyTolerance: LOW,
@@ -383,6 +366,30 @@ query getEndpointState($endpointIds: [String]!) {
   ) {
     endpoints {
       ...EndpointState
+    }
+  }
+}
+"""
+
+MUTATION_SET_ENDPOINT_FEATURES = """
+mutation setEndpointFeatures(
+  $setEndpointFeaturesInput: SetEndpointFeaturesInput!
+) {
+  setEndpointFeatures(setEndpointFeaturesInput: $setEndpointFeaturesInput) {
+    featureControlResponses {
+      endpointId
+      featureName
+      instance
+      featureOperationName
+      code
+    }
+    errors {
+      endpointId
+      featureName
+      instance
+      featureOperationName
+      code
+      message
     }
   }
 }

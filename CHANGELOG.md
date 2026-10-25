@@ -1,5 +1,31 @@
 # Changelog
 
+## v17.0.0 (2026-10-25)
+
+### Features
+
+- Allow push updates for sensors ([`0bb3652`](https://github.com/chemelli74/aioamazondevices/commit/0bb36523b5b79e7e03e83b12e1a9d5a1537db104))
+
+
+## v16.12.0 (2026-10-25)
+
+### Features
+
+- Device control through graphql ([`3207626`](https://github.com/chemelli74/aioamazondevices/commit/32076262799cbe5f6bbb77547bc25df18e76fd38))
+
+
+## v16.11.4 (2026-10-25)
+
+### Bug fixes
+
+- Update python dependencies ([`bf9b201`](https://github.com/chemelli74/aioamazondevices/commit/bf9b20160d72a6ff5c5e1a5e4206943bc388ce15))
+
+
+### Build system
+
+- Bump certifi from 2026.10.18 to 2026.10.19 in the uv group across 1 directory ([`feba5ed`](https://github.com/chemelli74/aioamazondevices/commit/feba5ed713f3d5dacd3321ef9790a252e2d8e759))
+
+
 ## v16.11.3 (2026-10-24)
 
 ### Bug fixes
