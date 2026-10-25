@@ -312,44 +312,52 @@ fragment EndpointState on Endpoint {
         timeOfSample
       }
       ... on DetectionSensitivity {
+        name
+        error { type message }
         detectionSensitivityValue
         timeOfSample
-        timeOfLastChange
       }
       ... on DetectionRange {
+        name
+        error { type message }
         detectionRangeValue
         timeOfSample
-        timeOfLastChange
       }
       ... on DetectionTechnology {
+        name
+        error { type message }
         detectionTechnologyValue
         timeOfSample
-        timeOfLastChange
       }
       ... on EnablementState {
+        name
+        error { type message }
         enablementStateValue
         timeOfSample
-        timeOfLastChange
       }
       ... on Power {
+        name
+        error { type message }
         powerStateValue
         timeOfSample
-        timeOfLastChange
       }
       ... on ToggleState {
+        name
+        error { type message }
         toggleStateValue
         timeOfSample
-        timeOfLastChange
       }
       ... on Brightness {
+        name
+        error { type message }
         brightnessStateValue
         timeOfSample
-        timeOfLastChange
       }
       ... on Color {
+        name
+        error { type message }
         colorStateValue { hue saturation brightness }
         timeOfSample
-        timeOfLastChange
       }
     }
   }
