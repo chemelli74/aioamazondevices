@@ -81,13 +81,22 @@ class AmazonFeatureHandler:
 
     def _parse_response(self, response: dict[str, Any], readable_form: str) -> None:
         """Raise CannotSetFeature if the response reports any error."""
+        try:
+            self._check_response(response, readable_form)
+        except (AttributeError, IndexError, TypeError) as exc:
+            raise CannotSetFeature(
+                f"Malformed response received setting {readable_form}: {response}"
+            ) from exc
+
+    def _check_response(self, response: dict[str, Any], readable_form: str) -> None:
+        """Raise CannotSetFeature if the response reports any failure."""
         if check_and_log_graphql_errors("MUTATION_SET_ENDPOINT_FEATURES", response):
             raise CannotSetFeature(f"Cannot set {readable_form}.")
 
         if (
             not (arr := response.get(ARRAY_WRAPPER))
             or not (data := arr[0].get("data"))
-            or not isinstance(result := data.get(OPERATION_NAME), dict)
+            or (result := data.get(OPERATION_NAME)) is None
         ):
             raise CannotSetFeature(
                 f"Malformed response received setting {readable_form}: {response}"
