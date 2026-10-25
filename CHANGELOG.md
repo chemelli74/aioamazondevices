@@ -1,5 +1,12 @@
 # Changelog
 
+## v17.0.0 (2026-10-25)
+
+### Features
+
+- Allow push updates for sensors ([`0bb3652`](https://github.com/chemelli74/aioamazondevices/commit/0bb36523b5b79e7e03e83b12e1a9d5a1537db104))
+
+
 ## v16.12.0 (2026-10-25)
 
 ### Features
