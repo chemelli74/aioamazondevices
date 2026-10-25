@@ -16,6 +16,7 @@ from anyio import Path
 
 from aioamazondevices.implementation.communication import AlexaCommunicationsHandler
 from aioamazondevices.implementation.device import AmazonDeviceHandler
+from aioamazondevices.implementation.feature import AmazonFeatureHandler
 from aioamazondevices.implementation.media import AmazonMediaHandler
 from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.implementation.todo import AmazonToDoHandler
@@ -29,7 +30,7 @@ from .const.metadata import (
     VOLUME_MAX,
     VOLUME_MIN,
 )
-from .exceptions import NoOnlineDevicesError
+from .exceptions import CannotSetFeature, NoOnlineDevicesError
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
 from .implementation.history import AmazonHistoryHandler
@@ -124,6 +125,11 @@ class AmazonEchoApi:
         )
 
         self._media_handler = AmazonMediaHandler(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
+        self._feature_handler = AmazonFeatureHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
         )
@@ -687,6 +693,47 @@ class AmazonEchoApi:
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
+
+    async def call_feature_operation(
+        self,
+        device: AmazonDevice,
+        feature_name: str,
+        operation_name: str,
+        command_payload: dict[str, Any] | None = None,
+        instance: str | None = None,
+    ) -> None:
+        """Invoke a feature operation on a device endpoint.
+
+        Raises CannotSetFeature if the operation fails.
+        """
+        if not device.endpoint_id:
+            raise CannotSetFeature(
+                f"Device ({device.account_name}) does not have an endpoint ID."
+            )
+
+        instance_text = f" instance: {instance}" if instance else ""
+        if not (feat := device.features.get(feature_name)) or not (
+            feat_instance := feat.get(instance or "")
+        ):
+            raise CannotSetFeature(
+                f"Device ({device.account_name}) does not have"
+                f" feature: {feature_name}{instance_text}."
+            )
+
+        if operation_name not in feat_instance.supported_operations:
+            raise CannotSetFeature(
+                f"Operation: {operation_name} not valid for"
+                f" device ({device.account_name})"
+                f" feature: {feature_name}{instance_text}."
+            )
+
+        await self._feature_handler.set_feature(
+            endpoint_id=device.endpoint_id,
+            feature_name=feature_name,
+            operation_name=operation_name,
+            command_payload=command_payload,
+            instance=instance,
+        )
 
     async def set_communication_status(
         self, device: AmazonDevice, enable: bool

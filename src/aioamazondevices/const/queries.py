@@ -330,3 +330,27 @@ query getPolledSensorState($endpointIds: [String]!) {
   }
 }
 """
+
+MUTATION_SET_ENDPOINT_FEATURES = """
+mutation setEndpointFeatures(
+  $setEndpointFeaturesInput: SetEndpointFeaturesInput!
+) {
+  setEndpointFeatures(setEndpointFeaturesInput: $setEndpointFeaturesInput) {
+    featureControlResponses {
+      endpointId
+      featureName
+      instance
+      featureOperationName
+      code
+    }
+    errors {
+      endpointId
+      featureName
+      instance
+      featureOperationName
+      code
+      message
+    }
+  }
+}
+"""
