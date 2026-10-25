@@ -1,5 +1,12 @@
 # Changelog
 
+## v16.12.0 (2026-10-25)
+
+### Features
+
+- Device control through graphql ([`3207626`](https://github.com/chemelli74/aioamazondevices/commit/32076262799cbe5f6bbb77547bc25df18e76fd38))
+
+
 ## v16.11.4 (2026-10-25)
 
 ### Bug fixes
