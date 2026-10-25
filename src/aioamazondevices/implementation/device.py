@@ -216,18 +216,10 @@ class AmazonDeviceHandler:
         is some. Speaker groups are the exception, as they only exist in the
         devices-v2 data.
 
-        Raises CannotRetrieveData when no endpoint data is returned and there
-        are no known devices to fall back on.
+        Raises CannotRetrieveData when the endpoint data cannot be retrieved,
+        leaving the known devices untouched.
         """
         devices_endpoints = await self._get_devices_endpoint_data()
-        if not devices_endpoints:
-            if not self._final_devices:
-                raise CannotRetrieveData("No device endpoint data received")
-
-            # The device list changes rarely, so keeping the known devices is
-            # better than dropping them all because of one failed call
-            _LOGGER.warning("No device endpoint data received, keeping known devices")
-            return
 
         base_devices = await self._get_base_devices_data()
 
@@ -443,14 +435,14 @@ class AmazonDeviceHandler:
         endpoint_data = await self._http_wrapper.response_to_json(raw_resp, "endpoint")
 
         if check_and_log_graphql_errors("QUERY_DEVICE_DATA", endpoint_data):
-            return {}
+            raise CannotRetrieveData("Error retrieving device endpoint data")
 
         if not (
             endpoints := validate_graphql_endpoint_shape(
                 "QUERY_DEVICE_DATA", endpoint_data
             )
         ):
-            return {}
+            raise CannotRetrieveData("No device endpoint data received")
 
         devices_endpoints: dict[str, dict[str, Any]] = {}
         for endpoint in endpoints:
@@ -462,6 +454,10 @@ class AmazonDeviceHandler:
                 continue
 
             devices_endpoints[serial_number] = endpoint
+
+        # an empty device list would make callers drop all the known devices
+        if not devices_endpoints:
+            raise CannotRetrieveData("No usable device endpoint data received")
 
         return devices_endpoints
 
