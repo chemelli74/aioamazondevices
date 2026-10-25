@@ -1,5 +1,12 @@
 # Changelog
 
+## v17.1.1 (2026-10-25)
+
+### Bug fixes
+
+- Error on endpoint update failure ([`10b3bb6`](https://github.com/chemelli74/aioamazondevices/commit/10b3bb6c2e6b4d2b97d38eb85f09d519168130e7))
+
+
 ## v17.1.0 (2026-10-25)
 
 ### Features
