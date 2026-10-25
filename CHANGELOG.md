@@ -1,5 +1,12 @@
 # Changelog
 
+## v17.2.0 (2026-10-25)
+
+### Features
+
+- Add support for echo glow ([`f1b0631`](https://github.com/chemelli74/aioamazondevices/commit/f1b06318233193e2af1790bdc954089a9abe939d))
+
+
 ## v17.1.1 (2026-10-25)
 
 ### Bug fixes
