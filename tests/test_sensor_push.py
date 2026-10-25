@@ -374,8 +374,7 @@ async def test_sync_tracks_supported_sensor_without_value(
     sensor_values = handler.parse_endpoint_state(
         ENDPOINT, _endpoint(_temperature(PUSHED_TEMPERATURE))
     )
-    assert handler.has_changes(sensor_values)
-    handler.store_values(sensor_values)
+    assert handler.store_values(sensor_values)
 
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == PUSHED_TEMPERATURE
 
@@ -511,12 +510,9 @@ async def test_push_updates_tracked_sensor(
     sensor_values = handler.parse_endpoint_state(
         ENDPOINT, _endpoint(_temperature(PUSHED_TEMPERATURE))
     )
-    assert handler.has_changes(sensor_values)
-
-    handler.store_values(sensor_values)
-
+    assert handler.store_values(sensor_values)
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == PUSHED_TEMPERATURE
-    assert not handler.has_changes(sensor_values)
+    assert not handler.store_values(sensor_values)
 
 
 @pytest.mark.anyio
@@ -529,8 +525,7 @@ async def test_newer_sample_of_same_value_is_stored(
         ENDPOINT, _endpoint(_temperature(PUSHED_TEMPERATURE, LATER))
     )
 
-    assert not handler.has_changes(sensor_values)
-    handler.store_values(sensor_values)
+    assert not handler.store_values(sensor_values)
 
     sensor = api.sensors[TEST_SERIAL_1]["temperature"]
     assert sensor.time_of_sample == sensor_values[0].sensor.time_of_sample
@@ -546,8 +541,7 @@ async def test_older_push_is_ignored(
         ENDPOINT, _endpoint(_temperature(1.0, EARLIER))
     )
 
-    assert not handler.has_changes(sensor_values)
-    handler.store_values(sensor_values)
+    assert not handler.store_values(sensor_values)
 
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == PUSHED_TEMPERATURE
 

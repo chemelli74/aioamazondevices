@@ -147,6 +147,9 @@ class AmazonEchoApi:
         self._dnd_initialized: bool = False
         self._dnd_lock = asyncio.Lock()
         self._device_volumes_lock = asyncio.Lock()
+        # serializes the daily device refresh with a resync after reconnect,
+        # so a resync cannot apply endpoint states of an outdated device list
+        self._sensor_sync_lock = asyncio.Lock()
         self._http2_client: AmazonHTTP2Client | None = None
         # resync of pushed state after the HTTP2 stream reconnects
         self._resync_task: asyncio.Task[None] | None = None
@@ -260,12 +263,13 @@ class AmazonEchoApi:
                 str(timedelta(minutes=round(delta_daily.total_seconds() / 60))),
             )
             # Request various data that doesn't change that often
-            await self._device_handler.update_devices()
-            # device query has all initial state to sync sensors
-            self._sensor_handler.full_sensor_sync(
-                self._device_handler.devices, self._device_handler.endpoint_states
-            )
-            self._sensor_resync_required = False
+            async with self._sensor_sync_lock:
+                await self._device_handler.update_devices()
+                # device query has all initial state to sync sensors
+                self._sensor_handler.full_sensor_sync(
+                    self._device_handler.devices, self._device_handler.endpoint_states
+                )
+                self._sensor_resync_required = False
             await self._media_handler.update_music_providers()
             await self._sequence_handler.update_routines()
             await self._todo_handler.update_lists()
@@ -281,16 +285,19 @@ class AmazonEchoApi:
     async def get_devices_data(
         self,
     ) -> dict[str, AmazonDevice]:
-        """Get Amazon devices data."""
+        """Get Amazon devices data.
+
+        Only sensors Amazon does not push (e.g. motion, light, connectivity) are
+        refreshed by each call. Pushed sensors (e.g. temperature, air quality)
+        are refreshed by HTTP2 push events, so need start_http2_processing.
+        """
         # Perform a refresh to ensure your data is as up-to-date as possible.
         await self._refresh_basic_data()
 
         devices = self._device_handler.devices
         notifications = await self._notification_handler.get_notifications()
         communications = (
-            await self._communication_handler.get_communication_preferences(
-                list(devices.values())
-            )
+            await self._communication_handler.get_communication_preferences()
         )
         self._update_device_settings(devices, notifications, communications)
 
@@ -333,6 +340,9 @@ class AmazonEchoApi:
         httpx client must have http2 enabled and a timeout of None to
         allow for long-lived connections.
         Caller is responsible for ensuring its properly configured and closed after use.
+
+        Required for pushed sensors (e.g. temperature, air quality), which are
+        only refreshed by push events.
         """
         if not self._http2_client:
             self._http2_client = AmazonHTTP2Client(
@@ -411,11 +421,12 @@ class AmazonEchoApi:
 
     async def _resync_sensors(self) -> None:
         """Resync sensors from the endpoint states of the known devices."""
-        await self._device_handler.update_endpoint_states()
-        self._sensor_handler.full_sensor_sync(
-            self._device_handler.devices, self._device_handler.endpoint_states
-        )
-        self._sensor_resync_required = False
+        async with self._sensor_sync_lock:
+            await self._device_handler.update_endpoint_states()
+            self._sensor_handler.full_sensor_sync(
+                self._device_handler.devices, self._device_handler.endpoint_states
+            )
+            self._sensor_resync_required = False
         await self._emit_sensor_event()
 
     async def _http2_push_event_handler(
@@ -456,11 +467,7 @@ class AmazonEchoApi:
         sensor_values = self._sensor_handler.parse_endpoint_state(
             endpoint_id, endpoint_state
         )
-        # check for material change prior to storing
-        changed = self._sensor_handler.has_changes(sensor_values)
-        # update value
-        self._sensor_handler.store_values(sensor_values)
-        if not changed:
+        if not self._sensor_handler.store_values(sensor_values):
             # value has not changed so do not notify subscribers
             return
         await self._emit_sensor_event()

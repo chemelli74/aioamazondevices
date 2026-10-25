@@ -268,6 +268,20 @@ async def test_failed_sensor_resync_is_retried_on_next_poll(
 
 
 @pytest.mark.anyio
+async def test_sensor_resync_waits_for_sync_lock(
+    synced_api: AmazonEchoApi, sync_mocks: _SyncMocks
+) -> None:
+    """A resync does not query endpoint states while a device refresh holds the lock."""
+    async with synced_api._sensor_sync_lock:
+        task = asyncio.create_task(synced_api._resync_sensors())
+        await asyncio.sleep(0)
+        sync_mocks.endpoints_features.assert_not_awaited()
+
+    await task
+    sync_mocks.endpoints_features.assert_awaited_once()
+
+
+@pytest.mark.anyio
 async def test_failed_dnd_resync_falls_back_to_push(
     synced_api: AmazonEchoApi,
     sync_mocks: _SyncMocks,
