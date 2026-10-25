@@ -46,7 +46,9 @@ async def test_online_status_follows_reachability(
 ) -> None:
     """A reachability sensor sets the device online status."""
     device = make_device(TEST_SERIAL_1, online=not online)
-    device.sensors = {"reachability": _reachability(value)}
+    api._sensor_handler._sensors = {
+        TEST_SERIAL_1: {"reachability": _reachability(value)}
+    }
 
     api._sensor_handler.update_device_online_statuses({TEST_SERIAL_1: device})
 
@@ -71,7 +73,7 @@ async def test_online_status_kept_without_valid_reachability(
 ) -> None:
     """A missing or failed reachability sensor keeps the online status."""
     device = make_device(TEST_SERIAL_1, online=False)
-    device.sensors = sensors
+    api._sensor_handler._sensors = {TEST_SERIAL_1: sensors}
 
     api._sensor_handler.update_device_online_statuses({TEST_SERIAL_1: device})
 
@@ -94,7 +96,9 @@ async def test_speaker_group_follows_members(
 ) -> None:
     """A speaker group is online only when all its members are."""
     member = make_device(TEST_SERIAL_1)
-    member.sensors = {"reachability": _reachability(value)}
+    api._sensor_handler._sensors = {
+        TEST_SERIAL_1: {"reachability": _reachability(value)}
+    }
     group = make_device(TEST_SERIAL_2, device_family=SPEAKER_GROUP_FAMILY)
     group.device_cluster_members = {TEST_SERIAL_1: None}
 
@@ -126,8 +130,10 @@ async def test_get_devices_data_updates_online_status(
         "get_communication_preferences",
         AsyncMock(return_value={}),
     )
-    monkeypatch.setattr(api._sensor_handler, "update_sensor_data", AsyncMock())
-    device.sensors = {"reachability": _reachability("UNREACHABLE")}
+    monkeypatch.setattr(api._sensor_handler, "update_polled_sensors", AsyncMock())
+    api._sensor_handler._sensors = {
+        TEST_SERIAL_1: {"reachability": _reachability("UNREACHABLE")}
+    }
 
     assert await api.get_devices_data() is devices
 

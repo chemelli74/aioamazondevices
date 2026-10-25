@@ -1,5 +1,40 @@
 # Changelog
 
+## v17.2.0 (2026-10-25)
+
+### Features
+
+- Add support for echo glow ([`f1b0631`](https://github.com/chemelli74/aioamazondevices/commit/f1b06318233193e2af1790bdc954089a9abe939d))
+
+
+## v17.1.1 (2026-10-25)
+
+### Bug fixes
+
+- Error on endpoint update failure ([`10b3bb6`](https://github.com/chemelli74/aioamazondevices/commit/10b3bb6c2e6b4d2b97d38eb85f09d519168130e7))
+
+
+## v17.1.0 (2026-10-25)
+
+### Features
+
+- Add aqm led control ([`59ffc5c`](https://github.com/chemelli74/aioamazondevices/commit/59ffc5cef67649a37d9d3cdd86f75987fdfec1a3))
+
+
+## v17.0.0 (2026-10-25)
+
+### Features
+
+- Allow push updates for sensors ([`0bb3652`](https://github.com/chemelli74/aioamazondevices/commit/0bb36523b5b79e7e03e83b12e1a9d5a1537db104))
+
+
+## v16.12.0 (2026-10-25)
+
+### Features
+
+- Device control through graphql ([`3207626`](https://github.com/chemelli74/aioamazondevices/commit/32076262799cbe5f6bbb77547bc25df18e76fd38))
+
+
 ## v16.11.4 (2026-10-25)
 
 ### Bug fixes

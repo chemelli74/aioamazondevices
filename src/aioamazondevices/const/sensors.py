@@ -3,7 +3,7 @@
 
 """Metadata constants for Amazon device sensors."""
 
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM
+from aioamazondevices.const.devices import DEVICE_TYPE_AQM, DEVICE_TYPE_GLOW
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
@@ -91,6 +91,15 @@ COMMON_SENSORS: list[str] = [
     "connectivity",
 ]
 
+# Features Amazon does not push over HTTP2, so they need polling
+POLLED_SENSOR_FEATURES: frozenset[str] = frozenset(
+    {
+        "connectivity",
+        "lightSensor",
+        "motionSensor",
+    }
+)
+
 # Device type specific sensors, keyed by device type, feature name and then instance
 SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
     DEVICE_TYPE_AQM: {
@@ -120,5 +129,41 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
                 "scale": None,
             },
         },
-    }
+        "toggle": {
+            "11": {
+                "name": "LED",
+                "scale": None,
+            }
+        },
+    },
+    DEVICE_TYPE_GLOW: {
+        "power": {
+            "": {
+                "name": "Power",
+                "scale": None,
+            }
+        },
+        "brightness": {
+            "": {
+                "name": "Brightness",
+                "scale": "%",
+            }
+        },
+        "color": {
+            "": {
+                "name": "Color",
+                "scale": None,
+            }
+        },
+        "mode": {
+            "1": {
+                "name": "Mode",
+            }
+        },
+        "toggle": {
+            "3": {
+                "name": "Tap to change",
+            }
+        },
+    },
 }
