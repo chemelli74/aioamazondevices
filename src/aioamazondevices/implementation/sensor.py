@@ -108,7 +108,7 @@ def _parse_property(
     error_msg = api_error.get("message")
     if not api_error:
         try:
-            value_raw = feature_property[template["key"] or ""]
+            value_raw = feature_property[template["value_key"] or ""]
             if not value_raw:
                 _LOGGER.warning(
                     "Sensor %s [device %s] ignored due to empty value",

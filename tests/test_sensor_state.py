@@ -132,7 +132,7 @@ async def test_sensor_template_name_override(
         "temperatureSensor",
         {
             "temperature": {
-                "key": "value",
+                "value_key": "value",
                 "subkey": "value",
                 "scale": "scale",
                 "name": "Room Temperature",

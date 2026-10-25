@@ -13,70 +13,70 @@ SENSOR_STATE_OFF = "NOT_DETECTED"
 SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
     "temperatureSensor": {
         "temperature": {
-            "key": "value",
+            "value_key": "value",
             "subkey": "value",
             "scale": "scale",
         },
     },
     "motionSensor": {
         "detectionState": {
-            "key": "detectionStateValue",
+            "value_key": "detectionStateValue",
             "subkey": None,
             "scale": None,
         },
     },
     "lightSensor": {
         "illuminance": {
-            "key": "illuminanceValue",
+            "value_key": "illuminanceValue",
             "subkey": "value",
             "scale": None,
         },
     },
     "connectivity": {
         "reachability": {
-            "key": "reachabilityStatusValue",
+            "value_key": "reachabilityStatusValue",
             "subkey": None,
             "scale": None,
         },
     },
     "range": {
         "rangeValue": {
-            "key": "rangeValue",
+            "value_key": "rangeValue",
             "subkey": "value",
             "scale": None,
         },
     },
     "power": {
         "powerState": {
-            "key": "powerStateValue",
+            "value_key": "powerStateValue",
             "subkey": None,
             "scale": None,
         },
     },
     "brightness": {
         "brightness": {
-            "key": "brightnessStateValue",
+            "value_key": "brightnessStateValue",
             "subkey": None,
             "scale": None,
         },
     },
     "color": {
         "color": {
-            "key": "colorStateValue",
+            "value_key": "colorStateValue",
             "subkey": None,
             "scale": None,
         },
     },
     "mode": {
         "mode": {
-            "key": "modeValue",
+            "value_key": "modeValue",
             "subkey": "value",
             "scale": None,
         },
     },
     "toggle": {
         "toggleState": {
-            "key": "toggleStateValue",
+            "value_key": "toggleStateValue",
             "subkey": None,
             "scale": None,
         },
@@ -105,33 +105,33 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
     DEVICE_TYPE_AQM: {
         "range": {
             "4": {
-                "name": "Humidity",
+                "sensor_key_override": "Humidity",
                 "scale": "%",
             },
             "5": {
-                "name": "VOC",
+                "sensor_key_override": "VOC",
                 "scale": None,
             },
             "6": {
-                "name": "PM25",
+                "sensor_key_override": "PM25",
                 "scale": "MicroGramsPerCubicMeter",
             },
             "7": {
-                "name": "PM10",
+                "sensor_key_override": "PM10",
                 "scale": "MicroGramsPerCubicMeter",
             },
             "8": {
-                "name": "CO",
+                "sensor_key_override": "CO",
                 "scale": "ppm",
             },
             "9": {
-                "name": "Air Quality",
+                "sensor_key_override": "Air Quality",
                 "scale": None,
             },
         },
         "toggle": {
             "11": {
-                "name": "LED",
+                "sensor_key_override": "LED",
                 "scale": None,
             }
         },
@@ -139,30 +139,30 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
     DEVICE_TYPE_GLOW: {
         "power": {
             "": {
-                "name": "Power",
+                "sensor_key_override": "Power",
                 "scale": None,
             }
         },
         "brightness": {
             "": {
-                "name": "Brightness",
+                "sensor_key_override": "Brightness",
                 "scale": "%",
             }
         },
         "color": {
             "": {
-                "name": "Color",
+                "sensor_key_override": "Color",
                 "scale": None,
             }
         },
         "mode": {
             "1": {
-                "name": "Mode",
+                "sensor_key_override": "Mode",
             }
         },
         "toggle": {
             "3": {
-                "name": "Tap to change",
+                "sensor_key_override": "Tap to change",
             }
         },
     },

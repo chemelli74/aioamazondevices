@@ -44,5 +44,7 @@ def resolve_feature_property_definition(
     if (override := instances.get(instance)) is None:
         return None
     return FeaturePropertyDefinition(
-        override.get("name") or f"{property_name}-{instance}", template, override
+        override.get("sensor_key_override") or f"{property_name}-{instance}",
+        template,
+        override,
     )
