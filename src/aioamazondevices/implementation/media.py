@@ -130,7 +130,7 @@ class AmazonMediaHandler:
             "deviceType": device.device_type,
             "amount": volume - (dev_volume.volume or 0),
             "volume": volume,
-            "muted": True,
+            "muted": bool(dev_volume.is_muted),
             "synchronous": True,
         }
         await self._http_wrapper.session_request(
