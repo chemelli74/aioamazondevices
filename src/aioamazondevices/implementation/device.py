@@ -455,6 +455,10 @@ class AmazonDeviceHandler:
 
             devices_endpoints[serial_number] = endpoint
 
+        # an empty device list would make callers drop all the known devices
+        if not devices_endpoints:
+            raise CannotRetrieveData("No usable device endpoint data received")
+
         return devices_endpoints
 
     async def _get_endpoints_features(

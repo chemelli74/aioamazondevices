@@ -323,6 +323,23 @@ async def test_endpoint_data_reads_a_single_endpoints_list(
             "",
             id="no-endpoints",
         ),
+        pytest.param(
+            {
+                "data": {
+                    "listEndpoints": {
+                        "endpoints": [
+                            {**_endpoint("NO-SERIAL"), "serialNumber": None},
+                            {
+                                **_endpoint("APP-1"),
+                                "alexaEnabledMetadata": {"category": "APP"},
+                            },
+                        ]
+                    }
+                }
+            },
+            "",
+            id="no-usable-endpoints",
+        ),
     ],
 )
 async def test_bad_endpoint_data_response_raises(
