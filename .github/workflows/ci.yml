@@ -9,9 +9,10 @@ on:
 
 permissions: write-all
 
+# Queue runs on main so a release never races a newer push
 concurrency:
-  group: ${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
+  group: ${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lint:
@@ -141,6 +142,7 @@ jobs:
         with:
           client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
 
       - name: Release
         uses: python-semantic-release/python-semantic-release@b700dbeb1f431a0fcc30a79f3f0869407fe07278 # v10.7.0
