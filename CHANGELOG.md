@@ -1,5 +1,12 @@
 # Changelog
 
+## v17.1.0 (2026-10-25)
+
+### Features
+
+- Add aqm led control ([`59ffc5c`](https://github.com/chemelli74/aioamazondevices/commit/59ffc5cef67649a37d9d3cdd86f75987fdfec1a3))
+
+
 ## v17.0.0 (2026-10-25)
 
 ### Features

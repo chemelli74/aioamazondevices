@@ -161,4 +161,11 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
             }
         },
     },
+        "toggle": {
+            "11": {
+                "name": "LED",
+                "scale": None,
+            }
+        },
+    }
 }
