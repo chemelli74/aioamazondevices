@@ -5,8 +5,10 @@
 
 import asyncio
 import contextlib
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, call
 
 import pytest
@@ -15,6 +17,12 @@ from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.http import REFRESH_ACCESS_TOKEN
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.implementation.http2 import AmazonHTTP2Client, _TaskAction
+from aioamazondevices.structures import AmazonDevice
+
+from .const import TEST_SERIAL_1
+
+SYNCED_TEMPERATURE = 20.0
+RESYNCED_TEMPERATURE = 23.0
 
 
 def _http2_client() -> AmazonHTTP2Client:
@@ -45,10 +53,22 @@ def _http2_client() -> AmazonHTTP2Client:
     return AmazonHTTP2Client(MagicMock(), session_state_data, httpx_client)
 
 
+def _temperature(value: float) -> dict[str, Any]:
+    """Build a temperature sensor feature with the given value."""
+    return {
+        "name": "temperatureSensor",
+        "instance": None,
+        "properties": [
+            {"name": "temperature", "value": {"value": value, "scale": "CELSIUS"}}
+        ],
+    }
+
+
 @dataclass
 class _SyncMocks:
-    """The stubbed DnD and media syncs."""
+    """The stubbed endpoint features lookup, DnD and media syncs."""
 
+    endpoints_features: AsyncMock = field(default_factory=AsyncMock)
     dnd: AsyncMock = field(default_factory=AsyncMock)
     volumes: AsyncMock = field(default_factory=AsyncMock)
     media: AsyncMock = field(default_factory=AsyncMock)
@@ -56,15 +76,31 @@ class _SyncMocks:
 
 @pytest.fixture
 def sync_mocks() -> _SyncMocks:
-    """Return the mocks the DnD and media syncs are stubbed with."""
+    """Return the mocks the syncs are stubbed with."""
     return _SyncMocks()
 
 
 @pytest.fixture
 def synced_api(
-    api: AmazonEchoApi, sync_mocks: _SyncMocks, monkeypatch: pytest.MonkeyPatch
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., Any],
+    sync_mocks: _SyncMocks,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> AmazonEchoApi:
-    """Return an API with the DnD and media syncs stubbed."""
+    """Return an API with a temperature sensor synced and other syncs stubbed."""
+    device = make_device(TEST_SERIAL_1)
+    sync_sensors({"features": [_temperature(SYNCED_TEMPERATURE)]}, device)
+    api._device_handler._final_devices = {TEST_SERIAL_1: device}
+    sync_mocks.endpoints_features.return_value = {
+        device.endpoint_id: {
+            "endpointId": device.endpoint_id,
+            "features": [_temperature(RESYNCED_TEMPERATURE)],
+        }
+    }
+    monkeypatch.setattr(
+        api._device_handler, "_get_endpoints_features", sync_mocks.endpoints_features
+    )
     monkeypatch.setattr(api._dnd_handler, "sync_do_not_disturb_status", sync_mocks.dnd)
     monkeypatch.setattr(api._media_handler, "sync_device_volumes", sync_mocks.volumes)
     monkeypatch.setattr(api._media_handler, "sync_media_state", sync_mocks.media)
@@ -140,9 +176,16 @@ async def test_start_and_stop_http2_processing(
 async def test_reconnect_resyncs_pushed_state(
     synced_api: AmazonEchoApi, sync_mocks: _SyncMocks
 ) -> None:
-    """A reconnect resyncs DnD and media."""
+    """A reconnect resyncs sensors, DnD and media, and notifies subscribers."""
+    on_sensor_event = AsyncMock()
+    synced_api.on_sensor_event.append(on_sensor_event)
+    synced_api.on_sensor_event.freeze()
+
     await _resync(synced_api)
 
+    sensor = synced_api.sensors[TEST_SERIAL_1]["temperature"]
+    assert sensor.value == RESYNCED_TEMPERATURE
+    on_sensor_event.assert_awaited_once()
     sync_mocks.dnd.assert_awaited_once()
     sync_mocks.volumes.assert_awaited_once()
     sync_mocks.media.assert_awaited_once()
@@ -170,6 +213,72 @@ async def test_reconnect_during_resync_runs_once_more(
     await task
 
     assert sync_mocks.dnd.await_args_list == [call(), call()]
+
+
+@pytest.mark.anyio
+async def test_failed_sensor_resync_is_retried_on_next_poll(
+    synced_api: AmazonEchoApi,
+    sync_mocks: _SyncMocks,
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A failed sensor resync is logged, the rest still runs, the poll retries."""
+    resynced_features = sync_mocks.endpoints_features
+    monkeypatch.setattr(
+        synced_api._device_handler,
+        "_get_endpoints_features",
+        AsyncMock(side_effect=CannotRetrieveData("Boom")),
+    )
+
+    await _resync(synced_api)
+
+    assert "Sensor resync after HTTP2 reconnect failed" in caplog.text
+    sync_mocks.dnd.assert_awaited_once()
+    sync_mocks.media.assert_awaited_once()
+
+    monkeypatch.setattr(
+        synced_api._device_handler, "_get_endpoints_features", resynced_features
+    )
+    # The daily refresh is not due, so only the retry can resync the sensors.
+    synced_api._last_daily_refresh = datetime.now(UTC)
+    synced_api._default_device_serial = TEST_SERIAL_1
+    monkeypatch.setattr(
+        synced_api._notification_handler,
+        "get_notifications",
+        AsyncMock(return_value=None),
+    )
+    monkeypatch.setattr(
+        synced_api._communication_handler,
+        "get_communication_preferences",
+        AsyncMock(return_value={}),
+    )
+    monkeypatch.setattr(
+        synced_api._sensor_handler, "update_polled_sensors", AsyncMock()
+    )
+
+    await synced_api.get_devices_data()
+
+    assert not synced_api._sensor_resync_required
+    sensor = synced_api.sensors[TEST_SERIAL_1]["temperature"]
+    assert sensor.value == RESYNCED_TEMPERATURE
+
+    # Once resynced, later polls do not resync again.
+    await synced_api.get_devices_data()
+    resynced_features.assert_awaited_once()
+
+
+@pytest.mark.anyio
+async def test_sensor_resync_waits_for_sync_lock(
+    synced_api: AmazonEchoApi, sync_mocks: _SyncMocks
+) -> None:
+    """A resync does not query endpoint states while a device refresh holds the lock."""
+    async with synced_api._sensor_sync_lock:
+        task = asyncio.create_task(synced_api._resync_sensors())
+        await asyncio.sleep(0)
+        sync_mocks.endpoints_features.assert_not_awaited()
+
+    await task
+    sync_mocks.endpoints_features.assert_awaited_once()
 
 
 @pytest.mark.anyio

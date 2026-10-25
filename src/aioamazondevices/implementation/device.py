@@ -11,6 +11,7 @@ from yarl import URL
 
 from aioamazondevices.const.devices import (
     DEVICE_TYPE_AQM,
+    DEVICE_TYPE_GLOW,
     DEVICE_TYPES_HARDCODED_METADATA,
     DEVICE_TYPES_TO_IGNORE,
     SPEAKER_GROUP_FAMILY,
@@ -193,11 +194,20 @@ class AmazonDeviceHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
         self._final_devices: dict[str, AmazonDevice] = {}
+        self._endpoint_states: dict[str, dict[str, Any]] = {}
 
     @property
     def devices(self) -> dict[str, AmazonDevice]:
         """Return the final devices list."""
         return self._final_devices
+
+    @property
+    def endpoint_states(self) -> dict[str, dict[str, Any]]:
+        """Return the raw endpoint features of the last refresh.
+
+        keyed by endpoint ID.
+        """
+        return self._endpoint_states
 
     async def update_devices(self) -> None:
         """Build the list of devices we are interested in.
@@ -230,7 +240,7 @@ class AmazonDeviceHandler:
             # alone, one branch per device type we support that way
             if base_device := base_devices.get(serial_number):
                 selected_devices[serial_number] = (endpoint, base_device)
-            elif _endpoint_device_type(endpoint) == DEVICE_TYPE_AQM:
+            elif _endpoint_device_type(endpoint) in (DEVICE_TYPE_AQM, DEVICE_TYPE_GLOW):
                 selected_devices[serial_number] = (endpoint, None)
             else:
                 _LOGGER.debug(
@@ -291,6 +301,21 @@ class AmazonDeviceHandler:
                 )
 
         self._final_devices = devices
+        self._endpoint_states = endpoints_features
+
+    async def update_endpoint_states(self) -> None:
+        """Refresh the endpoint states of the known devices only.
+
+        Unlike update_devices, the devices are not rebuilt, so this is safe
+        to call outside a poll, e.g. to resync sensors after missed pushes.
+        """
+        self._endpoint_states = await self._get_endpoints_features(
+            [
+                device.endpoint_id
+                for device in self._final_devices.values()
+                if device.endpoint_id
+            ]
+        )
 
     def _build_device(
         self,
@@ -355,7 +380,6 @@ class AmazonDeviceHandler:
             hardware_version=hardware_version,
             entity_id=_endpoint_entity_id(endpoint),
             endpoint_id=endpoint.get("endpointId"),
-            sensors={},
             notifications_supported=any(
                 capability in capabilities
                 for capability in ["REMINDERS", "TIMERS_AND_ALARMS"]

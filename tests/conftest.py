@@ -12,9 +12,16 @@ import pytest
 from aiohttp import ClientSession
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.structures import AmazonDevice, AmazonSaveDataConfig
+from aioamazondevices.implementation.device import _parse_features
+from aioamazondevices.structures import (
+    AmazonDevice,
+    AmazonDeviceSensor,
+    AmazonSaveDataConfig,
+)
 
 from .const import TEST_EMAIL, TEST_PASSWORD
+
+SYNC_ENDPOINT = "sync-endpoint"
 
 
 @pytest.fixture
@@ -90,7 +97,6 @@ def make_device() -> Callable[..., AmazonDevice]:
             hardware_version=None,
             entity_id=None,
             endpoint_id=None,
-            sensors={},
             notifications_supported=False,
             notifications={},
             media_player_supported=False,
@@ -102,3 +108,26 @@ def make_device() -> Callable[..., AmazonDevice]:
         )
 
     return _make_device
+
+
+@pytest.fixture
+def sync_sensors(
+    api: AmazonEchoApi,
+) -> Callable[[dict[str, Any], AmazonDevice], dict[str, AmazonDeviceSensor]]:
+    """Return a helper that syncs one endpoint state and returns its sensors.
+
+    The endpoint state also sets the device features, as the device handler does.
+    """
+
+    def _sync_sensors(
+        endpoint_state: dict[str, Any], device: AmazonDevice
+    ) -> dict[str, AmazonDeviceSensor]:
+        device.endpoint_id = SYNC_ENDPOINT
+        device.features, _ = _parse_features(endpoint_state, device.device_type)
+        handler = api._sensor_handler
+        handler.full_sensor_sync(
+            {device.serial_number: device}, {SYNC_ENDPOINT: endpoint_state}
+        )
+        return handler.sensors.get(device.serial_number, {})
+
+    return _sync_sensors

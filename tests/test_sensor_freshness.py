@@ -9,8 +9,7 @@ from typing import Any
 
 import pytest
 
-from aioamazondevices.implementation.sensor import parse_graphql_feature_to_sensor
-from aioamazondevices.structures import AmazonDevice
+from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 
 from .const import TEST_SERIAL_1
 
@@ -35,6 +34,24 @@ def _illuminance_endpoint(time_of_sample: str | int | None = None) -> dict[str, 
     }
 
 
+@pytest.fixture
+def sync_illuminance(
+    make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
+) -> Callable[[str | int | None], dict[str, AmazonDeviceSensor]]:
+    """Return a helper that syncs an illuminance sample and returns the sensors."""
+
+    def _sync_illuminance(
+        time_of_sample: str | int | None,
+    ) -> dict[str, AmazonDeviceSensor]:
+        return sync_sensors(
+            _illuminance_endpoint(time_of_sample), make_device(TEST_SERIAL_1)
+        )
+
+    return _sync_illuminance
+
+
+@pytest.mark.anyio
 @pytest.mark.parametrize(
     ("time_of_sample", "expected", "logged"),
     [
@@ -49,17 +66,15 @@ def _illuminance_endpoint(time_of_sample: str | int | None = None) -> dict[str, 
         pytest.param(12345, None, True, id="non-string"),
     ],
 )
-def test_time_of_sample(
-    make_device: Callable[..., AmazonDevice],
+async def test_time_of_sample(
+    sync_illuminance: Callable[[str | int | None], dict[str, AmazonDeviceSensor]],
     caplog: pytest.LogCaptureFixture,
     time_of_sample: str | int | None,
     expected: datetime | None,
     logged: bool,
 ) -> None:
     """A valid timeOfSample is parsed, anything else is unset and logged."""
-    sensors = parse_graphql_feature_to_sensor(
-        _illuminance_endpoint(time_of_sample), make_device(TEST_SERIAL_1)
-    )
+    sensors = sync_illuminance(time_of_sample)
 
     assert sensors["illuminance"].time_of_sample == expected
     assert ("unparsable timeOfSample" in caplog.text) is logged
