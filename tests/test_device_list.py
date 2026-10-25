@@ -318,19 +318,42 @@ async def test_endpoint_data_reads_a_single_endpoints_list(
             "Malformed endpoint data received",
             id="malformed",
         ),
+        pytest.param(
+            {"data": {"listEndpoints": {"endpoints": []}}},
+            "",
+            id="no-endpoints",
+        ),
+        pytest.param(
+            {
+                "data": {
+                    "listEndpoints": {
+                        "endpoints": [
+                            {**_endpoint("NO-SERIAL"), "serialNumber": None},
+                            {
+                                **_endpoint("APP-1"),
+                                "alexaEnabledMetadata": {"category": "APP"},
+                            },
+                        ]
+                    }
+                }
+            },
+            "",
+            id="no-usable-endpoints",
+        ),
     ],
 )
-async def test_bad_endpoint_data_response_returns_nothing(
+async def test_bad_endpoint_data_response_raises(
     api: AmazonEchoApi,
     caplog: pytest.LogCaptureFixture,
     mock_json_response: Callable[[dict[str, Any]], AsyncMock],
     response: dict[str, Any],
     message: str,
 ) -> None:
-    """GraphQL errors and malformed responses are logged, returning no endpoints."""
+    """GraphQL errors and malformed or empty data fail the refresh."""
     mock_json_response(response)
 
-    assert await api._device_handler._get_devices_endpoint_data() == {}
+    with pytest.raises(CannotRetrieveData):
+        await api._device_handler._get_devices_endpoint_data()
     assert message in caplog.text
 
 
@@ -378,10 +401,10 @@ async def test_devices_v2_data_enriches_the_endpoint_device(
 
 
 @pytest.mark.anyio
-async def test_known_devices_survive_an_empty_endpoint_response(
+async def test_known_devices_survive_a_failed_endpoint_lookup(
     api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A failed GraphQL call must not drop the devices we already know."""
+    """A failed GraphQL call fails the refresh, keeping the devices we know."""
     handler = api._device_handler
     _patch_sources(
         monkeypatch,
@@ -393,34 +416,19 @@ async def test_known_devices_survive_an_empty_endpoint_response(
     known_devices = handler.devices
     assert list(known_devices) == [TEST_SERIAL_1]
 
-    # the GraphQL call now returns nothing, devices-v2 is still fine
+    # the GraphQL call now fails, devices-v2 is still fine
     base_devices = AsyncMock(return_value={TEST_SERIAL_1: _base_device(TEST_SERIAL_1)})
-    _patch_sources(
-        monkeypatch, handler, devices_endpoints={}, base_devices=base_devices
-    )
-
-    await handler.update_devices()
-
-    assert handler.devices == known_devices
-    # nothing is worth fetching from devices-v2 without endpoints to drive it
-    base_devices.assert_not_awaited()
-
-
-@pytest.mark.anyio
-async def test_empty_endpoint_response_raises_without_known_devices(
-    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """With nothing to preserve, a failed GraphQL call stops the refresh."""
-    handler = api._device_handler
-    base_devices = AsyncMock(return_value={TEST_SERIAL_1: _base_device(TEST_SERIAL_1)})
-    _patch_sources(
-        monkeypatch, handler, devices_endpoints={}, base_devices=base_devices
+    monkeypatch.setattr(handler, "_get_base_devices_data", base_devices)
+    monkeypatch.setattr(
+        handler,
+        "_get_devices_endpoint_data",
+        AsyncMock(side_effect=CannotRetrieveData("No device endpoint data received")),
     )
 
     with pytest.raises(CannotRetrieveData):
         await handler.update_devices()
 
-    assert not handler.devices
+    assert handler.devices == known_devices
     base_devices.assert_not_awaited()
 
 
