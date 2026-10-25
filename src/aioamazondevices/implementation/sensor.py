@@ -94,7 +94,7 @@ def _parse_property(
     """Parse a single GraphQL property into a sensor, None if it cannot be used."""
     property_name: str = feature_property.get("name") or ""
     template = definition.template
-    value: str | int | float = "n/a"
+    value: str | int | float | None = None
     scale: str | None = None
     time_of_sample = _parse_sample_timestamp(
         feature_property.get("timeOfSample"),
@@ -104,10 +104,9 @@ def _parse_property(
 
     # "error" can be None, missing, or a dict
     api_error = feature_property.get("error") or {}
-    error = bool(api_error)
     error_type = api_error.get("type")
     error_msg = api_error.get("message")
-    if not error:
+    if not api_error:
         try:
             value_raw = feature_property[template["key"] or ""]
             if not value_raw:
@@ -137,7 +136,7 @@ def _parse_property(
                 repr(exc),
             )
             return None
-    if error:
+    else:
         _LOGGER.debug(
             "error in sensor %s - %s - %s",
             property_name,
@@ -151,7 +150,7 @@ def _parse_property(
     return AmazonDeviceSensor(
         definition.key,
         value,
-        error,
+        bool(api_error),
         error_type,
         error_msg,
         scale,
