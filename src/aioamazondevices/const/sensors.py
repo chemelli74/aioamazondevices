@@ -140,25 +140,24 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
         "power": {
             "": {
                 "name": "Power",
-                "device_grouping": "LIGHT",
+                "scale": None,
             }
         },
         "brightness": {
             "": {
                 "name": "Brightness",
                 "scale": "%",
-                "device_grouping": "LIGHT",
             }
         },
         "color": {
             "": {
                 "name": "Color",
-                "device_grouping": "LIGHT",
+                "scale": None,
             }
         },
         "mode": {
             "1": {
-                "name": "mode",
+                "name": "Mode",
             }
         },
         "toggle": {
