@@ -24,6 +24,27 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
             "subkey": None,
             "scale": None,
         },
+        "detectionSensitivity": {
+            "key": "detectionSensitivityValue",
+            "subkey": None,
+            "scale": None,
+        },
+        "detectionRange": {
+            "key": "detectionRangeValue",
+            "subkey": None,
+            "scale": None,
+        },
+        "detectionTechnology": {
+            "key": "detectionTechnologyValue",
+            "subkey": None,
+            "scale": None,
+        },
+        "enablement": {
+            "name": "motionSensor-enabled",
+            "key": "enablementStateValue",
+            "subkey": None,
+            "scale": None,
+        },
     },
     "lightSensor": {
         "illuminance": {
