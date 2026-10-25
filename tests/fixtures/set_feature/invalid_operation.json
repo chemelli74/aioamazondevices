@@ -1,0 +1,23 @@
+[
+  {
+    "errors": [
+      {
+        "message": "Variable 'setEndpointFeaturesInput' has an invalid value: Invalid input for enum 'FeatureOperationName'. No value found for name 'turnEgg'",
+        "locations": [
+          {
+            "line": 3,
+            "column": 3
+          }
+        ],
+        "extensions": {
+          "classification": "ValidationError"
+        }
+      }
+    ],
+    "data": null,
+    "extensions": {
+      "requestID": "ZDGYFC7PDE6AD3ZRXZBS",
+      "duration": 3
+    }
+  }
+]
