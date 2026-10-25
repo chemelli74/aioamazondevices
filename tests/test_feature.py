@@ -31,7 +31,7 @@ def _fixture(name: str) -> list[dict[str, Any]]:
     return cast("list[dict[str, Any]]", json.loads(path.read_text()))
 
 
-def _result(result: dict[str, Any] | None) -> list[dict[str, Any]]:
+def _result(result: dict[str, Any] | list[Any] | None) -> list[dict[str, Any]]:
     """Wrap a setEndpointFeatures result in a GraphQL response."""
     return [{"data": {OPERATION_NAME: result}}]
 
@@ -181,6 +181,7 @@ async def test_set_feature_rejected(
         ({}, "Malformed response received setting"),
         ([{}], "Malformed response received setting"),
         (_result(None), "Malformed response received setting"),
+        (_result([]), "Malformed response received setting"),
         (
             _result({"errors": [{}]}),
             "Unknown code: no message",
@@ -191,6 +192,7 @@ async def test_set_feature_rejected(
         "empty_body",
         "no_data",
         "no_result",
+        "result_not_dict",
         "error_without_details",
         "no_responses",
     ],

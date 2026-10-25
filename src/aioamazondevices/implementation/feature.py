@@ -87,7 +87,7 @@ class AmazonFeatureHandler:
         if (
             not (arr := response.get(ARRAY_WRAPPER))
             or not (data := arr[0].get("data"))
-            or (result := data.get(OPERATION_NAME)) is None
+            or not isinstance(result := data.get(OPERATION_NAME), dict)
         ):
             raise CannotSetFeature(
                 f"Malformed response received setting {readable_form}: {response}"
