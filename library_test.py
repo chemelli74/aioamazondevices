@@ -34,6 +34,7 @@ from aioamazondevices.exceptions import (
 )
 from aioamazondevices.structures import (
     AmazonDevice,
+    AmazonDeviceFeature,
     AmazonMediaControls,
     AmazonMediaState,
     AmazonMusicProvider,
@@ -216,6 +217,15 @@ def find_device(
         sys.exit(0)
 
 
+def format_features(features: dict[str, dict[str, AmazonDeviceFeature]]) -> str:
+    """Format features as 'name[instance](prop, ...)' entries."""
+    return ", ".join(
+        f"{name}{f'[{instance}]' if instance else ''}({','.join(feature.properties)})"
+        for name, instances in sorted(features.items())
+        for instance, feature in sorted(instances.items())
+    )
+
+
 async def wait_action_complete(sleep: int = 5) -> None:
     """Wait for an action to complete."""
     print(f"Waiting for {sleep}s before next test")
@@ -319,7 +329,11 @@ async def main() -> None:
             print(f"   Device sensors: {len(device.sensors)}")
             print(f"   Device notifications: {len(device.notifications)}")
             print(f"   Device communications: {device_comm_settings}")
-            print(f"   Device features: {list(device.features.keys())}")
+            print(f"   Device supported features: {format_features(device.features)}")
+            print(
+                "   Device unsupported features: "
+                f"{format_features(device.unsupported_features)}"
+            )
             dev_index += 1
         print("-" * 20)
 
