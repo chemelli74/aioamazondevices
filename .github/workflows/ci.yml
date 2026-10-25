@@ -5,6 +5,7 @@ on:
     branches:
       - main
   pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions: write-all
 
@@ -25,6 +26,15 @@ jobs:
         with:
           python-version: "3.15" # renovate: customPinnedDependency=python,datasource=python-version
       - uses: j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d # v3.1.0
+
+  ha-core-dependencies:
+    name: Home Assistant Core dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: chemelli74/ha-core-dependency-check/label@c036686f47c5badcb254d5cd3c93344ea8dd0bf8 # v1.2.0
 
   # Make sure commit messages follow the conventional commits convention:
   # https://www.conventionalcommits.org
@@ -87,6 +97,7 @@ jobs:
     needs:
       - test
       - lint
+      - ha-core-dependencies
       - commitlint
 
     runs-on: ubuntu-latest
@@ -122,13 +133,22 @@ jobs:
           github_token: ${{ github.token }}
 
       # On main branch: actual PSR + upload to PyPI & GitHub
+      # The app is a ruleset bypass actor, so its token can push the release commit to main
+      - name: Create GitHub App token
+        id: app-token
+        if: github.event_name == 'push' && github.ref_name == 'main'
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
       - name: Release
         uses: python-semantic-release/python-semantic-release@b700dbeb1f431a0fcc30a79f3f0869407fe07278 # v10.7.0
         id: release
         if: github.event_name == 'push' && github.ref_name == 'main'
         with:
           verbosity: 2 # equivalent to "-vv"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ steps.app-token.outputs.token }}
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
@@ -142,3 +162,18 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ steps.release.outputs.tag }}
+
+  ci-success:
+    name: CI success
+    if: always()
+    needs:
+      - lint
+      - ha-core-dependencies
+      - commitlint
+      - test
+      - release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail unless every job succeeded
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+        run: exit 1

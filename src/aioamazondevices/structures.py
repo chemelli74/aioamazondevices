@@ -84,6 +84,7 @@ class AmazonDevice:
     capabilities: list[str]
     device_family: str
     device_type: str
+    primary_display_category: str
     device_owner_customer_id: str
     household_device: bool
     device_cluster_members: dict[str, str | None]

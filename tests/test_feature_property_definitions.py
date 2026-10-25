@@ -9,31 +9,54 @@ from aioamazondevices.const.devices import DEVICE_TYPE_AQM
 from aioamazondevices.const.sensors import SENSOR_TEMPLATES
 from aioamazondevices.implementation import feature_property_definitions
 from aioamazondevices.implementation.feature_property_definitions import (
+    FeaturePropertyDefinition,
     resolve_feature_property_definition,
 )
 
 
-def test_common_sensor_is_keyed_by_property() -> None:
-    """A common sensor has no override and is keyed by its property name."""
-    definition = resolve_feature_property_definition(
-        "ANYTYPE", "temperatureSensor", "", "temperature"
+@pytest.mark.parametrize(
+    ("device_type", "feature_name", "instance", "property_name", "expected"),
+    [
+        pytest.param(
+            "ANYTYPE",
+            "temperatureSensor",
+            "",
+            "temperature",
+            FeaturePropertyDefinition(
+                "temperature",
+                SENSOR_TEMPLATES["temperatureSensor"]["temperature"],
+                None,
+            ),
+            id="common-keyed-by-property",
+        ),
+        pytest.param(
+            DEVICE_TYPE_AQM,
+            "range",
+            "4",
+            "rangeValue",
+            FeaturePropertyDefinition(
+                "Humidity",
+                SENSOR_TEMPLATES["range"]["rangeValue"],
+                {"name": "Humidity", "scale": "%"},
+            ),
+            id="specific-keyed-by-override-name",
+        ),
+    ],
+)
+def test_templated_property_definition(
+    device_type: str,
+    feature_name: str,
+    instance: str,
+    property_name: str,
+    expected: FeaturePropertyDefinition,
+) -> None:
+    """Common sensors are keyed by property, specific ones by their override."""
+    assert (
+        resolve_feature_property_definition(
+            device_type, feature_name, instance, property_name
+        )
+        == expected
     )
-
-    assert definition is not None
-    assert definition.key == "temperature"
-    assert definition.template == SENSOR_TEMPLATES["temperatureSensor"]["temperature"]
-    assert definition.override is None
-
-
-def test_specific_sensor_uses_override_name() -> None:
-    """A device specific instance is keyed by its override name."""
-    definition = resolve_feature_property_definition(
-        DEVICE_TYPE_AQM, "range", "4", "rangeValue"
-    )
-
-    assert definition is not None
-    assert definition.key == "Humidity"
-    assert definition.override == {"name": "Humidity", "scale": "%"}
 
 
 def test_specific_sensor_without_name_uses_fallback(

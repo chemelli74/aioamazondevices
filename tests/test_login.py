@@ -3,7 +3,9 @@
 
 """Tests for the Amazon login flow."""
 
+from collections.abc import Callable
 from contextlib import AbstractContextManager, nullcontext
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -178,7 +180,9 @@ async def test_check_login_error_without_error(api: AmazonEchoApi) -> None:
 
 
 @pytest.mark.anyio
-async def test_login_interactive_oauth(api: AmazonEchoApi) -> None:
+async def test_login_interactive_oauth(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Email, password and OTP are each submitted to the page asking for them."""
     login = api._login
     session_request = AsyncMock(
@@ -192,7 +196,7 @@ async def test_login_interactive_oauth(api: AmazonEchoApi) -> None:
             ),
         ]
     )
-    login._http_wrapper.session_request = session_request  # type: ignore[method-assign]
+    monkeypatch.setattr(login._http_wrapper, "session_request", session_request)
 
     result = await login._login_mode_interactive_oauth("123456")
 
@@ -207,7 +211,9 @@ async def test_login_interactive_oauth(api: AmazonEchoApi) -> None:
 
 
 @pytest.mark.anyio
-async def test_login_interactive_oauth_wrong_email(api: AmazonEchoApi) -> None:
+async def test_login_interactive_oauth_wrong_email(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """A rejected email stops the login before the password is sent."""
     login = api._login
     session_request = AsyncMock(
@@ -220,7 +226,7 @@ async def test_login_interactive_oauth_wrong_email(api: AmazonEchoApi) -> None:
             ),
         ]
     )
-    login._http_wrapper.session_request = session_request  # type: ignore[method-assign]
+    monkeypatch.setattr(login._http_wrapper, "session_request", session_request)
 
     with pytest.raises(CannotAuthenticate, match="No account found"):
         await login._login_mode_interactive_oauth("123456")
@@ -242,11 +248,11 @@ async def test_login_interactive_oauth_wrong_email(api: AmazonEchoApi) -> None:
     ],
 )
 async def test_login_interactive_oauth_no_code(
-    api: AmazonEchoApi, final_page: str, match: str
+    api: AmazonEchoApi, final_page: str, match: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Without an authorization code, Amazon's message is used when present."""
     login = api._login
-    login._http_wrapper.session_request = AsyncMock(  # type: ignore[method-assign]
+    session_request = AsyncMock(
         side_effect=[
             _page(EMAIL_PAGE, SIGNIN_URL),
             _page(PASSWORD_PAGE, URL("https://www.amazon.com/ax/claim")),
@@ -254,13 +260,16 @@ async def test_login_interactive_oauth_no_code(
             _page(final_page, SIGNIN_URL),
         ]
     )
+    monkeypatch.setattr(login._http_wrapper, "session_request", session_request)
 
     with pytest.raises(CannotAuthenticate, match=match):
         await login._login_mode_interactive_oauth("123456")
 
 
 @pytest.mark.anyio
-async def test_login_interactive_oauth_unexpected_page(api: AmazonEchoApi) -> None:
+async def test_login_interactive_oauth_unexpected_page(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """The password is not posted to a page that does not ask for it."""
     login = api._login
     session_request = AsyncMock(
@@ -273,7 +282,7 @@ async def test_login_interactive_oauth_unexpected_page(api: AmazonEchoApi) -> No
             ),
         ]
     )
-    login._http_wrapper.session_request = session_request  # type: ignore[method-assign]
+    monkeypatch.setattr(login._http_wrapper, "session_request", session_request)
 
     with pytest.raises(
         CannotAuthenticate, match="Unexpected login page 'Verify it's you'"
@@ -285,10 +294,12 @@ async def test_login_interactive_oauth_unexpected_page(api: AmazonEchoApi) -> No
 
 
 @pytest.mark.anyio
-async def test_login_interactive_oauth_code_with_warning(api: AmazonEchoApi) -> None:
+async def test_login_interactive_oauth_code_with_warning(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """An authorization code wins over a warning box on the final page."""
     login = api._login
-    login._http_wrapper.session_request = AsyncMock(  # type: ignore[method-assign]
+    session_request = AsyncMock(
         side_effect=[
             _page(EMAIL_PAGE, SIGNIN_URL),
             _page(PASSWORD_PAGE, URL("https://www.amazon.com/ax/claim")),
@@ -299,6 +310,7 @@ async def test_login_interactive_oauth_code_with_warning(api: AmazonEchoApi) -> 
             ),
         ]
     )
+    monkeypatch.setattr(login._http_wrapper, "session_request", session_request)
 
     result = await login._login_mode_interactive_oauth("123456")
 
@@ -306,16 +318,21 @@ async def test_login_interactive_oauth_code_with_warning(api: AmazonEchoApi) -> 
 
 
 @pytest.mark.anyio
-async def test_login_stored_data_registers_capabilities(api: AmazonEchoApi) -> None:
+async def test_login_stored_data_registers_capabilities(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Stored-data login re-registers device capabilities."""
     state = api._login._session_state_data
     state.login_stored_data = {"customer_info": {}}
     state.account_customer_id = "CUSTOMER_ID"
-    api._login._register_device_capabilities = AsyncMock()  # type: ignore[method-assign]
+    register_device_capabilities = AsyncMock()
+    monkeypatch.setattr(
+        api._login, "_register_device_capabilities", register_device_capabilities
+    )
 
     await api._login.login_mode_stored_data()
 
-    api._login._register_device_capabilities.assert_awaited_once()
+    register_device_capabilities.assert_awaited_once()
 
 
 @pytest.mark.anyio
@@ -362,11 +379,11 @@ async def test_obtain_account_customer_id(
     response: dict[str, str | None],
     expected_customer_id: str | None,
     expectation: AbstractContextManager[object],
+    mock_json_response: Callable[[dict[str, Any]], AsyncMock],
 ) -> None:
     """The customer id is stored only when a country of residence is set."""
     login = api._login
-    login._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
-    login._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
+    mock_json_response(response)
 
     with expectation:
         await login.obtain_account_customer_id()
