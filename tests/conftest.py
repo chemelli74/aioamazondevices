@@ -5,6 +5,8 @@
 
 from collections.abc import AsyncIterator, Callable
 from pathlib import Path
+from typing import Any
+from unittest.mock import AsyncMock
 
 import pytest
 from aiohttp import ClientSession
@@ -40,6 +42,26 @@ def api(client_session: ClientSession, tmp_path: Path) -> AmazonEchoApi:
 
 
 @pytest.fixture
+def mock_json_response(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> Callable[[dict[str, Any]], AsyncMock]:
+    """Return a setter making every request return the given JSON response.
+
+    The setter returns the session_request mock, to assert on the request.
+    """
+
+    def _mock_json_response(response: dict[str, Any]) -> AsyncMock:
+        session_request = AsyncMock(return_value=(None, None))
+        monkeypatch.setattr(api._http_wrapper, "session_request", session_request)
+        monkeypatch.setattr(
+            api._http_wrapper, "response_to_json", AsyncMock(return_value=response)
+        )
+        return session_request
+
+    return _mock_json_response
+
+
+@pytest.fixture
 def make_device() -> Callable[..., AmazonDevice]:
     """Return a factory that builds a minimal AmazonDevice for tests."""
 
@@ -56,6 +78,7 @@ def make_device() -> Callable[..., AmazonDevice]:
             capabilities=capabilities if capabilities is not None else [],
             device_family=device_family,
             device_type="A1B2C3",
+            primary_display_category="ALEXA_VOICE_ENABLED",
             device_owner_customer_id="CUSTOMER_ID",
             household_device=False,
             device_cluster_members={},

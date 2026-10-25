@@ -1,6 +1,6 @@
 [project]
 name = "aioamazondevices"
-version = "16.9.0"
+version = "16.11.3"
 requires-python = ">=3.12"
 description = "Python library to control Amazon devices"
 authors = [
@@ -23,11 +23,11 @@ classifiers = [
 ]
 dependencies = [
 "aiohttp (>=3.14.5)",
-"anyio (>=4.15.1)",
+"anyio (>=4.14.2)",
 "beautifulsoup4",
 "httpx[http2]",
 "langcodes",
-"orjson (>=3.13.0,<4)",
+"orjson (>=3.11.9,<4)",
 "python-dateutil",
 ]
 
@@ -41,12 +41,12 @@ dev = [
     "colorlog",
     "pytest>=9.1.1,<10",
     "pytest-cov>=7.1.0,<8",
-    "types-python-dateutil>=2.9.0.20260807,<3",
+    "types-python-dateutil>=2.9.0.20261021,<3",
 ]
 
 [tool.uv-version]
 # Source of truth for the uv version. All other version references must be derived from this value.
-version = "0.13.2" # renovate: depName=uv datasource=pypi
+version = "0.13.5" # renovate: depName=uv datasource=pypi
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
@@ -130,5 +130,5 @@ where = ["src"]
 include = ["aioamazondevices*"]
 
 [build-system]
-requires = ["setuptools>=84.2.0", "wheel"]
+requires = ["setuptools>=84.2.1", "wheel"]
 build-backend = "setuptools.build_meta"

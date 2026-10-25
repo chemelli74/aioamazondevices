@@ -74,13 +74,6 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
             "scale": None,
         },
     },
-    "toggle": {
-        "toggleState": {
-            "key": "toggleStateValue",
-            "subkey": None,
-            "scale": None,
-        },
-    },
     "brightness": {
         "brightness": {
             "key": "brightnessStateValue",
@@ -91,7 +84,21 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
     "color": {
         "color": {
             "key": "colorStateValue",
-            "subkey": "hue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
+    "mode": {
+        "mode": {
+            "key": "modeValue",
+            "subkey": "value",
+            "scale": None,
+        },
+    },
+    "toggle": {
+        "toggleState": {
+            "key": "toggleStateValue",
+            "subkey": None,
             "scale": None,
         },
     },
