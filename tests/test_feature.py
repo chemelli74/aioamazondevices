@@ -40,6 +40,7 @@ def _feature(*operations: str) -> AmazonDeviceFeature:
     """Build a feature supporting the given operations."""
     return AmazonDeviceFeature(
         properties=[],
+        sensor_keys={},
         supported_operations=list(operations),
         supported_modes=[],
         friendly_name=None,
