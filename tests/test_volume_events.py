@@ -96,7 +96,7 @@ async def test_volume_event_updates_parent_speaker_group(
     api._device_volumes_initialized = True
     api._media_handler._device_volumes = {
         TEST_SERIAL_1: AmazonVolumeState(10, False),
-        TEST_SERIAL_2: AmazonVolumeState(30, False),
+        TEST_SERIAL_2: AmazonVolumeState(33, False),
     }
 
     member = make_device(TEST_SERIAL_1)
@@ -110,8 +110,9 @@ async def test_volume_event_updates_parent_speaker_group(
 
     await api._handle_volume_change_event(_volume_payload(TEST_SERIAL_1, 50))
 
+    # The average of 50 and 33 is 41.5, which Alexa floors to 41.
     assert api._media_handler._device_volumes[TEST_SERIAL_GROUP] == AmazonVolumeState(
-        40, False
+        41, False
     )
     assert "MISSING_GROUP" not in api._media_handler._device_volumes
 

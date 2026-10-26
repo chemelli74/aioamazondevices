@@ -4,6 +4,7 @@
 """Media module for Amazon devices."""
 
 import asyncio
+import math
 from datetime import UTC, datetime
 from http import HTTPMethod
 from statistics import fmean
@@ -85,8 +86,9 @@ class AmazonMediaHandler:
         if not member_volumes:
             return
 
+        # Alexa reports a speaker group's volume as the floored member average.
         self._device_volumes[speaker_group_serial] = AmazonVolumeState(
-            volume=round(
+            volume=math.floor(
                 fmean(
                     vol
                     for member_vol in member_volumes
