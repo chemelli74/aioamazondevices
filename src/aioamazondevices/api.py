@@ -211,7 +211,11 @@ class AmazonEchoApi:
         )
 
     async def _init_default_device(self) -> None:
-        """Resolve default device serial from settings or the first online device."""
+        """Resolve default device serial from settings or the first online device.
+
+        Online devices that can be spoken to are preferred, as voice commands
+        and routines are sent to the default device.
+        """
         if self._default_device_serial in self._device_handler.devices:
             return
         self._default_device_serial = ""
@@ -224,12 +228,18 @@ class AmazonEchoApi:
             return
 
         # Use first online device as default if no default device has been set yet
-        for device in self._device_handler.devices.values():
-            if device.online:
-                self._default_device_serial = device.serial_number
-                return
+        online_devices = [
+            device for device in self._device_handler.devices.values() if device.online
+        ]
+        if not online_devices:
+            raise NoOnlineDevicesError("No online devices found")
 
-        raise NoOnlineDevicesError("No online devices found")
+        # accounts without a voice device (e.g. thermostat only) still need one
+        device = next(
+            (device for device in online_devices if device.voice_control_supported),
+            online_devices[0],
+        )
+        self._default_device_serial = device.serial_number
 
     async def _load_settings(self) -> dict[str, Any]:
         """Load persisted settings from disk."""
