@@ -123,10 +123,11 @@ class AlexaCommunicationsHandler:
                     fail_fast=True,
                     extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
                 )
-            except CannotRetrieveData:
+            except CannotRetrieveData as err:
                 _LOGGER.warning(
-                    "Failed to refresh communications settings for device %s, used cached values.",  # noqa: E501
+                    "Failed to refresh communications settings for device %s, used cached values: %s",  # noqa: E501
                     dev_name,
+                    err,
                 )
                 continue
             resp_json = await self._http_wrapper.response_to_json(

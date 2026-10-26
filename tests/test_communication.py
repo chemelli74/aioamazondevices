@@ -3,6 +3,7 @@
 
 """Tests for the Alexa communications handler."""
 
+import logging
 from typing import Any
 from unittest.mock import AsyncMock
 
@@ -206,3 +207,27 @@ async def test_get_communication_preferences_keeps_cached_announcements(
     assert preferences == {
         TEST_SERIAL_1: {"announcements": "OFF", "communications": "OFF", "dropin": "ON"}
     }
+
+
+@pytest.mark.anyio
+async def test_get_communication_preferences_logs_failure_reason(
+    handler: AlexaCommunicationsHandler,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A failed preferences call logs the device name and the failure reason."""
+    _route_responses(
+        handler,
+        {
+            "/identities": {"homeGroupId": TEST_HOMEGROUP_ID},
+            "/homegroups/": {"devices": [_homegroup_device(TEST_SERIAL_1)]},
+            "/preferences": CannotRetrieveData("Request failed: Service Unavailable"),
+        },
+    )
+
+    with caplog.at_level(logging.WARNING):
+        await handler.get_communication_preferences()
+
+    assert (
+        f"Failed to refresh communications settings for device Echo {TEST_SERIAL_1}, "
+        "used cached values: Request failed: Service Unavailable"
+    ) in caplog.text
