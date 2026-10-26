@@ -15,70 +15,70 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
         "temperature": {
             "value_key": "value",
             "value_subkey": "value",
-            "scale": "scale",
+            "value_scale_key": "scale",
         },
     },
     "motionSensor": {
         "detectionState": {
             "value_key": "detectionStateValue",
             "value_subkey": None,
-            "scale": None,
+            "value_scale_key": None,
         },
     },
     "lightSensor": {
         "illuminance": {
             "value_key": "illuminanceValue",
             "value_subkey": "value",
-            "scale": None,
+            "value_scale_key": None,
         },
     },
     "connectivity": {
         "reachability": {
             "value_key": "reachabilityStatusValue",
             "value_subkey": None,
-            "scale": None,
+            "value_scale_key": None,
         },
     },
     "range": {
         "rangeValue": {
             "value_key": "rangeValue",
             "value_subkey": "value",
-            "scale": None,
+            "value_scale_key": None,
         },
     },
     "power": {
         "powerState": {
             "value_key": "powerStateValue",
             "value_subkey": None,
-            "scale": None,
+            "value_scale_key": None,
         },
     },
     "brightness": {
         "brightness": {
             "value_key": "brightnessStateValue",
             "value_subkey": None,
-            "scale": None,
+            "value_scale_key": None,
         },
     },
     "color": {
         "color": {
             "value_key": "colorStateValue",
             "value_subkey": None,
-            "scale": None,
+            "value_scale_key": None,
         },
     },
     "mode": {
         "mode": {
             "value_key": "modeValue",
             "value_subkey": "value",
-            "scale": None,
+            "value_scale_key": None,
         },
     },
     "toggle": {
         "toggleState": {
             "value_key": "toggleStateValue",
             "value_subkey": None,
-            "scale": None,
+            "value_scale_key": None,
         },
     },
 }

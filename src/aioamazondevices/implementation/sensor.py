@@ -118,7 +118,7 @@ def _parse_property(
                 return None
             scale = (
                 value_raw[scale_template]
-                if (scale_template := template["scale"])
+                if (scale_template := template["value_scale_key"])
                 else None
             )
             value = (
