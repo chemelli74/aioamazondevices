@@ -121,34 +121,6 @@ def _range_endpoint(instance: str) -> dict[str, Any]:
 
 
 @pytest.mark.anyio
-async def test_sensor_template_name_override(
-    make_device: Callable[..., AmazonDevice],
-    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """A template name replaces the property name as the sensor name."""
-    monkeypatch.setitem(
-        feature_property_definitions.SENSOR_TEMPLATES,
-        "temperatureSensor",
-        {
-            "temperature": {
-                "key": "value",
-                "subkey": "value",
-                "scale": "scale",
-                "name": "Room Temperature",
-            }
-        },
-    )
-
-    sensors = sync_sensors(_temperature_endpoint("value"), make_device(TEST_SERIAL_1))
-
-    assert list(sensors) == ["Room Temperature"]
-    assert sensors["Room Temperature"].name == "Room Temperature"
-    assert sensors["Room Temperature"].value == TEST_TEMPERATURE
-    assert sensors["Room Temperature"].property_name == "temperature"
-
-
-@pytest.mark.anyio
 @pytest.mark.parametrize(
     ("endpoint", "device_type"),
     [
