@@ -132,7 +132,7 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
         },
         "toggle": {
             "11": {
-                "sensor_key_override": "LED",
+                "sensor_key_override": "AQM-LED",
                 "scale": None,
             }
         },
@@ -140,7 +140,7 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
     DEVICE_TYPE_GLOW: {
         "power": {
             "": {
-                "sensor_key_override": "Power",
+                "sensor_key_override": "Light-Power",
                 "scale": None,
             }
         },
@@ -158,12 +158,12 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
         },
         "mode": {
             "1": {
-                "sensor_key_override": "Mode",
+                "sensor_key_override": "Light-Mode",
             }
         },
         "toggle": {
             "3": {
-                "sensor_key_override": "Tap to change",
+                "sensor_key_override": "Glow-Tap",
             }
         },
     },
