@@ -9,6 +9,7 @@ SENSOR_STATE_OFF = "NOT_DETECTED"
 
 # Sensors templates, keyed by feature name and then by property name
 # This determines how to parse the feature
+# the property name will be used as sensor key for these
 SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
     "temperatureSensor": {
         "temperature": {
@@ -100,6 +101,7 @@ POLLED_SENSOR_FEATURES: frozenset[str] = frozenset(
 )
 
 # Device type specific sensors, keyed by device type, feature name and then instance
+# The property name will be used for sensor key unless sensor_key_override is set
 SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
     DEVICE_TYPE_AQM: {
         "range": {
