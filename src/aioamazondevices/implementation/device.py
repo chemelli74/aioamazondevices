@@ -87,12 +87,16 @@ def _parse_features(
             continue
 
         configuration = feature.get("configuration") or {}
-        # mode features list their options, thermostats their supported modes
-        supported_modes = [
-            option["value"]
+        # mode features list their options with friendly names,
+        # thermostats only their supported mode IDs; names fall back to the ID
+        supported_modes = {
+            option["value"]: _endpoint_text(
+                option.get("modeResources") or {}, "friendlyName"
+            )
+            or option["value"]
             for option in configuration.get("modeOptions") or []
             if option.get("value")
-        ] + list(configuration.get("supportedModes") or [])
+        } or {mode: mode for mode in configuration.get("supportedModes") or []}
         supported_range = configuration.get("supportedRange") or {}
 
         instance = feature.get("instance") or ""
