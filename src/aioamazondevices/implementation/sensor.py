@@ -123,7 +123,7 @@ def _parse_property(
             )
             value = (
                 value_raw[subkey_template]
-                if (subkey_template := template["subkey"])
+                if (subkey_template := template["value_subkey"])
                 else value_raw
             )
 
