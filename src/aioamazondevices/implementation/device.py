@@ -12,6 +12,7 @@ from yarl import URL
 from aioamazondevices.const.devices import (
     DEVICE_TYPE_AQM,
     DEVICE_TYPE_GLOW,
+    DEVICE_TYPE_THERMOSTAT,
     DEVICE_TYPES_HARDCODED_METADATA,
     DEVICE_TYPES_TO_IGNORE,
     SPEAKER_GROUP_FAMILY,
@@ -232,7 +233,11 @@ class AmazonDeviceHandler:
             # alone, one branch per device type we support that way
             if base_device := base_devices.get(serial_number):
                 selected_devices[serial_number] = (endpoint, base_device)
-            elif _endpoint_device_type(endpoint) in (DEVICE_TYPE_AQM, DEVICE_TYPE_GLOW):
+            elif _endpoint_device_type(endpoint) in (
+                DEVICE_TYPE_AQM,
+                DEVICE_TYPE_GLOW,
+                DEVICE_TYPE_THERMOSTAT,
+            ):
                 selected_devices[serial_number] = (endpoint, None)
             else:
                 _LOGGER.debug(

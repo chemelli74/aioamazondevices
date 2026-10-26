@@ -3,7 +3,11 @@
 
 """Metadata constants for Amazon device sensors."""
 
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM, DEVICE_TYPE_GLOW
+from aioamazondevices.const.devices import (
+    DEVICE_TYPE_AQM,
+    DEVICE_TYPE_GLOW,
+    DEVICE_TYPE_THERMOSTAT,
+)
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
@@ -77,6 +81,35 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
     "toggle": {
         "toggleState": {
             "key": "toggleStateValue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
+    "thermostat": {
+        "targetSetpoint": {
+            "key": "value",
+            "subkey": "value",
+            "scale": "scale",
+        },
+        "upperSetpoint": {
+            "key": "value",
+            "subkey": "value",
+            "scale": "scale",
+        },
+        "lowerSetpoint": {
+            "key": "value",
+            "subkey": "value",
+            "scale": "scale",
+        },
+        "thermostatMode": {
+            "key": "thermostatModeValue",
+            "subkey": None,
+            "scale": None,
+        },
+    },
+    "thermostatConfiguration": {
+        "allowedTemperatureRange": {
+            "key": "thermostatAllowedTemperatureRangeValue",
             "subkey": None,
             "scale": None,
         },
@@ -165,5 +198,9 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
                 "name": "Tap to change",
             }
         },
+    },
+    DEVICE_TYPE_THERMOSTAT: {
+        "thermostat": {"": {}},
+        "thermostatConfiguration": {"": {}},
     },
 }

@@ -10,7 +10,11 @@ from unittest.mock import AsyncMock
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM, SPEAKER_GROUP_FAMILY
+from aioamazondevices.const.devices import (
+    DEVICE_TYPE_AQM,
+    DEVICE_TYPE_THERMOSTAT,
+    SPEAKER_GROUP_FAMILY,
+)
 from aioamazondevices.const.http import ARRAY_WRAPPER
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.implementation.device import AmazonDeviceHandler
@@ -19,6 +23,7 @@ from aioamazondevices.structures import AmazonDeviceFeature
 from .const import TEST_SERIAL_1, TEST_SERIAL_2
 
 TEST_SERIAL_AQM = "AQM-1"
+TEST_SERIAL_THERMOSTAT = "THERMOSTAT-1"
 TEST_SERIAL_GROUP = "GROUP-1"
 
 # the autouse fixture below replaces the lookup, keep the real one to test it
@@ -167,19 +172,37 @@ async def test_graphql_drives_the_device_list(
 
 
 @pytest.mark.anyio
-async def test_air_quality_monitors_are_created(
-    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+@pytest.mark.parametrize(
+    ("serial_number", "device_type", "model"),
+    [
+        pytest.param(
+            TEST_SERIAL_AQM,
+            DEVICE_TYPE_AQM,
+            "Amazon Smart Air Quality Monitor",
+            id="air-quality",
+        ),
+        pytest.param(
+            TEST_SERIAL_THERMOSTAT, DEVICE_TYPE_THERMOSTAT, "s6ed3r", id="thermostat"
+        ),
+    ],
+)
+async def test_endpoint_only_devices_are_created(
+    api: AmazonEchoApi,
+    monkeypatch: pytest.MonkeyPatch,
+    serial_number: str,
+    device_type: str,
+    model: str,
 ) -> None:
-    """AQM devices exist in the GraphQL data only and are still created."""
+    """Devices that exist in the GraphQL data only are still created."""
     handler = api._device_handler
     _patch_sources(
         monkeypatch,
         handler,
         devices_endpoints={
-            TEST_SERIAL_AQM: _endpoint(
-                TEST_SERIAL_AQM,
-                device_type=DEVICE_TYPE_AQM,
-                model="Amazon Smart Air Quality Monitor",
+            serial_number: _endpoint(
+                serial_number,
+                device_type=device_type,
+                model=model,
             )
         },
         base_devices={},
@@ -187,14 +210,14 @@ async def test_air_quality_monitors_are_created(
 
     await handler.update_devices()
 
-    device = handler.devices[TEST_SERIAL_AQM]
-    assert device.device_type == DEVICE_TYPE_AQM
+    device = handler.devices[serial_number]
+    assert device.device_type == device_type
     assert device.device_family == "Endpoint Only"
     assert device.manufacturer == "Amazon"
-    assert device.model == "Amazon Smart Air Quality Monitor"
+    assert device.model == model
     assert device.software_version == "1234"
     assert not device.voice_control_supported
-    assert device.endpoint_id == f"endpoint-{TEST_SERIAL_AQM}"
+    assert device.endpoint_id == f"endpoint-{serial_number}"
 
 
 @pytest.mark.anyio

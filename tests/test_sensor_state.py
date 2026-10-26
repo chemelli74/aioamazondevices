@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM
+from aioamazondevices.const.devices import DEVICE_TYPE_AQM, DEVICE_TYPE_THERMOSTAT
 from aioamazondevices.const.http import ARRAY_WRAPPER
 from aioamazondevices.implementation import feature_property_definitions
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
@@ -189,6 +189,91 @@ async def test_device_specific_sensor_uses_override(
     assert sensors["Humidity"].feature_name == "range"
     assert sensors["Humidity"].property_name == "rangeValue"
     assert sensors["Humidity"].instance == "4"
+
+
+def _setpoint(name: str, value: float) -> dict[str, Any]:
+    """Build a thermostat setpoint property."""
+    return {
+        "name": name,
+        "error": None,
+        "__typename": "Setpoint",
+        "value": {"value": value, "scale": "FAHRENHEIT"},
+    }
+
+
+TEST_ALLOWED_TEMPERATURE_RANGE = {
+    "heating": {
+        "minimum": {"value": 40.0, "scale": "FAHRENHEIT"},
+        "maximum": {"value": 87.0, "scale": "FAHRENHEIT"},
+    },
+    "cooling": {
+        "minimum": {"value": 43.0, "scale": "FAHRENHEIT"},
+        "maximum": {"value": 90.0, "scale": "FAHRENHEIT"},
+    },
+}
+
+
+def _thermostat_endpoint() -> dict[str, Any]:
+    """Build the thermostat features of an Amazon Smart Thermostat."""
+    return {
+        "features": [
+            {
+                "name": "thermostat",
+                "instance": None,
+                "properties": [
+                    _setpoint("upperSetpoint", 73.0),
+                    # properties without a template are ignored
+                    {
+                        "name": "adaptiveRecoveryStatus",
+                        "error": None,
+                        "__typename": "AdaptiveRecoveryStatus",
+                    },
+                    _setpoint("targetSetpoint", 62.0),
+                    _setpoint("lowerSetpoint", 65.0),
+                    {
+                        "name": "thermostatMode",
+                        "error": None,
+                        "__typename": "ThermostatMode",
+                        "thermostatModeValue": "AUTO",
+                    },
+                ],
+            },
+            {
+                "name": "thermostatConfiguration",
+                "instance": None,
+                "properties": [
+                    {
+                        "name": "allowedTemperatureRange",
+                        "error": None,
+                        "__typename": "ThermostatConfigurationAllowedTemperatureRange",
+                        "thermostatAllowedTemperatureRangeValue": (
+                            TEST_ALLOWED_TEMPERATURE_RANGE
+                        ),
+                    },
+                ],
+            },
+        ]
+    }
+
+
+@pytest.mark.anyio
+async def test_thermostat_sensors_are_read(
+    make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
+) -> None:
+    """Thermostat properties are keyed by property name, scale read from value."""
+    sensors = sync_sensors(
+        _thermostat_endpoint(),
+        _make_typed_device(make_device, DEVICE_TYPE_THERMOSTAT),
+    )
+
+    assert {key: (sensor.value, sensor.scale) for key, sensor in sensors.items()} == {
+        "upperSetpoint": (73.0, "FAHRENHEIT"),
+        "targetSetpoint": (62.0, "FAHRENHEIT"),
+        "lowerSetpoint": (65.0, "FAHRENHEIT"),
+        "thermostatMode": ("AUTO", None),
+        "allowedTemperatureRange": (TEST_ALLOWED_TEMPERATURE_RANGE, None),
+    }
 
 
 @pytest.mark.anyio

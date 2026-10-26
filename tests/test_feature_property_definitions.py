@@ -5,7 +5,7 @@
 
 import pytest
 
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM
+from aioamazondevices.const.devices import DEVICE_TYPE_AQM, DEVICE_TYPE_THERMOSTAT
 from aioamazondevices.const.sensors import SENSOR_TEMPLATES
 from aioamazondevices.implementation import feature_property_definitions
 from aioamazondevices.implementation.feature_property_definitions import (
@@ -40,6 +40,18 @@ from aioamazondevices.implementation.feature_property_definitions import (
                 {"name": "Humidity", "scale": "%"},
             ),
             id="specific-keyed-by-override-name",
+        ),
+        pytest.param(
+            DEVICE_TYPE_THERMOSTAT,
+            "thermostat",
+            "",
+            "targetSetpoint",
+            FeaturePropertyDefinition(
+                "targetSetpoint",
+                SENSOR_TEMPLATES["thermostat"]["targetSetpoint"],
+                {},
+            ),
+            id="specific-without-instance-keyed-by-property",
         ),
     ],
 )
