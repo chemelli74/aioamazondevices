@@ -1,5 +1,17 @@
 # Changelog
 
+## v17.2.3 (2026-10-26)
+
+### Bug fixes
+
+- Update sensor keys ([`efa88fa`](https://github.com/chemelli74/aioamazondevices/commit/efa88fa624b3d7bd8da652add41d6690e7eb3066))
+
+
+### Refactoring
+
+- Rename generic fields ([`f7d32ce`](https://github.com/chemelli74/aioamazondevices/commit/f7d32ce9c2dda01a95739c53c06cb7502c687628))
+
+
 ## v17.2.2 (2026-10-26)
 
 ### Bug fixes
