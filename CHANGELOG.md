@@ -1,5 +1,12 @@
 # Changelog
 
+## v17.2.2 (2026-10-26)
+
+### Bug fixes
+
+- Prefer voice devices as default device ([`aa3444b`](https://github.com/chemelli74/aioamazondevices/commit/aa3444b268c3d128d57b61fce76f010763e75855))
+
+
 ## v17.2.1 (2026-10-26)
 
 ### Bug fixes
