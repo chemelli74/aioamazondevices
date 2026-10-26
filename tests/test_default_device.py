@@ -98,6 +98,34 @@ async def test_init_default_device_falls_back_to_first_online_device(
 
 
 @pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("voice_control_supported", "expected_serial"),
+    [
+        pytest.param((False, True), TEST_SERIAL_2, id="voice-device-preferred"),
+        pytest.param((False, False), TEST_SERIAL_1, id="no-voice-device"),
+    ],
+)
+async def test_init_default_device_prefers_voice_devices(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    voice_control_supported: tuple[bool, bool],
+    expected_serial: str,
+) -> None:
+    """A voice device beats an endpoint-only one, which is still used alone."""
+    api._device_handler._final_devices = {
+        serial: make_device(serial, online=True, voice_control_supported=supported)
+        for serial, supported in zip(
+            (TEST_SERIAL_1, TEST_SERIAL_2), voice_control_supported, strict=True
+        )
+    }
+
+    await api._init_default_device()
+
+    default_device = await api.get_default_device()
+    assert default_device.serial_number == expected_serial
+
+
+@pytest.mark.anyio
 async def test_init_default_device_raises_without_online_devices(
     api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
 ) -> None:
