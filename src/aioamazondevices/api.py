@@ -497,19 +497,20 @@ class AmazonEchoApi:
                 volume = AmazonVolumeState(
                     payload.get("volumeSetting"), payload.get("isMuted")
                 )
-                # check if device is part of a cluster
                 self._media_handler.update_cached_device_volume(serial, volume)
-                if volume_device := self._device_handler.devices.get(serial):
-                    for parent_serial in volume_device.parent_clusters:
-                        if parent_cluster := self._device_handler.devices.get(
-                            parent_serial
-                        ):
-                            self._media_handler.update_cached_speaker_group_volume(
-                                parent_serial,
-                                list(parent_cluster.device_cluster_members),
-                            )
+                self._update_cached_parent_cluster_volumes(serial)
 
         await self._emit_volume_state_event()
+
+    def _update_cached_parent_cluster_volumes(self, serial: str) -> None:
+        """Recalculate the cached volume of the speaker groups a device is in."""
+        if volume_device := self._device_handler.devices.get(serial):
+            for parent_serial in volume_device.parent_clusters:
+                if parent_cluster := self._device_handler.devices.get(parent_serial):
+                    self._media_handler.update_cached_speaker_group_volume(
+                        parent_serial,
+                        list(parent_cluster.device_cluster_members),
+                    )
 
     async def _handle_eq_event_as_history_proxy(self) -> None:
         if not self.on_history_event.frozen:
@@ -655,7 +656,12 @@ class AmazonEchoApi:
         """Set device volume."""
         if not (VOLUME_MIN <= volume <= VOLUME_MAX):
             raise ValueError(f"Volume must be between {VOLUME_MIN} and {VOLUME_MAX}")
-        await self._media_handler.set_device_volume(device, volume)
+        # Held across the requests so a concurrent set cannot step from a stale
+        # cached volume.
+        async with self._device_volumes_lock:
+            await self._media_handler.set_device_volume(device, volume)
+            for member_serial in device.device_cluster_members:
+                self._update_cached_parent_cluster_volumes(member_serial)
 
     async def _call_alexa_command_per_cluster_member(
         self,
