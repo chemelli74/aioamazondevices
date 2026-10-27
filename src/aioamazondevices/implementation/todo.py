@@ -19,6 +19,11 @@ from aioamazondevices.structures import (
 )
 
 
+def _capitalize_first(name: str) -> str:
+    """Uppercase the first character only, leaving the rest unchanged."""
+    return name[:1].upper() + name[1:]
+
+
 class AmazonToDoHandler:
     """Class to handle Amazon sensor functionality."""
 
@@ -95,7 +100,7 @@ class AmazonToDoHandler:
         return [
             AmazonListItem(
                 id=item_info["itemId"],
-                name=(item_info["itemName"]).capitalize(),
+                name=_capitalize_first(item_info["itemName"]),
                 status=AmazonListItemStatus(item_info["itemStatus"]),
                 version=item_info["version"],
             )
