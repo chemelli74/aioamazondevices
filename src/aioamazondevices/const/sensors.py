@@ -130,6 +130,7 @@ POLLED_SENSOR_FEATURES: frozenset[str] = frozenset(
         "connectivity",
         "lightSensor",
         "motionSensor",
+        "thermostat",
     }
 )
 
