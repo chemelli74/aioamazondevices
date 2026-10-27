@@ -9,76 +9,76 @@ SENSOR_STATE_OFF = "NOT_DETECTED"
 
 # Sensors templates, keyed by feature name and then by property name
 # This determines how to parse the feature
-# An optional "name" replaces the property name as the sensor name
+# the property name will be used as sensor key for these
 SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
     "temperatureSensor": {
         "temperature": {
-            "key": "value",
-            "subkey": "value",
-            "scale": "scale",
+            "value_key": "value",
+            "value_subkey": "value",
+            "value_scale_key": "scale",
         },
     },
     "motionSensor": {
         "detectionState": {
-            "key": "detectionStateValue",
-            "subkey": None,
-            "scale": None,
+            "value_key": "detectionStateValue",
+            "value_subkey": None,
+            "value_scale_key": None,
         },
     },
     "lightSensor": {
         "illuminance": {
-            "key": "illuminanceValue",
-            "subkey": "value",
-            "scale": None,
+            "value_key": "illuminanceValue",
+            "value_subkey": "value",
+            "value_scale_key": None,
         },
     },
     "connectivity": {
         "reachability": {
-            "key": "reachabilityStatusValue",
-            "subkey": None,
-            "scale": None,
+            "value_key": "reachabilityStatusValue",
+            "value_subkey": None,
+            "value_scale_key": None,
         },
     },
     "range": {
         "rangeValue": {
-            "key": "rangeValue",
-            "subkey": "value",
-            "scale": None,
+            "value_key": "rangeValue",
+            "value_subkey": "value",
+            "value_scale_key": None,
         },
     },
     "power": {
         "powerState": {
-            "key": "powerStateValue",
-            "subkey": None,
-            "scale": None,
+            "value_key": "powerStateValue",
+            "value_subkey": None,
+            "value_scale_key": None,
         },
     },
     "brightness": {
         "brightness": {
-            "key": "brightnessStateValue",
-            "subkey": None,
-            "scale": None,
+            "value_key": "brightnessStateValue",
+            "value_subkey": None,
+            "value_scale_key": None,
         },
     },
     "color": {
         "color": {
-            "key": "colorStateValue",
-            "subkey": None,
-            "scale": None,
+            "value_key": "colorStateValue",
+            "value_subkey": None,
+            "value_scale_key": None,
         },
     },
     "mode": {
         "mode": {
-            "key": "modeValue",
-            "subkey": "value",
-            "scale": None,
+            "value_key": "modeValue",
+            "value_subkey": "value",
+            "value_scale_key": None,
         },
     },
     "toggle": {
         "toggleState": {
-            "key": "toggleStateValue",
-            "subkey": None,
-            "scale": None,
+            "value_key": "toggleStateValue",
+            "value_subkey": None,
+            "value_scale_key": None,
         },
     },
 }
@@ -101,37 +101,38 @@ POLLED_SENSOR_FEATURES: frozenset[str] = frozenset(
 )
 
 # Device type specific sensors, keyed by device type, feature name and then instance
+# The property name will be used for sensor key unless sensor_key_override is set
 SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
     DEVICE_TYPE_AQM: {
         "range": {
             "4": {
-                "name": "Humidity",
+                "sensor_key_override": "Humidity",
                 "scale": "%",
             },
             "5": {
-                "name": "VOC",
+                "sensor_key_override": "VOC",
                 "scale": None,
             },
             "6": {
-                "name": "PM25",
+                "sensor_key_override": "PM25",
                 "scale": "MicroGramsPerCubicMeter",
             },
             "7": {
-                "name": "PM10",
+                "sensor_key_override": "PM10",
                 "scale": "MicroGramsPerCubicMeter",
             },
             "8": {
-                "name": "CO",
+                "sensor_key_override": "CO",
                 "scale": "ppm",
             },
             "9": {
-                "name": "Air Quality",
+                "sensor_key_override": "Air Quality",
                 "scale": None,
             },
         },
         "toggle": {
             "11": {
-                "name": "LED",
+                "sensor_key_override": "aqm_led",
                 "scale": None,
             }
         },
@@ -139,30 +140,30 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
     DEVICE_TYPE_GLOW: {
         "power": {
             "": {
-                "name": "Power",
+                "sensor_key_override": "light_power",
                 "scale": None,
             }
         },
         "brightness": {
             "": {
-                "name": "Brightness",
+                "sensor_key_override": "brightness",
                 "scale": "%",
             }
         },
         "color": {
             "": {
-                "name": "Color",
+                "sensor_key_override": "color",
                 "scale": None,
             }
         },
         "mode": {
             "1": {
-                "name": "Mode",
+                "sensor_key_override": "light_mode",
             }
         },
         "toggle": {
             "3": {
-                "name": "Tap to change",
+                "sensor_key_override": "glow_tap",
             }
         },
     },
