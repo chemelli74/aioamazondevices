@@ -87,31 +87,31 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
     },
     "thermostat": {
         "targetSetpoint": {
-            "key": "value",
-            "subkey": "value",
-            "scale": "scale",
+            "value_key": "value",
+            "value_subkey": "value",
+            "value_scale_key": "scale",
         },
         "upperSetpoint": {
-            "key": "value",
-            "subkey": "value",
-            "scale": "scale",
+            "value_key": "value",
+            "value_subkey": "value",
+            "value_scale_key": "scale",
         },
         "lowerSetpoint": {
-            "key": "value",
-            "subkey": "value",
-            "scale": "scale",
+            "value_key": "value",
+            "value_subkey": "value",
+            "value_scale_key": "scale",
         },
         "thermostatMode": {
-            "key": "thermostatModeValue",
-            "subkey": None,
-            "scale": None,
+            "value_key": "thermostatModeValue",
+            "value_subkey": None,
+            "value_scale_key": None,
         },
     },
     "thermostatConfiguration": {
         "allowedTemperatureRange": {
-            "key": "thermostatAllowedTemperatureRangeValue",
-            "subkey": None,
-            "scale": None,
+            "value_key": "thermostatAllowedTemperatureRangeValue",
+            "value_subkey": None,
+            "value_scale_key": None,
         },
     },
 }
