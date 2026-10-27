@@ -5,18 +5,8 @@
 
 QUERY_DEVICE_DATA = """
 query getDevicesBaseData {
-  alexaVoiceDevices: listEndpoints(
+  listEndpoints(
     listEndpointsInput: {
-      displayCategory: "ALEXA_VOICE_ENABLED"
-      includeHouseholdDevices: true
-    }
-  ) {
-    ...DeviceEndpoints
-  }
-
-  airQualityMonitors: listEndpoints(
-    listEndpointsInput: {
-      displayCategory: "AIR_QUALITY_MONITOR"
       includeHouseholdDevices: true
     }
   ) {
@@ -53,10 +43,9 @@ fragment DeviceEndpoints on ListEndpointsResponse {
 }
 """
 
-QUERY_SENSOR_STATE = """
-fragment EndpointState on Endpoint {
+QUERY_DEVICE_FEATURES = """
+fragment EndpointFeatures on Endpoint {
   endpointId: id
-  friendlyNameObject { value { text } }
   features {
     name
     instance
@@ -95,12 +84,239 @@ fragment EndpointState on Endpoint {
         timeOfSample
         timeOfLastChange
       }
+      ... on ToggleState {
+        toggleStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on Power {
+        powerStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on Brightness {
+        brightnessStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on Color {
+        colorStateValue { hue saturation brightness }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on DetectionSensitivity {
+        detectionSensitivityValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on EnablementState {
+        enablementStateValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on DetectionRange {
+        detectionRangeValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on DetectionTechnology {
+        detectionTechnologyValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on Mode {
+        modeValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatMode {
+        thermostatModeValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on Setpoint {
+        value { value scale }
+        deviceNativeScaleValue
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatScheduleScheduleEnabled {
+        thermostatScheduleScheduleEnabledValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatScheduleAdaptiveRecoveryEnabled {
+        thermostatScheduleAdaptiveRecoveryEnabledValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatScheduleLastActivityType {
+        thermostatScheduleLastActivityTypeValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on AdaptiveRecoveryStatus {
+        adaptiveRecoveryStatusValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatConfigurationSetupState {
+        thermostatSetupStateValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatConfigurationTemperatureScale {
+        thermostatTemperatureScaleValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on ThermostatConfigurationAllowedTemperatureRange {
+        thermostatAllowedTemperatureRangeValue {
+          heating {
+            minimum { value scale }
+            maximum { value scale }
+          }
+          cooling {
+            minimum { value scale }
+            maximum { value scale }
+          }
+        }
+        timeOfSample
+        timeOfLastChange
+      }
+    }
+    operations { name }
+    configuration {
+      __typename
+      ... on ModeConfiguration {
+        friendlyName { value { text } }
+        order
+        modeOptions {
+          value
+          modeResources {
+            friendlyName { value { text } }
+          }
+        }
+      }
+      ... on RangeConfiguration {
+        friendlyName { value { text } }
+        supportedRange {
+          minimumValue
+          maximumValue
+          precision
+        }
+        unitOfMeasure { value { text } }
+        presets {
+          rangeValue
+          presetResources {
+            friendlyName { value { text } }
+          }
+        }
+      }
+      ... on ThermostatConfiguration {
+        supportedModes
+      }
+      ... on ThermostatConfigurationConfiguration {
+        supportedResetStates { value }
+        componentConfigurationConstraints {
+          supportedTerminals {
+            name
+            purpose
+          }
+          maximumStages {
+            heating
+            cooling
+            combined
+          }
+          supportedSwitchOverTypes
+          lockoutTemperature {
+            heating {
+              minimum { value scale }
+              maximum { value scale }
+            }
+            cooling {
+              minimum { value scale }
+              maximum { value scale }
+            }
+            increment { value scale }
+          }
+        }
+        requiredSetupInformation
+        supportedTemperatureScales
+        safetyTemperatures {
+          heating {
+            minimum { value scale }
+            maximum { value scale }
+          }
+          cooling {
+            minimum { value scale }
+            maximum { value scale }
+          }
+        }
+        minimumSetpointDifferential { value scale }
+      }
+      ... on ThermostatScheduleConfiguration {
+        supportedFanModes
+        supportsAdaptiveRecovery
+        maxEntryPerDay
+      }
+      ... on ToggleConfiguration {
+        friendlyName { value { text } }
+      }
+      ... on GenericConfiguration {
+        genericValue
+      }
     }
   }
 }
 
 
-query getEndpointState($endpointIds: [String]!) {
+query getEndpointFeatures($endpointIds: [String]!) {
+  listEndpoints(
+    listEndpointsInput: {
+      latencyTolerance: LOW,
+      endpointIds: $endpointIds,
+      includeHouseholdDevices: true
+    }
+  ) {
+    endpoints {
+      ...EndpointFeatures
+    }
+  }
+}
+"""
+
+QUERY_POLLED_SENSOR_STATE = """
+fragment EndpointState on Endpoint {
+  endpointId: id
+  features {
+    name
+    instance
+    properties {
+      ... on Illuminance {
+        name
+        error { type message }
+        illuminanceValue { value }
+        timeOfSample
+      }
+      ... on Reachability {
+        name
+        error { type message }
+        reachabilityStatusValue
+        timeOfSample
+      }
+      ... on DetectionState {
+        name
+        error { type message }
+        detectionStateValue
+        timeOfSample
+      }
+    }
+  }
+}
+
+
+query getPolledSensorState($endpointIds: [String]!) {
   listEndpoints(
     listEndpointsInput: {
       latencyTolerance: LOW,
@@ -110,6 +326,30 @@ query getEndpointState($endpointIds: [String]!) {
   ) {
     endpoints {
       ...EndpointState
+    }
+  }
+}
+"""
+
+MUTATION_SET_ENDPOINT_FEATURES = """
+mutation setEndpointFeatures(
+  $setEndpointFeaturesInput: SetEndpointFeaturesInput!
+) {
+  setEndpointFeatures(setEndpointFeaturesInput: $setEndpointFeaturesInput) {
+    featureControlResponses {
+      endpointId
+      featureName
+      instance
+      featureOperationName
+      code
+    }
+    errors {
+      endpointId
+      featureName
+      instance
+      featureOperationName
+      code
+      message
     }
   }
 }

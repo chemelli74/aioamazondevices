@@ -3,6 +3,7 @@
 
 """Implementation of device handling for Amazon devices."""
 
+from dataclasses import replace
 from http import HTTPMethod
 from typing import Any
 
@@ -10,8 +11,10 @@ from yarl import URL
 
 from aioamazondevices.const.devices import (
     DEVICE_TYPE_AQM,
+    DEVICE_TYPE_GLOW,
     DEVICE_TYPES_HARDCODED_METADATA,
     DEVICE_TYPES_TO_IGNORE,
+    SPEAKER_GROUP_FAMILY,
 )
 from aioamazondevices.const.http import (
     REFRESH_ACCESS_TOKEN,
@@ -20,11 +23,163 @@ from aioamazondevices.const.http import (
     URI_NEXUS_GRAPHQL,
     URI_REBOOT,
 )
-from aioamazondevices.const.queries import QUERY_DEVICE_DATA
+from aioamazondevices.const.queries import QUERY_DEVICE_DATA, QUERY_DEVICE_FEATURES
 from aioamazondevices.exceptions import CannotRestartDevice, CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import AmazonDevice
-from aioamazondevices.utils import _LOGGER, format_graphql_error, parse_device_details
+from aioamazondevices.implementation.feature_property_definitions import (
+    resolve_feature_property_definition,
+)
+from aioamazondevices.structures import AmazonDevice, AmazonDeviceFeature
+from aioamazondevices.utils import (
+    _LOGGER,
+    check_and_log_graphql_errors,
+    parse_device_details,
+    validate_graphql_endpoint_shape,
+)
+
+
+def _endpoint_text(endpoint: dict[str, Any], key: str) -> str | None:
+    """Return the text of a GraphQL endpoint attribute."""
+    return ((endpoint.get(key) or {}).get("value") or {}).get("text")
+
+
+def _endpoint_device_type(endpoint: dict[str, Any]) -> str | None:
+    """Return the legacy device type of a GraphQL endpoint."""
+    legacy_identifiers = endpoint.get("legacyIdentifiers") or {}
+    return _endpoint_text(legacy_identifiers.get("dmsIdentifier") or {}, "deviceType")
+
+
+def _device_type(endpoint: dict[str, Any], base_device: dict[str, Any] | None) -> str:
+    """Return the device type, preferring the GraphQL endpoint one."""
+    return _endpoint_device_type(endpoint) or (base_device or {}).get("deviceType", "")
+
+
+def _endpoint_primary_display_category(endpoint: dict[str, Any]) -> str:
+    """Return the primary display category of a GraphQL endpoint."""
+    display_categories = endpoint.get("displayCategories") or {}
+    return (display_categories.get("primary") or {}).get("value") or "UNKNOWN"
+
+
+def _endpoint_entity_id(endpoint: dict[str, Any]) -> str | None:
+    """Return the legacy entity ID of a GraphQL endpoint."""
+    legacy_identifiers = endpoint.get("legacyIdentifiers") or {}
+    return (legacy_identifiers.get("chrsIdentifier") or {}).get("entityId")
+
+
+def _parse_features(
+    endpoint_state: dict[str, Any], device_type: str
+) -> tuple[
+    dict[str, dict[str, AmazonDeviceFeature]],
+    dict[str, dict[str, AmazonDeviceFeature]],
+]:
+    """Return the supported and unsupported features of an endpoint.
+
+    Both are keyed by feature name and instance; features without an instance
+    are keyed by an empty string, so the result only has string keys.
+
+    This is at property level so a feature with multiple properties could
+    appear in both sets (with different properties).
+    """
+    features: dict[str, dict[str, AmazonDeviceFeature]] = {}
+    unsupported_features: dict[str, dict[str, AmazonDeviceFeature]] = {}
+    for feature in endpoint_state.get("features") or []:
+        if not (name := feature.get("name")):
+            continue
+
+        configuration = feature.get("configuration") or {}
+        # mode features list their options, thermostats their supported modes
+        supported_modes = [
+            option["value"]
+            for option in configuration.get("modeOptions") or []
+            if option.get("value")
+        ] + list(configuration.get("supportedModes") or [])
+        supported_range = configuration.get("supportedRange") or {}
+
+        instance = feature.get("instance") or ""
+        properties = [
+            prop["name"] for prop in feature.get("properties") or [] if prop.get("name")
+        ]
+        sensor_keys = {
+            prop: definition.key
+            for prop in properties
+            if (
+                definition := resolve_feature_property_definition(
+                    device_type, name, instance, prop
+                )
+            )
+        }
+        parsed_feature = AmazonDeviceFeature(
+            supported_operations=[
+                operation["name"]
+                for operation in feature.get("operations") or []
+                if operation.get("name")
+            ],
+            properties=properties,
+            supported_modes=supported_modes,
+            friendly_name=_endpoint_text(configuration, "friendlyName"),
+            minimum_value=supported_range.get("minimumValue"),
+            maximum_value=supported_range.get("maximumValue"),
+            precision=supported_range.get("precision"),
+            unit_of_measure=_endpoint_text(configuration, "unitOfMeasure"),
+            raw_configuration=configuration,
+            sensor_keys={},
+        )
+
+        supported = []
+        unsupported = []
+
+        for prop in properties:
+            if prop in sensor_keys:
+                supported.append(prop)
+            else:
+                unsupported.append(prop)
+
+        if supported:
+            features.setdefault(name, {})[instance] = replace(
+                parsed_feature, properties=supported, sensor_keys=sensor_keys
+            )
+
+        if unsupported or not supported:
+            unsupported_features.setdefault(name, {})[instance] = replace(
+                parsed_feature, properties=unsupported
+            )
+
+    return features, unsupported_features
+
+
+def _resolve_model_details(
+    device_type: str, account_name: str, model: str | None, manufacturer: str | None
+) -> tuple[str | None, str | None, str | None]:
+    """Normalize a model and split its hardware revision off.
+
+    Returns the model, its hardware version and the manufacturer, falling back
+    to hardcoded metadata for devices that report no usable model.
+    """
+    hardcoded_data = DEVICE_TYPES_HARDCODED_METADATA.get(device_type, {})
+
+    if not model:
+        _LOGGER.debug(
+            "Looking hardcoded model for device type %s [%s]",
+            device_type,
+            account_name,
+        )
+        model = hardcoded_data.get("model")
+
+    device_model, hardware_version = parse_device_details(model)
+
+    if not device_model:
+        _LOGGER.warning(
+            "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices/wiki/Unknown-Device-Types",
+            device_type,
+            account_name,
+        )
+        return model, None, manufacturer
+
+    return (
+        device_model,
+        hardware_version,
+        manufacturer or hardcoded_data.get("manufacturer"),
+    )
 
 
 class AmazonDeviceHandler:
@@ -39,7 +194,7 @@ class AmazonDeviceHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
         self._final_devices: dict[str, AmazonDevice] = {}
-        self._endpoints: dict[str, str] = {}  # endpoint ID to serial number map
+        self._endpoint_states: dict[str, dict[str, Any]] = {}
 
     @property
     def devices(self) -> dict[str, AmazonDevice]:
@@ -47,14 +202,194 @@ class AmazonDeviceHandler:
         return self._final_devices
 
     @property
-    def endpoints(self) -> dict[str, str]:
-        """Return the endpoints mapping."""
-        return self._endpoints
+    def endpoint_states(self) -> dict[str, dict[str, Any]]:
+        """Return the raw endpoint features of the last refresh.
 
-    async def get_base_devices(self) -> None:
-        """Get a list of devices we are interested in.
+        keyed by endpoint ID.
+        """
+        return self._endpoint_states
 
-        This will not include AQM devices which will be added later.
+    async def update_devices(self) -> None:
+        """Build the list of devices we are interested in.
+
+        GraphQL endpoint data is the driving side: every device is built from
+        its endpoint and enriched with `api/devices-v2/device` data when there
+        is some. Speaker groups are the exception, as they only exist in the
+        devices-v2 data.
+
+        Raises CannotRetrieveData when the endpoint data cannot be retrieved,
+        leaving the known devices untouched.
+        """
+        devices_endpoints = await self._get_devices_endpoint_data()
+
+        base_devices = await self._get_base_devices_data()
+
+        # serial number -> (endpoint, devices-v2 data) of the devices we want
+        selected_devices: dict[str, tuple[dict[str, Any], dict[str, Any] | None]] = {}
+
+        for serial_number, endpoint in devices_endpoints.items():
+            # Devices without devices-v2 data are built from their endpoint
+            # alone, one branch per device type we support that way
+            if base_device := base_devices.get(serial_number):
+                selected_devices[serial_number] = (endpoint, base_device)
+            elif _endpoint_device_type(endpoint) in (DEVICE_TYPE_AQM, DEVICE_TYPE_GLOW):
+                selected_devices[serial_number] = (endpoint, None)
+            else:
+                _LOGGER.debug(
+                    "Skipping endpoint without devices-v2 data: %s",
+                    _endpoint_text(endpoint, "friendlyNameObject"),
+                )
+
+        endpoints_features = await self._get_endpoints_features(
+            [
+                endpoint_id
+                for endpoint, _ in selected_devices.values()
+                if (endpoint_id := endpoint.get("endpointId"))
+            ]
+        )
+
+        devices: dict[str, AmazonDevice] = {}
+
+        for serial_number, (endpoint, base_device) in selected_devices.items():
+            if endpoint_features := endpoints_features.get(
+                endpoint.get("endpointId", "")
+            ):
+                features, unsupported_features = _parse_features(
+                    endpoint_features, _device_type(endpoint, base_device)
+                )
+            elif known_device := self._final_devices.get(serial_number):
+                # keep the last known features when the lookup fails
+                features = known_device.features
+                unsupported_features = known_device.unsupported_features
+            else:
+                features, unsupported_features = {}, {}
+
+            devices[serial_number] = self._build_device(
+                serial_number,
+                endpoint,
+                base_device,
+                features,
+                unsupported_features,
+            )
+
+        # Speaker groups are not exposed as endpoints by GraphQL
+        for serial_number, base_device in base_devices.items():
+            if (
+                serial_number in devices
+                or base_device.get("deviceFamily") != SPEAKER_GROUP_FAMILY
+            ):
+                continue
+
+            devices[serial_number] = self._build_device(
+                serial_number, {}, base_device, {}, {}
+            )
+
+        # backfill device types for cluster members, now that they are all built
+        for device in devices.values():
+            for member_serial in device.device_cluster_members:
+                member = devices.get(member_serial)
+                device.device_cluster_members[member_serial] = (
+                    member.device_type if member else None
+                )
+
+        self._final_devices = devices
+        self._endpoint_states = endpoints_features
+
+    async def update_endpoint_states(self) -> None:
+        """Refresh the endpoint states of the known devices only.
+
+        Unlike update_devices, the devices are not rebuilt, so this is safe
+        to call outside a poll, e.g. to resync sensors after missed pushes.
+        """
+        self._endpoint_states = await self._get_endpoints_features(
+            [
+                device.endpoint_id
+                for device in self._final_devices.values()
+                if device.endpoint_id
+            ]
+        )
+
+    def _build_device(
+        self,
+        serial_number: str,
+        endpoint: dict[str, Any],
+        base_device: dict[str, Any] | None,
+        features: dict[str, dict[str, AmazonDeviceFeature]],
+        unsupported_features: dict[str, dict[str, AmazonDeviceFeature]],
+    ) -> AmazonDevice:
+        """Build a device from its GraphQL endpoint and devices-v2 data.
+
+        The endpoint is the primary source and devices-v2 provides what it does
+        not have, so a device without devices-v2 data (e.g. an air quality
+        monitor) is built from its endpoint alone, and a speaker group, which
+        has no endpoint, from its devices-v2 data alone. Both sources are keyed
+        by serial number, so it is passed in rather than read again here.
+        """
+        base = base_device or {}
+        account_customer_id = self._session_state_data.account_customer_id
+        capabilities: list[str] = base.get("capabilities") or []
+        owner_customer_id: str | None = base.get("deviceOwnerCustomerId")
+
+        account_name = _endpoint_text(endpoint, "friendlyNameObject") or base.get(
+            "accountName", ""
+        )
+        device_type = _device_type(endpoint, base_device)
+        # devices-v2 is the only source of a device family, so a device that
+        # has no devices-v2 data at all is a different case to one whose data
+        # does not name a family
+        family = (base.get("deviceFamily") or "Unknown") if base else "Endpoint Only"
+
+        model, hardware_version, manufacturer = _resolve_model_details(
+            device_type,
+            account_name,
+            _endpoint_text(endpoint, "model") or base.get("deviceTypeFriendlyName"),
+            _endpoint_text(endpoint, "manufacturer"),
+        )
+
+        return AmazonDevice(
+            account_name=account_name,
+            capabilities=capabilities,
+            device_family=family,
+            device_type=device_type,
+            primary_display_category=_endpoint_primary_display_category(endpoint),
+            device_owner_customer_id=owner_customer_id or account_customer_id or "n/a",
+            household_device=bool(owner_customer_id)
+            and owner_customer_id == account_customer_id,
+            device_cluster_members=dict.fromkeys(
+                base.get("clusterMembers") or [serial_number]
+            ),
+            parent_clusters=base.get("parentClusters") or [],
+            online=base.get("online", True),
+            serial_number=serial_number,
+            software_version=_endpoint_text(endpoint, "softwareVersion")
+            or (
+                base.get("softwareVersion")
+                if "SUPPORTS_SOFTWARE_VERSION" in capabilities
+                else None
+            ),
+            manufacturer=manufacturer,
+            model=model,
+            hardware_version=hardware_version,
+            entity_id=_endpoint_entity_id(endpoint),
+            endpoint_id=endpoint.get("endpointId"),
+            notifications_supported=any(
+                capability in capabilities
+                for capability in ["REMINDERS", "TIMERS_AND_ALARMS"]
+            ),
+            notifications={},
+            media_player_supported="AUDIO_PLAYER" in capabilities,
+            communication_settings={},
+            # only devices-v2 devices can be spoken to, speaker groups aside
+            voice_control_supported=bool(base) and family != SPEAKER_GROUP_FAMILY,
+            features=features,
+            unsupported_features=unsupported_features,
+        )
+
+    async def _get_base_devices_data(self) -> dict[str, dict[str, Any]]:
+        """Get the raw devices-v2 data, keyed by serial number.
+
+        This will not include devices that exist in the GraphQL data only,
+        like AQM devices.
         """
         _, raw_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
@@ -63,125 +398,26 @@ class AmazonDeviceHandler:
 
         json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
 
-        final_devices_list: dict[str, AmazonDevice] = {}
-        serial_to_device_type: dict[str, str] = {}
+        base_devices: dict[str, dict[str, Any]] = {}
         for device in json_data["devices"]:
             # Remove stale, orphaned and virtual devices
             if not device or (device.get("deviceType") in DEVICE_TYPES_TO_IGNORE):
                 continue
 
-            account_name: str = device["accountName"]
-            capabilities: list[str] = device["capabilities"]
             # Skip devices that cannot be used with voice features
-            if "MICROPHONE" not in capabilities:
+            if "MICROPHONE" not in device["capabilities"]:
                 _LOGGER.debug(
-                    "Skipping device without microphone capabilities: %s", account_name
+                    "Skipping device without microphone capabilities: %s",
+                    device["accountName"],
                 )
                 continue
 
-            serial_number: str = device["serialNumber"]
+            base_devices[device["serialNumber"]] = device
 
-            _has_notification_capability = any(
-                capability in capabilities
-                for capability in ["REMINDERS", "TIMERS_AND_ALARMS"]
-            )
-
-            final_devices_list[serial_number] = AmazonDevice(
-                account_name=account_name,
-                capabilities=capabilities,
-                device_family=device["deviceFamily"],
-                device_type=device["deviceType"],
-                device_owner_customer_id=device["deviceOwnerCustomerId"],
-                household_device=device["deviceOwnerCustomerId"]
-                == self._session_state_data.account_customer_id,
-                device_cluster_members=dict.fromkeys(
-                    device["clusterMembers"] or [serial_number]
-                ),
-                parent_clusters=device.get("parentClusters") or [],
-                online=device["online"],
-                serial_number=serial_number,
-                software_version=device["softwareVersion"]
-                if "SUPPORTS_SOFTWARE_VERSION" in capabilities
-                else None,
-                entity_id=None,
-                model=device.get("deviceTypeFriendlyName"),
-                manufacturer=None,
-                hardware_version=None,
-                endpoint_id=None,
-                sensors={},
-                notifications_supported=_has_notification_capability,
-                notifications={},
-                media_player_supported="AUDIO_PLAYER" in capabilities,
-                communication_settings={},
-            )
-
-            serial_to_device_type[serial_number] = device["deviceType"]
-
-        # backfill device types for cluster members
-        for device in final_devices_list.values():
-            for member_serial in device.device_cluster_members:
-                device.device_cluster_members[member_serial] = (
-                    serial_to_device_type.get(member_serial)
-                )
-
-        self._final_devices = final_devices_list
-
-    async def set_device_endpoints_data(self) -> None:
-        """Set device endpoint data."""
-        devices_endpoints = await self._get_devices_endpoint_data()
-        for serial_number in self._final_devices:
-            device_endpoint = devices_endpoints.get(serial_number, {})
-            endpoint_device = self._final_devices[serial_number]
-            hardcoded_data = DEVICE_TYPES_HARDCODED_METADATA.get(
-                endpoint_device.device_type, {}
-            )
-            endpoint_device.entity_id = (
-                device_endpoint["legacyIdentifiers"]["chrsIdentifier"]["entityId"]
-                if device_endpoint
-                else None
-            )
-            endpoint_device.endpoint_id = (
-                device_endpoint["endpointId"] if device_endpoint else None
-            )
-
-            model_value: str | None = (
-                (device_endpoint.get("model") or {}).get("value", {}).get("text")
-            )
-            model: str | None = (
-                model_value
-                if model_value and "Alexa Voice" not in model_value
-                else endpoint_device.model
-            )
-
-            if not model:
-                _LOGGER.debug(
-                    "Looking hardcoded model for device type %s [%s]",
-                    endpoint_device.device_type,
-                    endpoint_device.account_name,
-                )
-                model = hardcoded_data.get("model")
-
-            manufacturer = (
-                manufacturer_key.get("value", {}).get("text")
-                if (manufacturer_key := device_endpoint.get("manufacturer"))
-                else hardcoded_data.get("manufacturer")
-            )
-
-            device_model, device_hw_version = parse_device_details(model)
-
-            if not device_model:
-                _LOGGER.warning(
-                    "Unknown device type '%s' for %s: please read https://github.com/chemelli74/aioamazondevices/wiki/Unknown-Device-Types",
-                    endpoint_device.device_type,
-                    endpoint_device.account_name,
-                )
-            else:
-                endpoint_device.model = device_model
-                endpoint_device.hardware_version = device_hw_version
-                endpoint_device.manufacturer = manufacturer
+        return base_devices
 
     async def _get_devices_endpoint_data(self) -> dict[str, dict[str, Any]]:
-        """Get Devices endpoint data."""
+        """Get devices endpoint data, keyed by serial number."""
         payload = {
             "operationName": "getDevicesBaseData",
             "query": QUERY_DEVICE_DATA,
@@ -199,71 +435,79 @@ class AmazonDeviceHandler:
 
         endpoint_data = await self._http_wrapper.response_to_json(raw_resp, "endpoint")
 
-        if not (data := endpoint_data.get("data")) or not data.get("alexaVoiceDevices"):
-            format_graphql_error(endpoint_data)
-            return {}
+        if check_and_log_graphql_errors("QUERY_DEVICE_DATA", endpoint_data):
+            raise CannotRetrieveData("Error retrieving device endpoint data")
+
+        if not (
+            endpoints := validate_graphql_endpoint_shape(
+                "QUERY_DEVICE_DATA", endpoint_data
+            )
+        ):
+            raise CannotRetrieveData("No device endpoint data received")
 
         devices_endpoints: dict[str, dict[str, Any]] = {}
-
-        # Process Alexa Voice Enabled devices
-        # Just map endpoint ID to serial number to facilitate sensor lookup
-        for endpoint in data.get("alexaVoiceDevices", {}).get("endpoints", []):
+        for endpoint in endpoints:
             # save looking up sensor data on apps
             if (endpoint.get("alexaEnabledMetadata") or {}).get("category") == "APP":
                 continue
 
-            if endpoint.get("serialNumber"):
-                serial_number = endpoint["serialNumber"]["value"]["text"]
-                devices_endpoints[serial_number] = endpoint
-                self._endpoints[endpoint["endpointId"]] = serial_number
-
-        # Process Air Quality Monitors if present
-        # map endpoint ID to serial number to facilitate sensor lookup but also
-        # create AmazonDevice as these are not present in api/devices-v2/device endpoint
-        for aqm_endpoint in data.get("airQualityMonitors", {}).get("endpoints", {}):
-            if (
-                aqm_endpoint.get("manufacturer", {})
-                .get("value", {})
-                .get("text", "Unknown")
-                != "Amazon"
-            ):
-                _LOGGER.debug(
-                    "Skipping non-Amazon Air Quality Monitor: %s",
-                    aqm_endpoint,
-                )
+            if not (serial_number := _endpoint_text(endpoint, "serialNumber")):
                 continue
-            aqm_serial_number: str = aqm_endpoint["serialNumber"]["value"]["text"]
-            devices_endpoints[aqm_serial_number] = aqm_endpoint
-            self._endpoints[aqm_endpoint["endpointId"]] = aqm_serial_number
 
-            self._final_devices[aqm_serial_number] = AmazonDevice(
-                account_name=aqm_endpoint["friendlyNameObject"]["value"]["text"],
-                capabilities=[],
-                device_family="AIR_QUALITY_MONITOR",
-                device_type=aqm_endpoint["legacyIdentifiers"]["dmsIdentifier"][
-                    "deviceType"
-                ]["value"]["text"],
-                device_owner_customer_id=self._session_state_data.account_customer_id
-                or "n/a",
-                household_device=False,
-                device_cluster_members={aqm_serial_number: DEVICE_TYPE_AQM},
-                parent_clusters=[],
-                online=True,
-                serial_number=aqm_serial_number,
-                software_version=aqm_endpoint["softwareVersion"]["value"]["text"],
-                manufacturer="Amazon",
-                model=None,
-                hardware_version=None,
-                entity_id=None,
-                endpoint_id=aqm_endpoint.get("endpointId"),
-                sensors={},
-                notifications_supported=False,
-                notifications={},
-                media_player_supported=False,
-                communication_settings={},
-            )
+            devices_endpoints[serial_number] = endpoint
+
+        # an empty device list would make callers drop all the known devices
+        if not devices_endpoints:
+            raise CannotRetrieveData("No usable device endpoint data received")
 
         return devices_endpoints
+
+    async def _get_endpoints_features(
+        self, endpoint_ids: list[str]
+    ) -> dict[str, dict[str, Any]]:
+        """Retrieve the features of the given endpoints, keyed by endpoint ID."""
+        if not endpoint_ids:
+            return {}
+
+        payload = [
+            {
+                "operationName": "getEndpointFeatures",
+                "variables": {
+                    "endpointIds": endpoint_ids,
+                },
+                "query": QUERY_DEVICE_FEATURES,
+            }
+        ]
+
+        _, raw_resp = await self._http_wrapper.session_request(
+            method=HTTPMethod.POST,
+            url=URL.joinpath(
+                self._session_state_data.alexa_website_url, URI_NEXUS_GRAPHQL
+            ),
+            input_data=payload,
+            json_data=True,
+            extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
+        )
+
+        endpoints_features = await self._http_wrapper.response_to_json(
+            raw_resp, "endpoint features"
+        )
+
+        if check_and_log_graphql_errors("QUERY_DEVICE_FEATURES", endpoints_features):
+            raise CannotRetrieveData("Error retrieving endpoint features")
+
+        if not (
+            endpoints := validate_graphql_endpoint_shape(
+                "QUERY_DEVICE_FEATURES", endpoints_features
+            )
+        ):
+            raise CannotRetrieveData("No endpoint features received")
+
+        return {
+            endpoint["endpointId"]: endpoint
+            for endpoint in endpoints
+            if endpoint.get("endpointId")
+        }
 
     async def restart_device(self, device: AmazonDevice) -> None:
         """Restart a device."""

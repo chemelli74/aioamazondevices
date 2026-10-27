@@ -32,6 +32,7 @@ def _device(serial: str, manufacturer: str | None) -> AmazonDevice:
         capabilities=[],
         device_family="ECHO",
         device_type="A39OV95SPFQ9YG",
+        primary_display_category="SPEAKER",
         device_owner_customer_id="A1CUSTOMERID",
         household_device=False,
         device_cluster_members={},
@@ -43,11 +44,13 @@ def _device(serial: str, manufacturer: str | None) -> AmazonDevice:
         hardware_version=None,
         entity_id=None,
         endpoint_id=None,
-        sensors={},
+        features={},
+        unsupported_features={},
         notifications_supported=False,
         notifications={},
         media_player_supported=True,
         communication_settings={},
+        voice_control_supported=True,
         parent_clusters=[],
     )
 

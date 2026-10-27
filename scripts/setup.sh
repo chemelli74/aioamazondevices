@@ -10,6 +10,12 @@ export UV_LINK_MODE=copy
 # Find the absolute path of the directory where this script resides
 SETUP_SCRIPT_DIR=$(cd -- "$(dirname -- "$0")" &>/dev/null && pwd)
 
+# Always use this repo's .venv, even if the shell exports another project's
+# environment (e.g. a shared devcontainer)
+REPO_ROOT=$(dirname "$SETUP_SCRIPT_DIR")
+export UV_PROJECT_ENVIRONMENT="$REPO_ROOT/.venv"
+export VIRTUAL_ENV="$UV_PROJECT_ENVIRONMENT"
+
 # Fetch the centralized uv version from the companion script
 UV_VERSION=$("$SETUP_SCRIPT_DIR/get-pyproject-uv.version.sh")
 
@@ -25,4 +31,4 @@ uv sync --frozen --all-groups
 prek install --overwrite
 prek install --hook-type commit-msg --overwrite
 
-npm install @commitlint/config-conventional
+npm ci

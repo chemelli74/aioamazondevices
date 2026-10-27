@@ -132,14 +132,28 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/BoBiene">
+                    <img src="https://avatars.githubusercontent.com/u/23037659?v=4" width="100;" alt="BoBiene"/>
+                    <br />
+                    <sub><b>Bo Biene</b></sub>
+                </a>
+            </td>
+		</tr>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/danielbrunt57">
+                    <img src="https://avatars.githubusercontent.com/u/49846893?v=4" width="100;" alt="danielbrunt57"/>
+                    <br />
+                    <sub><b>Daniel</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/eyadkobatte">
                     <img src="https://avatars.githubusercontent.com/u/16541074?v=4" width="100;" alt="eyadkobatte"/>
                     <br />
                     <sub><b>Eyad Kobatte</b></sub>
                 </a>
             </td>
-		</tr>
-		<tr>
             <td align="center">
                 <a href="https://github.com/AzonInc">
                     <img src="https://avatars.githubusercontent.com/u/11911587?v=4" width="100;" alt="AzonInc"/>
@@ -168,11 +182,20 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                     <sub><b>Mateusz Nowotyński</b></sub>
                 </a>
             </td>
+		</tr>
+		<tr>
             <td align="center">
                 <a href="https://github.com/stefan-schweiger">
                     <img src="https://avatars.githubusercontent.com/u/3532342?v=4" width="100;" alt="stefan-schweiger"/>
                     <br />
                     <sub><b>Stefan Schweiger</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/uholland">
+                    <img src="https://avatars.githubusercontent.com/u/133651?v=4" width="100;" alt="uholland"/>
+                    <br />
+                    <sub><b>Uwe Holland</b></sub>
                 </a>
             </td>
             <td align="center">

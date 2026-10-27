@@ -16,6 +16,7 @@ from anyio import Path
 
 from aioamazondevices.implementation.communication import AlexaCommunicationsHandler
 from aioamazondevices.implementation.device import AmazonDeviceHandler
+from aioamazondevices.implementation.feature import AmazonFeatureHandler
 from aioamazondevices.implementation.media import AmazonMediaHandler
 from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.implementation.todo import AmazonToDoHandler
@@ -33,7 +34,7 @@ from .const.metadata import (
     VOLUME_MAX,
     VOLUME_MIN,
 )
-from .exceptions import NoOnlineDevicesError
+from .exceptions import CannotSetFeature, NoOnlineDevicesError
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
 from .implementation.history import AmazonHistoryHandler
@@ -43,6 +44,7 @@ from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
 from .structures import (
     AmazonDevice,
+    AmazonDeviceSensor,
     AmazonDropInStatus,
     AmazonListEvent,
     AmazonListEventType,
@@ -53,6 +55,7 @@ from .structures import (
     AmazonMusicProvider,
     AmazonPushMessage,
     AmazonSaveDataConfig,
+    AmazonSchedule,
     AmazonSequenceType,
     AmazonVocalRecord,
     AmazonVolumeState,
@@ -130,6 +133,11 @@ class AmazonEchoApi:
             session_state_data=self._session_state_data,
         )
 
+        self._feature_handler = AmazonFeatureHandler(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
         self._history_handler = AmazonHistoryHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
@@ -146,18 +154,30 @@ class AmazonEchoApi:
         )
 
         self._device_volumes_initialized: bool = False
+        self._dnd_initialized: bool = False
+        self._dnd_lock = asyncio.Lock()
+        self._device_volumes_lock = asyncio.Lock()
+        # serializes the daily device refresh with a resync after reconnect,
+        # so a resync cannot apply endpoint states of an outdated device list
+        self._sensor_sync_lock = asyncio.Lock()
         self._http2_client: AmazonHTTP2Client | None = None
+        # resync of pushed state after the HTTP2 stream reconnects
+        self._resync_task: asyncio.Task[None] | None = None
+        self._resync_pending: bool = False
+        # set when a sensor resync failed, so the next poll retries it
+        self._sensor_resync_required: bool = False
 
         # force initial refresh
         initial_time = datetime.now(UTC) - timedelta(days=2)
         self._last_daily_refresh: datetime = initial_time
-        self._last_endpoint_refresh: datetime = initial_time
         self._last_sonos_history_refresh: datetime = initial_time
 
         self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
         self.on_history_event = Signal[dict[str, AmazonVocalRecord]](self)
         self.on_todo_event = Signal[AmazonListEvent](self)
+        self.on_dnd_event = Signal[dict[str, bool]](self)
+        self.on_sensor_event: Signal[()] = Signal(self)
 
     @property
     def domain(self) -> str:
@@ -179,6 +199,11 @@ class AmazonEchoApi:
         """Return ToDo lists."""
         return self._todo_handler.lists
 
+    @property
+    def sensors(self) -> dict[str, dict[str, AmazonDeviceSensor]]:
+        """Return sensors keyed by serial number, then sensor key."""
+        return self._sensor_handler.sensors
+
     async def get_default_device(self) -> AmazonDevice:
         """Return default device."""
         return self._device_handler.devices[self._default_device_serial]
@@ -191,7 +216,11 @@ class AmazonEchoApi:
         )
 
     async def _init_default_device(self) -> None:
-        """Resolve default device serial from settings or the first online device."""
+        """Resolve default device serial from settings or the first online device.
+
+        Online devices that can be spoken to are preferred, as voice commands
+        and routines are sent to the default device.
+        """
         if self._default_device_serial in self._device_handler.devices:
             return
         self._default_device_serial = ""
@@ -204,12 +233,18 @@ class AmazonEchoApi:
             return
 
         # Use first online device as default if no default device has been set yet
-        for device in self._device_handler.devices.values():
-            if device.online:
-                self._default_device_serial = device.serial_number
-                return
+        online_devices = [
+            device for device in self._device_handler.devices.values() if device.online
+        ]
+        if not online_devices:
+            raise NoOnlineDevicesError("No online devices found")
 
-        raise NoOnlineDevicesError("No online devices found")
+        # accounts without a voice device (e.g. thermostat only) still need one
+        device = next(
+            (device for device in online_devices if device.voice_control_supported),
+            online_devices[0],
+        )
+        self._default_device_serial = device.serial_number
 
     async def _load_settings(self) -> dict[str, Any]:
         """Load persisted settings from disk."""
@@ -249,58 +284,68 @@ class AmazonEchoApi:
                 str(timedelta(minutes=round(delta_daily.total_seconds() / 60))),
             )
             # Request various data that doesn't change that often
-            await self._device_handler.get_base_devices()
+            async with self._sensor_sync_lock:
+                await self._device_handler.update_devices()
+                # device query has all initial state to sync sensors
+                self._sensor_handler.full_sensor_sync(
+                    self._device_handler.devices, self._device_handler.endpoint_states
+                )
+                self._sensor_resync_required = False
             await self._media_handler.update_music_providers()
             await self._sequence_handler.update_routines()
             await self._todo_handler.update_lists()
 
             self._last_daily_refresh = datetime.now(UTC)
 
-        # Only refresh endpoint data if we have no endpoints yet
-        # or if it's been a while since the last refresh
-        delta_endpoints = datetime.now(UTC) - self._last_endpoint_refresh
-        endpoint_refresh_needed = delta_endpoints >= timedelta(days=1)
-        endpoints_recently_checked = delta_endpoints < timedelta(minutes=30)
-        if (
-            not self._device_handler.endpoints and not endpoints_recently_checked
-        ) or endpoint_refresh_needed:
-            _LOGGER.debug(
-                "Refreshing endpoint data after %s",
-                str(timedelta(minutes=round(delta_endpoints.total_seconds() / 60))),
-            )
-            # Set device endpoint data
-            await self._device_handler.set_device_endpoints_data()
-            self._last_endpoint_refresh = datetime.now(UTC)
-
-        # Resolve the default device only once base and endpoint devices are
-        # loaded: sensor-only devices (e.g. Amazon Air Quality Monitor) are
-        # created by set_device_endpoints_data() and would otherwise be missed,
-        # aborting the refresh with NoOnlineDevicesError.
+        # Resolve the default device only once devices are loaded: sensor-only
+        # devices (e.g. Amazon Air Quality Monitor) are created by
+        # update_devices() and would otherwise be missed, aborting the refresh
+        # with NoOnlineDevicesError.
         await self._init_default_device()
 
     async def get_devices_data(
         self,
     ) -> dict[str, AmazonDevice]:
-        """Get Amazon devices data."""
+        """Get Amazon devices data.
+
+        Only sensors Amazon does not push (e.g. motion, light, connectivity) are
+        refreshed by each call. Pushed sensors (e.g. temperature, air quality)
+        are refreshed by HTTP2 push events, so need start_http2_processing.
+        """
         # Perform a refresh to ensure your data is as up-to-date as possible.
         await self._refresh_basic_data()
 
-        dnd_sensors = await self._dnd_handler.get_do_not_disturb_status()
+        devices = self._device_handler.devices
         notifications = await self._notification_handler.get_notifications()
         communications = (
-            await self._communication_handler.get_communication_preferences(
-                list(self._device_handler.devices.values())
-            )
+            await self._communication_handler.get_communication_preferences()
         )
-        await self._sensor_handler.update_sensor_data(
-            self._device_handler.devices,
-            self._device_handler.endpoints,
-            dnd_sensors,
-            notifications,
-            communications,
-        )
+        self._update_device_settings(devices, notifications, communications)
 
-        return self._device_handler.devices
+        # retry a resync that failed after an HTTP2 reconnect
+        if self._sensor_resync_required:
+            await self._resync_sensors()
+
+        # pushed sensors are synced by the device refresh, the rest are polled
+        await self._sensor_handler.update_polled_sensors()
+        # devices are rebuilt by a refresh, so always reapply online status
+        self._sensor_handler.update_device_online_statuses(devices)
+
+        return devices
+
+    def _update_device_settings(
+        self,
+        devices: dict[str, AmazonDevice],
+        notifications: dict[str, dict[str, AmazonSchedule]] | None,
+        communications: dict[str, dict[str, str]],
+    ) -> None:
+        """Update communication settings and notifications of all devices."""
+        for device in devices.values():
+            device.communication_settings = (
+                communications.get(device.serial_number) or {}
+            )
+
+        self._notification_handler.update_device_notifications(devices, notifications)
 
     async def start_http2_processing(
         self,
@@ -316,6 +361,9 @@ class AmazonEchoApi:
         httpx client must have http2 enabled and a timeout of None to
         allow for long-lived connections.
         Caller is responsible for ensuring its properly configured and closed after use.
+
+        Required for pushed sensors (e.g. temperature, air quality), which are
+        only refreshed by push events.
         """
         if not self._http2_client:
             self._http2_client = AmazonHTTP2Client(
@@ -326,6 +374,8 @@ class AmazonEchoApi:
             )
             self._http2_client.on_push_event.append(self._http2_push_event_handler)
             self._http2_client.on_push_event.freeze()
+            self._http2_client.on_reconnected.append(self._http2_reconnected_handler)
+            self._http2_client.on_reconnected.freeze()
 
         return await self._http2_client.start_processing()
 
@@ -334,6 +384,71 @@ class AmazonEchoApi:
         if self._http2_client:
             await self._http2_client.stop_processing()
             self._http2_client = None
+
+        if (resync_task := self._resync_task) and not resync_task.done():
+            resync_task.cancel()
+            try:
+                await resync_task
+            except asyncio.CancelledError:
+                if (t := asyncio.current_task()) and t.cancelling():
+                    raise
+        self._resync_task = None
+        self._resync_pending = False
+
+    async def _http2_reconnected_handler(self) -> None:
+        """Resync pushed state in the background, as pushes may have been missed.
+
+        Runs as a separate task so the stream is not blocked by the queries,
+        and a failed query cannot take the stream down.
+        """
+        if self._resync_task and not self._resync_task.done():
+            # reconnected again mid-resync, run once more when it completes
+            self._resync_pending = True
+            return
+        self._resync_task = asyncio.create_task(
+            self._resync_after_reconnect(), name="aioamazondevices_resync"
+        )
+
+    async def _resync_after_reconnect(self) -> None:
+        """Resync all pushed state, best effort."""
+        while True:
+            self._resync_pending = False
+            _LOGGER.debug("HTTP2 stream reconnected, resyncing pushed state")
+
+            try:
+                await self._resync_sensors()
+            except Exception as err:  # noqa: BLE001
+                _LOGGER.warning(
+                    "Sensor resync after HTTP2 reconnect failed, "
+                    "retrying on next poll: %s",
+                    err,
+                )
+                self._sensor_resync_required = True
+
+            # on failure the flags stay cleared, so the next push event
+            # triggers the full sync before applying its update
+            self._dnd_initialized = False
+            self._device_volumes_initialized = False
+            for sync_call in (self.sync_dnd_state, self.sync_media_state):
+                try:
+                    await sync_call()
+                except Exception as err:  # noqa: BLE001
+                    _LOGGER.warning(
+                        "%s after HTTP2 reconnect failed: %s", sync_call.__name__, err
+                    )
+
+            if not self._resync_pending:
+                return
+
+    async def _resync_sensors(self) -> None:
+        """Resync sensors from the endpoint states of the known devices."""
+        async with self._sensor_sync_lock:
+            await self._device_handler.update_endpoint_states()
+            self._sensor_handler.full_sensor_sync(
+                self._device_handler.devices, self._device_handler.endpoint_states
+            )
+            self._sensor_resync_required = False
+        await self._emit_sensor_event()
 
     async def _http2_push_event_handler(
         self, event_type: str, payload: dict[str, Any]
@@ -350,34 +465,65 @@ class AmazonEchoApi:
                 await self._handle_audio_player_state_event()
             case AmazonPushMessage.ItemChange.value:
                 await self._handle_item_change_event(payload)
+            case AmazonPushMessage.DoNotDisturbChange.value:
+                await self._handle_dnd_event(payload)
+            case AmazonPushMessage.SmartHome.value:
+                await self._handle_smart_home_event(payload)
             case _:
                 _LOGGER.debug("Unhandled push event type: %s", event_type)
 
-    async def _handle_volume_change_event(self, payload: dict[str, Any]) -> None:
-        # Ensure initial full sync happens before applying incremental updates
-        if not self._device_volumes_initialized:
-            await self._media_handler.sync_device_volumes()
-            self._device_volumes_initialized = True
+    async def _handle_smart_home_event(self, payload: dict[str, Any]) -> None:
+        # the endpoint ID is under "entity" and "data" holds the changed
+        # features, in the same shape as a GraphQL endpoint state
+        entity = payload.get("entity")
+        endpoint_id = entity.get("id") if isinstance(entity, dict) else None
+        endpoint_state = payload.get("data")
+        if not isinstance(endpoint_id, str) or not isinstance(endpoint_state, dict):
+            _LOGGER.warning(
+                "Received malformed smart home event: %s", scrub_fields(payload)
+            )
+            return
+        if not self._sensor_handler.is_tracked_endpoint(endpoint_id):
+            _LOGGER.debug("Ignoring smart home event for untracked endpoint")
+            return
+        sensor_values = self._sensor_handler.parse_endpoint_state(
+            endpoint_id, endpoint_state
+        )
+        if not self._sensor_handler.store_values(sensor_values):
+            # value has not changed so do not notify subscribers
+            return
+        await self._emit_sensor_event()
 
-        serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
-        if serial:
-            volume = AmazonVolumeState(
-                payload.get("volumeSetting"), payload.get("isMuted")
-            )
-            # check if device is part of a cluster
-            self._media_handler.update_cached_device_volume(serial, volume)
-            volume_device: AmazonDevice | None = self._device_handler.devices.get(
-                serial, None
-            )
-            if volume_device:
-                for parent_serial in volume_device.parent_clusters:
-                    if parent_cluster := (
-                        self._device_handler.devices.get(parent_serial, None)
-                    ):
-                        self._media_handler.update_cached_speaker_group_volume(
-                            parent_serial,
-                            list(parent_cluster.device_cluster_members),
-                        )
+    async def _emit_sensor_event(self) -> None:
+        """Notify subscribers that sensor state has changed."""
+        if self.on_sensor_event.frozen:
+            _LOGGER.debug("Emitting sensor state event to subscribers")
+            await self.on_sensor_event.send()
+
+    async def _handle_volume_change_event(self, payload: dict[str, Any]) -> None:
+        # The lock serializes the full sync with incremental updates, so that a
+        # sync response predating this event cannot overwrite it.
+        async with self._device_volumes_lock:
+            # Ensure initial full sync happens before applying incremental updates
+            if not self._device_volumes_initialized:
+                await self._media_handler.sync_device_volumes()
+                self._device_volumes_initialized = True
+
+            if serial := payload.get("dopplerId", {}).get("deviceSerialNumber"):
+                volume = AmazonVolumeState(
+                    payload.get("volumeSetting"), payload.get("isMuted")
+                )
+                # check if device is part of a cluster
+                self._media_handler.update_cached_device_volume(serial, volume)
+                if volume_device := self._device_handler.devices.get(serial):
+                    for parent_serial in volume_device.parent_clusters:
+                        if parent_cluster := self._device_handler.devices.get(
+                            parent_serial
+                        ):
+                            self._media_handler.update_cached_speaker_group_volume(
+                                parent_serial,
+                                list(parent_cluster.device_cluster_members),
+                            )
 
         await self._emit_volume_state_event()
 
@@ -480,10 +626,19 @@ class AmazonEchoApi:
         self,
         device: AmazonDevice,
         text_to_announce: str,
+        display_text: str | None = None,
     ) -> None:
-        """Call AlexaAnnouncement to send a message."""
+        """Send an announcement with an optional display body.
+
+        An omitted, None, or empty display_text uses the spoken text.
+        The spoken text and display title stay unchanged.
+        The optional display_text accepts positional or keyword use.
+        """
         await self._sequence_handler.send_message(
-            device, AmazonSequenceType.Announcement, text_to_announce
+            device,
+            AmazonSequenceType.Announcement,
+            text_to_announce,
+            display_text=display_text,
         )
 
     async def call_alexa_sound(
@@ -596,6 +751,47 @@ class AmazonEchoApi:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
 
+    async def call_feature_operation(
+        self,
+        device: AmazonDevice,
+        feature_name: str,
+        operation_name: str,
+        command_payload: dict[str, Any] | None = None,
+        instance: str | None = None,
+    ) -> None:
+        """Invoke a feature operation on a device endpoint.
+
+        Raises CannotSetFeature if the operation fails.
+        """
+        if not device.endpoint_id:
+            raise CannotSetFeature(
+                f"Device ({device.account_name}) does not have an endpoint ID."
+            )
+
+        instance_text = f" instance: {instance}" if instance else ""
+        if not (feat := device.features.get(feature_name)) or not (
+            feat_instance := feat.get(instance or "")
+        ):
+            raise CannotSetFeature(
+                f"Device ({device.account_name}) does not have"
+                f" feature: {feature_name}{instance_text}."
+            )
+
+        if operation_name not in feat_instance.supported_operations:
+            raise CannotSetFeature(
+                f"Operation: {operation_name} not valid for"
+                f" device ({device.account_name})"
+                f" feature: {feature_name}{instance_text}."
+            )
+
+        await self._feature_handler.set_feature(
+            endpoint_id=device.endpoint_id,
+            feature_name=feature_name,
+            operation_name=operation_name,
+            command_payload=command_payload,
+            instance=instance,
+        )
+
     async def set_communication_status(
         self, device: AmazonDevice, enable: bool
     ) -> None:
@@ -618,8 +814,10 @@ class AmazonEchoApi:
         This will be called at startup to sync media state of all devices
         and can be called later to refresh media state.
         """
-        await self._media_handler.sync_device_volumes()
-        self._device_volumes_initialized = True
+        async with self._device_volumes_lock:
+            await self._media_handler.sync_device_volumes()
+            self._device_volumes_initialized = True
+
         await self._emit_volume_state_event()
         await self._media_handler.sync_media_state(self._device_handler.devices)
         await self._emit_media_state_event()
@@ -693,3 +891,40 @@ class AmazonEchoApi:
     async def restart_device(self, device: AmazonDevice) -> None:
         """Restart a device."""
         await self._device_handler.restart_device(device)
+
+    async def sync_dnd_state(self) -> None:
+        """Sync Do Not Disturb state for all devices."""
+        async with self._dnd_lock:
+            await self._dnd_handler.sync_do_not_disturb_status()
+            self._dnd_initialized = True
+
+        await self._emit_dnd_state_event()
+
+    async def _handle_dnd_event(self, payload: dict[str, Any]) -> None:
+        serial = payload.get("dopplerId", {}).get("deviceSerialNumber")
+        enabled = payload.get("enabled")
+        if not isinstance(enabled, bool):
+            _LOGGER.warning(
+                "Received DND event with no 'enabled' field: %s", scrub_fields(payload)
+            )
+            return
+        if not serial:
+            return
+
+        # The lock serializes the full sync with incremental updates, so that a
+        # sync response predating this event cannot overwrite it.
+        async with self._dnd_lock:
+            # Ensure initial full sync happens before applying incremental updates
+            if not self._dnd_initialized:
+                await self._dnd_handler.sync_do_not_disturb_status()
+                self._dnd_initialized = True
+
+            self._dnd_handler.update_cached_dnd_state(serial, enabled)
+
+        await self._emit_dnd_state_event()
+
+    async def _emit_dnd_state_event(self) -> None:
+        """Emit dnd event to subscribers."""
+        if self.on_dnd_event.frozen:
+            _LOGGER.debug("Emitting dnd state event to subscribers")
+            await self.on_dnd_event.send(self._dnd_handler.dnd_states)

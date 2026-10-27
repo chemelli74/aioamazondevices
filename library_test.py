@@ -34,6 +34,7 @@ from aioamazondevices.exceptions import (
 )
 from aioamazondevices.structures import (
     AmazonDevice,
+    AmazonDeviceFeature,
     AmazonMediaControls,
     AmazonMediaState,
     AmazonMusicProvider,
@@ -216,6 +217,15 @@ def find_device(
         sys.exit(0)
 
 
+def format_features(features: dict[str, dict[str, AmazonDeviceFeature]]) -> str:
+    """Format features as 'name[instance](prop, ...)' entries."""
+    return ", ".join(
+        f"{name}{f'[{instance}]' if instance else ''}({','.join(feature.properties)})"
+        for name, instances in sorted(features.items())
+        for instance, feature in sorted(instances.items())
+    )
+
+
 async def wait_action_complete(sleep: int = 5) -> None:
     """Wait for an action to complete."""
     print(f"Waiting for {sleep}s before next test")
@@ -316,10 +326,34 @@ async def main() -> None:
             print(f"   Device model: {device.model}")
             print(f"   Device hardware version: {device.hardware_version}")
             print(f"   Device software version: {device.software_version}")
-            print(f"   Device sensors: {len(device.sensors)}")
             print(f"   Device notifications: {len(device.notifications)}")
             print(f"   Device communications: {device_comm_settings}")
+            print(f"   Device supported features: {format_features(device.features)}")
+            print(
+                "   Device unsupported features: "
+                f"{format_features(device.unsupported_features)}"
+            )
             dev_index += 1
+        print("-" * 20)
+
+        print("Sensors summary:")
+        for serial_number, device_sensors in api.sensors.items():
+            print(f"Device {devices[serial_number].account_name}:")
+            for key, sensor in device_sensors.items():
+                instance = f"/{sensor.instance}" if sensor.instance else ""
+                value = (
+                    f"ERROR {sensor.error_type}: {sensor.error_msg}"
+                    if sensor.error
+                    else f"{sensor.value} {sensor.scale or ''}".rstrip()
+                )
+                print(
+                    f"   {key} ({sensor.feature_name}{instance}.{sensor.property_name})"
+                    f": {value} @ {sensor.time_of_sample}"
+                )
+        print("-" * 20)
+
+        await save_to_file(save_path, api.sensors, "output-sensors")
+        print("Check above file for full sensors details")
         print("-" * 20)
 
         default_device = await api.get_default_device()

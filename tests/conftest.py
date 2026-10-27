@@ -5,14 +5,23 @@
 
 from collections.abc import AsyncIterator, Callable
 from pathlib import Path
+from typing import Any
+from unittest.mock import AsyncMock
 
 import pytest
 from aiohttp import ClientSession
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.structures import AmazonDevice, AmazonSaveDataConfig
+from aioamazondevices.implementation.device import _parse_features
+from aioamazondevices.structures import (
+    AmazonDevice,
+    AmazonDeviceSensor,
+    AmazonSaveDataConfig,
+)
 
 from .const import TEST_EMAIL, TEST_PASSWORD
+
+SYNC_ENDPOINT = "sync-endpoint"
 
 
 @pytest.fixture
@@ -40,15 +49,43 @@ def api(client_session: ClientSession, tmp_path: Path) -> AmazonEchoApi:
 
 
 @pytest.fixture
+def mock_json_response(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> Callable[[dict[str, Any]], AsyncMock]:
+    """Return a setter making every request return the given JSON response.
+
+    The setter returns the session_request mock, to assert on the request.
+    """
+
+    def _mock_json_response(response: dict[str, Any]) -> AsyncMock:
+        session_request = AsyncMock(return_value=(None, None))
+        monkeypatch.setattr(api._http_wrapper, "session_request", session_request)
+        monkeypatch.setattr(
+            api._http_wrapper, "response_to_json", AsyncMock(return_value=response)
+        )
+        return session_request
+
+    return _mock_json_response
+
+
+@pytest.fixture
 def make_device() -> Callable[..., AmazonDevice]:
     """Return a factory that builds a minimal AmazonDevice for tests."""
 
-    def _make_device(serial: str, *, online: bool = True) -> AmazonDevice:
+    def _make_device(
+        serial: str,
+        *,
+        online: bool = True,
+        capabilities: list[str] | None = None,
+        device_family: str = "ECHO",
+        voice_control_supported: bool = True,
+    ) -> AmazonDevice:
         return AmazonDevice(
             account_name=f"Echo {serial}",
-            capabilities=[],
-            device_family="ECHO",
+            capabilities=capabilities if capabilities is not None else [],
+            device_family=device_family,
             device_type="A1B2C3",
+            primary_display_category="ALEXA_VOICE_ENABLED",
             device_owner_customer_id="CUSTOMER_ID",
             household_device=False,
             device_cluster_members={},
@@ -60,12 +97,37 @@ def make_device() -> Callable[..., AmazonDevice]:
             hardware_version=None,
             entity_id=None,
             endpoint_id=None,
-            sensors={},
             notifications_supported=False,
             notifications={},
             media_player_supported=False,
             communication_settings={},
             parent_clusters=[],
+            voice_control_supported=voice_control_supported,
+            features={},
+            unsupported_features={},
         )
 
     return _make_device
+
+
+@pytest.fixture
+def sync_sensors(
+    api: AmazonEchoApi,
+) -> Callable[[dict[str, Any], AmazonDevice], dict[str, AmazonDeviceSensor]]:
+    """Return a helper that syncs one endpoint state and returns its sensors.
+
+    The endpoint state also sets the device features, as the device handler does.
+    """
+
+    def _sync_sensors(
+        endpoint_state: dict[str, Any], device: AmazonDevice
+    ) -> dict[str, AmazonDeviceSensor]:
+        device.endpoint_id = SYNC_ENDPOINT
+        device.features, _ = _parse_features(endpoint_state, device.device_type)
+        handler = api._sensor_handler
+        handler.full_sensor_sync(
+            {device.serial_number: device}, {SYNC_ENDPOINT: endpoint_state}
+        )
+        return handler.sensors.get(device.serial_number, {})
+
+    return _sync_sensors
