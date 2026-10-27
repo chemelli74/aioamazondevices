@@ -36,7 +36,9 @@ def resolve_feature_property_definition(
         return None
 
     if feature_name in COMMON_SENSORS:
-        return FeaturePropertyDefinition(property_name, template, None)
+        return FeaturePropertyDefinition(
+            template.get("sensor_key_override") or property_name, template, None
+        )
 
     instances = SPECIFIC_SENSORS.get(device_type, {}).get(feature_name, {})
     if (override := instances.get(instance)) is None:

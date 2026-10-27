@@ -122,7 +122,7 @@ async def test_motion_sensor_properties_are_read(
         "detectionRange": "HIGH",
         "detectionSensitivity": "MEDIUM",
         "detectionTechnology": "ULTRASONIC_BASIC",
-        "enablement": "DISABLED",
+        "motionSensor-enabled": "DISABLED",
     }
 
 

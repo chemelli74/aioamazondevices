@@ -43,6 +43,7 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
             "value_key": "enablementStateValue",
             "value_subkey": None,
             "value_scale_key": None,
+            "sensor_key_override": "motionSensor-enabled",
         },
     },
     "lightSensor": {
