@@ -311,6 +311,30 @@ fragment EndpointState on Endpoint {
         detectionStateValue
         timeOfSample
       }
+      ... on DetectionRange {
+        name
+        error { type message }
+        detectionRangeValue
+        timeOfSample
+      }
+      ... on DetectionSensitivity {
+        name
+        error { type message }
+        detectionSensitivityValue
+        timeOfSample
+      }
+      ... on DetectionTechnology {
+        name
+        error { type message }
+        detectionTechnologyValue
+        timeOfSample
+      }
+      ... on EnablementState {
+        name
+        error { type message }
+        enablementStateValue
+        timeOfSample
+      }
     }
   }
 }

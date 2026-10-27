@@ -55,6 +55,77 @@ async def test_sensor_value_is_read(
     assert not sensors["temperature"].error
 
 
+def _motion_property(
+    name: str, typename: str, value_key: str, value: str
+) -> dict[str, Any]:
+    """Build a motion sensor property."""
+    return {
+        "name": name,
+        "type": "RETRIEVABLE",
+        "error": None,
+        "__typename": typename,
+        value_key: value,
+    }
+
+
+@pytest.mark.anyio
+async def test_motion_sensor_properties_are_read(
+    make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
+) -> None:
+    """Every templated motion sensor property is parsed into its own sensor."""
+    endpoint = {
+        "features": [
+            {
+                "name": "motionSensor",
+                "instance": None,
+                "properties": [
+                    _motion_property(
+                        "detectionState",
+                        "DetectionState",
+                        "detectionStateValue",
+                        "NOT_DETECTED",
+                    ),
+                    _motion_property(
+                        "detectionRange",
+                        "DetectionRange",
+                        "detectionRangeValue",
+                        "HIGH",
+                    ),
+                    _motion_property(
+                        "detectionSensitivity",
+                        "DetectionSensitivity",
+                        "detectionSensitivityValue",
+                        "MEDIUM",
+                    ),
+                    _motion_property(
+                        "detectionTechnology",
+                        "DetectionTechnology",
+                        "detectionTechnologyValue",
+                        "ULTRASONIC_BASIC",
+                    ),
+                    _motion_property(
+                        "enablement",
+                        "EnablementState",
+                        "enablementStateValue",
+                        "DISABLED",
+                    ),
+                ],
+            }
+        ]
+    }
+
+    sensors = sync_sensors(endpoint, make_device(TEST_SERIAL_1))
+
+    assert {key: sensor.value for key, sensor in sensors.items()} == {
+        "detectionState": "NOT_DETECTED",
+        "detectionRange": "HIGH",
+        "detectionSensitivity": "MEDIUM",
+        "detectionTechnology": "ULTRASONIC_BASIC",
+        "enablement": "DISABLED",
+    }
+
+
 def _empty_temperature_endpoint() -> dict[str, Any]:
     """Build a temperature property without a value."""
     endpoint = _temperature_endpoint("value")

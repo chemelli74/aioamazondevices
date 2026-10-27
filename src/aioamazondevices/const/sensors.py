@@ -24,6 +24,26 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
             "value_subkey": None,
             "value_scale_key": None,
         },
+        "detectionRange": {
+            "value_key": "detectionRangeValue",
+            "value_subkey": None,
+            "value_scale_key": None,
+        },
+        "detectionSensitivity": {
+            "value_key": "detectionSensitivityValue",
+            "value_subkey": None,
+            "value_scale_key": None,
+        },
+        "detectionTechnology": {
+            "value_key": "detectionTechnologyValue",
+            "value_subkey": None,
+            "value_scale_key": None,
+        },
+        "enablement": {
+            "value_key": "enablementStateValue",
+            "value_subkey": None,
+            "value_scale_key": None,
+        },
     },
     "lightSensor": {
         "illuminance": {
