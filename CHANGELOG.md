@@ -1,5 +1,36 @@
 # Changelog
 
+## v17.2.3 (2026-10-26)
+
+### Bug fixes
+
+- Update sensor keys ([`efa88fa`](https://github.com/chemelli74/aioamazondevices/commit/efa88fa624b3d7bd8da652add41d6690e7eb3066))
+
+
+### Refactoring
+
+- Rename generic fields ([`f7d32ce`](https://github.com/chemelli74/aioamazondevices/commit/f7d32ce9c2dda01a95739c53c06cb7502c687628))
+
+
+## v17.2.2 (2026-10-26)
+
+### Bug fixes
+
+- Prefer voice devices as default device ([`aa3444b`](https://github.com/chemelli74/aioamazondevices/commit/aa3444b268c3d128d57b61fce76f010763e75855))
+
+
+## v17.2.1 (2026-10-26)
+
+### Bug fixes
+
+- Floor speaker group volume average to match alexa mobile app ([`f07abc5`](https://github.com/chemelli74/aioamazondevices/commit/f07abc5477b9e2c06d2061cb94a7bcdcd44993cb))
+
+
+### Build system
+
+- Target python 3.12 in pyupgrade ([`f91cd6c`](https://github.com/chemelli74/aioamazondevices/commit/f91cd6c5e26c79c5615bbe417f7c017e78e90c87))
+
+
 ## v17.2.0 (2026-10-25)
 
 ### Features

@@ -37,7 +37,7 @@ from aioamazondevices.implementation.feature_property_definitions import (
             FeaturePropertyDefinition(
                 "Humidity",
                 SENSOR_TEMPLATES["range"]["rangeValue"],
-                {"name": "Humidity", "scale": "%"},
+                {"sensor_key_override": "Humidity", "scale": "%"},
             ),
             id="specific-keyed-by-override-name",
         ),
