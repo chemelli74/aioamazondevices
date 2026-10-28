@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> { } }:
 
 let
-  pythonEnv = pkgs.python312.withPackages (ps: with ps; [
+  pythonEnv = pkgs.python313.withPackages (ps: with ps; [
     ps.pip
     ps.numpy
     ps.uv

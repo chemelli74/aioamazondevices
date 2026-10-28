@@ -104,7 +104,7 @@ class AmazonSequenceHandler:
 
     def _optimise_sequence_nodes(
         self, sequences: list[AmazonSequenceNode]
-    ) -> Generator[dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any]]:
         """Optimise sequence nodes by wrapping similar operations in parallel nodes.
 
         Args:

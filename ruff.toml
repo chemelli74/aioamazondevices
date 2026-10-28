@@ -1,4 +1,4 @@
-target-version = "py312"
+target-version = "py313"
 
 lint.logger-objects = ["aioamazondevices.const._LOGGER"]
 
