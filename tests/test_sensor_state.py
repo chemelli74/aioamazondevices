@@ -224,6 +224,18 @@ def _thermostat_endpoint() -> dict[str, Any]:
                     },
                 ],
             },
+            {
+                "name": "mode",
+                "instance": "5",
+                "properties": [
+                    {
+                        "name": "mode",
+                        "error": None,
+                        "__typename": "Mode",
+                        "modeValue": {"value": "2"},
+                    },
+                ],
+            },
         ]
     }
 
@@ -245,6 +257,7 @@ async def test_thermostat_sensors_are_read(
         "lowerSetpoint": (65.0, "FAHRENHEIT"),
         "thermostatMode": ("AUTO", None),
         "allowedTemperatureRange": (TEST_ALLOWED_TEMPERATURE_RANGE, None),
+        "fan_mode": ("2", None),
     }
 
 
