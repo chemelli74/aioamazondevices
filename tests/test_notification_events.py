@@ -11,6 +11,7 @@ import pytest
 
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.schedules import NOTIFICATION_TIMER
+from aioamazondevices.implementation.http2 import _process_rendering_update
 from aioamazondevices.structures import AmazonPushMessage, AmazonSchedule
 
 SERIAL = "SERIAL"
@@ -333,3 +334,39 @@ async def test_stop_http2_processing_ignores_pushes_during_shutdown(
     await producer_task
 
     assert not notified_api._notification_tasks
+
+
+@pytest.mark.parametrize(
+    ("notification_id", "version", "event_type"),
+    [
+        pytest.param("timer-id", 2, "UPDATE", id="timer-create-first-write"),
+        pytest.param("timer-id", 3, "UPDATE", id="timer-create-second-write"),
+        pytest.param("reminder-id_REMINDER", 2, "UPDATE", id="reminder-create"),
+        pytest.param("reminder-id", 2, "DELETE", id="reminder-delete"),
+        pytest.param("alarm-id", 4, "UPDATE", id="alarm-update"),
+        pytest.param("alarm-id", 4, "DELETE", id="alarm-delete"),
+    ],
+)
+def test_notification_change_is_never_dropped(
+    notification_id: str, version: int, event_type: str
+) -> None:
+    """Every NotificationChange is a real change, whatever its version."""
+    payload = {
+        "dopplerId": {"deviceSerialNumber": SERIAL, "deviceType": "TYPE"},
+        "notificationId": notification_id,
+        "notificationVersion": version,
+        "eventType": event_type,
+    }
+    rendering_update = {
+        "route": "EventBus:tcomm::message",
+        "resourceId": AmazonPushMessage.NotificationChange.value,
+        "resourceMetadata": {
+            "command": AmazonPushMessage.NotificationChange.value,
+            "payload": payload,
+        },
+    }
+
+    assert _process_rendering_update(rendering_update) == (
+        AmazonPushMessage.NotificationChange.value,
+        payload,
+    )
