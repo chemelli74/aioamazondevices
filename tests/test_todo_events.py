@@ -263,3 +263,41 @@ async def test_stop_http2_processing_cancels_in_flight_fetch(
     assert task.cancelled()
     assert not handler._tasks
     assert not events
+
+
+@pytest.mark.anyio
+async def test_cancelled_stop_is_propagated(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    events: list[AmazonListEvent],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Cancelling the stop itself is not swallowed while waiting for a fetch."""
+    holding = asyncio.Event()
+
+    async def get_list_items(_list_id: str) -> list[AmazonListItem]:
+        try:
+            await asyncio.Event().wait()
+        except asyncio.CancelledError:
+            # Swallow the stop's cancel, so the stop is left waiting.
+            holding.set()
+            await asyncio.Event().wait()
+        return []
+
+    monkeypatch.setattr(handler, "get_list_items", get_list_items)
+
+    await api._handle_item_change_event(_payload(LIST_ID, "a", "itemUpdated"))
+    await asyncio.sleep(DEBOUNCE_DELAY * 2)
+    (task,) = handler._tasks
+    stop = asyncio.create_task(api.stop_http2_processing())
+    await holding.wait()
+
+    stop.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await stop
+
+    # Cancel the fetch again, so it does not outlive the test.
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert not events
