@@ -1,7 +1,7 @@
 [project]
 name = "aioamazondevices"
 version = "17.2.3"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 description = "Python library to control Amazon devices"
 authors = [
 { name = "Simone Chemelli", email = "simone.chemelli@gmail.com" },
@@ -15,7 +15,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3.15", # renovate: customPinnedDependency=python,datasource=python-version
