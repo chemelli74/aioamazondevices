@@ -437,7 +437,12 @@ class AmazonEchoApi:
             # triggers the full sync before applying its update
             self._dnd_initialized = False
             self._device_volumes_initialized = False
-            for sync_call in (self.sync_dnd_state, self.sync_media_state):
+            sync_calls = [self.sync_dnd_state, self.sync_media_state]
+            # notification changes are not sent in the push, so only refetch
+            # them for subscribers
+            if self.on_notification_event.frozen:
+                sync_calls.append(self.sync_notifications)
+            for sync_call in sync_calls:
                 try:
                     await sync_call()
                 except Exception as err:  # noqa: BLE001
