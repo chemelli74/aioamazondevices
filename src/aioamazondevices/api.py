@@ -30,6 +30,7 @@ from .const.metadata import (
     VOLUME_MAX,
     VOLUME_MIN,
 )
+from .const.schedules import NOTIFICATION_DEBOUNCE_DELAY
 from .exceptions import CannotSetFeature, NoOnlineDevicesError
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
@@ -153,6 +154,12 @@ class AmazonEchoApi:
         self._dnd_initialized: bool = False
         self._dnd_lock = asyncio.Lock()
         self._device_volumes_lock = asyncio.Lock()
+        # keeps an older snapshot from reaching subscribers after a newer one
+        self._notification_lock = asyncio.Lock()
+        # the sync still inside its debounce window, and so still cancellable
+        self._notification_debounce_task: asyncio.Task[None] | None = None
+        # strong refs, so a running sync cannot be garbage collected
+        self._notification_tasks: set[asyncio.Task[None]] = set()
         # serializes the daily device refresh with a resync after reconnect,
         # so a resync cannot apply endpoint states of an outdated device list
         self._sensor_sync_lock = asyncio.Lock()
@@ -172,6 +179,7 @@ class AmazonEchoApi:
         self.on_history_event = Signal[dict[str, AmazonVocalRecord]](self)
         self.on_todo_event = Signal[AmazonListEvent](self)
         self.on_dnd_event = Signal[dict[str, bool]](self)
+        self.on_notification_event = Signal[dict[str, dict[str, AmazonSchedule]]](self)
         self.on_sensor_event: Signal[()] = Signal(self)
 
     @property
@@ -311,11 +319,10 @@ class AmazonEchoApi:
         await self._refresh_basic_data()
 
         devices = self._device_handler.devices
-        notifications = await self._notification_handler.get_notifications()
         communications = (
             await self._communication_handler.get_communication_preferences()
         )
-        self._update_device_settings(devices, notifications, communications)
+        self._update_device_settings(devices, communications)
 
         # retry a resync that failed after an HTTP2 reconnect
         if self._sensor_resync_required:
@@ -331,16 +338,13 @@ class AmazonEchoApi:
     def _update_device_settings(
         self,
         devices: dict[str, AmazonDevice],
-        notifications: dict[str, dict[str, AmazonSchedule]] | None,
         communications: dict[str, dict[str, str]],
     ) -> None:
-        """Update communication settings and notifications of all devices."""
+        """Update communication settings of all devices."""
         for device in devices.values():
             device.communication_settings = (
                 communications.get(device.serial_number) or {}
             )
-
-        self._notification_handler.update_device_notifications(devices, notifications)
 
     async def start_http2_processing(
         self,
@@ -376,9 +380,18 @@ class AmazonEchoApi:
 
     async def stop_http2_processing(self) -> None:
         """Stop HTTP2 background processing."""
+        # stop push events first, so no new notification task can start
+        # while the existing ones are drained
         if self._http2_client:
             await self._http2_client.stop_processing()
             self._http2_client = None
+
+        tasks = tuple(self._notification_tasks)
+        for task in tasks:
+            task.cancel()
+        # wait, so no sync is still using the session once we return
+        await asyncio.gather(*tasks, return_exceptions=True)
+        self._notification_debounce_task = None
 
         if (resync_task := self._resync_task) and not resync_task.done():
             resync_task.cancel()
@@ -424,7 +437,12 @@ class AmazonEchoApi:
             # triggers the full sync before applying its update
             self._dnd_initialized = False
             self._device_volumes_initialized = False
-            for sync_call in (self.sync_dnd_state, self.sync_media_state):
+            sync_calls = [self.sync_dnd_state, self.sync_media_state]
+            # notification changes are not sent in the push, so only refetch
+            # them for subscribers
+            if self.on_notification_event.frozen:
+                sync_calls.append(self.sync_notifications)
+            for sync_call in sync_calls:
                 try:
                     await sync_call()
                 except Exception as err:  # noqa: BLE001
@@ -461,6 +479,8 @@ class AmazonEchoApi:
                 await self._handle_item_change_event(payload)
             case AmazonPushMessage.DoNotDisturbChange.value:
                 await self._handle_dnd_event(payload)
+            case AmazonPushMessage.NotificationChange.value:
+                await self._handle_notification_change_event()
             case AmazonPushMessage.SmartHome.value:
                 await self._handle_smart_home_event(payload)
             case _:
@@ -538,6 +558,31 @@ class AmazonEchoApi:
 
         await self._media_handler.sync_media_state(self._device_handler.devices)
         await self._emit_media_state_event()
+
+    async def _handle_notification_change_event(self) -> None:
+        if not self.on_notification_event.frozen:
+            _LOGGER.debug("No notification subscribers, skipping fetch")
+            return
+        # Amazon sends a burst of these for a single timer/alarm/reminder change,
+        # so collapse them into one call to the notifications endpoint.
+        if self._notification_debounce_task:
+            self._notification_debounce_task.cancel()
+
+        task = asyncio.create_task(self._debounced_notification_sync())
+        self._notification_debounce_task = task
+        self._notification_tasks.add(task)
+        task.add_done_callback(self._notification_tasks.discard)
+
+    async def _debounced_notification_sync(self) -> None:
+        """Sync notifications once the push event burst has settled."""
+        try:
+            await asyncio.sleep(NOTIFICATION_DEBOUNCE_DELAY)
+        except asyncio.CancelledError:
+            # Superseded by a newer push event
+            return
+        self._notification_debounce_task = None
+
+        await self.sync_notifications()
 
     async def _handle_item_change_event(self, payload: dict[str, Any]) -> None:
         list_id = payload.get("listId")
@@ -789,6 +834,14 @@ class AmazonEchoApi:
                 await self._media_handler.device_volumes
             )
 
+    async def _emit_notification_event(
+        self, notifications: dict[str, dict[str, AmazonSchedule]]
+    ) -> None:
+        """Emit notification event to subscribers."""
+        if self.on_notification_event.frozen:
+            _LOGGER.debug("Emitting notification event to subscribers")
+            await self.on_notification_event.send(notifications)
+
     async def _emit_todo_event(self, list_event: AmazonListEvent) -> None:
         """Emit todo event to subscribers."""
         if self.on_todo_event.frozen:
@@ -844,6 +897,22 @@ class AmazonEchoApi:
     async def restart_device(self, device: AmazonDevice) -> None:
         """Restart a device."""
         await self._device_handler.restart_device(device)
+
+    async def sync_notifications(self) -> None:
+        """Sync notifications state.
+
+        This will be called at startup to sync alarms, timers and reminders
+        of all devices and can be called later to refresh them.
+        Must not be awaited from an on_notification_event subscriber,
+        as the lock is held while subscribers run.
+        """
+        async with self._notification_lock:
+            notifications = await self._notification_handler.get_notifications()
+            if notifications is None:
+                _LOGGER.debug("Notification fetch returned None, skipping update")
+                return
+
+            await self._emit_notification_event(notifications)
 
     async def sync_dnd_state(self) -> None:
         """Sync Do Not Disturb state for all devices."""

@@ -98,7 +98,6 @@ class AmazonDevice:
     entity_id: str | None
     endpoint_id: str | None
     notifications_supported: bool
-    notifications: dict[str, AmazonSchedule]
     media_player_supported: bool
     communication_settings: dict[str, str]
     voice_control_supported: bool

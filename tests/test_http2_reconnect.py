@@ -66,12 +66,13 @@ def _temperature(value: float) -> dict[str, Any]:
 
 @dataclass
 class _SyncMocks:
-    """The stubbed endpoint features lookup, DnD and media syncs."""
+    """The stubbed endpoint features lookup, DnD, media and notification syncs."""
 
     endpoints_features: AsyncMock = field(default_factory=AsyncMock)
     dnd: AsyncMock = field(default_factory=AsyncMock)
     volumes: AsyncMock = field(default_factory=AsyncMock)
     media: AsyncMock = field(default_factory=AsyncMock)
+    notifications: AsyncMock = field(default_factory=lambda: AsyncMock(return_value={}))
 
 
 @pytest.fixture
@@ -104,6 +105,9 @@ def synced_api(
     monkeypatch.setattr(api._dnd_handler, "sync_do_not_disturb_status", sync_mocks.dnd)
     monkeypatch.setattr(api._media_handler, "sync_device_volumes", sync_mocks.volumes)
     monkeypatch.setattr(api._media_handler, "sync_media_state", sync_mocks.media)
+    monkeypatch.setattr(
+        api._notification_handler, "get_notifications", sync_mocks.notifications
+    )
     return api
 
 
@@ -191,6 +195,22 @@ async def test_reconnect_resyncs_pushed_state(
     sync_mocks.media.assert_awaited_once()
     assert synced_api._dnd_initialized
     assert synced_api._device_volumes_initialized
+    sync_mocks.notifications.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_reconnect_resyncs_notifications_for_subscribers(
+    synced_api: AmazonEchoApi, sync_mocks: _SyncMocks
+) -> None:
+    """A reconnect refetches notifications and sends them to subscribers."""
+    on_notification_event = AsyncMock()
+    synced_api.on_notification_event.append(on_notification_event)
+    synced_api.on_notification_event.freeze()
+
+    await _resync(synced_api)
+
+    sync_mocks.notifications.assert_awaited_once()
+    on_notification_event.assert_awaited_once_with({})
 
 
 @pytest.mark.anyio
@@ -242,11 +262,6 @@ async def test_failed_sensor_resync_is_retried_on_next_poll(
     # The daily refresh is not due, so only the retry can resync the sensors.
     synced_api._last_daily_refresh = datetime.now(UTC)
     synced_api._default_device_serial = TEST_SERIAL_1
-    monkeypatch.setattr(
-        synced_api._notification_handler,
-        "get_notifications",
-        AsyncMock(return_value=None),
-    )
     monkeypatch.setattr(
         synced_api._communication_handler,
         "get_communication_preferences",
