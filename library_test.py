@@ -339,7 +339,6 @@ async def main() -> None:
             print(f"   Device model: {device.model}")
             print(f"   Device hardware version: {device.hardware_version}")
             print(f"   Device software version: {device.software_version}")
-            print(f"   Device sensors: {len(device.sensors)}")
             device_notifications = notifications.get(device.serial_number, {})
             print(f"   Device notifications: {len(device_notifications)}")
             print(f"   Device communications: {device_comm_settings}")
@@ -349,6 +348,26 @@ async def main() -> None:
                 f"{format_features(device.unsupported_features)}"
             )
             dev_index += 1
+        print("-" * 20)
+
+        print("Sensors summary:")
+        for serial_number, device_sensors in api.sensors.items():
+            print(f"Device {devices[serial_number].account_name}:")
+            for key, sensor in device_sensors.items():
+                instance = f"/{sensor.instance}" if sensor.instance else ""
+                value = (
+                    f"ERROR {sensor.error_type}: {sensor.error_msg}"
+                    if sensor.error
+                    else f"{sensor.value} {sensor.scale or ''}".rstrip()
+                )
+                print(
+                    f"   {key} ({sensor.feature_name}{instance}.{sensor.property_name})"
+                    f": {value} @ {sensor.time_of_sample}"
+                )
+        print("-" * 20)
+
+        await save_to_file(save_path, api.sensors, "output-sensors")
+        print("Check above file for full sensors details")
         print("-" * 20)
 
         default_device = await api.get_default_device()

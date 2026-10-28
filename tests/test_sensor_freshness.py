@@ -9,8 +9,7 @@ from typing import Any
 
 import pytest
 
-from aioamazondevices.implementation.sensor import parse_graphql_feature_to_sensor
-from aioamazondevices.structures import AmazonDevice
+from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 
 from .const import TEST_SERIAL_1
 
@@ -35,61 +34,47 @@ def _illuminance_endpoint(time_of_sample: str | int | None = None) -> dict[str, 
     }
 
 
-@pytest.mark.anyio
-async def test_time_of_sample_is_parsed(
+@pytest.fixture
+def sync_illuminance(
     make_device: Callable[..., AmazonDevice],
-) -> None:
-    """A well-formed timeOfSample is parsed into an aware datetime."""
-    device = make_device(TEST_SERIAL_1)
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
+) -> Callable[[str | int | None], dict[str, AmazonDeviceSensor]]:
+    """Return a helper that syncs an illuminance sample and returns the sensors."""
 
-    sensors = parse_graphql_feature_to_sensor(
-        _illuminance_endpoint(time_of_sample="2026-09-12T08:09:17.922Z"), device
-    )
+    def _sync_illuminance(
+        time_of_sample: str | int | None,
+    ) -> dict[str, AmazonDeviceSensor]:
+        return sync_sensors(
+            _illuminance_endpoint(time_of_sample), make_device(TEST_SERIAL_1)
+        )
 
-    assert sensors["illuminance"].time_of_sample == datetime(
-        2026, 9, 12, 8, 9, 17, 922000, tzinfo=UTC
-    )
-
-
-@pytest.mark.anyio
-async def test_missing_time_of_sample_defaults_to_none(
-    make_device: Callable[..., AmazonDevice],
-) -> None:
-    """A response without timeOfSample leaves the field unset."""
-    device = make_device(TEST_SERIAL_1)
-
-    sensors = parse_graphql_feature_to_sensor(_illuminance_endpoint(), device)
-
-    assert sensors["illuminance"].time_of_sample is None
+    return _sync_illuminance
 
 
 @pytest.mark.anyio
-async def test_unparsable_time_of_sample_defaults_to_none(
-    make_device: Callable[..., AmazonDevice],
+@pytest.mark.parametrize(
+    ("time_of_sample", "expected", "logged"),
+    [
+        pytest.param(
+            "2026-09-12T08:09:17.922Z",
+            datetime(2026, 9, 12, 8, 9, 17, 922000, tzinfo=UTC),
+            False,
+            id="parsed",
+        ),
+        pytest.param(None, None, False, id="missing"),
+        pytest.param("not-a-timestamp", None, True, id="unparsable"),
+        pytest.param(12345, None, True, id="non-string"),
+    ],
+)
+async def test_time_of_sample(
+    sync_illuminance: Callable[[str | int | None], dict[str, AmazonDeviceSensor]],
     caplog: pytest.LogCaptureFixture,
+    time_of_sample: str | int | None,
+    expected: datetime | None,
+    logged: bool,
 ) -> None:
-    """A malformed timeOfSample is logged and does not raise."""
-    device = make_device(TEST_SERIAL_1)
+    """A valid timeOfSample is parsed, anything else is unset and logged."""
+    sensors = sync_illuminance(time_of_sample)
 
-    sensors = parse_graphql_feature_to_sensor(
-        _illuminance_endpoint(time_of_sample="not-a-timestamp"), device
-    )
-
-    assert sensors["illuminance"].time_of_sample is None
-    assert "unparsable timeOfSample" in caplog.text
-
-
-@pytest.mark.anyio
-async def test_non_string_time_of_sample_defaults_to_none(
-    make_device: Callable[..., AmazonDevice],
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """A non-string timeOfSample is logged and does not raise."""
-    device = make_device(TEST_SERIAL_1)
-
-    sensors = parse_graphql_feature_to_sensor(
-        _illuminance_endpoint(time_of_sample=12345), device
-    )
-
-    assert sensors["illuminance"].time_of_sample is None
-    assert "unparsable timeOfSample" in caplog.text
+    assert sensors["illuminance"].time_of_sample == expected
+    assert ("unparsable timeOfSample" in caplog.text) is logged

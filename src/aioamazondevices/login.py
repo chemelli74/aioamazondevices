@@ -134,7 +134,9 @@ class AmazonLogin:
 
         return inputs
 
-    def _get_request_from_soup(self, soup: BeautifulSoup) -> tuple[str, URL]:
+    def _get_request_from_soup(
+        self, soup: BeautifulSoup, base_url: URL
+    ) -> tuple[str, URL]:
         """Extract URL and method for the next request."""
         _LOGGER.debug("Get request data from HTML source")
         form = soup.find("form", {"name": "signIn"}) or soup.find("form")
@@ -142,8 +144,17 @@ class AmazonLogin:
             method = form.get("method")
             url = form.get("action")
             if isinstance(method, str) and isinstance(url, str):
-                return method, URL(url)
+                # Form action may be relative to the page it was served from
+                return method, base_url.join(URL(url))
         raise CannotAuthenticate("Unable to extract form data from response")
+
+    def _check_login_error(self, soup: BeautifulSoup) -> None:
+        """Raise if the login page reports an error (wrong email, OTP, etc.)."""
+        for box_id in ("auth-error-message-box", "auth-warning-message-box"):
+            if box := soup.find(id=box_id):
+                message = " ".join(box.get_text().split())
+                _LOGGER.debug("Login error reported by Amazon: %s", message)
+                raise CannotAuthenticate(message)
 
     def _extract_code_from_url(self, url: URL) -> str:
         """Extract the access token from url query after login."""
@@ -318,12 +329,16 @@ class AmazonLogin:
             )
 
         if not login_soup.find("input", id="auth-mfa-otpcode"):
+            # e.g. captcha, email verification or an unsupported MFA method
+            title = login_soup.title.get_text(strip=True) if login_soup.title else ""
             _LOGGER.debug(
                 'Cannot find "auth-mfa-otpcode" in html source [%s]', login_url
             )
-            raise CannotAuthenticate("MFA OTP code not found on login page")
+            raise CannotAuthenticate(
+                f"Unexpected login page '{title or 'unknown'}', expected OTP code entry"
+            )
 
-        login_method, login_url = self._get_request_from_soup(login_soup)
+        login_method, login_url = self._get_request_from_soup(login_soup, login_url)
 
         login_inputs = self._get_inputs_from_soup(login_soup)
         login_inputs["otpCode"] = otp_code
@@ -337,7 +352,12 @@ class AmazonLogin:
         )
         _LOGGER.debug("Login response url:%s", login_resp.url)
 
-        authcode = self._extract_code_from_url(login_resp.url)
+        try:
+            authcode = self._extract_code_from_url(login_resp.url)
+        except CannotAuthenticate:
+            # Prefer Amazon's own message (e.g. invalid OTP) when available
+            self._check_login_error(login_soup)
+            raise
         _LOGGER.debug("Login extracted authcode: %s", authcode)
 
         return {
@@ -356,23 +376,36 @@ class AmazonLogin:
             code_verifier, client_id, registration_language
         )
 
-        login_soup, _ = await self._http_wrapper.session_request(
+        login_soup, login_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
             url=login_url,
         )
-        login_method, login_url = self._get_request_from_soup(login_soup)
-        login_inputs = self._get_inputs_from_soup(login_soup)
-        login_inputs["email"] = self._session_state_data.login_email
-        login_inputs["password"] = self._session_state_data.login_password
 
-        _LOGGER.debug("Register at %s", login_url)
-        login_soup, _ = await self._http_wrapper.session_request(
-            method=login_method,
-            url=login_url,
-            input_data=login_inputs,
-        )
+        # Email and password are now collected on separate pages
+        for field, value in (
+            ("email", self._session_state_data.login_email),
+            ("password", self._session_state_data.login_password),
+        ):
+            # Stop if Amazon returned a different page (captcha, verification...)
+            if not login_soup.find("input", {"name": field}):
+                _LOGGER.debug("Login page does not ask for %s", field)
+                break
 
-        return login_url, login_soup
+            login_method, login_url = self._get_request_from_soup(
+                login_soup, login_resp.url
+            )
+            login_inputs = self._get_inputs_from_soup(login_soup)
+            login_inputs[field] = value
+
+            _LOGGER.debug("Submit %s at %s", field, login_url)
+            login_soup, login_resp = await self._http_wrapper.session_request(
+                method=login_method,
+                url=login_url,
+                input_data=login_inputs,
+            )
+            self._check_login_error(login_soup)
+
+        return login_resp.url, login_soup
 
     async def login_mode_stored_data(self) -> dict[str, Any]:
         """Login to Amazon using previously stored data."""

@@ -1,7 +1,7 @@
 # Copyright 2024 Simone Chemelli and contributors
 # SPDX-License-Identifier: Apache-2.0
 
-"""Sensor template resolution for Amazon devices."""
+"""Feature property definition resolution for Amazon devices."""
 
 from dataclasses import dataclass
 
@@ -11,36 +11,38 @@ from aioamazondevices.const.sensors import (
     SPECIFIC_SENSORS,
 )
 
-type SensorTemplate = dict[str, str | None]
-type SensorOverride = dict[str, str | None] | None
+type FeaturePropertyTemplate = dict[str, str | None]
+type FeaturePropertyOverride = dict[str, str | None] | None
 
 
 @dataclass(frozen=True)
-class SensorSpec:
+class FeaturePropertyDefinition:
     """How a templated property is parsed and stored."""
 
     key: str
-    template: SensorTemplate
-    override: SensorOverride
+    template: FeaturePropertyTemplate
+    override: FeaturePropertyOverride
 
 
-def sensor_spec(
+def resolve_feature_property_definition(
     device_type: str, feature_name: str, instance: str, property_name: str
-) -> SensorSpec | None:
-    """Return the spec of a property, None if it has no template for the device type.
+) -> FeaturePropertyDefinition | None:
+    """Return a property's definition, None if it has no template for the device type.
 
-    A property has a spec when its feature is common to all devices, or is
+    A property has a definition when its feature is common to all devices, or is
     enabled for this device type and instance.
     """
     if (template := SENSOR_TEMPLATES.get(feature_name, {}).get(property_name)) is None:
         return None
 
     if feature_name in COMMON_SENSORS:
-        return SensorSpec(template.get("name") or property_name, template, None)
+        return FeaturePropertyDefinition(property_name, template, None)
 
     instances = SPECIFIC_SENSORS.get(device_type, {}).get(feature_name, {})
     if (override := instances.get(instance)) is None:
         return None
-    return SensorSpec(
-        override.get("name") or f"{property_name}-{instance}", template, override
+    return FeaturePropertyDefinition(
+        override.get("sensor_key_override") or f"{property_name}-{instance}",
+        template,
+        override,
     )

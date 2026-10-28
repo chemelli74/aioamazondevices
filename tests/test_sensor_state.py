@@ -12,9 +12,8 @@ import pytest
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.devices import DEVICE_TYPE_AQM
 from aioamazondevices.const.http import ARRAY_WRAPPER
-from aioamazondevices.implementation import sensor_templates
-from aioamazondevices.implementation.sensor import parse_graphql_feature_to_sensor
-from aioamazondevices.structures import AmazonDevice
+from aioamazondevices.implementation import feature_property_definitions
+from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 
 from .const import TEST_SERIAL_1
 
@@ -23,7 +22,7 @@ TEST_RANGE_VALUE = 42
 
 
 def _temperature_endpoint(value_key: str) -> dict[str, Any]:
-    """Build a temperature reading under the given property key."""
+    """Build a temperature value under the given property key."""
     return {
         "features": [
             {
@@ -46,29 +45,49 @@ def _temperature_endpoint(value_key: str) -> dict[str, Any]:
 @pytest.mark.anyio
 async def test_sensor_value_is_read(
     make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
 ) -> None:
-    """A reading under the expected key is parsed."""
-    sensors = parse_graphql_feature_to_sensor(
-        _temperature_endpoint("value"), make_device(TEST_SERIAL_1)
-    )
+    """A value under the expected key is parsed."""
+    sensors = sync_sensors(_temperature_endpoint("value"), make_device(TEST_SERIAL_1))
 
     assert sensors["temperature"].value == TEST_TEMPERATURE
     assert sensors["temperature"].scale == "CELSIUS"
     assert not sensors["temperature"].error
 
 
+def _empty_temperature_endpoint() -> dict[str, Any]:
+    """Build a temperature property without a value."""
+    endpoint = _temperature_endpoint("value")
+    endpoint["features"][0]["properties"][0]["value"] = None
+    return endpoint
+
+
 @pytest.mark.anyio
-async def test_unreadable_sensor_is_skipped(
+@pytest.mark.parametrize(
+    ("endpoint", "message"),
+    [
+        pytest.param(
+            _temperature_endpoint("temperatureValue"),
+            "ignored due to errors in feature",
+            id="unreadable",
+        ),
+        pytest.param(
+            _empty_temperature_endpoint(), "ignored due to empty value", id="empty"
+        ),
+    ],
+)
+async def test_unusable_sensor_value_is_skipped(
     make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
     caplog: pytest.LogCaptureFixture,
+    endpoint: dict[str, Any],
+    message: str,
 ) -> None:
-    """A reading we cannot parse is dropped, not reported as a valid 'n/a'."""
-    sensors = parse_graphql_feature_to_sensor(
-        _temperature_endpoint("temperatureValue"), make_device(TEST_SERIAL_1)
-    )
+    """A value we cannot use is dropped, not reported as a valid 'n/a'."""
+    sensors = sync_sensors(endpoint, make_device(TEST_SERIAL_1))
 
     assert sensors == {}
-    assert "ignored due to errors in feature" in caplog.text
+    assert message in caplog.text
 
 
 def _make_typed_device(
@@ -81,7 +100,7 @@ def _make_typed_device(
 
 
 def _range_endpoint(instance: str) -> dict[str, Any]:
-    """Build a range reading for the given instance."""
+    """Build a range value for the given instance."""
     return {
         "features": [
             {
@@ -102,42 +121,26 @@ def _range_endpoint(instance: str) -> dict[str, Any]:
 
 
 @pytest.mark.anyio
-async def test_sensor_template_name_override(
+@pytest.mark.parametrize(
+    ("endpoint", "device_type"),
+    [
+        pytest.param(
+            {"features": [{"name": "unknownFeature", "properties": []}]},
+            "A1B2C3",
+            id="unknown-feature",
+        ),
+        pytest.param(_range_endpoint("99"), DEVICE_TYPE_AQM, id="unknown-instance"),
+        pytest.param(_range_endpoint("4"), "A1B2C3", id="other-device-type"),
+    ],
+)
+async def test_untemplated_sensor_is_skipped(
     make_device: Callable[..., AmazonDevice],
-    monkeypatch: pytest.MonkeyPatch,
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
+    endpoint: dict[str, Any],
+    device_type: str,
 ) -> None:
-    """A template name replaces the property name as the sensor name."""
-    monkeypatch.setitem(
-        sensor_templates.SENSOR_TEMPLATES,
-        "temperatureSensor",
-        {
-            "temperature": {
-                "key": "value",
-                "subkey": "value",
-                "scale": "scale",
-                "name": "Room Temperature",
-            }
-        },
-    )
-
-    sensors = parse_graphql_feature_to_sensor(
-        _temperature_endpoint("value"), make_device(TEST_SERIAL_1)
-    )
-
-    assert list(sensors) == ["Room Temperature"]
-    assert sensors["Room Temperature"].name == "Room Temperature"
-    assert sensors["Room Temperature"].value == TEST_TEMPERATURE
-    assert sensors["Room Temperature"].property_name == "temperature"
-
-
-@pytest.mark.anyio
-async def test_unknown_feature_is_skipped(
-    make_device: Callable[..., AmazonDevice],
-) -> None:
-    """A feature with no sensor template is ignored."""
-    endpoint = {"features": [{"name": "unknownFeature", "properties": []}]}
-
-    sensors = parse_graphql_feature_to_sensor(endpoint, make_device(TEST_SERIAL_1))
+    """Features, instances and device types without a template are ignored."""
+    sensors = sync_sensors(endpoint, _make_typed_device(make_device, device_type))
 
     assert sensors == {}
 
@@ -145,9 +148,10 @@ async def test_unknown_feature_is_skipped(
 @pytest.mark.anyio
 async def test_device_specific_sensor_uses_override(
     make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
 ) -> None:
     """A device type specific instance takes its name and scale from the override."""
-    sensors = parse_graphql_feature_to_sensor(
+    sensors = sync_sensors(
         _range_endpoint("4"),
         _make_typed_device(make_device, DEVICE_TYPE_AQM),
     )
@@ -160,43 +164,19 @@ async def test_device_specific_sensor_uses_override(
 
 
 @pytest.mark.anyio
-async def test_device_specific_sensor_unknown_instance_is_skipped(
-    make_device: Callable[..., AmazonDevice],
-) -> None:
-    """An instance not listed for the device type is ignored."""
-    sensors = parse_graphql_feature_to_sensor(
-        _range_endpoint("99"),
-        _make_typed_device(make_device, DEVICE_TYPE_AQM),
-    )
-
-    assert sensors == {}
-
-
-@pytest.mark.anyio
-async def test_device_specific_sensor_other_device_type_is_skipped(
-    make_device: Callable[..., AmazonDevice],
-) -> None:
-    """A non generic feature is ignored on device types that do not enable it."""
-    sensors = parse_graphql_feature_to_sensor(
-        _range_endpoint("4"), make_device(TEST_SERIAL_1)
-    )
-
-    assert sensors == {}
-
-
-@pytest.mark.anyio
 async def test_device_specific_sensor_without_name_uses_fallback(
     make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """An override without a name is keyed by property name and instance."""
     monkeypatch.setitem(
-        sensor_templates.SPECIFIC_SENSORS,
+        feature_property_definitions.SPECIFIC_SENSORS,
         "TESTTYPE",
         {"range": {"1": {"scale": "ppm"}}},
     )
 
-    sensors = parse_graphql_feature_to_sensor(
+    sensors = sync_sensors(
         _range_endpoint("1"),
         _make_typed_device(make_device, "TESTTYPE"),
     )
@@ -206,60 +186,49 @@ async def test_device_specific_sensor_without_name_uses_fallback(
 
 
 @pytest.mark.anyio
-async def test_endpoint_states_graphql_errors_return_nothing(
+@pytest.mark.parametrize(
+    ("response", "message"),
+    [
+        pytest.param(
+            {"errors": [{"message": "Boom", "path": ["listEndpoints"]}]},
+            "Error running query: QUERY_POLLED_SENSOR_STATE - Boom",
+            id="graphql-errors",
+        ),
+        pytest.param(
+            {ARRAY_WRAPPER: [{"data": {"listEndpoints": None}}]},
+            "Malformed endpoint data received in QUERY_POLLED_SENSOR_STATE",
+            id="malformed",
+        ),
+    ],
+)
+async def test_bad_endpoint_states_response_returns_nothing(
     api: AmazonEchoApi,
-    make_device: Callable[..., AmazonDevice],
     caplog: pytest.LogCaptureFixture,
+    mock_json_response: Callable[[dict[str, Any]], AsyncMock],
+    response: dict[str, Any],
+    message: str,
 ) -> None:
-    """GraphQL errors are logged and no sensor states are returned."""
-    handler = api._sensor_handler
-    device = make_device(TEST_SERIAL_1)
-    device.endpoint_id = "endpoint-1"
-    handler._final_devices = {TEST_SERIAL_1: device}
-    response = {"errors": [{"message": "Boom", "path": ["listEndpoints"]}]}
-    handler._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
-    handler._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
+    """GraphQL errors and malformed responses are logged, returning no states."""
+    mock_json_response(response)
 
-    assert await handler._get_endpoint_states() == {}
-    assert "Error running query: QUERY_SENSOR_STATE - Boom" in caplog.text
-
-
-@pytest.mark.anyio
-async def test_endpoint_states_malformed_returns_nothing(
-    api: AmazonEchoApi,
-    make_device: Callable[..., AmazonDevice],
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """A response without endpoints is logged as malformed."""
-    handler = api._sensor_handler
-    device = make_device(TEST_SERIAL_1)
-    device.endpoint_id = "endpoint-1"
-    handler._final_devices = {TEST_SERIAL_1: device}
-    response = {ARRAY_WRAPPER: [{"data": {"listEndpoints": None}}]}
-    handler._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
-    handler._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
-
-    assert await handler._get_endpoint_states() == {}
-    assert "Malformed endpoint data received in QUERY_SENSOR_STATE" in caplog.text
+    assert await api._sensor_handler._get_polled_sensor_states(["endpoint-1"]) == {}
+    assert message in caplog.text
 
 
 @pytest.mark.anyio
 async def test_endpoint_states_are_keyed_by_endpoint_id(
     api: AmazonEchoApi,
-    make_device: Callable[..., AmazonDevice],
+    mock_json_response: Callable[[dict[str, Any]], AsyncMock],
 ) -> None:
     """Endpoint states are keyed by endpoint ID, skipping those without one."""
-    handler = api._sensor_handler
-    device = make_device(TEST_SERIAL_1)
-    device.endpoint_id = "endpoint-1"
-    handler._final_devices = {TEST_SERIAL_1: device}
     endpoint = {"endpointId": "endpoint-1", "features": []}
     response = {
         ARRAY_WRAPPER: [
             {"data": {"listEndpoints": {"endpoints": [endpoint, {"features": []}]}}}
         ]
     }
-    handler._http_wrapper.session_request = AsyncMock(return_value=(None, None))  # type: ignore[method-assign]
-    handler._http_wrapper.response_to_json = AsyncMock(return_value=response)  # type: ignore[method-assign]
+    mock_json_response(response)
 
-    assert await handler._get_endpoint_states() == {"endpoint-1": endpoint}
+    assert await api._sensor_handler._get_polled_sensor_states(["endpoint-1"]) == {
+        "endpoint-1": endpoint
+    }

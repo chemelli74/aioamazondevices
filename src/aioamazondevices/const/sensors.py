@@ -3,47 +3,82 @@
 
 """Metadata constants for Amazon device sensors."""
 
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM
+from aioamazondevices.const.devices import DEVICE_TYPE_AQM, DEVICE_TYPE_GLOW
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
 # Sensors templates, keyed by feature name and then by property name
 # This determines how to parse the feature
-# An optional "name" replaces the property name as the sensor name
+# the property name will be used as sensor key for these
 SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
     "temperatureSensor": {
         "temperature": {
-            "key": "value",
-            "subkey": "value",
-            "scale": "scale",
+            "value_key": "value",
+            "value_subkey": "value",
+            "value_scale_key": "scale",
         },
     },
     "motionSensor": {
         "detectionState": {
-            "key": "detectionStateValue",
-            "subkey": None,
-            "scale": None,
+            "value_key": "detectionStateValue",
+            "value_subkey": None,
+            "value_scale_key": None,
         },
     },
     "lightSensor": {
         "illuminance": {
-            "key": "illuminanceValue",
-            "subkey": "value",
-            "scale": None,
+            "value_key": "illuminanceValue",
+            "value_subkey": "value",
+            "value_scale_key": None,
         },
     },
     "connectivity": {
         "reachability": {
-            "key": "reachabilityStatusValue",
-            "subkey": None,
-            "scale": None,
+            "value_key": "reachabilityStatusValue",
+            "value_subkey": None,
+            "value_scale_key": None,
         },
     },
     "range": {
         "rangeValue": {
-            "key": "rangeValue",
-            "subkey": "value",
-            "scale": None,
+            "value_key": "rangeValue",
+            "value_subkey": "value",
+            "value_scale_key": None,
+        },
+    },
+    "power": {
+        "powerState": {
+            "value_key": "powerStateValue",
+            "value_subkey": None,
+            "value_scale_key": None,
+        },
+    },
+    "brightness": {
+        "brightness": {
+            "value_key": "brightnessStateValue",
+            "value_subkey": None,
+            "value_scale_key": None,
+        },
+    },
+    "color": {
+        "color": {
+            "value_key": "colorStateValue",
+            "value_subkey": None,
+            "value_scale_key": None,
+        },
+    },
+    "mode": {
+        "mode": {
+            "value_key": "modeValue",
+            "value_subkey": "value",
+            "value_scale_key": None,
+        },
+    },
+    "toggle": {
+        "toggleState": {
+            "value_key": "toggleStateValue",
+            "value_subkey": None,
+            "value_scale_key": None,
         },
     },
 }
@@ -56,34 +91,80 @@ COMMON_SENSORS: list[str] = [
     "connectivity",
 ]
 
+# Features Amazon does not push over HTTP2, so they need polling
+POLLED_SENSOR_FEATURES: frozenset[str] = frozenset(
+    {
+        "connectivity",
+        "lightSensor",
+        "motionSensor",
+    }
+)
+
 # Device type specific sensors, keyed by device type, feature name and then instance
+# The property name will be used for sensor key unless sensor_key_override is set
 SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
     DEVICE_TYPE_AQM: {
         "range": {
             "4": {
-                "name": "Humidity",
+                "sensor_key_override": "Humidity",
                 "scale": "%",
             },
             "5": {
-                "name": "VOC",
+                "sensor_key_override": "VOC",
                 "scale": None,
             },
             "6": {
-                "name": "PM25",
+                "sensor_key_override": "PM25",
                 "scale": "MicroGramsPerCubicMeter",
             },
             "7": {
-                "name": "PM10",
+                "sensor_key_override": "PM10",
                 "scale": "MicroGramsPerCubicMeter",
             },
             "8": {
-                "name": "CO",
+                "sensor_key_override": "CO",
                 "scale": "ppm",
             },
             "9": {
-                "name": "Air Quality",
+                "sensor_key_override": "Air Quality",
                 "scale": None,
             },
         },
-    }
+        "toggle": {
+            "11": {
+                "sensor_key_override": "aqm_led",
+                "scale": None,
+            }
+        },
+    },
+    DEVICE_TYPE_GLOW: {
+        "power": {
+            "": {
+                "sensor_key_override": "light_power",
+                "scale": None,
+            }
+        },
+        "brightness": {
+            "": {
+                "sensor_key_override": "brightness",
+                "scale": "%",
+            }
+        },
+        "color": {
+            "": {
+                "sensor_key_override": "color",
+                "scale": None,
+            }
+        },
+        "mode": {
+            "1": {
+                "sensor_key_override": "light_mode",
+            }
+        },
+        "toggle": {
+            "3": {
+                "sensor_key_override": "glow_tap",
+            }
+        },
+    },
 }

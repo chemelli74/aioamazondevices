@@ -26,7 +26,7 @@ class AmazonDeviceSensor:
     """Amazon device sensor class."""
 
     name: str
-    value: str | int | float
+    value: str | int | float | None
     error: bool
     error_type: str | None
     error_msg: str | None
@@ -84,6 +84,7 @@ class AmazonDevice:
     capabilities: list[str]
     device_family: str
     device_type: str
+    primary_display_category: str
     device_owner_customer_id: str
     household_device: bool
     device_cluster_members: dict[str, str | None]
@@ -96,7 +97,6 @@ class AmazonDevice:
     hardware_version: str | None
     entity_id: str | None
     endpoint_id: str | None
-    sensors: dict[str, AmazonDeviceSensor]
     notifications_supported: bool
     media_player_supported: bool
     communication_settings: dict[str, str]

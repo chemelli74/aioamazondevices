@@ -4,7 +4,7 @@
 """Test optional display text and announcement batching."""
 
 from collections.abc import Callable
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, _Call, call
 
 import pytest
 
@@ -16,40 +16,60 @@ from aioamazondevices.structures import (
     AmazonSequenceType,
 )
 
+from .const import TEST_SERIAL_1, TEST_SERIAL_2
+
+
+@pytest.fixture
+def device(
+    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
+) -> AmazonDevice:
+    """Return a logged in device that is its own cluster member."""
+    api._session_state_data.login_stored_data = {"test": True}
+    device = make_device(TEST_SERIAL_1)
+    device.device_cluster_members = {device.serial_number: device.device_type}
+    return device
+
+
+@pytest.fixture
+def enqueue(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
+    """Replace enqueueing a sequence, returning the mock to assert on."""
+    enqueue_sequence = AsyncMock()
+    monkeypatch.setattr(api._sequence_handler, "_enqueue_sequence", enqueue_sequence)
+    return enqueue_sequence
+
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    ("args", "kwargs", "expected_display"),
+    ("display_text", "expected_display"),
     [
-        pytest.param((), {}, "Doctor Smith", id="omitted"),
-        pytest.param((), {"display_text": None}, "Doctor Smith", id="none-keyword"),
-        pytest.param((None,), {}, "Doctor Smith", id="none-positional"),
-        pytest.param((), {"display_text": ""}, "Doctor Smith", id="empty-keyword"),
-        pytest.param(("",), {}, "Doctor Smith", id="empty-positional"),
+        pytest.param(call(), "Doctor Smith", id="omitted"),
+        pytest.param(call(display_text=None), "Doctor Smith", id="none-keyword"),
+        pytest.param(call(None), "Doctor Smith", id="none-positional"),
+        pytest.param(call(display_text=""), "Doctor Smith", id="empty-keyword"),
+        pytest.param(call(""), "Doctor Smith", id="empty-positional"),
         pytest.param(
-            (), {"display_text": "Dr. Smith"}, "Dr. Smith", id="override-keyword"
+            call(display_text="Dr. Smith"), "Dr. Smith", id="override-keyword"
         ),
-        pytest.param(("Dr. Smith",), {}, "Dr. Smith", id="override-positional"),
+        pytest.param(call("Dr. Smith"), "Dr. Smith", id="override-positional"),
     ],
 )
 async def test_announcement_display_text(
     api: AmazonEchoApi,
-    make_device: Callable[..., AmazonDevice],
-    args: tuple[str | None, ...],
-    kwargs: dict[str, str | None],
+    device: AmazonDevice,
+    display_text: _Call,
     expected_display: str,
+    enqueue: AsyncMock,
 ) -> None:
     """Display overrides and defaults preserve speech, title, and target devices."""
-    api._session_state_data.login_stored_data = {"test": True}
-    device = make_device("first")
-    device.device_cluster_members = {device.serial_number: device.device_type}
     handler = api._sequence_handler
     spoken = "Doctor Smith"
     original = handler._build_operation_node(
         device, AmazonSequenceType.Announcement, spoken
     )
-    with patch.object(handler, "_enqueue_sequence", new_callable=AsyncMock) as enqueue:
-        await api.call_alexa_announcement(device, spoken, *args, **kwargs)
+    await api.call_alexa_announcement(
+        device, spoken, *display_text.args, **display_text.kwargs
+    )
+
     node = enqueue.call_args.args[0]
     expected = original
     expected["operationPayload"]["content"][0]["display"]["body"] = expected_display
@@ -63,21 +83,19 @@ async def test_announcement_display_text(
 @pytest.mark.anyio
 async def test_send_message_display_text_positional_argument(
     api: AmazonEchoApi,
-    make_device: Callable[..., AmazonDevice],
+    device: AmazonDevice,
+    enqueue: AsyncMock,
 ) -> None:
     """The message sender accepts display text after the music provider."""
-    api._session_state_data.login_stored_data = {"test": True}
     handler = api._sequence_handler
-    device = make_device("first")
-    device.device_cluster_members = {device.serial_number: device.device_type}
-    with patch.object(handler, "_enqueue_sequence", new_callable=AsyncMock) as enqueue:
-        await handler.send_message(
-            device,
-            AmazonSequenceType.Announcement,
-            "Doctor Smith",
-            None,
-            "Dr. Smith",
-        )
+    await handler.send_message(
+        device,
+        AmazonSequenceType.Announcement,
+        "Doctor Smith",
+        None,
+        "Dr. Smith",
+    )
+
     operation = enqueue.call_args.args[0].operation_node
     content = operation["operationPayload"]["content"][0]
     assert content["display"]["body"] == "Dr. Smith"
@@ -87,13 +105,10 @@ async def test_send_message_display_text_positional_argument(
 @pytest.mark.usefixtures("anyio_backend")
 def test_build_operation_node_display_text_positional_argument(
     api: AmazonEchoApi,
-    make_device: Callable[..., AmazonDevice],
+    device: AmazonDevice,
 ) -> None:
     """Operation construction accepts display text after the music provider."""
-    api._session_state_data.login_stored_data = {"test": True}
     handler = api._sequence_handler
-    device = make_device("first")
-    device.device_cluster_members = {device.serial_number: device.device_type}
     operation = handler._build_operation_node(
         device, AmazonSequenceType.Announcement, "Doctor Smith", None, "Dr. Smith"
     )
@@ -126,8 +141,8 @@ def test_batch_preserves_display_text(
             operation_node={"display": display},
         )
         for serial, display in [
-            ("first", first_display),
-            ("second", second_display),
+            (TEST_SERIAL_1, first_display),
+            (TEST_SERIAL_2, second_display),
         ]
     ]
     handler = object.__new__(AmazonSequenceHandler)
@@ -145,7 +160,7 @@ def test_batch_keeps_same_device_operations_separate(
             message_type=AmazonSequenceType.Announcement,
             message_body="Doctor Smith",
             music_provider_id=None,
-            device=make_device("first"),
+            device=make_device(TEST_SERIAL_1),
             operation_node={"display": display},
         )
         for display in ["Dr. Smith", "Other"]
