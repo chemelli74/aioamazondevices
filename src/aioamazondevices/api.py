@@ -553,6 +553,10 @@ class AmazonEchoApi:
 
         _LOGGER.debug("Received ItemChange for %s: %s", list_id, event_name)
 
+        # without subscribers there is no need to fetch the list
+        if not self.on_todo_event.frozen:
+            return
+
         if event_name not in AmazonListEventType:
             _LOGGER.warning("Received unsupported list event type: %s", event_name)
             return

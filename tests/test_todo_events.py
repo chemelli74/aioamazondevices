@@ -219,6 +219,7 @@ async def test_fetch_failure_is_logged(
 
 
 @pytest.mark.anyio
+@pytest.mark.usefixtures("events")
 async def test_failing_subscriber_does_not_drop_other_events(
     api: AmazonEchoApi,
     handler: AmazonToDoHandler,
@@ -226,7 +227,6 @@ async def test_failing_subscriber_does_not_drop_other_events(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A subscriber raising for one event still receives the rest of the batch."""
-    monkeypatch.setattr(todo_module, "TODO_DEBOUNCE_DELAY", DEBOUNCE_DELAY)
     monkeypatch.setattr(handler, "get_list_items", AsyncMock(return_value=[]))
     on_list_event = AsyncMock(side_effect=[RuntimeError("boom"), None])
     monkeypatch.setattr(handler, "_on_list_event", on_list_event)
@@ -240,6 +240,24 @@ async def test_failing_subscriber_does_not_drop_other_events(
         call(AmazonListEvent(LIST_ID, "b", AmazonListEventType.DELETED)),
     ]
     assert "Emitting todo event for item a of list list-1 failed" in caplog.text
+
+
+@pytest.mark.anyio
+async def test_changes_without_subscribers_skip_fetch(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Without subscribers changes are not queued, so the list is not fetched."""
+    monkeypatch.setattr(todo_module, "TODO_DEBOUNCE_DELAY", DEBOUNCE_DELAY)
+    fetch = AsyncMock()
+    monkeypatch.setattr(handler, "get_list_items", fetch)
+
+    await api._handle_item_change_event(_payload(LIST_ID, "a", "itemUpdated"))
+    await _settle(handler)
+
+    fetch.assert_not_awaited()
+    assert not handler._changes
 
 
 @pytest.mark.anyio
