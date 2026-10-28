@@ -135,6 +135,9 @@ def scrub_fields(
                 result[k] = obfuscate_email(v)
             elif k in field_names:
                 result[k] = replacement
+            elif k == "features":
+                # feature and property names are identifiers, not personal data
+                result[k] = scrub_fields(v, set(field_names) - {"name"}, replacement)
             else:
                 # Otherwise keep walking
                 result[k] = scrub_fields(v, field_names, replacement)

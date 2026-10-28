@@ -11,6 +11,7 @@ from aioamazondevices.const.http import ARRAY_WRAPPER
 from aioamazondevices.utils import (
     check_and_log_graphql_errors,
     parse_device_details,
+    scrub_fields,
     validate_graphql_endpoint_shape,
 )
 
@@ -159,3 +160,26 @@ def test_validate_graphql_endpoint_shape_malformed(
     """Malformed responses are logged with the query name."""
     assert validate_graphql_endpoint_shape("TEST_QUERY", response) is None
     assert "Malformed endpoint data received in TEST_QUERY" in caplog.text
+
+
+def test_scrub_fields_keeps_feature_names() -> None:
+    """Feature and property names stay readable, other names are redacted."""
+    payload = {
+        "name": "Jane Doe",
+        "features": [
+            {
+                "name": "thermostat",
+                "properties": [{"name": "targetSetpoint", "token": "secret"}],
+            }
+        ],
+    }
+
+    assert scrub_fields(payload) == {
+        "name": "[REDACTED]",
+        "features": [
+            {
+                "name": "thermostat",
+                "properties": [{"name": "targetSetpoint", "token": "[REDACTED]"}],
+            }
+        ],
+    }

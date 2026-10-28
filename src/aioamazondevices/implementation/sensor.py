@@ -14,7 +14,7 @@ from yarl import URL
 from aioamazondevices.const.devices import SPEAKER_GROUP_FAMILY
 from aioamazondevices.const.http import REQUEST_AGENT, URI_NEXUS_GRAPHQL
 from aioamazondevices.const.queries import QUERY_POLLED_SENSOR_STATE
-from aioamazondevices.const.sensors import POLLED_SENSOR_FEATURES
+from aioamazondevices.const.sensors import INACTIVE_VALUE, POLLED_SENSOR_FEATURES
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.implementation.feature_property_definitions import (
     FeaturePropertyDefinition,
@@ -116,16 +116,15 @@ def _parse_property(
                     serial_number,
                 )
                 return None
-            scale = (
-                value_raw[scale_template]
-                if (scale_template := template["value_scale_key"])
-                else None
-            )
             value = (
                 value_raw[subkey_template]
                 if (subkey_template := template["value_subkey"])
                 else value_raw
             )
+            if value == INACTIVE_VALUE:
+                value = None
+            elif scale_template := template["value_scale_key"]:
+                scale = value_raw[scale_template]
 
         except (KeyError, ValueError) as exc:
             _LOGGER.warning(
