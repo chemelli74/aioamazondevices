@@ -142,6 +142,7 @@ class AmazonEchoApi:
         self._todo_handler = AmazonToDoHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
+            on_list_event=self._emit_todo_event,
         )
 
         self._communication_handler = AlexaCommunicationsHandler(
@@ -390,6 +391,8 @@ class AmazonEchoApi:
         self._resync_task = None
         self._resync_pending = False
 
+        await self._todo_handler.cancel_pending()
+
     async def _http2_reconnected_handler(self) -> None:
         """Resync pushed state in the background, as pushes may have been missed.
 
@@ -540,6 +543,7 @@ class AmazonEchoApi:
         await self._emit_media_state_event()
 
     async def _handle_item_change_event(self, payload: dict[str, Any]) -> None:
+        """Queue a pushed todo list item change for the debounced emit."""
         list_id = payload.get("listId")
         item_id = payload.get("listItemId")
         event_name = payload.get("eventName")
@@ -550,20 +554,17 @@ class AmazonEchoApi:
 
         _LOGGER.debug("Received ItemChange for %s: %s", list_id, event_name)
 
+        # without subscribers there is no need to fetch the list
+        if not self.on_todo_event.frozen:
+            return
+
         if event_name not in AmazonListEventType:
             _LOGGER.warning("Received unsupported list event type: %s", event_name)
             return
 
-        list_event_type = AmazonListEventType(event_name)
-
-        items = None
-        if list_event_type != AmazonListEventType.DELETED:
-            list_items = await self.get_todo_list_items(list_id)
-            items = list_items[item_id]
-
-        list_event = AmazonListEvent(list_id, item_id, list_event_type, items=items)
-
-        await self._emit_todo_event(list_event)
+        self._todo_handler.queue_item_change(
+            list_id, item_id, AmazonListEventType(event_name)
+        )
 
     async def call_alexa_speak(
         self,
