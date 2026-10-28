@@ -4,7 +4,7 @@
 """Tests for the debounced todo list push-event handling."""
 
 import asyncio
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, call
 
 import pytest
 
@@ -74,11 +74,15 @@ async def test_burst_of_changes_fetches_list_once(
     monkeypatch.setattr(handler, "get_list_items", fetch)
 
     await api._handle_item_change_event(_payload(LIST_ID, "a", "itemUpdated"))
-    await asyncio.sleep(0.03)
+    first_timer = handler._timers[LIST_ID]
     # This restarts the window, so the first change is not flushed on its own.
     await api._handle_item_change_event(_payload(LIST_ID, "b", "itemUpdated"))
-    await asyncio.sleep(0.03)
-    fetch.assert_not_awaited()
+
+    assert first_timer.cancelled()
+    assert handler._timers[LIST_ID] is not first_timer
+    assert handler._changes == {
+        LIST_ID: {"a": AmazonListEventType.UPDATED, "b": AmazonListEventType.UPDATED}
+    }
 
     await _settle(handler)
 
@@ -212,6 +216,30 @@ async def test_fetch_failure_is_logged(
     assert not events
     assert not handler._tasks
     assert "Fetching todo list list-1 failed: boom" in caplog.text
+
+
+@pytest.mark.anyio
+async def test_failing_subscriber_does_not_drop_other_events(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A subscriber raising for one event still receives the rest of the batch."""
+    monkeypatch.setattr(todo_module, "TODO_DEBOUNCE_DELAY", DEBOUNCE_DELAY)
+    monkeypatch.setattr(handler, "get_list_items", AsyncMock(return_value=[]))
+    on_list_event = AsyncMock(side_effect=[RuntimeError("boom"), None])
+    monkeypatch.setattr(handler, "_on_list_event", on_list_event)
+
+    await api._handle_item_change_event(_payload(LIST_ID, "a", "itemDeleted"))
+    await api._handle_item_change_event(_payload(LIST_ID, "b", "itemDeleted"))
+    await _settle(handler)
+
+    assert on_list_event.await_args_list == [
+        call(AmazonListEvent(LIST_ID, "a", AmazonListEventType.DELETED)),
+        call(AmazonListEvent(LIST_ID, "b", AmazonListEventType.DELETED)),
+    ]
+    assert "Emitting todo event for item a of list list-1 failed" in caplog.text
 
 
 @pytest.mark.anyio

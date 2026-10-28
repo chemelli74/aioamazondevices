@@ -166,14 +166,22 @@ class AmazonToDoHandler:
         for item_id, event_type in changes.items():
             # an item removed again before the fetch is reported as deleted
             items = list_items.get(item_id)
-            await self._on_list_event(
-                AmazonListEvent(
-                    list_id,
-                    item_id,
-                    AmazonListEventType.DELETED if items is None else event_type,
-                    items=items,
+            # a failing subscriber must not drop the remaining events
+            try:
+                await self._on_list_event(
+                    AmazonListEvent(
+                        list_id,
+                        item_id,
+                        AmazonListEventType.DELETED if items is None else event_type,
+                        items=items,
+                    )
                 )
-            )
+            except Exception:  # noqa: BLE001
+                _LOGGER.exception(
+                    "Emitting todo event for item %s of list %s failed",
+                    item_id,
+                    list_id,
+                )
 
     async def cancel_pending(self) -> None:
         """Drop queued changes and cancel any fetch in progress."""
