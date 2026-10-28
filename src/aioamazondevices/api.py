@@ -543,6 +543,7 @@ class AmazonEchoApi:
         await self._emit_media_state_event()
 
     async def _handle_item_change_event(self, payload: dict[str, Any]) -> None:
+        """Queue a pushed todo list item change for the debounced emit."""
         list_id = payload.get("listId")
         item_id = payload.get("listItemId")
         event_name = payload.get("eventName")

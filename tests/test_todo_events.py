@@ -322,6 +322,7 @@ async def test_cancelled_stop_is_propagated(
     holding = asyncio.Event()
 
     async def get_list_items(_list_id: str) -> list[AmazonListItem]:
+        """Simulate a fetch that never finishes and ignores being cancelled."""
         try:
             await asyncio.Event().wait()
         except asyncio.CancelledError:
