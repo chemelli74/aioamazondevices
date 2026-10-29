@@ -39,9 +39,9 @@ dependencies = [
 [dependency-groups]
 dev = [
     "colorlog",
-    "pytest>=9.1.1,<10",
+    "pytest>=9.2.0,<10",
     "pytest-cov>=7.1.0,<8",
-    "types-python-dateutil>=2.9.0.20261021,<3",
+    "types-python-dateutil>=2.9.0.20261029,<3",
 ]
 
 [tool.uv-version]
