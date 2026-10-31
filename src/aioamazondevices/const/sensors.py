@@ -7,6 +7,15 @@ from aioamazondevices.const.devices import DEVICE_TYPE_AQM, DEVICE_TYPE_GLOW
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
+# Lowest physically possible temperature, keyed by scale
+# Amazon reports -280 CELSIUS while a sensor has no reading yet (e.g. after a reboot)
+ABSOLUTE_ZERO: dict[str, float] = {
+    "CELSIUS": -273.15,
+    "FAHRENHEIT": -459.67,
+    "KELVIN": 0,
+}
+SENSOR_ERROR_INVALID_VALUE = "INVALID_VALUE"
+
 # Sensors templates, keyed by feature name and then by property name
 # This determines how to parse the feature
 # the property name will be used as sensor key for these
