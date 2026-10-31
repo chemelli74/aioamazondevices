@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM
+from aioamazondevices.const.devices import DEVICE_TYPE_AQM, DEVICE_TYPE_THERMOSTAT
 from aioamazondevices.implementation.device import _parse_features
 from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.structures import AmazonDevice
@@ -23,6 +23,8 @@ SYNCED_TEMPERATURE = 20.0
 SYNCED_ILLUMINANCE = 5.0
 POLLED_ILLUMINANCE = 7.0
 PUSHED_TEMPERATURE = 22.5
+SYNCED_SETPOINT = 62.0
+POLLED_SETPOINT = 68.0
 EARLIER = "2026-10-15T10:00:00Z"
 LATER = "2026-10-15T10:05:00Z"
 
@@ -54,6 +56,20 @@ def _reachability(status: str) -> dict[str, Any]:
         "name": "connectivity",
         "instance": None,
         "properties": [{"name": "reachability", "reachabilityStatusValue": status}],
+    }
+
+
+def _thermostat(mode: str, target_setpoint: float) -> dict[str, Any]:
+    return {
+        "name": "thermostat",
+        "instance": None,
+        "properties": [
+            {"name": "thermostatMode", "thermostatModeValue": mode},
+            {
+                "name": "targetSetpoint",
+                "value": {"value": target_setpoint, "scale": "FAHRENHEIT"},
+            },
+        ],
     }
 
 
@@ -184,6 +200,35 @@ async def test_poll_only_updates_polled_sensors(
     get_polled_sensor_states.assert_awaited_once_with([ENDPOINT])
     assert api.sensors[TEST_SERIAL_1]["illuminance"].value == POLLED_ILLUMINANCE
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == SYNCED_TEMPERATURE
+
+
+@pytest.mark.anyio
+async def test_poll_updates_thermostat(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A poll refreshes the thermostat values."""
+    device = make_device(TEST_SERIAL_1)
+    device.device_type = DEVICE_TYPE_THERMOSTAT
+    device.endpoint_id = ENDPOINT
+    _supports(device, _thermostat("AUTO", SYNCED_SETPOINT))
+    handler = api._sensor_handler
+    handler.full_sensor_sync(
+        {TEST_SERIAL_1: device},
+        {ENDPOINT: _endpoint(_thermostat("AUTO", SYNCED_SETPOINT))},
+    )
+    get_polled_sensor_states = _stub_poll(
+        monkeypatch,
+        handler,
+        {ENDPOINT: _endpoint(_thermostat("HEAT", POLLED_SETPOINT))},
+    )
+
+    await handler.update_polled_sensors()
+
+    get_polled_sensor_states.assert_awaited_once_with([ENDPOINT])
+    assert api.sensors[TEST_SERIAL_1]["thermostatMode"].value == "HEAT"
+    assert api.sensors[TEST_SERIAL_1]["targetSetpoint"].value == POLLED_SETPOINT
 
 
 @pytest.mark.anyio

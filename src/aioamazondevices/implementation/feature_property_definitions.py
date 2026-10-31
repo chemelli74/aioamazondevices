@@ -41,8 +41,8 @@ def resolve_feature_property_definition(
     instances = SPECIFIC_SENSORS.get(device_type, {}).get(feature_name, {})
     if (override := instances.get(instance)) is None:
         return None
+    # features without an instance can carry several properties, e.g. thermostat
+    fallback_key = f"{property_name}-{instance}" if instance else property_name
     return FeaturePropertyDefinition(
-        override.get("sensor_key_override") or f"{property_name}-{instance}",
-        template,
-        override,
+        override.get("sensor_key_override") or fallback_key, template, override
     )

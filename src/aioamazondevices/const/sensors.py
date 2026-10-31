@@ -3,7 +3,11 @@
 
 """Metadata constants for Amazon device sensors."""
 
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM, DEVICE_TYPE_GLOW
+from aioamazondevices.const.devices import (
+    DEVICE_TYPE_AQM,
+    DEVICE_TYPE_GLOW,
+    DEVICE_TYPE_THERMOSTAT,
+)
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
@@ -81,6 +85,35 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
             "value_scale_key": None,
         },
     },
+    "thermostat": {
+        "targetSetpoint": {
+            "value_key": "value",
+            "value_subkey": "value",
+            "value_scale_key": "scale",
+        },
+        "upperSetpoint": {
+            "value_key": "value",
+            "value_subkey": "value",
+            "value_scale_key": "scale",
+        },
+        "lowerSetpoint": {
+            "value_key": "value",
+            "value_subkey": "value",
+            "value_scale_key": "scale",
+        },
+        "thermostatMode": {
+            "value_key": "thermostatModeValue",
+            "value_subkey": None,
+            "value_scale_key": None,
+        },
+    },
+    "thermostatConfiguration": {
+        "allowedTemperatureRange": {
+            "value_key": "thermostatAllowedTemperatureRangeValue",
+            "value_subkey": None,
+            "value_scale_key": None,
+        },
+    },
 }
 
 # These templates will be applied to all devices
@@ -97,6 +130,7 @@ POLLED_SENSOR_FEATURES: frozenset[str] = frozenset(
         "connectivity",
         "lightSensor",
         "motionSensor",
+        "thermostat",
     }
 )
 
@@ -166,5 +200,14 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
                 "sensor_key_override": "glow_tap",
             }
         },
+    },
+    DEVICE_TYPE_THERMOSTAT: {
+        "mode": {
+            "5": {
+                "sensor_key_override": "fan_mode",
+            }
+        },
+        "thermostat": {"": {}},
+        "thermostatConfiguration": {"": {}},
     },
 }
