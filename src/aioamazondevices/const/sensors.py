@@ -124,9 +124,6 @@ COMMON_SENSORS: list[str] = [
     "connectivity",
 ]
 
-# A setpoint not used by the current thermostat mode, pushed without a scale
-INACTIVE_VALUE = "INACTIVE"
-
 # Features Amazon does not push over HTTP2, so they need polling
 POLLED_SENSOR_FEATURES: frozenset[str] = frozenset(
     {

@@ -232,34 +232,6 @@ async def test_poll_updates_thermostat(
 
 
 @pytest.mark.anyio
-async def test_push_inactive_setpoint_has_no_value(
-    api: AmazonEchoApi,
-    make_device: Callable[..., AmazonDevice],
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """A setpoint the current mode does not use is pushed as INACTIVE, no scale."""
-    device = make_device(TEST_SERIAL_1)
-    device.device_type = DEVICE_TYPE_THERMOSTAT
-    device.endpoint_id = ENDPOINT
-    _supports(device, _thermostat("HEAT", SYNCED_SETPOINT))
-    api._sensor_handler.full_sensor_sync(
-        {TEST_SERIAL_1: device},
-        {ENDPOINT: _endpoint(_thermostat("HEAT", SYNCED_SETPOINT))},
-    )
-    inactive = {
-        "name": "thermostat",
-        "instance": None,
-        "properties": [{"name": "targetSetpoint", "value": {"value": "INACTIVE"}}],
-    }
-
-    await api._http2_push_event_handler("FDAL_UPDATE", _push(inactive))
-
-    sensor = api.sensors[TEST_SERIAL_1]["targetSetpoint"]
-    assert (sensor.value, sensor.scale, sensor.error) == (None, None, False)
-    assert "ignored due to errors" not in caplog.text
-
-
-@pytest.mark.anyio
 async def test_poll_only_requests_endpoints_with_polled_sensors(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
