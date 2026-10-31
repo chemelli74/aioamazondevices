@@ -101,6 +101,28 @@ async def test_get_homegroup_id_cached(handler: AlexaCommunicationsHandler) -> N
 
 
 @pytest.mark.anyio
+@pytest.mark.parametrize(
+    "identity_response",
+    [
+        pytest.param(CannotRetrieveData("Request failed: Bad Request"), id="http_400"),
+        pytest.param({}, id="missing"),
+        pytest.param({"homeGroupId": None}, id="null"),
+    ],
+)
+async def test_get_communication_preferences_no_homegroup(
+    handler: AlexaCommunicationsHandler,
+    identity_response: dict[str, Any] | Exception,
+) -> None:
+    """Without a homegroup id, communications are disabled and not retried."""
+    requested = _route_responses(handler, {"/identities": identity_response})
+
+    assert await handler.get_communication_preferences() == {}
+    assert await handler.get_communication_preferences() == {}
+
+    assert len(requested) == 1
+
+
+@pytest.mark.anyio
 async def test_get_communication_preferences(
     handler: AlexaCommunicationsHandler,
 ) -> None:

@@ -34,6 +34,7 @@ class AlexaCommunicationsHandler:
         self._communication_site = URL(COMM_SITE)
         self._communication_preferences: dict[str, dict[str, str]] = {}
         self._homegroup_id: str | None = None
+        self._comms_unavailable = False
 
     async def _set_communications_state(
         self, preference: str, device: AmazonDevice, state: str
@@ -75,8 +76,19 @@ class AlexaCommunicationsHandler:
 
     async def get_communication_preferences(self) -> dict[str, dict[str, str]]:
         """Get communication preferences for a device."""
+        if self._comms_unavailable:
+            return {}
         if not self._homegroup_id:
-            self._homegroup_id = await self.get_homegroup_id()
+            try:
+                self._homegroup_id = await self.get_homegroup_id()
+            except CannotRetrieveData as exc:
+                _LOGGER.debug("Failed to retrieve homegroup id: %s", exc)
+            if not self._homegroup_id:
+                _LOGGER.warning(
+                    "No homegroup found for this account, communications disabled"
+                )
+                self._comms_unavailable = True
+                return {}
         url = URL.joinpath(
             self._communication_site,
             URI_HOMEGROUP_DEVICES.format(homegroup_id=self._homegroup_id),
@@ -160,5 +172,5 @@ class AlexaCommunicationsHandler:
             method=HTTPMethod.GET, url=url
         )
         resp_json = await self._http_wrapper.response_to_json(resp, "comms-identity")
-        self._homegroup_id = resp_json.get("homeGroupId")
+        self._homegroup_id = resp_json.get("homeGroupId") or None
         return self._homegroup_id
