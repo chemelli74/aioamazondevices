@@ -19,9 +19,14 @@ from .const import TEST_SERIAL_1
 
 TEST_TEMPERATURE = 21.3
 TEST_RANGE_VALUE = 42
+TEST_ABSOLUTE_ZERO_FAHRENHEIT = -459.67
 
 
-def _temperature_endpoint(value_key: str) -> dict[str, Any]:
+def _temperature_endpoint(
+    value_key: str,
+    value: float = TEST_TEMPERATURE,
+    scale: str = "CELSIUS",
+) -> dict[str, Any]:
     """Build a temperature value under the given property key."""
     return {
         "features": [
@@ -34,7 +39,7 @@ def _temperature_endpoint(value_key: str) -> dict[str, Any]:
                         "type": "RETRIEVABLE",
                         "error": None,
                         "__typename": "TemperatureSensor",
-                        value_key: {"value": TEST_TEMPERATURE, "scale": "CELSIUS"},
+                        value_key: {"value": value, "scale": scale},
                     }
                 ],
             }
@@ -52,6 +57,46 @@ async def test_sensor_value_is_read(
 
     assert sensors["temperature"].value == TEST_TEMPERATURE
     assert sensors["temperature"].scale == "CELSIUS"
+    assert not sensors["temperature"].error
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("value", "scale"),
+    [
+        pytest.param(-280, "CELSIUS", id="celsius"),
+        pytest.param(-500, "FAHRENHEIT", id="fahrenheit"),
+        pytest.param(-1, "KELVIN", id="kelvin"),
+    ],
+)
+async def test_temperature_below_absolute_zero_is_an_error(
+    make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
+    value: float,
+    scale: str,
+) -> None:
+    """An impossible temperature is reported as an error, not as a value."""
+    sensors = sync_sensors(
+        _temperature_endpoint("value", value, scale), make_device(TEST_SERIAL_1)
+    )
+
+    assert sensors["temperature"].value is None
+    assert sensors["temperature"].error
+    assert sensors["temperature"].error_type == "INVALID_VALUE"
+
+
+@pytest.mark.anyio
+async def test_temperature_at_absolute_zero_is_read(
+    make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
+) -> None:
+    """The absolute zero itself is a valid, if unlikely, reading."""
+    sensors = sync_sensors(
+        _temperature_endpoint("value", TEST_ABSOLUTE_ZERO_FAHRENHEIT, "FAHRENHEIT"),
+        make_device(TEST_SERIAL_1),
+    )
+
+    assert sensors["temperature"].value == TEST_ABSOLUTE_ZERO_FAHRENHEIT
     assert not sensors["temperature"].error
 
 

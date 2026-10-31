@@ -14,7 +14,11 @@ from yarl import URL
 from aioamazondevices.const.devices import SPEAKER_GROUP_FAMILY
 from aioamazondevices.const.http import REQUEST_AGENT, URI_NEXUS_GRAPHQL
 from aioamazondevices.const.queries import QUERY_POLLED_SENSOR_STATE
-from aioamazondevices.const.sensors import POLLED_SENSOR_FEATURES
+from aioamazondevices.const.sensors import (
+    ABSOLUTE_ZERO,
+    POLLED_SENSOR_FEATURES,
+    SENSOR_ERROR_INVALID_VALUE,
+)
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.implementation.feature_property_definitions import (
     FeaturePropertyDefinition,
@@ -72,6 +76,15 @@ def _parse_sample_timestamp(
         return None
 
 
+def _is_below_absolute_zero(value: str | float | None, scale: str | None) -> bool:
+    """Return True if a temperature value is physically impossible."""
+    return (
+        isinstance(value, (int, float))
+        and (minimum := ABSOLUTE_ZERO.get(scale or "")) is not None
+        and value < minimum
+    )
+
+
 def _iter_endpoint_properties(
     endpoint: dict[str, Any],
 ) -> Iterator[tuple[str, str, dict[str, Any]]]:
@@ -104,9 +117,10 @@ def _parse_property(
 
     # "error" can be None, missing, or a dict
     api_error = feature_property.get("error") or {}
+    error = bool(api_error)
     error_type = api_error.get("type")
     error_msg = api_error.get("message")
-    if not api_error:
+    if not error:
         try:
             value_raw = feature_property[template["value_key"] or ""]
             if not value_raw:
@@ -136,7 +150,15 @@ def _parse_property(
                 repr(exc),
             )
             return None
-    else:
+
+        if _is_below_absolute_zero(value, scale):
+            # Amazon placeholder for "no reading yet", not a measurement
+            error = True
+            error_type = SENSOR_ERROR_INVALID_VALUE
+            error_msg = f"{value} {scale} is below absolute zero"
+            value = None
+
+    if error:
         _LOGGER.debug(
             "error in sensor %s - %s - %s",
             property_name,
@@ -150,7 +172,7 @@ def _parse_property(
     return AmazonDeviceSensor(
         definition.key,
         value,
-        bool(api_error),
+        error,
         error_type,
         error_msg,
         scale,
