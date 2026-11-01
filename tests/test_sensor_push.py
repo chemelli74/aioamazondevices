@@ -12,6 +12,7 @@ import pytest
 
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.devices import DEVICE_TYPE_AQM
+from aioamazondevices.const.sensors import TEMPERATURE_CALIBRATION_VALUE
 from aioamazondevices.implementation.device import _parse_features
 from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.structures import AmazonDevice
@@ -571,3 +572,19 @@ async def test_smart_home_event_is_emitted(
 
     on_sensor_event.assert_awaited_once()
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == PUSHED_TEMPERATURE
+
+
+@pytest.mark.anyio
+@pytest.mark.usefixtures("handler")
+async def test_smart_home_calibration_push_is_stored_as_error(
+    api: AmazonEchoApi,
+) -> None:
+    """A pushed calibration placeholder is stored as an error."""
+    await api._http2_push_event_handler(
+        "FDAL_UPDATE", _push(_temperature(TEMPERATURE_CALIBRATION_VALUE))
+    )
+
+    sensor = api.sensors[TEST_SERIAL_1]["temperature"]
+    assert sensor.value == TEMPERATURE_CALIBRATION_VALUE
+    assert sensor.error
+    assert sensor.error_type == "INVALID_TEMPERATURE"
