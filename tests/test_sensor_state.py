@@ -19,7 +19,8 @@ from .const import TEST_SERIAL_1
 
 TEST_TEMPERATURE = 21.3
 TEST_RANGE_VALUE = 42
-TEST_ABSOLUTE_ZERO_FAHRENHEIT = -459.67
+TEST_CALIBRATION_TEMPERATURE = -280
+TEST_LOW_TEMPERATURE = -279.9
 
 
 def _temperature_endpoint(
@@ -61,42 +62,35 @@ async def test_sensor_value_is_read(
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize(
-    ("value", "scale"),
-    [
-        pytest.param(-280, "CELSIUS", id="celsius"),
-        pytest.param(-500, "FAHRENHEIT", id="fahrenheit"),
-        pytest.param(-1, "KELVIN", id="kelvin"),
-    ],
-)
-async def test_temperature_below_absolute_zero_is_an_error(
+@pytest.mark.parametrize("scale", ["CELSIUS", "FAHRENHEIT"])
+async def test_calibrating_temperature_is_an_error(
     make_device: Callable[..., AmazonDevice],
     sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
-    value: float,
     scale: str,
 ) -> None:
-    """An impossible temperature is reported as an error, not as a value."""
+    """The calibration placeholder is reported as an error, keeping the raw value."""
     sensors = sync_sensors(
-        _temperature_endpoint("value", value, scale), make_device(TEST_SERIAL_1)
-    )
-
-    assert sensors["temperature"].value is None
-    assert sensors["temperature"].error
-    assert sensors["temperature"].error_type == "INVALID_VALUE"
-
-
-@pytest.mark.anyio
-async def test_temperature_at_absolute_zero_is_read(
-    make_device: Callable[..., AmazonDevice],
-    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
-) -> None:
-    """The absolute zero itself is a valid, if unlikely, reading."""
-    sensors = sync_sensors(
-        _temperature_endpoint("value", TEST_ABSOLUTE_ZERO_FAHRENHEIT, "FAHRENHEIT"),
+        _temperature_endpoint("value", TEST_CALIBRATION_TEMPERATURE, scale),
         make_device(TEST_SERIAL_1),
     )
 
-    assert sensors["temperature"].value == TEST_ABSOLUTE_ZERO_FAHRENHEIT
+    assert sensors["temperature"].value == TEST_CALIBRATION_TEMPERATURE
+    assert sensors["temperature"].error
+    assert sensors["temperature"].error_type == "INVALID_TEMPERATURE"
+
+
+@pytest.mark.anyio
+async def test_temperature_above_calibration_value_is_read(
+    make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
+) -> None:
+    """A value above the calibration placeholder is a regular reading."""
+    sensors = sync_sensors(
+        _temperature_endpoint("value", TEST_LOW_TEMPERATURE),
+        make_device(TEST_SERIAL_1),
+    )
+
+    assert sensors["temperature"].value == TEST_LOW_TEMPERATURE
     assert not sensors["temperature"].error
 
 
