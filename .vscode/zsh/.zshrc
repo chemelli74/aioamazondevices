@@ -9,6 +9,9 @@ if [ -f "$HOME/.zshrc" ]; then
   source "$HOME/.zshrc"
 fi
 
+# Keep uv commands on this repo's .venv, not an inherited project environment.
+export UV_PROJECT_ENVIRONMENT=.venv
+
 if [ -f "$PWD/.venv/bin/activate" ]; then
   source "$PWD/.venv/bin/activate"
 fi

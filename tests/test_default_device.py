@@ -50,24 +50,30 @@ async def test_get_default_device_returns_device_just_set(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    "persisted_serial",
+    "settings_bytes",
     [
-        pytest.param(TEST_SERIAL_1, id="persisted-serial-matches-device"),
-        pytest.param(TEST_SERIAL_2, id="persisted-serial-is-stale"),
+        pytest.param(
+            orjson.dumps({SETTINGS_DEFAULT_DEVICE: TEST_SERIAL_1}),
+            id="persisted-serial-matches-device",
+        ),
+        pytest.param(
+            orjson.dumps({SETTINGS_DEFAULT_DEVICE: TEST_SERIAL_2}),
+            id="persisted-serial-is-stale",
+        ),
+        pytest.param(b"not valid json", id="malformed-json"),
+        pytest.param(orjson.dumps([1, 2, 3]), id="non-object-json"),
     ],
 )
 async def test_init_default_device_resolves_persisted_or_falls_back(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
     tmp_path: Path,
-    persisted_serial: str,
+    settings_bytes: bytes,
 ) -> None:
-    """A matching persisted serial is used; a stale one falls back to online."""
+    """A matching persisted serial is used, otherwise the online device is."""
     online_device = make_device(TEST_SERIAL_1, online=True)
     api._device_handler._final_devices = {online_device.serial_number: online_device}
-    (tmp_path / SETTINGS_FILENAME).write_bytes(
-        orjson.dumps({SETTINGS_DEFAULT_DEVICE: persisted_serial})
-    )
+    (tmp_path / SETTINGS_FILENAME).write_bytes(settings_bytes)
 
     await api._init_default_device()
 
@@ -93,26 +99,30 @@ async def test_init_default_device_falls_back_to_first_online_device(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    "settings_bytes",
+    ("voice_control_supported", "expected_serial"),
     [
-        pytest.param(b"not valid json", id="malformed-json"),
-        pytest.param(orjson.dumps([1, 2, 3]), id="non-object-json"),
+        pytest.param((False, True), TEST_SERIAL_2, id="voice-device-preferred"),
+        pytest.param((False, False), TEST_SERIAL_1, id="no-voice-device"),
     ],
 )
-async def test_init_default_device_ignores_invalid_settings_file(
+async def test_init_default_device_prefers_voice_devices(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
-    tmp_path: Path,
-    settings_bytes: bytes,
+    voice_control_supported: tuple[bool, bool],
+    expected_serial: str,
 ) -> None:
-    """Invalid settings.json content is treated as no persisted settings."""
-    online_device = make_device(TEST_SERIAL_1, online=True)
-    api._device_handler._final_devices = {online_device.serial_number: online_device}
-    (tmp_path / SETTINGS_FILENAME).write_bytes(settings_bytes)
+    """A voice device beats an endpoint-only one, which is still used alone."""
+    api._device_handler._final_devices = {
+        serial: make_device(serial, online=True, voice_control_supported=supported)
+        for serial, supported in zip(
+            (TEST_SERIAL_1, TEST_SERIAL_2), voice_control_supported, strict=True
+        )
+    }
 
     await api._init_default_device()
 
-    assert await api.get_default_device() == online_device
+    default_device = await api.get_default_device()
+    assert default_device.serial_number == expected_serial
 
 
 @pytest.mark.anyio

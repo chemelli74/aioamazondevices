@@ -1,0 +1,23 @@
+[
+  {
+    "data": {
+      "setEndpointFeatures": {
+        "featureControlResponses": [],
+        "errors": [
+          {
+            "endpointId": "amzn1.alexa.endpoint.123",
+            "featureName": "toggle",
+            "instance": "11",
+            "featureOperationName": "turnOn",
+            "code": "INTERNAL_SERVER_ERROR",
+            "message": "An unknown problem on server side was encountered when processing the request"
+          }
+        ]
+      }
+    },
+    "extensions": {
+      "requestID": "2A5WM2J0QPTVE145ZAP5",
+      "duration": 44
+    }
+  }
+]

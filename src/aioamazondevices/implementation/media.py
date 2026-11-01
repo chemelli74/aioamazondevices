@@ -3,6 +3,8 @@
 
 """Media module for Amazon devices."""
 
+import asyncio
+import math
 from datetime import UTC, datetime
 from http import HTTPMethod
 from statistics import fmean
@@ -44,6 +46,7 @@ class AmazonMediaHandler:
         self._music_providers: dict[str, AmazonMusicProvider] = {}
         self._device_volumes: dict[str, AmazonVolumeState] = {}
         self._media_states: dict[str, AmazonMediaState] = {}
+        self._media_states_lock = asyncio.Lock()
 
     @property
     async def music_providers(self) -> dict[str, AmazonMusicProvider]:
@@ -83,8 +86,9 @@ class AmazonMediaHandler:
         if not member_volumes:
             return
 
+        # Alexa reports a speaker group's volume as the floored member average.
         self._device_volumes[speaker_group_serial] = AmazonVolumeState(
-            volume=round(
+            volume=math.floor(
                 fmean(
                     vol
                     for member_vol in member_volumes
@@ -143,6 +147,12 @@ class AmazonMediaHandler:
 
     async def sync_media_state(self, devices: dict[str, AmazonDevice]) -> None:
         """Sync media states."""
+        # serialize syncs (e.g. reconnect resync and push event), so that an
+        # older response cannot replace the state from a newer one
+        async with self._media_states_lock:
+            await self._sync_media_state(devices)
+
+    async def _sync_media_state(self, devices: dict[str, AmazonDevice]) -> None:
         if not (
             media_devices := tuple(
                 device for device in devices.values() if device.media_player_supported

@@ -26,11 +26,15 @@ class AmazonDeviceSensor:
     """Amazon device sensor class."""
 
     name: str
-    value: str | int | float
+    value: str | int | float | None
     error: bool
     error_type: str | None
     error_msg: str | None
     scale: str | None
+    feature_name: str
+    property_name: str
+    instance: str
+    time_of_sample: datetime | None = None
 
 
 @dataclass
@@ -54,6 +58,25 @@ class AmazonSchedule:
 
 
 @dataclass
+class AmazonDeviceFeature:
+    """Amazon device feature class."""
+
+    properties: list[str]
+    supported_operations: list[str]
+    supported_modes: list[str]
+    friendly_name: str | None
+    # range features only
+    minimum_value: float | None
+    maximum_value: float | None
+    precision: float | None
+    unit_of_measure: str | None
+    # raw configuration section, its shape depends on the feature
+    raw_configuration: dict[str, Any]
+    # supported features only: property name -> key of its sensor
+    sensor_keys: dict[str, str]
+
+
+@dataclass
 class AmazonDevice:
     """Amazon device class."""
 
@@ -61,6 +84,7 @@ class AmazonDevice:
     capabilities: list[str]
     device_family: str
     device_type: str
+    primary_display_category: str
     device_owner_customer_id: str
     household_device: bool
     device_cluster_members: dict[str, str | None]
@@ -73,11 +97,16 @@ class AmazonDevice:
     hardware_version: str | None
     entity_id: str | None
     endpoint_id: str | None
-    sensors: dict[str, AmazonDeviceSensor]
     notifications_supported: bool
     notifications: dict[str, AmazonSchedule]
     media_player_supported: bool
     communication_settings: dict[str, str]
+    voice_control_supported: bool
+    # features split by property: those with a sensor template for this device
+    # type, then all the others, so a feature can be in both. Support depends
+    # only on the template, not on the current value or a NOT_FOUND error.
+    features: dict[str, dict[str, AmazonDeviceFeature]]
+    unsupported_features: dict[str, dict[str, AmazonDeviceFeature]]
 
 
 class AmazonSequenceType(StrEnum):
@@ -166,6 +195,12 @@ class AmazonPushMessage(StrEnum):
     # Matter
     MatterDeviceFound = "MATTER_SETUP_NOTIFICATION"
 
+    # DND
+    DoNotDisturbChange = "PUSH_DND_STATE_CHANGE"
+
+    # Smart Home - This is generated inside the code, not sent by Amazon
+    SmartHome = "FDAL_UPDATE"
+
 
 @dataclass
 class AmazonSequenceNode:
@@ -187,6 +222,9 @@ class AmazonVocalRecord:
     intent: str
     title: str
     sub_title: str
+    # Speaker recognised by an Alexa voice profile, when Amazon provides one
+    person_first_name: str | None = None
+    person_type: str | None = None
 
 
 class AmazonListType(StrEnum):

@@ -3,7 +3,6 @@
 
 """Login module for Amazon devices."""
 
-import asyncio
 import base64
 import hashlib
 import secrets
@@ -11,10 +10,8 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from http import HTTPMethod, HTTPStatus
 from typing import Any, cast
-from urllib.parse import parse_qs
 
 from bs4 import BeautifulSoup, Tag
-from multidict import MultiDictProxy
 from yarl import URL
 
 from .capabilities import DEVICE_CAPABILITIES
@@ -29,19 +26,15 @@ from .const.http import (
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     URI_CAPABILITIES,
-    URI_DEVICES,
     URI_REGISTER,
     URI_SIGNIN,
+    URI_USERS_ME,
     URI_WELCOME,
-)
-from .const.metadata import (
-    CUSTOMER_ACCOUNT_DELAY_BETWEEN_RETRIES,
-    CUSTOMER_ACCOUNT_MAX_RETRIES,
 )
 from .exceptions import (
     CannotAuthenticate,
     CannotRegisterDevice,
-    CannotRetrieveData,
+    MissingCountryError,
     WrongMethod,
 )
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
@@ -131,14 +124,19 @@ class AmazonLogin:
         if not isinstance(form, Tag):
             raise CannotAuthenticate("Unable to find form in login response")
 
-        inputs = {}
+        inputs: dict[str, str] = {}
         for field in form.find_all("input"):
             if isinstance(field, Tag) and field.get("type", "") == "hidden":
-                inputs[field["name"]] = field.get("value", "")
+                name = field.get("name")
+                value = field.get("value", "")
+                if isinstance(name, str) and isinstance(value, str):
+                    inputs[name] = value
 
         return inputs
 
-    def _get_request_from_soup(self, soup: BeautifulSoup) -> tuple[str, URL]:
+    def _get_request_from_soup(
+        self, soup: BeautifulSoup, base_url: URL
+    ) -> tuple[str, URL]:
         """Extract URL and method for the next request."""
         _LOGGER.debug("Get request data from HTML source")
         form = soup.find("form", {"name": "signIn"}) or soup.find("form")
@@ -146,22 +144,26 @@ class AmazonLogin:
             method = form.get("method")
             url = form.get("action")
             if isinstance(method, str) and isinstance(url, str):
-                return method, URL(url)
+                # Form action may be relative to the page it was served from
+                return method, base_url.join(URL(url))
         raise CannotAuthenticate("Unable to extract form data from response")
+
+    def _check_login_error(self, soup: BeautifulSoup) -> None:
+        """Raise if the login page reports an error (wrong email, OTP, etc.)."""
+        for box_id in ("auth-error-message-box", "auth-warning-message-box"):
+            if box := soup.find(id=box_id):
+                message = " ".join(box.get_text().split())
+                _LOGGER.debug("Login error reported by Amazon: %s", message)
+                raise CannotAuthenticate(message)
 
     def _extract_code_from_url(self, url: URL) -> str:
         """Extract the access token from url query after login."""
-        parsed_url: dict[str, list[str]] = {}
-        if isinstance(url.query, bytes):
-            parsed_url = parse_qs(url.query.decode())
-        elif isinstance(url.query, MultiDictProxy):
-            for key, value in url.query.items():
-                parsed_url[key] = [value]
-        else:
+        code: str | None = url.query.get("openid.oa2.authorization_code")
+        if code is None:
             raise CannotAuthenticate(
                 f"Unable to extract authorization code from url: {url}"
             )
-        return parsed_url["openid.oa2.authorization_code"][0]
+        return code
 
     async def _register_device(
         self,
@@ -327,12 +329,16 @@ class AmazonLogin:
             )
 
         if not login_soup.find("input", id="auth-mfa-otpcode"):
+            # e.g. captcha, email verification or an unsupported MFA method
+            title = login_soup.title.get_text(strip=True) if login_soup.title else ""
             _LOGGER.debug(
                 'Cannot find "auth-mfa-otpcode" in html source [%s]', login_url
             )
-            raise CannotAuthenticate("MFA OTP code not found on login page")
+            raise CannotAuthenticate(
+                f"Unexpected login page '{title or 'unknown'}', expected OTP code entry"
+            )
 
-        login_method, login_url = self._get_request_from_soup(login_soup)
+        login_method, login_url = self._get_request_from_soup(login_soup, login_url)
 
         login_inputs = self._get_inputs_from_soup(login_soup)
         login_inputs["otpCode"] = otp_code
@@ -346,7 +352,12 @@ class AmazonLogin:
         )
         _LOGGER.debug("Login response url:%s", login_resp.url)
 
-        authcode = self._extract_code_from_url(login_resp.url)
+        try:
+            authcode = self._extract_code_from_url(login_resp.url)
+        except CannotAuthenticate:
+            # Prefer Amazon's own message (e.g. invalid OTP) when available
+            self._check_login_error(login_soup)
+            raise
         _LOGGER.debug("Login extracted authcode: %s", authcode)
 
         return {
@@ -365,23 +376,36 @@ class AmazonLogin:
             code_verifier, client_id, registration_language
         )
 
-        login_soup, _ = await self._http_wrapper.session_request(
+        login_soup, login_resp = await self._http_wrapper.session_request(
             method=HTTPMethod.GET,
             url=login_url,
         )
-        login_method, login_url = self._get_request_from_soup(login_soup)
-        login_inputs = self._get_inputs_from_soup(login_soup)
-        login_inputs["email"] = self._session_state_data.login_email
-        login_inputs["password"] = self._session_state_data.login_password
 
-        _LOGGER.debug("Register at %s", login_url)
-        login_soup, _ = await self._http_wrapper.session_request(
-            method=login_method,
-            url=login_url,
-            input_data=login_inputs,
-        )
+        # Email and password are now collected on separate pages
+        for field, value in (
+            ("email", self._session_state_data.login_email),
+            ("password", self._session_state_data.login_password),
+        ):
+            # Stop if Amazon returned a different page (captcha, verification...)
+            if not login_soup.find("input", {"name": field}):
+                _LOGGER.debug("Login page does not ask for %s", field)
+                break
 
-        return login_url, login_soup
+            login_method, login_url = self._get_request_from_soup(
+                login_soup, login_resp.url
+            )
+            login_inputs = self._get_inputs_from_soup(login_soup)
+            login_inputs[field] = value
+
+            _LOGGER.debug("Submit %s at %s", field, login_url)
+            login_soup, login_resp = await self._http_wrapper.session_request(
+                method=login_method,
+                url=login_url,
+                input_data=login_inputs,
+            )
+            self._check_login_error(login_soup)
+
+        return login_resp.url, login_soup
 
     async def login_mode_stored_data(self) -> dict[str, Any]:
         """Login to Amazon using previously stored data."""
@@ -397,7 +421,11 @@ class AmazonLogin:
             obfuscate_email(self._session_state_data.login_email),
         )
 
-        await self.obtain_account_customer_id()
+        if not self._session_state_data.account_customer_id:
+            await self.obtain_account_customer_id()
+
+        # Register device capabilities each time as they can be updated over time
+        await self._register_device_capabilities()
 
         return self._session_state_data.login_stored_data
 
@@ -462,50 +490,14 @@ class AmazonLogin:
 
     async def obtain_account_customer_id(self) -> None:
         """Find account customer id."""
-        for retry_count in range(CUSTOMER_ACCOUNT_MAX_RETRIES):
-            if not self._session_state_data.account_customer_id:
-                # allow time for device to be registered
-                await asyncio.sleep(CUSTOMER_ACCOUNT_DELAY_BETWEEN_RETRIES)
+        _, raw_resp = await self._http_wrapper.session_request(
+            method=HTTPMethod.GET,
+            url=URL.joinpath(self._session_state_data.alexa_website_url, URI_USERS_ME),
+        )
 
-            _LOGGER.debug(
-                "Lookup customer account ID (attempt %d/%d)",
-                retry_count + 1,
-                CUSTOMER_ACCOUNT_MAX_RETRIES,
-            )
-            _, raw_resp = await self._http_wrapper.session_request(
-                method=HTTPMethod.GET,
-                url=URL.joinpath(
-                    self._session_state_data.alexa_website_url, URI_DEVICES
-                ),
-            )
+        json_data = await self._http_wrapper.response_to_json(raw_resp, "users/me")
 
-            json_data = await self._http_wrapper.response_to_json(raw_resp, "devices")
+        if not json_data.get("countryOfResidence"):
+            raise MissingCountryError
 
-            for device in json_data.get("devices", []):
-                dev_serial = device.get("serialNumber")
-                if not dev_serial:
-                    _LOGGER.warning(
-                        "Skipping device without serial number: %s",
-                        device["accountName"],
-                    )
-                    continue
-                if device["deviceType"] != AMAZON_DEVICE_TYPE:
-                    continue
-
-                this_device_serial = self._session_state_data.login_stored_data[
-                    "device_info"
-                ]["device_serial_number"]
-
-                for subdevice in device["appDeviceList"]:
-                    if subdevice["serialNumber"] == this_device_serial:
-                        account_owner_customer_id = device["deviceOwnerCustomerId"]
-                        _LOGGER.debug(
-                            "Setting account owner: %s",
-                            account_owner_customer_id,
-                        )
-                        self._session_state_data.account_customer_id = (
-                            account_owner_customer_id
-                        )
-                        return
-        if not self._session_state_data.account_customer_id:
-            raise CannotRetrieveData("Cannot find account owner customer ID")
+        self._session_state_data.account_customer_id = json_data["id"]

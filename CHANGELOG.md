@@ -1,5 +1,351 @@
 # Changelog
 
+## v17.2.3 (2026-10-26)
+
+### Bug fixes
+
+- Update sensor keys ([`efa88fa`](https://github.com/chemelli74/aioamazondevices/commit/efa88fa624b3d7bd8da652add41d6690e7eb3066))
+
+
+### Refactoring
+
+- Rename generic fields ([`f7d32ce`](https://github.com/chemelli74/aioamazondevices/commit/f7d32ce9c2dda01a95739c53c06cb7502c687628))
+
+
+## v17.2.2 (2026-10-26)
+
+### Bug fixes
+
+- Prefer voice devices as default device ([`aa3444b`](https://github.com/chemelli74/aioamazondevices/commit/aa3444b268c3d128d57b61fce76f010763e75855))
+
+
+## v17.2.1 (2026-10-26)
+
+### Bug fixes
+
+- Floor speaker group volume average to match alexa mobile app ([`f07abc5`](https://github.com/chemelli74/aioamazondevices/commit/f07abc5477b9e2c06d2061cb94a7bcdcd44993cb))
+
+
+### Build system
+
+- Target python 3.12 in pyupgrade ([`f91cd6c`](https://github.com/chemelli74/aioamazondevices/commit/f91cd6c5e26c79c5615bbe417f7c017e78e90c87))
+
+
+## v17.2.0 (2026-10-25)
+
+### Features
+
+- Add support for echo glow ([`f1b0631`](https://github.com/chemelli74/aioamazondevices/commit/f1b06318233193e2af1790bdc954089a9abe939d))
+
+
+## v17.1.1 (2026-10-25)
+
+### Bug fixes
+
+- Error on endpoint update failure ([`10b3bb6`](https://github.com/chemelli74/aioamazondevices/commit/10b3bb6c2e6b4d2b97d38eb85f09d519168130e7))
+
+
+## v17.1.0 (2026-10-25)
+
+### Features
+
+- Add aqm led control ([`59ffc5c`](https://github.com/chemelli74/aioamazondevices/commit/59ffc5cef67649a37d9d3cdd86f75987fdfec1a3))
+
+
+## v17.0.0 (2026-10-25)
+
+### Features
+
+- Allow push updates for sensors ([`0bb3652`](https://github.com/chemelli74/aioamazondevices/commit/0bb36523b5b79e7e03e83b12e1a9d5a1537db104))
+
+
+## v16.12.0 (2026-10-25)
+
+### Features
+
+- Device control through graphql ([`3207626`](https://github.com/chemelli74/aioamazondevices/commit/32076262799cbe5f6bbb77547bc25df18e76fd38))
+
+
+## v16.11.4 (2026-10-25)
+
+### Bug fixes
+
+- Update python dependencies ([`bf9b201`](https://github.com/chemelli74/aioamazondevices/commit/bf9b20160d72a6ff5c5e1a5e4206943bc388ce15))
+
+
+### Build system
+
+- Bump certifi from 2026.10.18 to 2026.10.19 in the uv group across 1 directory ([`feba5ed`](https://github.com/chemelli74/aioamazondevices/commit/feba5ed713f3d5dacd3321ef9790a252e2d8e759))
+
+
+## v16.11.3 (2026-10-24)
+
+### Bug fixes
+
+- Use global comms endpoint ([`92f6fd3`](https://github.com/chemelli74/aioamazondevices/commit/92f6fd3fff0d61702a81707d47733130cf1aeb7e))
+
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`429bb0b`](https://github.com/chemelli74/aioamazondevices/commit/429bb0bf4bb4a02cfaf473fe5f835ba343245ea8))
+
+
+## v16.11.2 (2026-10-24)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`071569c`](https://github.com/chemelli74/aioamazondevices/commit/071569c366865f04082e9e1f066b0a4201fc7a35))
+
+
+### Bug fixes
+
+- Use alexa app user-agent for communications preferences ([`00ee4c6`](https://github.com/chemelli74/aioamazondevices/commit/00ee4c675daac7b74b692e64eda926d1192f0495))
+
+
+## v16.11.1 (2026-10-24)
+
+### Bug fixes
+
+- Relax anyio and orjson minimum versions ([`1325168`](https://github.com/chemelli74/aioamazondevices/commit/13251681662d509b657b2ee5ea2fd92a27f070bf))
+
+
+## v16.11.0 (2026-10-23)
+
+### Features
+
+- Store primary display category ([`0ff7e0b`](https://github.com/chemelli74/aioamazondevices/commit/0ff7e0b856261486742685a4195e66cdb09ed2ab))
+
+
+## v16.10.0 (2026-10-23)
+
+### Features
+
+- Add templates for additional features ([`80437eb`](https://github.com/chemelli74/aioamazondevices/commit/80437eb3549e4b64134ce8c4bba2317b9609fae7))
+
+
+### Testing
+
+- Standardise tests ([`a0f6134`](https://github.com/chemelli74/aioamazondevices/commit/a0f61349f553d71039cad306e766632249581645))
+
+
+## v16.9.4 (2026-10-22)
+
+### Bug fixes
+
+- Resync dnd and media state after http2 reconnect ([`148f4c7`](https://github.com/chemelli74/aioamazondevices/commit/148f4c763d5264fd01ef0c8e8e3b26a756ca8cc4))
+
+
+### Refactoring
+
+- Derive online status separately from sensor update ([`61feef9`](https://github.com/chemelli74/aioamazondevices/commit/61feef926bd684b15cdc7dcf5c7c2270253613de))
+- Move notification and communication settings ([`5ca0beb`](https://github.com/chemelli74/aioamazondevices/commit/5ca0beb455c8d4cee6d6eec75320361a0cca9ba4))
+
+
+## v16.9.3 (2026-10-22)
+
+### Bug fixes
+
+- Raise when endpoint features cannot be retrieved ([`011585a`](https://github.com/chemelli74/aioamazondevices/commit/011585afa9b741097be54e55f9640aacb1b356f3))
+
+
+### Refactoring
+
+- Rename sensor spec to feature property definition ([`e59b06c`](https://github.com/chemelli74/aioamazondevices/commit/e59b06c773ee61c7750f526c8b8c2b49fa84c594))
+
+
+## v16.9.2 (2026-10-22)
+
+### Bug fixes
+
+- Improve wording on login errors ([`2ee7172`](https://github.com/chemelli74/aioamazondevices/commit/2ee7172192d16caffc8356e37e68fcf7bb710930))
+
+
+## v16.9.1 (2026-10-22)
+
+### Bug fixes
+
+- Update login for new process ([`5411dee`](https://github.com/chemelli74/aioamazondevices/commit/5411dee920b058d9cebdf6bac1e9684d6a7fbc80))
+
+
+### Build system
+
+- Stop bumping the python minor/major version ([`10530ca`](https://github.com/chemelli74/aioamazondevices/commit/10530cad6b7fa10654cc912fe210bac9e0fa2ac7))
+
+
+## v16.9.0 (2026-10-19)
+
+### Features
+
+- Split supported features ([`002d51b`](https://github.com/chemelli74/aioamazondevices/commit/002d51b2cbae37b47da2492d5ecd37d763a2ec83))
+
+
+### Build system
+
+- Always use the repository .venv for uv ([`d114493`](https://github.com/chemelli74/aioamazondevices/commit/d114493e6b6689a76c543913199c0a59d34aa604))
+
+
+## v16.8.1 (2026-10-15)
+
+### Bug fixes
+
+- Validate country of residence is set ([`da622bd`](https://github.com/chemelli74/aioamazondevices/commit/da622bd5dabdc894340f19e40ef97b4d8e83c5ad))
+
+
+### Build system
+
+- Don't sync into an inherited uv_project_environment ([`3d0d71d`](https://github.com/chemelli74/aioamazondevices/commit/3d0d71d30aece33b12eec7e1fb9f72f5d311c706))
+
+
+## v16.8.0 (2026-10-14)
+
+### Features
+
+- Allow name overide on sensors ([`f78ebeb`](https://github.com/chemelli74/aioamazondevices/commit/f78ebeb689bceb1e38e87c4405a626590f325a18))
+
+
+## v16.7.0 (2026-10-14)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`e0ffac0`](https://github.com/chemelli74/aioamazondevices/commit/e0ffac026be3c413ab55ec377789de510b5f83b1))
+
+
+### Features
+
+- Support optional display text for announcements ([`2116186`](https://github.com/chemelli74/aioamazondevices/commit/211618634f936fa2610c1d805580a0023f44d6cd))
+
+
+## v16.6.0 (2026-10-13)
+
+### Features
+
+- Store device feature metadata ([`a8fd5da`](https://github.com/chemelli74/aioamazondevices/commit/a8fd5da6c141101c7eb49276423864e64d1dc9df))
+
+
+### Refactoring
+
+- Validation of endpoint response ([`b813a7a`](https://github.com/chemelli74/aioamazondevices/commit/b813a7a915b26f207976fbe0216a3a8c1b56df7d))
+- Tidy up graphql error logging ([`e94004d`](https://github.com/chemelli74/aioamazondevices/commit/e94004d6fe486d30bc84067bc85782990f8e5b9c))
+
+
+## v16.5.0 (2026-10-11)
+
+### Features
+
+- Make sensor parsing generic ([`5add2d9`](https://github.com/chemelli74/aioamazondevices/commit/5add2d9ad31c8350ea2fbb8e9fca10bc848e7dca))
+
+
+## v16.4.0 (2026-10-11)
+
+### Features
+
+- Add smart home push events ([`c7edba8`](https://github.com/chemelli74/aioamazondevices/commit/c7edba88f8d6ededaea273c28cbb8c1fb3798157))
+
+
+### Build system
+
+- Bump node feature to 2.1.1 ([`efa6a97`](https://github.com/chemelli74/aioamazondevices/commit/efa6a97113e6fbc93dc1d2ef4c722c0af358d698))
+- Bump multidict from 6.7.1 to 6.9.1 in the uv group across 1 directory ([`b0581f2`](https://github.com/chemelli74/aioamazondevices/commit/b0581f2d6ae5de882825a4fe0e6ee65f073a866a))
+
+
+## v16.3.4 (2026-10-11)
+
+### Bug fixes
+
+- Update dependency aiohttp to v3.14.5 ([`311729a`](https://github.com/chemelli74/aioamazondevices/commit/311729acb5039a77b236ec4568b5052812883f8e))
+
+
+### Build system
+
+- Add gh cli to devcontainer ([`c4591a5`](https://github.com/chemelli74/aioamazondevices/commit/c4591a507be2feea051a385219f15772f2bed055))
+- Avoid bumping package.json when building environment ([`96e4570`](https://github.com/chemelli74/aioamazondevices/commit/96e4570a1c8e7a25fbff08e974d95c702227ddc6))
+
+
+## v16.3.3 (2026-10-07)
+
+### Bug fixes
+
+- Update python dependencies ([`6c18d5e`](https://github.com/chemelli74/aioamazondevices/commit/6c18d5e4aeaf3838859d777ed8c2f0126084b62c))
+
+
+### Build system
+
+- Bump lower bounds, lockfile and mypy hook pins ([`ff95183`](https://github.com/chemelli74/aioamazondevices/commit/ff9518359f87959164e21594af105b7743992916))
+
+
+## v16.3.2 (2026-10-07)
+
+### Bug fixes
+
+- Cookie handling in aiohttp ([`f3318d1`](https://github.com/chemelli74/aioamazondevices/commit/f3318d15faee9a652427c4afe8b55e41a62babac))
+
+
+## v16.3.1 (2026-09-30)
+
+### Bug fixes
+
+- Improve online/offline state ([`6edb263`](https://github.com/chemelli74/aioamazondevices/commit/6edb263b080785754859f2a3a3e8d07b66b46b19))
+
+
+### Build system
+
+- Format version_variables on one line ([`d0fef23`](https://github.com/chemelli74/aioamazondevices/commit/d0fef239491453676c336c52d644af9fa88fa3eb))
+- Pin mypy hook deps for local and ci alignment ([`b25a54d`](https://github.com/chemelli74/aioamazondevices/commit/b25a54df72409b125ef28a9db5fa94b26f0a577a))
+- Remove unused ruff ignores ([`5a9fc6e`](https://github.com/chemelli74/aioamazondevices/commit/5a9fc6ed6cc8093bddfc2e84363d53f2c57feebe))
+- Remove stale codespell skip list ([`534b396`](https://github.com/chemelli74/aioamazondevices/commit/534b396f7e5888d0d26159c144f74e8f1d6a3bcb))
+- Measure coverage on all modules ([`c9e2a3c`](https://github.com/chemelli74/aioamazondevices/commit/c9e2a3c89ff6dd2432f91293f0f7808359d67b2b))
+- Fix ruff known-first-party package name ([`cb3a61a`](https://github.com/chemelli74/aioamazondevices/commit/cb3a61a425261ef23bbd1d9bac719ed49d4e385d))
+- Replace unmaintained labels tool ([`8b2105b`](https://github.com/chemelli74/aioamazondevices/commit/8b2105ba8bb61484d3ea01bcbb94077264026786))
+
+
+### Refactoring
+
+- Drop dead httpx code ([`0095712`](https://github.com/chemelli74/aioamazondevices/commit/0095712ad4a46635e74460589b343e914bac0e66))
+- Drive devices from graphql ([`5bc9028`](https://github.com/chemelli74/aioamazondevices/commit/5bc90285f2ac6fc3568fc029cb62f0bd8ea18be5))
+
+
+## v16.3.0 (2026-09-15)
+
+### Features
+
+- Expose sensor timestamps ([`c7a8cac`](https://github.com/chemelli74/aioamazondevices/commit/c7a8cac4e855b2de74b35f3be37dcc0728251bb9))
+
+
+## v16.2.0 (2026-09-15)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`26f8152`](https://github.com/chemelli74/aioamazondevices/commit/26f8152dbf7964dd54330cb097d16a82f64f1d84))
+
+
+### Features
+
+- Expose recognised speaker from personsinfo ([`ab2373e`](https://github.com/chemelli74/aioamazondevices/commit/ab2373e9cd81023deb53783555ef65f0e48971c9))
+
+
+## v16.1.0 (2026-09-14)
+
+### Features
+
+- Store account customer id ([`702937e`](https://github.com/chemelli74/aioamazondevices/commit/702937ee024a51ad2ac7b3b08243e80f686fc8ed))
+
+
+## v16.0.0 (2026-09-14)
+
+### Refactoring
+
+- Move dnd to push events ([`894abcb`](https://github.com/chemelli74/aioamazondevices/commit/894abcb6240dc29c001ba8b214d5a206e61b7b3f))
+- Extract device creation into a helper ([`fbf869a`](https://github.com/chemelli74/aioamazondevices/commit/fbf869accc10f3be9dd7fbc53c75c7bc93f6b422))
+- Allow multiple properties in graphql sensors ([`901b019`](https://github.com/chemelli74/aioamazondevices/commit/901b01974f40af0dca0480211d4a81b67c0f207b))
+
+
+## v15.2.0 (2026-09-13)
+
+### Features
+
+- Add voice_control_supported property ([`544c301`](https://github.com/chemelli74/aioamazondevices/commit/544c3010d1bf0b09419a8072b2ea80bfb89a07e0))
+
+
 ## v15.1.3 (2026-09-09)
 
 ### Documentation

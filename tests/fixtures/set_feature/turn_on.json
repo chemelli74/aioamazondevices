@@ -1,0 +1,22 @@
+[
+  {
+    "data": {
+      "setEndpointFeatures": {
+        "featureControlResponses": [
+          {
+            "endpointId": "amzn1.alexa.endpoint.00000000-0000-0000-0000-000000000000",
+            "featureName": "toggle",
+            "instance": "11",
+            "featureOperationName": "turnOn",
+            "code": "SUCCESS"
+          }
+        ],
+        "errors": []
+      }
+    },
+    "extensions": {
+      "requestID": "8CT5SBBDJ2VSBG2MNK2S",
+      "duration": 663
+    }
+  }
+]
