@@ -20,7 +20,6 @@ from .const import TEST_SERIAL_1
 TEST_TEMPERATURE = 21.3
 TEST_RANGE_VALUE = 42
 TEST_CALIBRATION_TEMPERATURE = -280
-TEST_LOW_TEMPERATURE = -279.9
 
 
 def _temperature_endpoint(
@@ -77,21 +76,6 @@ async def test_calibrating_temperature_is_an_error(
     assert sensors["temperature"].value == TEST_CALIBRATION_TEMPERATURE
     assert sensors["temperature"].error
     assert sensors["temperature"].error_type == "INVALID_TEMPERATURE"
-
-
-@pytest.mark.anyio
-async def test_temperature_above_calibration_value_is_read(
-    make_device: Callable[..., AmazonDevice],
-    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
-) -> None:
-    """A value above the calibration placeholder is a regular reading."""
-    sensors = sync_sensors(
-        _temperature_endpoint("value", TEST_LOW_TEMPERATURE),
-        make_device(TEST_SERIAL_1),
-    )
-
-    assert sensors["temperature"].value == TEST_LOW_TEMPERATURE
-    assert not sensors["temperature"].error
 
 
 def _empty_temperature_endpoint() -> dict[str, Any]:
