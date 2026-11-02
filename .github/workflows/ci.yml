@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: chemelli74/ha-core-dependency-check/label@c036686f47c5badcb254d5cd3c93344ea8dd0bf8 # v1.2.0
+      - uses: chemelli74/ha-core-dependency-check/label@7788df2ecd810988a459b20e599bb8c975dd7a3a # v1.3.0
 
   # Make sure commit messages follow the conventional commits convention:
   # https://www.conventionalcommits.org
