@@ -17,6 +17,7 @@ import orjson
 from aiosignal import Signal
 from h2.errors import ErrorCodes
 from h2.events import ConnectionTerminated
+from yarl import URL
 
 from aioamazondevices.const.http import (
     HTTP2_DIRECTIVES_VERSION,
@@ -197,7 +198,7 @@ class AmazonHTTP2Client:
         region = self._session_state_data.login_stored_data["customer_info"][
             "home_region"
         ]
-        self._avs_directive_site: str = HTTP2_SITE.format(region=region)
+        self._avs_directive_site = URL(HTTP2_SITE.format(region=region))
 
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
         # sent when the stream reopens after a drop, as pushes may have been missed
@@ -408,7 +409,9 @@ class AmazonHTTP2Client:
         so if we get a response from the wrong site attempt to extract
         the correct site from the response and update it for future requests.
         """
-        url = f"{self._avs_directive_site}/v{HTTP2_DIRECTIVES_VERSION}/events"
+        url = str(
+            self._avs_directive_site.joinpath(f"v{HTTP2_DIRECTIVES_VERSION}", "events")
+        )
 
         metadata = {
             "context": [],
@@ -461,7 +464,7 @@ class AmazonHTTP2Client:
             _LOGGER.warning("Could not extract AVS site from SynchronizeState response")
             return
 
-        self._avs_directive_site = site
+        self._avs_directive_site = URL(site)
         _LOGGER.debug("Updated AVS directive site: %s", site)
         raise UpdatedAVSSite
 
@@ -484,7 +487,11 @@ class AmazonHTTP2Client:
         """Open stream and process incoming directives."""
         _LOGGER.debug("Starting AVS Directives stream")
 
-        url = f"{self._avs_directive_site}/v{HTTP2_DIRECTIVES_VERSION}/directives"
+        url = str(
+            self._avs_directive_site.joinpath(
+                f"v{HTTP2_DIRECTIVES_VERSION}", "directives"
+            )
+        )
         _LOGGER.debug("Connecting to AVS directives site %s", url)
         async with self._http2_client.stream(
             "GET",
@@ -607,7 +614,7 @@ class AmazonHTTP2Client:
             return
 
         response = await self._http2_client.post(
-            f"{self._avs_directive_site}/ping",
+            str(self._avs_directive_site / "ping"),
             headers={"Authorization": f"Bearer {self._get_bearer_token()}"},
             timeout=httpx.Timeout(30),
         )
