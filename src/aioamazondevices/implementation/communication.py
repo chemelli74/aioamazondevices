@@ -19,6 +19,8 @@ from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateD
 from aioamazondevices.structures import AmazonDevice, AmazonDropInStatus
 from aioamazondevices.utils import _LOGGER
 
+NO_HOMEGROUP_ID = "NO_HOMEGROUP_ID"
+
 
 class AlexaCommunicationsHandler:
     """Class to handle Alexa communications."""
@@ -34,7 +36,6 @@ class AlexaCommunicationsHandler:
         self._communication_site = URL(COMM_SITE)
         self._communication_preferences: dict[str, dict[str, str]] = {}
         self._homegroup_id: str | None = None
-        self._comms_unavailable = False
 
     async def _set_communications_state(
         self, preference: str, device: AmazonDevice, state: str
@@ -76,18 +77,19 @@ class AlexaCommunicationsHandler:
 
     async def get_communication_preferences(self) -> dict[str, dict[str, str]]:
         """Get communication preferences for a device."""
-        if self._comms_unavailable:
+        if self._homegroup_id == NO_HOMEGROUP_ID:
+            # A previous lookup failed or returned no homegroup id
             return {}
-        if not self._homegroup_id:
+        if self._homegroup_id is None:
             try:
                 self._homegroup_id = await self.get_homegroup_id()
             except CannotRetrieveData as exc:
                 _LOGGER.debug("Failed to retrieve homegroup id: %s", exc)
-            if not self._homegroup_id:
+            if self._homegroup_id is None:
                 _LOGGER.warning(
                     "No homegroup found for this account, communications disabled"
                 )
-                self._comms_unavailable = True
+                self._homegroup_id = NO_HOMEGROUP_ID
                 return {}
         url = URL.joinpath(
             self._communication_site,
