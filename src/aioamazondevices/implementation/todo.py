@@ -45,6 +45,7 @@ class AmazonToDoHandler:
         self._changes: dict[str, dict[str, AmazonListEventType]] = {}
         self._timers: dict[str, asyncio.TimerHandle] = {}
         self._tasks: set[asyncio.Task[None]] = set()
+        self._list_locks: dict[str, asyncio.Lock] = {}
 
     @property
     def lists(self) -> list[AmazonListInfo]:
@@ -148,6 +149,14 @@ class AmazonToDoHandler:
         task.add_done_callback(self._tasks.discard)
 
     async def _process_changes(
+        self, list_id: str, changes: dict[str, AmazonListEventType]
+    ) -> None:
+        """Process the settled changes of a list, one batch at a time."""
+        # a later batch must not emit before an earlier one of the same list
+        async with self._list_locks.setdefault(list_id, asyncio.Lock()):
+            await self._fetch_and_emit(list_id, changes)
+
+    async def _fetch_and_emit(
         self, list_id: str, changes: dict[str, AmazonListEventType]
     ) -> None:
         """Fetch a list once for its settled changes, then emit them."""

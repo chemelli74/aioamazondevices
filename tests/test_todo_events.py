@@ -118,6 +118,48 @@ async def test_lists_are_debounced_separately(
 
 
 @pytest.mark.anyio
+async def test_batches_of_one_list_are_processed_in_order(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    events: list[AmazonListEvent],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A later batch waits for a slow earlier batch of the same list."""
+    first_started = asyncio.Event()
+    release_first = asyncio.Event()
+    fetched: list[str] = []
+
+    async def get_list_items(_list_id: str) -> list[AmazonListItem]:
+        if not fetched:
+            fetched.append("first")
+            first_started.set()
+            await release_first.wait()
+        else:
+            fetched.append("second")
+        return [_item("a"), _item("b")]
+
+    monkeypatch.setattr(handler, "get_list_items", get_list_items)
+
+    await api._handle_item_change_event(_payload(LIST_ID, "a", "itemUpdated"))
+    await first_started.wait()
+    await api._handle_item_change_event(_payload(LIST_ID, "b", "itemUpdated"))
+    await asyncio.sleep(DEBOUNCE_DELAY * 2)
+
+    # The second batch is flushed but must not fetch before the first finishes.
+    assert not handler._timers
+    first_task, second_task = handler._tasks
+    assert not first_task.done()
+    assert not second_task.done()
+    assert fetched == ["first"]
+
+    release_first.set()
+    await _settle(handler)
+
+    assert fetched == ["first", "second"]
+    assert [event.item_id for event in events] == ["a", "b"]
+
+
+@pytest.mark.anyio
 @pytest.mark.parametrize(
     ("event_names", "expected_type"),
     [
