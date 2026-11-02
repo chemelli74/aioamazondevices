@@ -132,14 +132,21 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/alepee">
+                    <img src="https://avatars.githubusercontent.com/u/205357?v=4" width="100;" alt="alepee"/>
+                    <br />
+                    <sub><b>Antoine Lépée</b></sub>
+                </a>
+            </td>
+		</tr>
+		<tr>
+            <td align="center">
                 <a href="https://github.com/BoBiene">
                     <img src="https://avatars.githubusercontent.com/u/23037659?v=4" width="100;" alt="BoBiene"/>
                     <br />
                     <sub><b>Bo Biene</b></sub>
                 </a>
             </td>
-		</tr>
-		<tr>
             <td align="center">
                 <a href="https://github.com/danielbrunt57">
                     <img src="https://avatars.githubusercontent.com/u/49846893?v=4" width="100;" alt="danielbrunt57"/>
@@ -175,6 +182,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                     <sub><b>Léon</b></sub>
                 </a>
             </td>
+		</tr>
+		<tr>
             <td align="center">
                 <a href="https://github.com/maxmati">
                     <img src="https://avatars.githubusercontent.com/u/509560?v=4" width="100;" alt="maxmati"/>
@@ -182,8 +191,6 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
                     <sub><b>Mateusz Nowotyński</b></sub>
                 </a>
             </td>
-		</tr>
-		<tr>
             <td align="center">
                 <a href="https://github.com/stefan-schweiger">
                     <img src="https://avatars.githubusercontent.com/u/3532342?v=4" width="100;" alt="stefan-schweiger"/>
