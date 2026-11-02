@@ -3,13 +3,13 @@
 
 """Tests for endpoint feature control in AmazonFeatureHandler."""
 
-import json
 import logging
 import re
 from collections.abc import Callable
 from typing import Any, cast
 from unittest.mock import AsyncMock, MagicMock
 
+import orjson
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
@@ -28,7 +28,7 @@ type JsonBody = dict[str, Any] | list[dict[str, Any]]
 def _fixture(name: str) -> list[dict[str, Any]]:
     """Load a captured setEndpointFeatures response."""
     path = FIXTURES_DIR / "set_feature" / f"{name}.json"
-    return cast("list[dict[str, Any]]", json.loads(path.read_text()))
+    return cast("list[dict[str, Any]]", orjson.loads(path.read_text()))
 
 
 def _result(result: dict[str, Any] | list[Any] | None) -> list[dict[str, Any]]:
