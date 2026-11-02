@@ -1,5 +1,22 @@
 # Changelog
 
+## v17.2.4 (2026-11-02)
+
+### Bug fixes
+
+- Handle comms endpoint failures ([`3caf59d`](https://github.com/chemelli74/aioamazondevices/commit/3caf59da587639d553b0f9e7fc4ab16d01a98fbb))
+
+
+### Build system
+
+- Drop support for python 3.12 ([`1453709`](https://github.com/chemelli74/aioamazondevices/commit/1453709ed5ff7db1445a38dec5d49f8f00756a85))
+
+
+### Refactoring
+
+- Build avs directive urls with yarl ([`8eaeb82`](https://github.com/chemelli74/aioamazondevices/commit/8eaeb82e24576fdfaafef2084e4a2303907127b5))
+
+
 ## v17.2.3 (2026-10-26)
 
 ### Bug fixes
