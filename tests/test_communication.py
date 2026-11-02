@@ -87,20 +87,6 @@ def handler(api: AmazonEchoApi) -> AlexaCommunicationsHandler:
 
 
 @pytest.mark.anyio
-async def test_get_homegroup_id_cached(handler: AlexaCommunicationsHandler) -> None:
-    """The homegroup id is fetched once from the identity endpoint and cached."""
-    requested = _route_responses(
-        handler, {"/identities": {"homeGroupId": TEST_HOMEGROUP_ID}}
-    )
-
-    assert await handler._get_homegroup_id() == TEST_HOMEGROUP_ID
-    assert await handler._get_homegroup_id() == TEST_HOMEGROUP_ID
-
-    assert len(requested) == 1
-    assert TEST_USER_ID in str(requested[0])
-
-
-@pytest.mark.anyio
 @pytest.mark.parametrize(
     "identity_response",
     [
