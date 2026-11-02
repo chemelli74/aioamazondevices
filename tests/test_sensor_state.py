@@ -21,7 +21,11 @@ TEST_TEMPERATURE = 21.3
 TEST_RANGE_VALUE = 42
 
 
-def _temperature_endpoint(value_key: str) -> dict[str, Any]:
+def _temperature_endpoint(
+    value_key: str,
+    value: float = TEST_TEMPERATURE,
+    scale: str = "CELSIUS",
+) -> dict[str, Any]:
     """Build a temperature value under the given property key."""
     return {
         "features": [
@@ -34,7 +38,7 @@ def _temperature_endpoint(value_key: str) -> dict[str, Any]:
                         "type": "RETRIEVABLE",
                         "error": None,
                         "__typename": "TemperatureSensor",
-                        value_key: {"value": TEST_TEMPERATURE, "scale": "CELSIUS"},
+                        value_key: {"value": value, "scale": scale},
                     }
                 ],
             }
@@ -53,6 +57,38 @@ async def test_sensor_value_is_read(
     assert sensors["temperature"].value == TEST_TEMPERATURE
     assert sensors["temperature"].scale == "CELSIUS"
     assert not sensors["temperature"].error
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("value", "scale", "expected"),
+    [
+        pytest.param(19, "CELSIUS", (False, None), id="19C"),
+        pytest.param(70, "FAHRENHEIT", (False, None), id="70F"),
+        pytest.param(-279, "CELSIUS", (False, None), id="-279C"),
+        pytest.param(-280, "CELSIUS", (True, "INVALID_TEMPERATURE"), id="-280C"),
+        pytest.param(-300, "CELSIUS", (True, "INVALID_TEMPERATURE"), id="-300C"),
+        pytest.param(-280, "FAHRENHEIT", (True, "INVALID_TEMPERATURE"), id="-280F"),
+    ],
+)
+async def test_temperature_calibration_value_is_an_error(
+    make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
+    value: float,
+    scale: str,
+    expected: tuple[bool, str | None],
+) -> None:
+    """Temperatures at or below the calibration placeholder are errors.
+
+    The raw value is kept either way.
+    """
+    sensors = sync_sensors(
+        _temperature_endpoint("value", value, scale), make_device(TEST_SERIAL_1)
+    )
+
+    sensor = sensors["temperature"]
+    assert sensor.value == value
+    assert (sensor.error, sensor.error_type) == expected
 
 
 def _empty_temperature_endpoint() -> dict[str, Any]:
