@@ -85,7 +85,7 @@ class AlexaCommunicationsHandler:
                 self._homegroup_id = await self._get_homegroup_id()
             except CannotRetrieveData as exc:
                 _LOGGER.debug("Failed to retrieve homegroup id: %s", exc)
-            if self._homegroup_id is None:
+            if self._homegroup_id in (None, NO_HOMEGROUP_ID):
                 _LOGGER.warning(
                     "No homegroup found for this account, communications disabled"
                 )
