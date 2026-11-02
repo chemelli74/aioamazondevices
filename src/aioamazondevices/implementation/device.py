@@ -229,7 +229,9 @@ class AmazonDeviceHandler:
         leaving the known devices untouched.
         """
         devices_endpoints = await self._get_devices_endpoint_data()
-
+        _LOGGER.error(
+            "Dumping all endpoint states for debugging purposes - %s", devices_endpoints
+        )
         await self._dump_all_endpoint_states()
 
         base_devices = await self._get_base_devices_data()
@@ -492,8 +494,11 @@ class AmazonDeviceHandler:
         )
 
         # response_to_json debug logs the whole response
-        await self._http_wrapper.response_to_json(raw_resp, "all endpoint states")
+        j_resp = await self._http_wrapper.response_to_json(
+            raw_resp, "all endpoint states"
+        )
 
+        _LOGGER.error("All endpoint states: %s", j_resp)
         raise CannotAuthenticate("Stopping here.")
 
     async def _get_endpoints_features(
