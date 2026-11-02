@@ -571,3 +571,31 @@ async def test_smart_home_event_is_emitted(
 
     on_sensor_event.assert_awaited_once()
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == PUSHED_TEMPERATURE
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("pushed_values", "value", "error", "error_type"),
+    [
+        pytest.param([-280], -280, True, "INVALID_TEMPERATURE", id="calibrating"),
+        pytest.param([-280, 22.5], 22.5, False, None, id="calibrated"),
+    ],
+)
+@pytest.mark.usefixtures("handler")
+async def test_smart_home_calibration_push(
+    api: AmazonEchoApi,
+    pushed_values: list[float],
+    value: float,
+    error: bool,
+    error_type: str | None,
+) -> None:
+    """A pushed calibration placeholder is an error, cleared by the next valid value."""
+    for pushed_value in pushed_values:
+        await api._http2_push_event_handler(
+            "FDAL_UPDATE", _push(_temperature(pushed_value))
+        )
+
+    sensor = api.sensors[TEST_SERIAL_1]["temperature"]
+    assert sensor.value == value
+    assert sensor.error is error
+    assert sensor.error_type == error_type
