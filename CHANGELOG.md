@@ -1,5 +1,22 @@
 # Changelog
 
+## v17.2.5 (2026-11-02)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`5b755ed`](https://github.com/chemelli74/aioamazondevices/commit/5b755ed07b0107523dda6ff069996d6ea8bca4f6))
+
+
+### Bug fixes
+
+- Report temperature calibration placeholder as an error ([`4ad0d83`](https://github.com/chemelli74/aioamazondevices/commit/4ad0d8304ed6298500f3de27aa332b7a0a7ff367))
+
+
+### Testing
+
+- Load fixtures with orjson ([`7f25041`](https://github.com/chemelli74/aioamazondevices/commit/7f25041007480fc5af66b3e25fd3b31a45da36bb))
+
+
 ## v17.2.4 (2026-11-02)
 
 ### Bug fixes
