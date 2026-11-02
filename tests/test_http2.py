@@ -46,6 +46,8 @@ NEW_AVS_SITE = "https://bob-dispatch-prod-na.amazon.com"
 BOUNDARY = "avs-boundary"
 DELIMITER = f"--{BOUNDARY}".encode()
 MULTIPART = f'multipart/related; boundary="{BOUNDARY}"'
+VOLUME_PAYLOAD = {"dopplerId": {"deviceSerialNumber": TEST_SERIAL_1}}
+CONNECT_ERROR = httpx.ConnectError("refused")
 
 
 def _part(body: dict[str, Any]) -> bytes:
@@ -60,12 +62,10 @@ def _multipart(*parts: bytes) -> bytes:
 
 def _update(
     resource_id: str = AmazonPushMessage.VolumeChange.value,
-    payload: object = None,
+    payload: object = VOLUME_PAYLOAD,
     **fields: object,
 ) -> dict[str, Any]:
     """Build a rendering update for a push event."""
-    if payload is None:
-        payload = {"dopplerId": {"deviceSerialNumber": TEST_SERIAL_1}}
     return {
         "resourceId": resource_id,
         "resourceMetadata": {"payload": payload},
@@ -91,12 +91,17 @@ def _goaway(error_code: ErrorCodes) -> Exception:
     return Exception(terminated)
 
 
-async def _stream(*chunks: bytes, stay_open: bool = False) -> AsyncIterator[bytes]:
-    """Yield the chunks of a directives stream, optionally keeping it open."""
+async def _stream(*chunks: bytes) -> AsyncIterator[bytes]:
+    """Yield the chunks of a directives stream, then end it."""
     for chunk in chunks:
         yield chunk
-    if stay_open:
-        await asyncio.Event().wait()
+
+
+async def _open_stream(*chunks: bytes) -> AsyncIterator[bytes]:
+    """Yield the chunks of a directives stream, then keep it open."""
+    for chunk in chunks:
+        yield chunk
+    await asyncio.Event().wait()
 
 
 @dataclass
@@ -123,12 +128,10 @@ class AvsServer:
         response: httpx.Response = getattr(self, endpoint)
         return response
 
-    def set_stream(self, *chunks: bytes, stay_open: bool = False) -> None:
-        """Serve the given chunks on the directives stream."""
+    def set_stream(self, content: AsyncIterator[bytes]) -> None:
+        """Serve the given content on the directives stream."""
         self.directives = httpx.Response(
-            HTTPStatus.OK,
-            headers={"content-type": MULTIPART},
-            content=_stream(*chunks, stay_open=stay_open),
+            HTTPStatus.OK, headers={"content-type": MULTIPART}, content=content
         )
 
 
@@ -242,7 +245,8 @@ def test_is_notification_change_duplicate(
         pytest.param(_update(payload=[]), "Malformed push payload", id="bad-payload"),
         pytest.param(
             _update(resource_id="PUSH_SOMETHING_NEW"),
-            "Unknown HTTP2 push message from device 1234: PUSH_SOMETHING_NEW",
+            f"Unknown HTTP2 push message from device {TEST_SERIAL_1}: "
+            "PUSH_SOMETHING_NEW",
             id="unknown-type",
         ),
         pytest.param(
@@ -268,10 +272,7 @@ def test_process_rendering_update_rejects(
     [
         pytest.param(
             _update(),
-            (
-                AmazonPushMessage.VolumeChange.value,
-                {"dopplerId": {"deviceSerialNumber": TEST_SERIAL_1}},
-            ),
+            (AmazonPushMessage.VolumeChange.value, VOLUME_PAYLOAD),
             id="known-type",
         ),
         pytest.param(
@@ -324,9 +325,7 @@ def test_stream_parser_limits_buffer_size(monkeypatch: pytest.MonkeyPatch) -> No
 @pytest.mark.parametrize(
     ("conn_exc", "root", "expected"),
     [
-        pytest.param(
-            httpx.ConnectError("refused"), None, True, id="other-transport-error"
-        ),
+        pytest.param(CONNECT_ERROR, CONNECT_ERROR, True, id="other-transport-error"),
         pytest.param(
             httpx.ReadError(""),
             anyio.ClosedResourceError(),
@@ -360,11 +359,11 @@ def test_stream_parser_limits_buffer_size(monkeypatch: pytest.MonkeyPatch) -> No
 async def test_is_informative(
     client: AmazonHTTP2Client,
     conn_exc: httpx.TransportError,
-    root: BaseException | None,
+    root: BaseException,
     expected: bool,
 ) -> None:
     """Expected connection drops are not worth a warning, other errors are."""
-    assert client.is_informative(conn_exc, root or conn_exc) is expected
+    assert client.is_informative(conn_exc, root) is expected
 
 
 @pytest.mark.anyio
@@ -459,12 +458,12 @@ async def test_stream_delivers_push_events(
         _part(_directive(media)),
     )
     # Split the body so that a part spans two chunks.
-    avs_server.set_stream(body[:50], body[50:])
+    avs_server.set_stream(_stream(body[:50], body[50:]))
 
     await client._stream_and_process()
 
     assert push_events == [
-        (AmazonPushMessage.VolumeChange.value, volume["resourceMetadata"]["payload"]),
+        (AmazonPushMessage.VolumeChange.value, VOLUME_PAYLOAD),
         (AmazonPushMessage.MediaChange.value, {"dopplerId": None}),
     ]
     stream_request, check_site_request = avs_server.requests
@@ -488,15 +487,14 @@ async def test_stream_subscriber_error_is_logged(
     on_push_event = AsyncMock(side_effect=[ValueError("boom"), None])
     client.on_push_event.append(on_push_event)
     client.on_push_event.freeze()
-    avs_server.set_stream(_multipart(_part(_directive(_update(), _update()))))
+    avs_server.set_stream(_stream(_multipart(_part(_directive(_update(), _update())))))
 
     await client._stream_and_process()
 
     assert "Error processing push event type <PUSH_VOLUME_CHANGE>" in caplog.text
-    payload = _update()["resourceMetadata"]["payload"]
     assert on_push_event.await_args_list == [
-        call(AmazonPushMessage.VolumeChange.value, payload),
-        call(AmazonPushMessage.VolumeChange.value, payload),
+        call(AmazonPushMessage.VolumeChange.value, VOLUME_PAYLOAD),
+        call(AmazonPushMessage.VolumeChange.value, VOLUME_PAYLOAD),
     ]
 
 
@@ -510,7 +508,7 @@ async def test_stream_stops_reading_once_stopped(
     client.on_push_event.freeze()
     first = _multipart(_part(_directive(_update())))
     second = _part(_directive(_update())) + b"\r\n" + DELIMITER
-    avs_server.set_stream(first, second)
+    avs_server.set_stream(_stream(first, second))
 
     await client._stream_and_process()
 
@@ -559,7 +557,7 @@ async def test_stream_buffer_overflow_forces_reconnect(
 ) -> None:
     """A part too large for the buffer fails the stream so it reconnects."""
     monkeypatch.setattr(http2, "_MAX_BUFFER_SIZE", 8)
-    avs_server.set_stream(b"0123456789")
+    avs_server.set_stream(_stream(b"0123456789"))
 
     with pytest.raises(CannotRetrieveData, match="Buffer exceeded maximum size"):
         await client._stream_and_process()
@@ -808,27 +806,32 @@ async def test_orchestrate_stops_during_backoff(
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize(
-    "with_callback",
-    [
-        pytest.param(True, id="with-callback"),
-        pytest.param(False, id="without-callback"),
-    ],
-)
-async def test_orchestrate_reauth(
-    client: AmazonHTTP2Client, monkeypatch: pytest.MonkeyPatch, with_callback: bool
+async def test_orchestrate_reauth_calls_callback(
+    client: AmazonHTTP2Client, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A reauth calls the callback, if there is one, and ends processing."""
+    """A reauth calls the callback and ends processing."""
     on_reauth_required = AsyncMock()
-    if with_callback:
-        client._on_reauth_required = on_reauth_required
+    client._on_reauth_required = on_reauth_required
     run_tasks = AsyncMock(return_value=_TaskAction.REAUTH)
     monkeypatch.setattr(client, "_run_tasks", run_tasks)
 
     await client._orchestrate_tasks()
 
     run_tasks.assert_awaited_once()
-    assert on_reauth_required.await_args_list == ([()] if with_callback else [])
+    on_reauth_required.assert_awaited_once_with()
+
+
+@pytest.mark.anyio
+async def test_orchestrate_reauth_without_callback(
+    client: AmazonHTTP2Client, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A reauth with no callback set still ends processing."""
+    run_tasks = AsyncMock(return_value=_TaskAction.REAUTH)
+    monkeypatch.setattr(client, "_run_tasks", run_tasks)
+
+    await client._orchestrate_tasks()
+
+    run_tasks.assert_awaited_once()
 
 
 @pytest.mark.anyio
@@ -840,7 +843,7 @@ async def test_start_and_stop_processing(
     on_push_event = AsyncMock(side_effect=lambda *_: received.set())
     client.on_push_event.append(on_push_event)
     client.on_push_event.freeze()
-    avs_server.set_stream(_multipart(_part(_directive(_update()))), stay_open=True)
+    avs_server.set_stream(_open_stream(_multipart(_part(_directive(_update())))))
 
     task = await client.start_processing()
     assert await client.start_processing() is task
@@ -853,7 +856,7 @@ async def test_start_and_stop_processing(
     assert client._run_task is None
     assert client._stop_event.is_set()
     on_push_event.assert_awaited_once_with(
-        AmazonPushMessage.VolumeChange.value, _update()["resourceMetadata"]["payload"]
+        AmazonPushMessage.VolumeChange.value, VOLUME_PAYLOAD
     )
 
 
