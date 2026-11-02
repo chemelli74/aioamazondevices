@@ -459,9 +459,12 @@ async def test_send_media_command_stop_uses_sequence_per_member(
 @pytest.mark.parametrize(
     "command",
     [
-        pytest.param(command, id=command.name.lower())
-        for command in AmazonMediaControls
-        if command != AmazonMediaControls.Stop
+        pytest.param(AmazonMediaControls.Play, id="play"),
+        pytest.param(AmazonMediaControls.Pause, id="pause"),
+        pytest.param(AmazonMediaControls.Next, id="next"),
+        pytest.param(AmazonMediaControls.Previous, id="previous"),
+        pytest.param(AmazonMediaControls.Rewind, id="rewind"),
+        pytest.param(AmazonMediaControls.FastForward, id="fast-forward"),
     ],
 )
 async def test_send_media_command_delegates_to_handler(

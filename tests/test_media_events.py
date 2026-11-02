@@ -42,15 +42,20 @@ async def test_media_state_not_overwritten_by_in_flight_sync(
 
     started = asyncio.Event()
     release = asyncio.Event()
-    responses = iter(("PAUSED", "PLAYING"))
+
+    async def stale_media_states() -> dict[str, Any]:
+        # Snapshot taken before the push event: old state.
+        started.set()
+        await release.wait()
+        return _media_sessions("PAUSED")
+
+    async def fresh_media_states() -> dict[str, Any]:
+        return _media_sessions("PLAYING")
+
+    responses = iter((stale_media_states, fresh_media_states))
 
     async def get_media_states(_device: AmazonDevice) -> dict[str, Any]:
-        state = next(responses)
-        if state == "PAUSED":
-            # Snapshot taken before the push event: old state.
-            started.set()
-            await release.wait()
-        return _media_sessions(state)
+        return await next(responses)()
 
     monkeypatch.setattr(api._media_handler, "_get_media_states", get_media_states)
 
@@ -81,21 +86,13 @@ async def test_audio_player_event_skipped_before_devices_load(
     sync.assert_not_awaited()
 
 
-@pytest.mark.anyio
-@pytest.mark.parametrize(
-    "subscribed",
-    [
-        pytest.param(False, id="no-subscribers"),
-        pytest.param(True, id="subscribed"),
-    ],
-)
-async def test_audio_player_event_syncs_and_emits(
+@pytest.fixture
+def loaded_devices(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
     monkeypatch: pytest.MonkeyPatch,
-    subscribed: bool,
-) -> None:
-    """A push event resyncs media state and emits it only to subscribers."""
+) -> dict[str, AmazonDevice]:
+    """Load a media device whose media state reports PLAYING."""
     devices = {
         TEST_SERIAL_1: dataclasses.replace(
             make_device(TEST_SERIAL_1), media_player_supported=True
@@ -107,24 +104,43 @@ async def test_audio_player_event_syncs_and_emits(
         "_get_media_states",
         AsyncMock(return_value=_media_sessions("PLAYING")),
     )
+    return devices
+
+
+@pytest.mark.anyio
+async def test_audio_player_event_syncs_without_subscribers(
+    api: AmazonEchoApi,
+    loaded_devices: dict[str, AmazonDevice],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A push event resyncs media state when nothing is subscribed."""
     sync = AsyncMock(wraps=api._media_handler.sync_media_state)
     monkeypatch.setattr(api._media_handler, "sync_media_state", sync)
 
+    await api._handle_audio_player_state_event()
+
+    sync.assert_awaited_once_with(loaded_devices)
+    media_states = await api._media_handler.media_states
+    assert media_states[TEST_SERIAL_1].player_state == "PLAYING"
+
+
+@pytest.mark.anyio
+@pytest.mark.usefixtures("loaded_devices")
+async def test_audio_player_event_emits_to_subscribers(api: AmazonEchoApi) -> None:
+    """A push event emits the resynced media state to subscribers."""
     received: list[dict[str, AmazonMediaState]] = []
 
     async def on_media_state(media_states: dict[str, AmazonMediaState]) -> None:
         received.append(media_states)
 
-    if subscribed:
-        api.on_media_state_event.append(on_media_state)
-        api.on_media_state_event.freeze()
+    api.on_media_state_event.append(on_media_state)
+    api.on_media_state_event.freeze()
 
     await api._handle_audio_player_state_event()
 
-    sync.assert_awaited_once_with(devices)
     media_states = await api._media_handler.media_states
     assert media_states[TEST_SERIAL_1].player_state == "PLAYING"
-    assert received == ([media_states] if subscribed else [])
+    assert received == [media_states]
 
 
 @pytest.mark.anyio
