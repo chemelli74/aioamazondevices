@@ -35,6 +35,10 @@ class FrozenDatetime(datetime):
         """Return NOW in the given timezone."""
         return cls.fromtimestamp(NOW.timestamp(), tz=tz or UTC)
 
+    def astimezone(self, tz: tzinfo | None = None) -> "FrozenDatetime":
+        """Treat UTC as the host's local timezone."""
+        return super().astimezone(tz or UTC)
+
 
 @pytest.fixture(autouse=True)
 def frozen_now(monkeypatch: pytest.MonkeyPatch) -> None:
