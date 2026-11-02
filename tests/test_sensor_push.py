@@ -16,7 +16,7 @@ from aioamazondevices.implementation.device import _parse_features
 from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.structures import AmazonDevice
 
-from .const import TEST_CALIBRATION_TEMPERATURE, TEST_SERIAL_1, TEST_SERIAL_2
+from .const import TEST_SERIAL_1, TEST_SERIAL_2
 
 ENDPOINT = "endpoint-1"
 SYNCED_TEMPERATURE = 20.0
@@ -574,35 +574,28 @@ async def test_smart_home_event_is_emitted(
 
 
 @pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("pushed_values", "value", "error", "error_type"),
+    [
+        pytest.param([-280], -280, True, "INVALID_TEMPERATURE", id="calibrating"),
+        pytest.param([-280, 22.5], 22.5, False, None, id="calibrated"),
+    ],
+)
 @pytest.mark.usefixtures("handler")
-async def test_smart_home_calibration_push_is_stored_as_error(
+async def test_smart_home_calibration_push(
     api: AmazonEchoApi,
+    pushed_values: list[float],
+    value: float,
+    error: bool,
+    error_type: str | None,
 ) -> None:
-    """A pushed calibration placeholder is stored as an error."""
-    await api._http2_push_event_handler(
-        "FDAL_UPDATE", _push(_temperature(TEST_CALIBRATION_TEMPERATURE))
-    )
+    """A pushed calibration placeholder is an error, cleared by the next valid value."""
+    for pushed_value in pushed_values:
+        await api._http2_push_event_handler(
+            "FDAL_UPDATE", _push(_temperature(pushed_value))
+        )
 
     sensor = api.sensors[TEST_SERIAL_1]["temperature"]
-    assert sensor.value == TEST_CALIBRATION_TEMPERATURE
-    assert sensor.error
-    assert sensor.error_type == "INVALID_TEMPERATURE"
-
-
-@pytest.mark.anyio
-@pytest.mark.usefixtures("handler")
-async def test_smart_home_calibration_error_clears_on_valid_push(
-    api: AmazonEchoApi,
-) -> None:
-    """A valid temperature pushed after calibration clears the error."""
-    await api._http2_push_event_handler(
-        "FDAL_UPDATE", _push(_temperature(TEST_CALIBRATION_TEMPERATURE))
-    )
-    await api._http2_push_event_handler(
-        "FDAL_UPDATE", _push(_temperature(PUSHED_TEMPERATURE))
-    )
-
-    sensor = api.sensors[TEST_SERIAL_1]["temperature"]
-    assert sensor.value == PUSHED_TEMPERATURE
-    assert not sensor.error
-    assert sensor.error_type is None
+    assert sensor.value == value
+    assert sensor.error is error
+    assert sensor.error_type == error_type
