@@ -93,8 +93,8 @@ async def test_get_homegroup_id_cached(handler: AlexaCommunicationsHandler) -> N
         handler, {"/identities": {"homeGroupId": TEST_HOMEGROUP_ID}}
     )
 
-    assert await handler.get_homegroup_id() == TEST_HOMEGROUP_ID
-    assert await handler.get_homegroup_id() == TEST_HOMEGROUP_ID
+    assert await handler._get_homegroup_id() == TEST_HOMEGROUP_ID
+    assert await handler._get_homegroup_id() == TEST_HOMEGROUP_ID
 
     assert len(requested) == 1
     assert TEST_USER_ID in str(requested[0])

@@ -82,7 +82,7 @@ class AlexaCommunicationsHandler:
             return {}
         if self._homegroup_id is None:
             try:
-                self._homegroup_id = await self.get_homegroup_id()
+                self._homegroup_id = await self._get_homegroup_id()
             except CannotRetrieveData as exc:
                 _LOGGER.debug("Failed to retrieve homegroup id: %s", exc)
             if self._homegroup_id is None:
@@ -161,7 +161,7 @@ class AlexaCommunicationsHandler:
 
         return self._communication_preferences
 
-    async def get_homegroup_id(self) -> str | None:
+    async def _get_homegroup_id(self) -> str | None:
         """Get homegroup id for the user."""
         if self._homegroup_id is not None:
             return self._homegroup_id
