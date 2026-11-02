@@ -30,15 +30,6 @@ from .const import TEST_CSRF, TEST_SERIAL_1, TEST_SERIAL_2
 TEST_BEARER = "access-token"
 NEW_CSRF = "new-csrf"
 
-PersonsInfo = dict[str, str] | list[dict[str, str]] | None
-
-
-class _Absent:
-    """Marker for a payload that carries no `personsInfo` key at all."""
-
-
-ABSENT = _Absent()
-
 TEST_PERSON = {
     "personId": "amzn1.actor.person.oid.PERSON_ID",
     "personFirstName": "Alice",
@@ -46,19 +37,17 @@ TEST_PERSON = {
 }
 
 
-def _record(persons_info: PersonsInfo | _Absent) -> dict[str, Any]:
-    """Build a minimal vocal history record, shaped like the Amazon payload."""
-    record: dict[str, Any] = {
-        "timestamp": 1757000000000,
+def _history_record(serial: str, timestamp: int, **fields: object) -> dict[str, Any]:
+    """Build a vocal history record for a device, overriding any fields."""
+    return {
+        "timestamp": timestamp,
         "utteranceType": "GENERAL",
         "intent": "PlayMusicIntent",
-        "title": "play some music",
+        "title": f"record {timestamp}",
         "subTitle": "Echo Dot",
-        "deviceInfo": {"deviceSerialNumber": TEST_SERIAL_1},
+        "deviceInfo": {"deviceSerialNumber": serial},
+        **fields,
     }
-    if not isinstance(persons_info, _Absent):
-        record["personsInfo"] = persons_info
-    return record
 
 
 @pytest.fixture
@@ -70,34 +59,35 @@ def handler(monkeypatch: pytest.MonkeyPatch) -> AmazonHistoryHandler:
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    ("persons_info", "expected"),
+    ("fields", "expected"),
     [
         pytest.param(
-            TEST_PERSON,
+            {"personsInfo": TEST_PERSON},
             ("Alice", "ADULT"),
             id="recognised-speaker",
         ),
         pytest.param(
-            [TEST_PERSON],
+            {"personsInfo": [TEST_PERSON]},
             ("Alice", "ADULT"),
             id="recognised-speaker-as-list",
         ),
-        pytest.param(None, (None, None), id="voice-not-recognised"),
-        pytest.param([], (None, None), id="empty-list"),
-        pytest.param(ABSENT, (None, None), id="personsinfo-key-absent"),
+        pytest.param({"personsInfo": None}, (None, None), id="voice-not-recognised"),
+        pytest.param({"personsInfo": []}, (None, None), id="empty-list"),
+        pytest.param({}, (None, None), id="personsinfo-key-absent"),
     ],
 )
 async def test_vocal_history_exposes_speaker(
     handler: AmazonHistoryHandler,
-    persons_info: PersonsInfo | _Absent,
+    fields: dict[str, Any],
     expected: tuple[str | None, str | None],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The recognised speaker is taken from personsInfo, absent when unknown."""
+    history_record = _history_record(TEST_SERIAL_1, 1, **fields)
     monkeypatch.setattr(
         handler,
         "_vocal_history_json",
-        AsyncMock(return_value={"alexaHistoryRecords": [_record(persons_info)]}),
+        AsyncMock(return_value={"alexaHistoryRecords": [history_record]}),
     )
 
     records = await handler.get_vocal_history()
@@ -106,21 +96,6 @@ async def test_vocal_history_exposes_speaker(
     assert (record.person_first_name, record.person_type) == expected
     # personId is in the payload but account-scoped, so it is deliberately not exposed
     assert not hasattr(record, "person_id")
-
-
-def _history_record(
-    serial: str | None, timestamp: int, **fields: object
-) -> dict[str, Any]:
-    """Build a vocal history record for a device, overriding any fields."""
-    return {
-        "timestamp": timestamp,
-        "utteranceType": "GENERAL",
-        "intent": "PlayMusicIntent",
-        "title": f"record {timestamp}",
-        "subTitle": "Echo Dot",
-        "deviceInfo": {"deviceSerialNumber": serial},
-        **fields,
-    }
 
 
 @pytest.fixture

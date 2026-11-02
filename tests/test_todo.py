@@ -6,7 +6,7 @@
 from collections.abc import Awaitable, Callable
 from http import HTTPMethod
 from typing import Any
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, call
 
 import pytest
 from yarl import URL
@@ -229,11 +229,19 @@ async def test_item_changes(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    ("event_type", "fetches_item"),
+    ("event_type", "expected"),
     [
-        pytest.param(AmazonListEventType.CREATED, True, id="created"),
-        pytest.param(AmazonListEventType.UPDATED, True, id="updated"),
-        pytest.param(AmazonListEventType.DELETED, False, id="deleted"),
+        pytest.param(
+            AmazonListEventType.CREATED,
+            (ITEM, [call(TEST_LIST_ID)]),
+            id="created",
+        ),
+        pytest.param(
+            AmazonListEventType.UPDATED,
+            (ITEM, [call(TEST_LIST_ID)]),
+            id="updated",
+        ),
+        pytest.param(AmazonListEventType.DELETED, (None, []), id="deleted"),
     ],
 )
 async def test_item_change_event_emits_list_event(
@@ -241,9 +249,10 @@ async def test_item_change_event_emits_list_event(
     monkeypatch: pytest.MonkeyPatch,
     on_todo_event: AsyncMock,
     event_type: AmazonListEventType,
-    fetches_item: bool,
+    expected: tuple[AmazonListItem | None, list[Any]],
 ) -> None:
     """A list push event emits the change, with the item unless it was deleted."""
+    expected_items, expected_fetches = expected
     get_list_items = AsyncMock(return_value=[ITEM])
     monkeypatch.setattr(api._todo_handler, "get_list_items", get_list_items)
 
@@ -256,13 +265,9 @@ async def test_item_change_event_emits_list_event(
     )
 
     on_todo_event.assert_awaited_once_with(
-        AmazonListEvent(
-            TEST_LIST_ID, TEST_ITEM_ID, event_type, items=ITEM if fetches_item else None
-        )
+        AmazonListEvent(TEST_LIST_ID, TEST_ITEM_ID, event_type, items=expected_items)
     )
-    assert get_list_items.await_args_list == (
-        [((TEST_LIST_ID,),)] if fetches_item else []
-    )
+    assert get_list_items.await_args_list == expected_fetches
 
 
 @pytest.mark.anyio
