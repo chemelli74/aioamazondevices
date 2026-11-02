@@ -295,8 +295,8 @@ async def test_login_interactive_oauth_unexpected_page(
     ):
         await login._login_mode_interactive_oauth("123456")
 
-    for request in session_request.await_args_list:
-        assert "password" not in (request.kwargs.get("input_data") or {})
+    _, email = session_request.await_args_list
+    assert "password" not in email.kwargs["input_data"]
 
 
 @pytest.mark.anyio
@@ -678,11 +678,18 @@ async def test_get_alexa_domain(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    ("home_region", "alexa_host", "expected_domain"),
+    ("home_region", "alexa_host", "expected"),
     [
-        pytest.param("FE", None, "co.jp", id="far-east"),
-        pytest.param("EU", "alexa.amazon.co.uk", "co.uk", id="other-domain"),
-        pytest.param("NA", "alexa.amazon.com", None, id="default-domain"),
+        pytest.param("FE", None, ([], [call()], "co.jp"), id="far-east"),
+        pytest.param(
+            "EU",
+            "alexa.amazon.co.uk",
+            ([call()], [call()], "co.uk"),
+            id="other-domain",
+        ),
+        pytest.param(
+            "NA", "alexa.amazon.com", ([call()], [], "com"), id="default-domain"
+        ),
     ],
 )
 async def test_domain_refresh_auth_cookies(
@@ -690,9 +697,10 @@ async def test_domain_refresh_auth_cookies(
     monkeypatch: pytest.MonkeyPatch,
     home_region: str,
     alexa_host: str | None,
-    expected_domain: str | None,
+    expected: tuple[list[Any], list[Any], str],
 ) -> None:
     """Cookies are refreshed for the account's own site when it is not .com."""
+    expected_domain_lookups, expected_refreshes, expected_domain = expected
     login = api._login
     login._session_state_data.login_stored_data = {
         "customer_info": {"home_region": home_region}
@@ -705,11 +713,9 @@ async def test_domain_refresh_auth_cookies(
 
     await login._domain_refresh_auth_cookies()
 
-    assert get_alexa_domain.await_args_list == ([] if alexa_host is None else [()])
-    assert refresh_auth_cookies.await_args_list == (
-        [] if expected_domain is None else [()]
-    )
-    assert login._session_state_data.domain == (expected_domain or "com")
+    assert get_alexa_domain.await_args_list == expected_domain_lookups
+    assert refresh_auth_cookies.await_args_list == expected_refreshes
+    assert login._session_state_data.domain == expected_domain
 
 
 @pytest.mark.anyio
