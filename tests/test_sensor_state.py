@@ -15,11 +15,10 @@ from aioamazondevices.const.http import ARRAY_WRAPPER
 from aioamazondevices.implementation import feature_property_definitions
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 
-from .const import TEST_SERIAL_1
+from .const import TEST_CALIBRATION_TEMPERATURE, TEST_SERIAL_1
 
 TEST_TEMPERATURE = 21.3
 TEST_RANGE_VALUE = 42
-TEST_CALIBRATION_TEMPERATURE = -280
 
 
 def _temperature_endpoint(
@@ -61,21 +60,37 @@ async def test_sensor_value_is_read(
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize("scale", ["CELSIUS", "FAHRENHEIT"])
-async def test_calibrating_temperature_is_an_error(
+@pytest.mark.parametrize(
+    ("value", "scale", "error"),
+    [
+        pytest.param(19, "CELSIUS", False, id="19C"),
+        pytest.param(70, "FAHRENHEIT", False, id="70F"),
+        pytest.param(-279, "CELSIUS", False, id="-279C"),
+        pytest.param(TEST_CALIBRATION_TEMPERATURE, "CELSIUS", True, id="-280C"),
+        pytest.param(-300, "CELSIUS", True, id="-300C"),
+        pytest.param(TEST_CALIBRATION_TEMPERATURE, "FAHRENHEIT", True, id="-280F"),
+    ],
+)
+async def test_temperature_calibration_value_is_an_error(
     make_device: Callable[..., AmazonDevice],
     sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
+    value: float,
     scale: str,
+    error: bool,
 ) -> None:
-    """The calibration placeholder is reported as an error, keeping the raw value."""
+    """Temperatures at or below the calibration placeholder are errors.
+
+    The raw value is kept either way.
+    """
     sensors = sync_sensors(
-        _temperature_endpoint("value", TEST_CALIBRATION_TEMPERATURE, scale),
-        make_device(TEST_SERIAL_1),
+        _temperature_endpoint("value", value, scale), make_device(TEST_SERIAL_1)
     )
 
-    assert sensors["temperature"].value == TEST_CALIBRATION_TEMPERATURE
-    assert sensors["temperature"].error
-    assert sensors["temperature"].error_type == "INVALID_TEMPERATURE"
+    assert sensors["temperature"].value == value
+    assert sensors["temperature"].error is error
+    assert sensors["temperature"].error_type == (
+        "INVALID_TEMPERATURE" if error else None
+    )
 
 
 def _empty_temperature_endpoint() -> dict[str, Any]:
