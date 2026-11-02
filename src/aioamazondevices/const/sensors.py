@@ -7,6 +7,10 @@ from aioamazondevices.const.devices import DEVICE_TYPE_AQM, DEVICE_TYPE_GLOW
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
+# Value Amazon reports while a temperature sensor calibrates (e.g. after a reboot)
+# It is always -280, whatever the scale set on the device
+TEMPERATURE_CALIBRATION_VALUE = -280
+
 # Sensors templates, keyed by feature name and then by property name
 # This determines how to parse the feature
 # the property name will be used as sensor key for these
