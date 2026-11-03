@@ -5,7 +5,11 @@
 
 from typing import NotRequired, TypedDict
 
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM, DEVICE_TYPE_GLOW
+from aioamazondevices.const.devices import (
+    DEVICE_TYPE_AQM,
+    DEVICE_TYPE_GLOW,
+    DEVICE_TYPE_THERMOSTAT,
+)
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
@@ -82,6 +86,31 @@ SENSOR_TEMPLATES: dict[str, dict[str, SensorTemplate]] = {
     "toggle": {
         "toggleState": {
             "value_key": "toggleStateValue",
+        },
+    },
+    "thermostat": {
+        "targetSetpoint": {
+            "value_key": "value",
+            "value_subkey": "value",
+            "value_scale_key": "scale",
+        },
+        "upperSetpoint": {
+            "value_key": "value",
+            "value_subkey": "value",
+            "value_scale_key": "scale",
+        },
+        "lowerSetpoint": {
+            "value_key": "value",
+            "value_subkey": "value",
+            "value_scale_key": "scale",
+        },
+        "thermostatMode": {
+            "value_key": "thermostatModeValue",
+        },
+    },
+    "thermostatConfiguration": {
+        "allowedTemperatureRange": {
+            "value_key": "thermostatAllowedTemperatureRangeValue",
         },
     },
 }
@@ -184,5 +213,14 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, SpecificSensor]]] = {
                 "sensor_key_override": "glow_tap",
             }
         },
+    },
+    DEVICE_TYPE_THERMOSTAT: {
+        "mode": {
+            "5": {
+                "sensor_key_override": "fan_mode",
+            }
+        },
+        "thermostat": {"": {}},
+        "thermostatConfiguration": {"": {}},
     },
 }
