@@ -1,5 +1,12 @@
 # Changelog
 
+## v17.2.6 (2026-11-03)
+
+### Bug fixes
+
+- Key and scale defaults for device specific sensors ([`a0345b3`](https://github.com/chemelli74/aioamazondevices/commit/a0345b368c9979d1030941c82cce73a3bfce853d))
+
+
 ## v17.2.5 (2026-11-02)
 
 ### Documentation
