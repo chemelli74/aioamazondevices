@@ -27,6 +27,9 @@ RECURRING_PATTERNS: dict[str, str] = {
     "XXXX-WXX-7": "FREQ=WEEKLY;BYDAY=SU",
 }
 
+# Days of the week as in RFC 5545
+ALARM_DAYS = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"]
+
 WEEKEND_EXCEPTIONS = {
     "TH-FR": {
         "XXXX-WD": "FREQ=WEEKLY;BYDAY=MO,TU,WE,SA,SU",

@@ -58,6 +58,21 @@ class AmazonSchedule:
 
 
 @dataclass
+class AmazonAlarm:
+    """Amazon alarm class."""
+
+    id: str
+    status: str
+    label: str | None
+    # days of the week (MO, TU, ...), empty if the alarm does not repeat,
+    # None if it repeats in another way (e.g. every other week)
+    repeat_days: list[str] | None
+    next_occurrence: datetime | None
+    # notification as returned by Amazon, needed to change the alarm
+    raw_data: dict[str, Any]
+
+
+@dataclass
 class AmazonDeviceFeature:
     """Amazon device feature class."""
 

@@ -179,7 +179,7 @@ class AmazonNotificationHandler:
 
         recurring_rules: list[str] = []
         if schedule.get("rRuleData"):
-            recurring_rules = schedule["rRuleData"]["recurrenceRules"]
+            recurring_rules = list(schedule["rRuleData"]["recurrenceRules"])
         if schedule.get("recurringPattern"):
             recurring_rules.append(schedule["recurringPattern"])
 
@@ -207,15 +207,8 @@ class AmazonNotificationHandler:
                     )
                     return None
 
-                # Adjust recurring rules for country specific weekend exceptions
-                recurring_pattern = RECURRING_PATTERNS.copy()
-                for group, countries in COUNTRY_GROUPS.items():
-                    if self._session_state_data.country_code in countries:
-                        recurring_pattern |= WEEKEND_EXCEPTIONS[group]
-                        break
-
                 rule = self._add_hours_minutes(
-                    recurring_pattern[recurring_rule], original_time
+                    self._recurring_patterns()[recurring_rule], original_time
                 )
 
                 # `after` may return None when no next occurrence exists.
@@ -249,6 +242,16 @@ class AmazonNotificationHandler:
             return timestamp
 
         return None
+
+    def _recurring_patterns(self) -> dict[str, str]:
+        """Return recurring patterns as RFC5545 rules."""
+        # Adjust recurring rules for country specific weekend exceptions
+        recurring_pattern = RECURRING_PATTERNS.copy()
+        for group, countries in COUNTRY_GROUPS.items():
+            if self._session_state_data.country_code in countries:
+                recurring_pattern |= WEEKEND_EXCEPTIONS[group]
+                break
+        return recurring_pattern
 
     def _add_hours_minutes(
         self,
