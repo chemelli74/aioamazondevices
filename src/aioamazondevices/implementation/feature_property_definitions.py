@@ -9,11 +9,9 @@ from aioamazondevices.const.sensors import (
     COMMON_SENSORS,
     SENSOR_TEMPLATES,
     SPECIFIC_SENSORS,
+    SensorTemplate,
     SpecificSensor,
 )
-
-type FeaturePropertyTemplate = dict[str, str | None]
-type FeaturePropertyOverride = SpecificSensor | None
 
 
 @dataclass(frozen=True)
@@ -21,8 +19,8 @@ class FeaturePropertyDefinition:
     """How a templated property is parsed and stored."""
 
     key: str
-    template: FeaturePropertyTemplate
-    override: FeaturePropertyOverride
+    template: SensorTemplate
+    override: SpecificSensor | None
 
 
 def resolve_feature_property_definition(

@@ -13,10 +13,22 @@ SENSOR_STATE_OFF = "NOT_DETECTED"
 # It is always -280, whatever the scale set on the device
 TEMPERATURE_CALIBRATION_VALUE = -280
 
+
+class SensorTemplate(TypedDict):
+    """How to read a sensor value from a feature property."""
+
+    # property key holding the value
+    value_key: str
+    # key within that value holding the reading, missing uses the value itself
+    value_subkey: NotRequired[str]
+    # key within that value holding the scale, missing means no scale
+    value_scale_key: NotRequired[str]
+
+
 # Sensors templates, keyed by feature name and then by property name
 # This determines how to parse the feature
 # the property name will be used as sensor key for these
-SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
+SENSOR_TEMPLATES: dict[str, dict[str, SensorTemplate]] = {
     "temperatureSensor": {
         "temperature": {
             "value_key": "value",
@@ -27,64 +39,49 @@ SENSOR_TEMPLATES: dict[str, dict[str, dict[str, str | None]]] = {
     "motionSensor": {
         "detectionState": {
             "value_key": "detectionStateValue",
-            "value_subkey": None,
-            "value_scale_key": None,
         },
     },
     "lightSensor": {
         "illuminance": {
             "value_key": "illuminanceValue",
             "value_subkey": "value",
-            "value_scale_key": None,
         },
     },
     "connectivity": {
         "reachability": {
             "value_key": "reachabilityStatusValue",
-            "value_subkey": None,
-            "value_scale_key": None,
         },
     },
     "range": {
         "rangeValue": {
             "value_key": "rangeValue",
             "value_subkey": "value",
-            "value_scale_key": None,
         },
     },
     "power": {
         "powerState": {
             "value_key": "powerStateValue",
-            "value_subkey": None,
-            "value_scale_key": None,
         },
     },
     "brightness": {
         "brightness": {
             "value_key": "brightnessStateValue",
-            "value_subkey": None,
-            "value_scale_key": None,
         },
     },
     "color": {
         "color": {
             "value_key": "colorStateValue",
-            "value_subkey": None,
-            "value_scale_key": None,
         },
     },
     "mode": {
         "mode": {
             "value_key": "modeValue",
             "value_subkey": "value",
-            "value_scale_key": None,
         },
     },
     "toggle": {
         "toggleState": {
             "value_key": "toggleStateValue",
-            "value_subkey": None,
-            "value_scale_key": None,
         },
     },
 }
