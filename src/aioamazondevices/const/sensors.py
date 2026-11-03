@@ -3,6 +3,8 @@
 
 """Metadata constants for Amazon device sensors."""
 
+from typing import NotRequired, TypedDict
+
 from aioamazondevices.const.devices import DEVICE_TYPE_AQM, DEVICE_TYPE_GLOW
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
@@ -104,9 +106,18 @@ POLLED_SENSOR_FEATURES: frozenset[str] = frozenset(
     }
 )
 
+
+class SpecificSensor(TypedDict):
+    """Per instance settings for a device type specific sensor."""
+
+    # sensor key, defaults to the property name (plus instance if set)
+    sensor_key_override: NotRequired[str]
+    # None clears the scale, missing keeps the one read from the value
+    scale: NotRequired[str | None]
+
+
 # Device type specific sensors, keyed by device type, feature name and then instance
-# The property name will be used for sensor key unless sensor_key_override is set
-SPECIFIC_SENSORS: dict[str, dict[str, dict[str, dict[str, str | None]]]] = {
+SPECIFIC_SENSORS: dict[str, dict[str, dict[str, SpecificSensor]]] = {
     DEVICE_TYPE_AQM: {
         "range": {
             "4": {

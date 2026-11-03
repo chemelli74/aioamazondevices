@@ -9,10 +9,11 @@ from aioamazondevices.const.sensors import (
     COMMON_SENSORS,
     SENSOR_TEMPLATES,
     SPECIFIC_SENSORS,
+    SpecificSensor,
 )
 
 type FeaturePropertyTemplate = dict[str, str | None]
-type FeaturePropertyOverride = dict[str, str | None] | None
+type FeaturePropertyOverride = SpecificSensor | None
 
 
 @dataclass(frozen=True)
@@ -44,5 +45,5 @@ def resolve_feature_property_definition(
     # features without an instance can carry several properties, e.g. thermostat
     fallback_key = f"{property_name}-{instance}" if instance else property_name
     return FeaturePropertyDefinition(
-        override.get("sensor_key_override") or fallback_key, template, override
+        override.get("sensor_key_override", fallback_key), template, override
     )

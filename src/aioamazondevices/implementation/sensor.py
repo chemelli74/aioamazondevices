@@ -158,8 +158,8 @@ def _parse_property(
         _LOGGER.debug("invalid value in sensor %s - %s", property_name, error_msg)
 
     # an override without a scale keeps the one read from the value
-    if definition.override is not None and "scale" in definition.override:
-        scale = definition.override["scale"]
+    if definition.override is not None:
+        scale = definition.override.get("scale", scale)
 
     return AmazonDeviceSensor(
         definition.key,
