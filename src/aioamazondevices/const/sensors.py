@@ -17,11 +17,11 @@ TEMPERATURE_CALIBRATION_VALUE = -280
 class SensorTemplate(TypedDict):
     """How to read a sensor value from a feature property."""
 
-    # property key holding the value
+    # field in graphQL response holding the value
     value_key: str
-    # key within that value holding the reading, missing uses the value itself
+    # optional subkey if required value is nested
     value_subkey: NotRequired[str]
-    # key within that value holding the scale, missing means no scale
+    # optional field in graphQL response holding the scale
     value_scale_key: NotRequired[str]
 
 
@@ -107,9 +107,15 @@ POLLED_SENSOR_FEATURES: frozenset[str] = frozenset(
 class SpecificSensor(TypedDict):
     """Per instance settings for a device type specific sensor."""
 
-    # sensor key, defaults to the property name (plus instance if set)
+    # Override the sensor key used to identify the sensor
+    # particularly useful for range sensors, where the default key
+    # is the property name (plus instance if set) which is not sufficient
+    # to identify the sensor (e.g. range-3 on one device can be a completely
+    # different sensor than range-3 on another device)
     sensor_key_override: NotRequired[str]
-    # None clears the scale, missing keeps the one read from the value
+    # Optional scale literal, defaults to the scale reported by the device (if any)
+    # Setting to None will force the sensor to have no scale, even if the device
+    # reports one
     scale: NotRequired[str | None]
 
 
