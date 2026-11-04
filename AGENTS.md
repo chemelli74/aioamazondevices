@@ -56,6 +56,3 @@ These come from review feedback. Follow them for any new or changed test.
 - Name fake functions after the method they replace, with no leading
   underscore.
 - Write comments as full sentences, capitalised and ending in a full stop.
-
-The `test-conventions` hook in `.pre-commit-config.yaml` checks the mechanical
-rules above. The rest is up to you and reviewers.
