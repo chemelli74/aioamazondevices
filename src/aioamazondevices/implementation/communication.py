@@ -95,9 +95,19 @@ class AlexaCommunicationsHandler:
             self._communication_site,
             URI_HOMEGROUP_DEVICES.format(homegroup_id=self._homegroup_id),
         )
-        _, resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET, url=url
-        )
+        try:
+            _, resp = await self._http_wrapper.session_request(
+                method=HTTPMethod.GET,
+                url=url,
+                fail_fast=True,
+                extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
+            )
+        except CannotRetrieveData as exc:
+            _LOGGER.warning(
+                "Failed to refresh communications settings, used cached values: %s",
+                exc,
+            )
+            return self._communication_preferences
         resp_json = await self._http_wrapper.response_to_json(resp, "homegroup-devices")
         for hg_dev in resp_json.get("devices", []):
             dev_serial = hg_dev.get("deviceSerialNumber")
@@ -168,7 +178,9 @@ class AlexaCommunicationsHandler:
             URI_COMM_IDENTITY.format(user_id=self._session_state_data.user_id),
         )
         _, resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET, url=url
+            method=HTTPMethod.GET,
+            url=url,
+            extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
         )
         resp_json = await self._http_wrapper.response_to_json(resp, "comms-identity")
         return resp_json.get("homeGroupId") or None

@@ -214,3 +214,33 @@ async def test_get_communication_preferences_keeps_cached_announcements(
     assert preferences == {
         TEST_SERIAL_1: {"announcements": "OFF", "communications": "OFF", "dropin": "ON"}
     }
+
+
+@pytest.mark.anyio
+async def test_get_communication_preferences_homegroup_failure_keeps_cache(
+    handler: AlexaCommunicationsHandler,
+) -> None:
+    """A failed homegroup devices call returns the cached preferences."""
+    _route_responses(
+        handler,
+        {
+            "/identities": {"homeGroupId": TEST_HOMEGROUP_ID},
+            "/homegroups/": {"devices": [_homegroup_device(TEST_SERIAL_1, comms="ON")]},
+            "/preferences": _announcements_pref("OFF"),
+        },
+    )
+    cached = await handler.get_communication_preferences()
+
+    requested = _route_responses(
+        handler,
+        {
+            "/homegroups/": CannotRetrieveData("Request failed: Too Many Requests"),
+        },
+    )
+    preferences = await handler.get_communication_preferences()
+
+    assert preferences == cached == {
+        TEST_SERIAL_1: {"announcements": "OFF", "communications": "ON", "dropin": "ON"}
+    }
+    # no per-device requests after the homegroup call failed
+    assert len(requested) == 1

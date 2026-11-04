@@ -43,10 +43,14 @@ async def test_communications_use_app_agent_and_other_requests_keep_browser(
         received.append((request.match_info["preference"], await request.json()))
         return web.json_response({})
 
-    async def identity(request: web.Request) -> web.Response:  # noqa: ARG001
+    async def identity(request: web.Request) -> web.Response:
+        if request.headers.get("User-Agent") != REQUEST_AGENT["Amazon"]:
+            return web.Response(status=503, text="Service Temporarily Unavailable")
         return web.json_response({"homeGroupId": "HOMEGROUP_ID"})
 
-    async def homegroup_devices(request: web.Request) -> web.Response:  # noqa: ARG001
+    async def homegroup_devices(request: web.Request) -> web.Response:
+        if request.headers.get("User-Agent") != REQUEST_AGENT["Amazon"]:
+            return web.Response(status=429, text="Too Many Requests")
         return web.json_response(
             {
                 "devices": [
