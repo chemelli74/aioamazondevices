@@ -95,9 +95,16 @@ class AlexaCommunicationsHandler:
             self._communication_site,
             URI_HOMEGROUP_DEVICES.format(homegroup_id=self._homegroup_id),
         )
-        _, resp = await self._http_wrapper.session_request(
-            method=HTTPMethod.GET, url=url
-        )
+        try:
+            # Retries add load on a rate-limited (429) endpoint; the next poll retries
+            _, resp = await self._http_wrapper.session_request(
+                method=HTTPMethod.GET, url=url, fail_fast=True
+            )
+        except CannotRetrieveData:
+            _LOGGER.warning(
+                "Failed to refresh communications settings, used cached values."
+            )
+            return self._communication_preferences
         resp_json = await self._http_wrapper.response_to_json(resp, "homegroup-devices")
         for hg_dev in resp_json.get("devices", []):
             dev_serial = hg_dev.get("deviceSerialNumber")
