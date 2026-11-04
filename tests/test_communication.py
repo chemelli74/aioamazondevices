@@ -87,25 +87,17 @@ def handler(api: AmazonEchoApi) -> AlexaCommunicationsHandler:
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize(
-    "identity_response",
-    [
-        pytest.param(CannotRetrieveData("Request failed: Bad Request"), id="http_400"),
-        pytest.param({}, id="missing"),
-        pytest.param({"homeGroupId": None}, id="null"),
-    ],
-)
-async def test_get_communication_preferences_no_homegroup(
-    handler: AlexaCommunicationsHandler,
-    identity_response: dict[str, Any] | Exception,
-) -> None:
-    """Without a homegroup id, communications are disabled and not retried."""
-    requested = _route_responses(handler, {"/identities": identity_response})
+async def test_get_homegroup_id_cached(handler: AlexaCommunicationsHandler) -> None:
+    """The homegroup id is fetched once from the identity endpoint and cached."""
+    requested = _route_responses(
+        handler, {"/identities": {"homeGroupId": TEST_HOMEGROUP_ID}}
+    )
 
-    assert await handler.get_communication_preferences() == {}
-    assert await handler.get_communication_preferences() == {}
+    assert await handler.get_homegroup_id() == TEST_HOMEGROUP_ID
+    assert await handler.get_homegroup_id() == TEST_HOMEGROUP_ID
 
     assert len(requested) == 1
+    assert TEST_USER_ID in str(requested[0])
 
 
 @pytest.mark.anyio

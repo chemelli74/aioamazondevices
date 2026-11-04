@@ -19,8 +19,6 @@ from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateD
 from aioamazondevices.structures import AmazonDevice, AmazonDropInStatus
 from aioamazondevices.utils import _LOGGER
 
-NO_HOMEGROUP_ID = "NO_HOMEGROUP_ID"
-
 
 class AlexaCommunicationsHandler:
     """Class to handle Alexa communications."""
@@ -77,20 +75,8 @@ class AlexaCommunicationsHandler:
 
     async def get_communication_preferences(self) -> dict[str, dict[str, str]]:
         """Get communication preferences for a device."""
-        if self._homegroup_id == NO_HOMEGROUP_ID:
-            # A previous lookup failed or returned no homegroup id
-            return {}
-        if self._homegroup_id is None:
-            try:
-                self._homegroup_id = await self._get_homegroup_id()
-            except CannotRetrieveData as exc:
-                _LOGGER.debug("Failed to retrieve homegroup id: %s", exc)
-            if self._homegroup_id in (None, NO_HOMEGROUP_ID):
-                _LOGGER.warning(
-                    "No homegroup found for this account, communications disabled"
-                )
-                self._homegroup_id = NO_HOMEGROUP_ID
-                return {}
+        if not self._homegroup_id:
+            self._homegroup_id = await self.get_homegroup_id()
         url = URL.joinpath(
             self._communication_site,
             URI_HOMEGROUP_DEVICES.format(homegroup_id=self._homegroup_id),
@@ -161,8 +147,11 @@ class AlexaCommunicationsHandler:
 
         return self._communication_preferences
 
-    async def _get_homegroup_id(self) -> str | None:
+    async def get_homegroup_id(self) -> str | None:
         """Get homegroup id for the user."""
+        if self._homegroup_id is not None:
+            return self._homegroup_id
+
         url = URL.joinpath(
             self._communication_site,
             URI_COMM_IDENTITY.format(user_id=self._session_state_data.user_id),
@@ -171,4 +160,5 @@ class AlexaCommunicationsHandler:
             method=HTTPMethod.GET, url=url
         )
         resp_json = await self._http_wrapper.response_to_json(resp, "comms-identity")
-        return resp_json.get("homeGroupId") or None
+        self._homegroup_id = resp_json.get("homeGroupId")
+        return self._homegroup_id
