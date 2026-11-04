@@ -132,11 +132,6 @@ class AmazonSessionStateData:
         """Set account customer id."""
         self._login_stored_data["account_customer_id"] = customer_id
 
-    @property
-    def user_id(self) -> str | None:
-        """Return user id."""
-        return self._login_stored_data.get("customer_info", {}).get("user_id") or None
-
     def country_specific_data(self, login_site: str) -> None:
         """Set country specific data."""
         # Force lower case
@@ -303,15 +298,13 @@ class AmazonHttpWrapper:
         _LOGGER.debug("Unexpected refresh data response")
         return False, {}
 
-    async def session_request(  # noqa: PLR0913
+    async def session_request(
         self,
         method: str,
         url: URL,
         input_data: dict[str, Any] | list[dict[str, Any]] | None = None,
         json_data: bool = False,
         extended_headers: dict[str, str] | None = None,
-        *,
-        fail_fast: bool = False,
     ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
@@ -360,8 +353,7 @@ class AmazonHttpWrapper:
             )
 
         resp: ClientResponse | None = None
-        retry_delays = [0, 2, 5] if not fail_fast else [0]
-        for delay in retry_delays:
+        for delay in [0, 2, 5]:
             if delay:
                 _LOGGER.info(
                     "Sleeping for %s seconds before retrying API call to %s", delay, url
