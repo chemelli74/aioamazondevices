@@ -298,13 +298,15 @@ class AmazonHttpWrapper:
         _LOGGER.debug("Unexpected refresh data response")
         return False, {}
 
-    async def session_request(
+    async def session_request(  # noqa: PLR0913
         self,
         method: str,
         url: URL,
         input_data: dict[str, Any] | list[dict[str, Any]] | None = None,
         json_data: bool = False,
         extended_headers: dict[str, str] | None = None,
+        *,
+        fail_fast: bool = False,
     ) -> tuple[BeautifulSoup, ClientResponse]:
         """Return request response context data."""
         _LOGGER.debug(
@@ -353,7 +355,8 @@ class AmazonHttpWrapper:
             )
 
         resp: ClientResponse | None = None
-        for delay in [0, 2, 5]:
+        retry_delays = [0, 2, 5] if not fail_fast else [0]
+        for delay in retry_delays:
             if delay:
                 _LOGGER.info(
                     "Sleeping for %s seconds before retrying API call to %s", delay, url

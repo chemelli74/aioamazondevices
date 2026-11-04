@@ -98,6 +98,7 @@ class AlexaCommunicationsHandler:
                 _, resp = await self._http_wrapper.session_request(
                     method=HTTPMethod.GET,
                     url=url,
+                    fail_fast=True,
                     extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
                 )
             except CannotRetrieveData:

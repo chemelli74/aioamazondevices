@@ -3,14 +3,16 @@
 
 """Tests for the HTTP wrapper."""
 
-from http import HTTPMethod
+from http import HTTPMethod, HTTPStatus
 
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
 
+from aioamazondevices import http_wrapper as http_wrapper_module
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.http import CSRF_COOKIE
+from aioamazondevices.exceptions import CannotRetrieveData
 
 from .const import TEST_CSRF
 
@@ -34,3 +36,46 @@ async def test_csrf_cookie_sent_on_next_request(api: AmazonEchoApi) -> None:
         await api._http_wrapper.session_request(HTTPMethod.GET, url)
 
     assert received_csrf == [None, TEST_CSRF]
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("fail_fast", "expected_sleeps", "expected_requests"),
+    [
+        pytest.param(False, [2, 5], 3, id="retries_with_backoff"),
+        pytest.param(True, [], 1, id="fail_fast_does_not_retry"),
+    ],
+)
+async def test_retry_behaviour(
+    api: AmazonEchoApi,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    fail_fast: bool,
+    expected_sleeps: list[float],
+    expected_requests: int,
+) -> None:
+    """Retryable statuses back off and retry, unless fail_fast is set."""
+    sleeps: list[float] = []
+    requests: list[web.Request] = []
+
+    async def _sleep(delay: float) -> None:
+        # aiohttp internals also yield with sleep(0)
+        if delay:
+            sleeps.append(delay)
+
+    monkeypatch.setattr(http_wrapper_module.asyncio, "sleep", _sleep)
+
+    async def handler(request: web.Request) -> web.Response:
+        requests.append(request)
+        return web.Response(status=HTTPStatus.SERVICE_UNAVAILABLE)
+
+    app = web.Application()
+    app.router.add_get("/", handler)
+    async with TestServer(app) as server:
+        with pytest.raises(CannotRetrieveData):
+            await api._http_wrapper.session_request(
+                HTTPMethod.GET, server.make_url("/"), fail_fast=fail_fast
+            )
+
+    assert sleeps == expected_sleeps
+    assert len(requests) == expected_requests
