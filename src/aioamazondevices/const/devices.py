@@ -41,6 +41,10 @@ DEVICE_TYPES_HARDCODED_METADATA: dict[str, dict[str, str]] = {
         "model": "Stereo Pair",
         "manufacturer": "Amazon",
     },
+    DEVICE_TYPE_ALEXA_SMART_PLUG: {
+        "model": "Alexa Smart Plug",
+        "manufacturer": "Amazon",
+    },
 }
 
 DEVICE_TYPES_TO_IGNORE: list[str] = [
