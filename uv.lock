@@ -4,7 +4,7 @@ requires-python = ">=3.13"
 
 [[package]]
 name = "aioamazondevices"
-version = "17.2.6"
+version = "17.2.7"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
