@@ -14,7 +14,10 @@ from yarl import URL
 from aioamazondevices.const.devices import SPEAKER_GROUP_FAMILY
 from aioamazondevices.const.http import REQUEST_AGENT, URI_NEXUS_GRAPHQL
 from aioamazondevices.const.queries import QUERY_POLLED_SENSOR_STATE
-from aioamazondevices.const.sensors import POLLED_SENSOR_FEATURES
+from aioamazondevices.const.sensors import (
+    POLLED_SENSOR_FEATURES,
+    TEMPERATURE_CALIBRATION_VALUE,
+)
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from aioamazondevices.implementation.feature_property_definitions import (
     FeaturePropertyDefinition,
@@ -108,7 +111,7 @@ def _parse_property(
     error_msg = api_error.get("message")
     if not api_error:
         try:
-            value_raw = feature_property[template["value_key"] or ""]
+            value_raw = feature_property[template["value_key"]]
             if not value_raw:
                 _LOGGER.warning(
                     "Sensor %s [device %s] ignored due to empty value",
@@ -118,12 +121,12 @@ def _parse_property(
                 return None
             scale = (
                 value_raw[scale_template]
-                if (scale_template := template["value_scale_key"])
+                if (scale_template := template.get("value_scale_key"))
                 else None
             )
             value = (
                 value_raw[subkey_template]
-                if (subkey_template := template["value_subkey"])
+                if (subkey_template := template.get("value_subkey"))
                 else value_raw
             )
 
@@ -144,13 +147,24 @@ def _parse_property(
             error_msg,
         )
 
+    if temperature_error := (
+        feature_name == "temperatureSensor"
+        and isinstance(value, int | float)
+        and value <= TEMPERATURE_CALIBRATION_VALUE
+    ):
+        # Amazon placeholder for "no reading yet", not a measurement
+        error_type = "INVALID_TEMPERATURE"
+        error_msg = f"{value} {scale} is invalid."
+        _LOGGER.debug("invalid value in sensor %s - %s", property_name, error_msg)
+
+    # an override without a scale keeps the one read from the value
     if definition.override is not None:
-        scale = definition.override.get("scale")
+        scale = definition.override.get("scale", scale)
 
     return AmazonDeviceSensor(
         definition.key,
         value,
-        bool(api_error),
+        bool(api_error) or temperature_error,
         error_type,
         error_msg,
         scale,

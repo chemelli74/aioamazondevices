@@ -1,5 +1,53 @@
 # Changelog
 
+## v17.2.7 (2026-11-05)
+
+### Bug fixes
+
+- Errors on comms endpoint ([`c708020`](https://github.com/chemelli74/aioamazondevices/commit/c708020fef268b5a022f06a5dcff80462dc184e3))
+
+
+## v17.2.6 (2026-11-03)
+
+### Bug fixes
+
+- Key and scale defaults for device specific sensors ([`a0345b3`](https://github.com/chemelli74/aioamazondevices/commit/a0345b368c9979d1030941c82cce73a3bfce853d))
+
+
+## v17.2.5 (2026-11-02)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`5b755ed`](https://github.com/chemelli74/aioamazondevices/commit/5b755ed07b0107523dda6ff069996d6ea8bca4f6))
+
+
+### Bug fixes
+
+- Report temperature calibration placeholder as an error ([`4ad0d83`](https://github.com/chemelli74/aioamazondevices/commit/4ad0d8304ed6298500f3de27aa332b7a0a7ff367))
+
+
+### Testing
+
+- Load fixtures with orjson ([`7f25041`](https://github.com/chemelli74/aioamazondevices/commit/7f25041007480fc5af66b3e25fd3b31a45da36bb))
+
+
+## v17.2.4 (2026-11-02)
+
+### Bug fixes
+
+- Handle comms endpoint failures ([`3caf59d`](https://github.com/chemelli74/aioamazondevices/commit/3caf59da587639d553b0f9e7fc4ab16d01a98fbb))
+
+
+### Build system
+
+- Drop support for python 3.12 ([`1453709`](https://github.com/chemelli74/aioamazondevices/commit/1453709ed5ff7db1445a38dec5d49f8f00756a85))
+
+
+### Refactoring
+
+- Build avs directive urls with yarl ([`8eaeb82`](https://github.com/chemelli74/aioamazondevices/commit/8eaeb82e24576fdfaafef2084e4a2303907127b5))
+
+
 ## v17.2.3 (2026-10-26)
 
 ### Bug fixes
