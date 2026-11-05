@@ -57,17 +57,28 @@ class AlexaCommunicationsHandler:
             extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
         )
 
+    def _update_cached_preference(
+        self, preference: str, device: AmazonDevice, state: str
+    ) -> None:
+        """Keep the cache in line with a successful change.
+
+        The cache is returned when the homegroup refresh fails, so it must not
+        report the value from before the change.
+        """
+        if device.serial_number in self._communication_preferences:
+            self._communication_preferences[device.serial_number][preference] = state
+
     async def set_communication_status(self, device: AmazonDevice, state: bool) -> None:
         """Enable / disable communications for device."""
-        await self._set_communications_state(
-            "communications", device, "ON" if state else "OFF"
-        )
+        value = "ON" if state else "OFF"
+        await self._set_communications_state("communications", device, value)
+        self._update_cached_preference("communications", device, value)
 
     async def set_announcement_status(self, device: AmazonDevice, state: bool) -> None:
         """Enable / disable announcements for device."""
-        await self._set_communications_state(
-            "announcements", device, "ON" if state else "OFF"
-        )
+        value = "ON" if state else "OFF"
+        await self._set_communications_state("announcements", device, value)
+        self._update_cached_preference("announcements", device, value)
 
     async def set_dropin_status(
         self, device: AmazonDevice, state: AmazonDropInStatus
@@ -102,13 +113,15 @@ class AlexaCommunicationsHandler:
                 fail_fast=True,
                 extended_headers={"User-Agent": REQUEST_AGENT["Amazon"]},
             )
-        except CannotRetrieveData as exc:
+            resp_json = await self._http_wrapper.response_to_json(
+                resp, "homegroup-devices"
+            )
+        except (CannotRetrieveData, ValueError) as exc:
             _LOGGER.warning(
                 "Failed to refresh communications settings, used cached values: %s",
                 exc,
             )
             return self._communication_preferences
-        resp_json = await self._http_wrapper.response_to_json(resp, "homegroup-devices")
         for hg_dev in resp_json.get("devices", []):
             dev_serial = hg_dev.get("deviceSerialNumber")
             dev_type = hg_dev.get("deviceType")

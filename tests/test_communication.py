@@ -3,6 +3,7 @@
 
 """Tests for the Alexa communications handler."""
 
+from collections.abc import Callable
 from typing import Any
 from unittest.mock import AsyncMock
 
@@ -12,6 +13,7 @@ from yarl import URL
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.implementation.communication import AlexaCommunicationsHandler
+from aioamazondevices.structures import AmazonDevice
 
 from .const import TEST_SERIAL_1, TEST_SERIAL_2
 
@@ -239,8 +241,84 @@ async def test_get_communication_preferences_homegroup_failure_keeps_cache(
     )
     preferences = await handler.get_communication_preferences()
 
-    assert preferences == cached == {
+    expected = {
         TEST_SERIAL_1: {"announcements": "OFF", "communications": "ON", "dropin": "ON"}
     }
+    assert preferences == cached == expected
     # no per-device requests after the homegroup call failed
     assert len(requested) == 1
+
+    # the next refresh retries the homegroup devices call
+    requested = _route_responses(
+        handler,
+        {
+            "/homegroups/": {
+                "devices": [_homegroup_device(TEST_SERIAL_1, comms="OFF")]
+            },
+            "/preferences": _announcements_pref("OFF"),
+        },
+    )
+    preferences = await handler.get_communication_preferences()
+
+    assert preferences == {
+        TEST_SERIAL_1: {"announcements": "OFF", "communications": "OFF", "dropin": "ON"}
+    }
+    assert any("/homegroups/" in str(url) for url in requested)
+
+
+@pytest.mark.anyio
+async def test_get_communication_preferences_malformed_homegroup_keeps_cache(
+    handler: AlexaCommunicationsHandler,
+) -> None:
+    """A homegroup reply that is not valid JSON returns the cached preferences."""
+    _route_responses(
+        handler,
+        {
+            "/identities": {"homeGroupId": TEST_HOMEGROUP_ID},
+            "/homegroups/": {"devices": [_homegroup_device(TEST_SERIAL_1)]},
+            "/preferences": _announcements_pref("OFF"),
+        },
+    )
+    cached = await handler.get_communication_preferences()
+
+    requested = _route_responses(handler, {"/homegroups/": {"devices": []}})
+    handler._http_wrapper.response_to_json = AsyncMock(  # type: ignore[method-assign]
+        side_effect=ValueError("Response with corrupted JSON format")
+    )
+    preferences = await handler.get_communication_preferences()
+
+    assert preferences == cached
+    assert len(requested) == 1
+
+
+@pytest.mark.anyio
+async def test_set_status_updates_cached_preferences(
+    handler: AlexaCommunicationsHandler,
+    make_device: Callable[..., AmazonDevice],
+) -> None:
+    """A successful change is kept when the next homegroup refresh fails."""
+    _route_responses(
+        handler,
+        {
+            "/identities": {"homeGroupId": TEST_HOMEGROUP_ID},
+            "/homegroups/": {"devices": [_homegroup_device(TEST_SERIAL_1, comms="ON")]},
+            "/preferences": _announcements_pref("ON"),
+        },
+    )
+    await handler.get_communication_preferences()
+
+    _route_responses(
+        handler,
+        {
+            "/preferences/": {},
+            "/homegroups/": CannotRetrieveData("Request failed: Too Many Requests"),
+        },
+    )
+    device = make_device(TEST_SERIAL_1)
+    await handler.set_communication_status(device, False)
+    await handler.set_announcement_status(device, False)
+    preferences = await handler.get_communication_preferences()
+
+    assert preferences == {
+        TEST_SERIAL_1: {"announcements": "OFF", "communications": "OFF", "dropin": "ON"}
+    }
