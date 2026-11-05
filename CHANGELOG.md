@@ -1,5 +1,12 @@
 # Changelog
 
+## v17.2.8 (2026-11-05)
+
+### Bug fixes
+
+- Restore echo glow hardcoded model metadata ([`3b7a3c3`](https://github.com/chemelli74/aioamazondevices/commit/3b7a3c3b5a0108190586eb6a564b2c12c6670729))
+
+
 ## v17.2.7 (2026-11-05)
 
 ### Bug fixes
