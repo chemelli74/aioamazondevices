@@ -10,10 +10,11 @@ from unittest.mock import AsyncMock
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
+from aioamazondevices.const.devices import DEVICE_TYPE_AQM, SPEAKER_GROUP_FAMILY
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.structures import AmazonDevice
 
-from .const import TEST_SERIAL_1
+from .const import TEST_SERIAL_1, TEST_SERIAL_2
 
 
 def _preferences(state: str) -> dict[str, Any]:
@@ -71,3 +72,55 @@ async def test_get_communication_preferences_keeps_cached_values(
         wrapper, "session_request", AsyncMock(side_effect=CannotRetrieveData("boom"))
     )
     assert await handler.get_communication_preferences(devices) == expected
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("device_family", "device_type"),
+    [
+        pytest.param(SPEAKER_GROUP_FAMILY, "A1B2C3", id="speaker-group"),
+        pytest.param("ECHO", DEVICE_TYPE_AQM, id="air-quality-monitor"),
+    ],
+)
+async def test_get_communication_preferences_skips_unsupported_devices(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    mock_json_response: Callable[[dict[str, Any]], AsyncMock],
+    device_family: str,
+    device_type: str,
+) -> None:
+    """Unsupported devices are not requested, and later devices still are."""
+    session_request = mock_json_response(_preferences("ON"))
+    unsupported = make_device(TEST_SERIAL_1, device_family=device_family)
+    unsupported.device_type = device_type
+
+    result = await api._communication_handler.get_communication_preferences(
+        [unsupported, make_device(TEST_SERIAL_2)]
+    )
+
+    assert result == {TEST_SERIAL_2: {"announcements": "ON"}}
+    session_request.assert_awaited_once()
+
+
+@pytest.mark.anyio
+async def test_get_communication_preferences_ignores_disallowed_preferences(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    mock_json_response: Callable[[dict[str, Any]], AsyncMock],
+) -> None:
+    """Only preferences explicitly marked as allowed are returned."""
+    mock_json_response(
+        {
+            "devicePermissionsPreferences": [
+                {"devicePreference": "announcements", "state": "ON", "allowed": True},
+                {"devicePreference": "dropin", "state": "ON", "allowed": False},
+                {"devicePreference": "communications", "state": "ON"},
+            ]
+        }
+    )
+
+    result = await api._communication_handler.get_communication_preferences(
+        [make_device(TEST_SERIAL_1)]
+    )
+
+    assert result == {TEST_SERIAL_1: {"announcements": "ON"}}
