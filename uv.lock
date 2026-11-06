@@ -38,7 +38,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "colorlog" },
-    { name = "pytest", specifier = ">=9.1.1,<10" },
+    { name = "pytest", specifier = ">=9.2.0,<10" },
     { name = "pytest-cov", specifier = ">=7.1.0,<8" },
     { name = "types-python-dateutil", specifier = ">=2.9.0.20261104,<3" },
 ]
