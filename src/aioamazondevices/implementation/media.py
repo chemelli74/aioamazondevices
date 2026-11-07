@@ -15,6 +15,7 @@ from yarl import URL
 from aioamazondevices.const.http import (
     ARRAY_WRAPPER,
     HTTP_CONTENT_TYPE_STREAM,
+    URI_DEVICE_SPEAKER_VOLUME,
     URI_DEVICE_VOLUMES,
     URI_MEDIA_CONTROL,
     URI_MEDIA_STATE,
@@ -118,6 +119,44 @@ class AmazonMediaHandler:
             )
 
         self._device_volumes = _volumes
+
+    async def set_device_volume(self, device: AmazonDevice, volume: int) -> None:
+        """Set device volume."""
+        # The endpoint takes a relative step: on a speaker group it would shift
+        # every member by the same amount instead of setting them all to volume.
+        device_volumes = await self.device_volumes
+        members: list[tuple[str, str, AmazonVolumeState]] = []
+        for member_serial, member_type in device.device_cluster_members.items():
+            member_volume = device_volumes.get(member_serial)
+            if not member_type or not member_volume:
+                raise ValueError(
+                    f"Device <{member_serial}> not found in device volumes"
+                )
+            members.append((member_serial, member_type, member_volume))
+
+        for member_serial, member_type, member_volume in members:
+            payload = {
+                "dsn": member_serial,
+                "deviceType": member_type,
+                "amount": volume - (member_volume.volume or 0),
+                "volume": volume,
+                "muted": bool(member_volume.is_muted),
+                "synchronous": True,
+            }
+            await self._http_wrapper.session_request(
+                method=HTTPMethod.PUT,
+                url=URL.joinpath(
+                    self._session_state_data.alexa_website_url,
+                    URI_DEVICE_SPEAKER_VOLUME.format(
+                        device_type=member_type, serial_number=member_serial
+                    ),
+                ),
+                input_data=payload,
+                json_data=True,
+            )
+            self.update_cached_device_volume(
+                member_serial, AmazonVolumeState(volume, member_volume.is_muted)
+            )
 
     async def _get_media_states(self, device: AmazonDevice) -> dict[str, Any]:
         """Get media state for devices.
