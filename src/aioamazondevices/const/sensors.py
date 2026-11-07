@@ -5,7 +5,11 @@
 
 from typing import NotRequired, TypedDict
 
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM, DEVICE_TYPE_GLOW
+from aioamazondevices.const.devices import (
+    DEVICE_TYPE_ALEXA_SMART_PLUG,
+    DEVICE_TYPE_AQM,
+    DEVICE_TYPE_GLOW,
+)
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
@@ -182,6 +186,13 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, SpecificSensor]]] = {
         "toggle": {
             "3": {
                 "sensor_key_override": "glow_tap",
+            }
+        },
+    },
+    DEVICE_TYPE_ALEXA_SMART_PLUG: {
+        "power": {
+            "": {
+                "sensor_key_override": "plug_power",
             }
         },
     },
