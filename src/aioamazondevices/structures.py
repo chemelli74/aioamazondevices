@@ -63,7 +63,8 @@ class AmazonDeviceFeature:
 
     properties: list[str]
     supported_operations: list[str]
-    supported_modes: list[str]
+    # mode ID -> friendly name, falling back to the ID
+    supported_modes: dict[str, str]
     friendly_name: str | None
     # range features only
     minimum_value: float | None
