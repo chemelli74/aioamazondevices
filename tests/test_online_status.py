@@ -121,11 +121,6 @@ async def test_get_devices_data_updates_online_status(
     api._device_handler._final_devices = devices
     monkeypatch.setattr(api, "_refresh_basic_data", AsyncMock())
     monkeypatch.setattr(
-        api._notification_handler,
-        "get_notifications",
-        AsyncMock(return_value=None),
-    )
-    monkeypatch.setattr(
         api._communication_handler,
         "get_communication_preferences",
         AsyncMock(return_value={}),

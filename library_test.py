@@ -39,6 +39,7 @@ from aioamazondevices.structures import (
     AmazonMediaState,
     AmazonMusicProvider,
     AmazonSaveDataConfig,
+    AmazonSchedule,
 )
 
 SAVE_PATH = "out"
@@ -235,6 +236,7 @@ async def wait_action_complete(sleep: int = 5) -> None:
 async def main() -> None:
     """Run main."""
     media_states: dict[str, AmazonMediaState] = {}
+    notifications: dict[str, dict[str, AmazonSchedule]] = {}
 
     async def media_state_event_handler(
         media_state: dict[str, AmazonMediaState],
@@ -242,6 +244,13 @@ async def main() -> None:
         """Handle pushed media state changed events."""
         media_states.clear()
         media_states.update(media_state)
+
+    async def notification_event_handler(
+        notification_map: dict[str, dict[str, AmazonSchedule]],
+    ) -> None:
+        """Handle pushed notification changed events."""
+        notifications.clear()
+        notifications.update(notification_map)
 
     _, args = await get_arguments()
 
@@ -269,6 +278,8 @@ async def main() -> None:
 
     api.on_media_state_event.append(media_state_event_handler)
     api.on_media_state_event.freeze()
+    api.on_notification_event.append(notification_event_handler)
+    api.on_notification_event.freeze()
 
     try:
         try:
@@ -312,6 +323,8 @@ async def main() -> None:
             print(f"!!! Warning: No online devices found {exc} !!!")
             sys.exit(0)  # cleanup in finally
 
+        await api.sync_notifications()
+
         print("Devices count  :", len(devices))
         print("-" * 20)
         print("Devices full details:", devices)
@@ -326,7 +339,8 @@ async def main() -> None:
             print(f"   Device model: {device.model}")
             print(f"   Device hardware version: {device.hardware_version}")
             print(f"   Device software version: {device.software_version}")
-            print(f"   Device notifications: {len(device.notifications)}")
+            device_notifications = notifications.get(device.serial_number, {})
+            print(f"   Device notifications: {len(device_notifications)}")
             print(f"   Device communications: {device_comm_settings}")
             print(f"   Device supported features: {format_features(device.features)}")
             print(

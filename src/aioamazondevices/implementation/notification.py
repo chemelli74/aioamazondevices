@@ -25,7 +25,7 @@ from aioamazondevices.const.schedules import (
 )
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import AmazonDevice, AmazonSchedule
+from aioamazondevices.structures import AmazonSchedule
 from aioamazondevices.utils import _LOGGER
 
 
@@ -41,41 +41,8 @@ class AmazonNotificationHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
 
-    def update_device_notifications(
-        self,
-        devices: dict[str, AmazonDevice],
-        notifications: dict[str, dict[str, AmazonSchedule]] | None,
-    ) -> None:
-        """Update the notifications of all devices."""
-        if notifications is None:
-            return  # notifications were not obtained, do not update
-
-        for device in devices.values():
-            # Clear old notifications to handle cancelled ones
-            device.notifications = {}
-
-            # Update notifications
-            device_notifications = notifications.get(device.serial_number, {})
-
-            # Add only supported notification types
-            for capability, notification_type in [
-                ("REMINDERS", NOTIFICATION_REMINDER),
-                ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
-                ("TIMERS_AND_ALARMS", NOTIFICATION_TIMER),
-            ]:
-                if (
-                    capability in device.capabilities
-                    and notification_type in device_notifications
-                    and (
-                        notification_object := device_notifications.get(
-                            notification_type
-                        )
-                    )
-                ):
-                    device.notifications[notification_type] = notification_object
-
     async def get_notifications(self) -> dict[str, dict[str, AmazonSchedule]] | None:
-        """Get all notifications (alarms, timers, reminders)."""
+        """Get all notifications."""
         final_notifications: dict[str, dict[str, AmazonSchedule]] = {}
 
         try:
