@@ -294,6 +294,31 @@ async def test_login_interactive_oauth_unexpected_page(
 
 
 @pytest.mark.anyio
+async def test_login_interactive_oauth_otp_skipped(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A code issued right after the password, without an OTP page, is used."""
+    login = api._login
+    session_request = AsyncMock(
+        side_effect=[
+            _page(EMAIL_PAGE, SIGNIN_URL),
+            _page(PASSWORD_PAGE, URL("https://www.amazon.com/ax/claim")),
+            _page(
+                "",
+                MAPLANDING_URL.with_query({"openid.oa2.authorization_code": "AN1"}),
+            ),
+        ]
+    )
+    monkeypatch.setattr(login._http_wrapper, "session_request", session_request)
+
+    result = await login._login_mode_interactive_oauth("123456")
+
+    assert result["authorization_code"] == "AN1"
+    for call in session_request.await_args_list:
+        assert "otpCode" not in (call.kwargs.get("input_data") or {})
+
+
+@pytest.mark.anyio
 async def test_login_interactive_oauth_code_with_warning(
     api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> None:

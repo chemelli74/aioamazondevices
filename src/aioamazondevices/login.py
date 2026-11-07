@@ -328,6 +328,15 @@ class AmazonLogin:
                 code_verifier, registration_language="ja_JP"
             )
 
+        # A trusted sign-in skips the OTP page and lands on the return URL
+        if authcode := login_url.query.get("openid.oa2.authorization_code"):
+            _LOGGER.debug("Login completed without OTP code entry")
+            return {
+                "authorization_code": authcode,
+                "code_verifier": code_verifier,
+                "domain": self._session_state_data.domain,
+            }
+
         if not login_soup.find("input", id="auth-mfa-otpcode"):
             # e.g. captcha, email verification or an unsupported MFA method
             title = login_soup.title.get_text(strip=True) if login_soup.title else ""
