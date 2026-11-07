@@ -100,7 +100,7 @@ Ready to contribute? Here's how to set yourself up for local development.
 
 We like to have the pull request open as soon as possible, that's a great place to discuss any piece of work, even unfinished. You can use draft pull request if it's still a work in progress. Here are a few guidelines to follow:
 
-1. Include tests for feature or bug fixes.
+1. Include tests for feature or bug fixes, following the test conventions in [AGENTS.md](AGENTS.md).
 2. Update the documentation for significant features.
 3. Ensure tests are passing on CI.
 
