@@ -20,11 +20,11 @@ from aioamazondevices.const.devices import (
 from aioamazondevices.const.http import URI_DND_STATUS_ALL, URI_DND_STATUS_DEVICE
 from aioamazondevices.structures import AmazonDevice
 
-from .const import TEST_SERIAL_1, TEST_SERIAL_2
+from .const import TEST_DEVICE_TYPE, TEST_SERIAL_1, TEST_SERIAL_2, TEST_SERIAL_GROUP
 
 
 def _dnd_status(
-    serial: str, enabled: bool, device_type: str = "A1B2C3"
+    serial: str, enabled: bool, device_type: str = TEST_DEVICE_TYPE
 ) -> dict[str, Any]:
     """Build a device status entry as returned by the DND API."""
     return {"deviceSerialNumber": serial, "deviceType": device_type, "enabled": enabled}
@@ -40,7 +40,7 @@ async def test_sync_do_not_disturb_status_skips_groups(
             "doNotDisturbDeviceStatusList": [
                 _dnd_status(TEST_SERIAL_1, True),
                 _dnd_status(TEST_SERIAL_2, False),
-                _dnd_status("GROUP", True, DEVICE_TYPE_SPEAKER_GROUP),
+                _dnd_status(TEST_SERIAL_GROUP, True, DEVICE_TYPE_SPEAKER_GROUP),
                 _dnd_status("PAIR", True, DEVICE_TYPE_STEREO_PAIR),
                 _dnd_status("APP", True, DEVICE_TYPES_TO_IGNORE[0]),
             ]
@@ -97,7 +97,7 @@ async def test_set_do_not_disturb(
         ),
         input_data={
             "deviceSerialNumber": TEST_SERIAL_1,
-            "deviceType": "A1B2C3",
+            "deviceType": TEST_DEVICE_TYPE,
             "enabled": enable,
         },
         json_data=True,

@@ -37,6 +37,21 @@ def _lists_url(api: AmazonEchoApi, path: str, query: dict[str, Any] | None) -> U
     ).with_query(query)
 
 
+def _set_checked(checked: bool) -> Callable[[AmazonEchoApi], Awaitable[None]]:
+    """Return a call setting the test item's checked status."""
+    return lambda api: api.set_todo_list_item_checked_status(
+        TEST_LIST_ID, TEST_ITEM_ID, checked, 3
+    )
+
+
+def _item_status(status: AmazonListItemStatus) -> dict[str, Any]:
+    """Return the update body setting an item's status."""
+    return {
+        "itemAttributesToUpdate": [{"type": "itemStatus", "value": status.value}],
+        "itemAttributesToRemove": [],
+    }
+
+
 @pytest.fixture
 def on_todo_event(api: AmazonEchoApi) -> AsyncMock:
     """Subscribe to list events and return the subscriber mock."""
@@ -127,21 +142,6 @@ async def test_get_list_items_without_items(
     mock_json_response({})
 
     assert await api.get_todo_list_items(TEST_LIST_ID) == {}
-
-
-def _set_checked(checked: bool) -> Callable[[AmazonEchoApi], Awaitable[None]]:
-    """Return a call setting the test item's checked status."""
-    return lambda api: api.set_todo_list_item_checked_status(
-        TEST_LIST_ID, TEST_ITEM_ID, checked, 3
-    )
-
-
-def _item_status(status: AmazonListItemStatus) -> dict[str, Any]:
-    """Return the update body setting an item's status."""
-    return {
-        "itemAttributesToUpdate": [{"type": "itemStatus", "value": status.value}],
-        "itemAttributesToRemove": [],
-    }
 
 
 @pytest.mark.anyio

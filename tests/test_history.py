@@ -57,6 +57,35 @@ def handler(monkeypatch: pytest.MonkeyPatch) -> AmazonHistoryHandler:
     return AmazonHistoryHandler(AsyncMock(), AsyncMock())
 
 
+@pytest.fixture
+def history_api(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> AmazonEchoApi:
+    """Return a logged in API that skips the backend refresh wait."""
+    monkeypatch.setattr(history_module, "BACKEND_REFRESH_WAIT_SECONDS", 0)
+    api._session_state_data.login_stored_data = {REFRESH_ACCESS_TOKEN: TEST_BEARER}
+    monkeypatch.setattr(
+        api._http_wrapper, "refresh_data", AsyncMock(return_value=(True, {}))
+    )
+    return api
+
+
+@pytest.fixture
+def csrf_page(
+    history_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> Callable[[str], AsyncMock]:
+    """Return a setter making every request return the given HTML page."""
+
+    def _csrf_page(html: str) -> AsyncMock:
+        session_request = AsyncMock(
+            return_value=(BeautifulSoup(html, "html.parser"), None)
+        )
+        monkeypatch.setattr(
+            history_api._http_wrapper, "session_request", session_request
+        )
+        return session_request
+
+    return _csrf_page
+
+
 @pytest.mark.anyio
 @pytest.mark.parametrize(
     ("fields", "expected"),
@@ -96,35 +125,6 @@ async def test_vocal_history_exposes_speaker(
     assert (record.person_first_name, record.person_type) == expected
     # personId is in the payload but account-scoped, so it is deliberately not exposed
     assert not hasattr(record, "person_id")
-
-
-@pytest.fixture
-def history_api(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> AmazonEchoApi:
-    """Return a logged in API that skips the backend refresh wait."""
-    monkeypatch.setattr(history_module, "BACKEND_REFRESH_WAIT_SECONDS", 0)
-    api._session_state_data.login_stored_data = {REFRESH_ACCESS_TOKEN: TEST_BEARER}
-    monkeypatch.setattr(
-        api._http_wrapper, "refresh_data", AsyncMock(return_value=(True, {}))
-    )
-    return api
-
-
-@pytest.fixture
-def csrf_page(
-    history_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
-) -> Callable[[str], AsyncMock]:
-    """Return a setter making every request return the given HTML page."""
-
-    def _csrf_page(html: str) -> AsyncMock:
-        session_request = AsyncMock(
-            return_value=(BeautifulSoup(html, "html.parser"), None)
-        )
-        monkeypatch.setattr(
-            history_api._http_wrapper, "session_request", session_request
-        )
-        return session_request
-
-    return _csrf_page
 
 
 @pytest.mark.anyio
