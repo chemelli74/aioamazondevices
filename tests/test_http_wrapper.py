@@ -42,8 +42,8 @@ async def test_csrf_cookie_sent_on_next_request(api: AmazonEchoApi) -> None:
 @pytest.mark.parametrize(
     ("fail_fast", "expected_sleeps", "expected_requests"),
     [
-        pytest.param(False, [2, 5], 3, id="retries_with_backoff"),
-        pytest.param(True, [], 1, id="fail_fast_does_not_retry"),
+        pytest.param(False, [2, 5], 3, id="retries-with-backoff"),
+        pytest.param(True, [], 1, id="fail-fast-does-not-retry"),
     ],
 )
 async def test_retry_behaviour(

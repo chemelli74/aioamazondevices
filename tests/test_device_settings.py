@@ -146,9 +146,9 @@ async def test_get_devices_data_applies_settings(
 @pytest.mark.parametrize(
     ("daily_refreshed", "resync_required", "polled"),
     [
-        pytest.param(False, False, True, id="no_full_sync"),
-        pytest.param(True, False, False, id="daily_refresh"),
-        pytest.param(False, True, False, id="resync_retry"),
+        pytest.param(False, False, True, id="no-full-sync"),
+        pytest.param(True, False, False, id="daily-refresh"),
+        pytest.param(False, True, False, id="resync-retry"),
     ],
 )
 async def test_get_devices_data_skips_poll_after_full_sync(

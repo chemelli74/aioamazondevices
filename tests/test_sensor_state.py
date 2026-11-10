@@ -91,12 +91,18 @@ async def test_sensor_value_is_read(
 @pytest.mark.parametrize(
     ("value", "scale", "expected"),
     [
-        pytest.param(19, "CELSIUS", (False, None), id="19C"),
-        pytest.param(70, "FAHRENHEIT", (False, None), id="70F"),
-        pytest.param(-279, "CELSIUS", (False, None), id="-279C"),
-        pytest.param(-280, "CELSIUS", (True, "INVALID_TEMPERATURE"), id="-280C"),
-        pytest.param(-300, "CELSIUS", (True, "INVALID_TEMPERATURE"), id="-300C"),
-        pytest.param(-280, "FAHRENHEIT", (True, "INVALID_TEMPERATURE"), id="-280F"),
+        pytest.param(19, "CELSIUS", (False, None), id="19-celsius"),
+        pytest.param(70, "FAHRENHEIT", (False, None), id="70-fahrenheit"),
+        pytest.param(-279, "CELSIUS", (False, None), id="minus-279-celsius"),
+        pytest.param(
+            -280, "CELSIUS", (True, "INVALID_TEMPERATURE"), id="minus-280-celsius"
+        ),
+        pytest.param(
+            -300, "CELSIUS", (True, "INVALID_TEMPERATURE"), id="minus-300-celsius"
+        ),
+        pytest.param(
+            -280, "FAHRENHEIT", (True, "INVALID_TEMPERATURE"), id="minus-280-fahrenheit"
+        ),
     ],
 )
 async def test_temperature_calibration_value_is_an_error(
