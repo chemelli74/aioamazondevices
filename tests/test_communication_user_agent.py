@@ -14,6 +14,8 @@ from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.http import REQUEST_AGENT
 from aioamazondevices.structures import AmazonDevice, AmazonDropInStatus
 
+from .const import TEST_SERIAL_1
+
 
 @pytest.mark.anyio
 async def test_communications_use_app_agent_and_other_requests_keep_browser(
@@ -60,9 +62,9 @@ async def test_communications_use_app_agent_and_other_requests_keep_browser(
     async with TestServer(app) as server:
         prefs = api._communication_handler
         prefs._communication_site = server.make_url("/")
-        device = make_device("device")
+        device = make_device(TEST_SERIAL_1)
         assert await prefs.get_communication_preferences([device]) == {
-            "device": {"communications": "ON"}
+            TEST_SERIAL_1: {"communications": "ON"}
         }
         await prefs.set_communication_status(device, False)
         await prefs.set_announcement_status(device, True)

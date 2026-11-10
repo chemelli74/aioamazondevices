@@ -17,10 +17,11 @@ from aioamazondevices.exceptions import CannotSetFeature
 from aioamazondevices.implementation.feature import OPERATION_NAME
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceFeature
 
-from .const import FIXTURES_DIR
+from .const import FIXTURES_DIR, TEST_SERIAL_1
 
 ENDPOINT_ID = "amzn1.alexa.endpoint.00000000-0000-0000-0000-000000000000"
 INVALID_ENDPOINT_ID = "amzn1.alexa.endpoint.123"
+DEVICE_NAME = f"Echo {TEST_SERIAL_1}"
 
 type JsonBody = dict[str, Any] | list[dict[str, Any]]
 
@@ -55,7 +56,7 @@ def _feature(*operations: str) -> AmazonDeviceFeature:
 @pytest.fixture
 def device(make_device: Callable[..., AmazonDevice]) -> AmazonDevice:
     """Return a device exposing a toggle (with instances) and a power feature."""
-    device = make_device("SERIAL")
+    device = make_device(TEST_SERIAL_1)
     device.endpoint_id = ENDPOINT_ID
     # turnEgg is declared so Amazon's rejection of it can still be exercised
     toggle = _feature("turnOn", "turnOff", "turnEgg")
@@ -227,26 +228,26 @@ async def test_set_feature_malformed_responses_raise(
     [
         (
             ("light", "turnOn", None),
-            "Device (Echo SERIAL) does not have feature: light.",
+            f"Device ({DEVICE_NAME}) does not have feature: light.",
         ),
         (
             ("toggle", "turnOn", "99"),
-            "Device (Echo SERIAL) does not have feature: toggle instance: 99.",
+            f"Device ({DEVICE_NAME}) does not have feature: toggle instance: 99.",
         ),
         (
             ("toggle", "turnOn", None),
-            "Device (Echo SERIAL) does not have feature: toggle.",
+            f"Device ({DEVICE_NAME}) does not have feature: toggle.",
         ),
         (
             ("toggle", "setColor", "11"),
             (
-                "Operation: setColor not valid for device (Echo SERIAL)"
+                f"Operation: setColor not valid for device ({DEVICE_NAME})"
                 " feature: toggle instance: 11."
             ),
         ),
         (
             ("power", "setColor", None),
-            "Operation: setColor not valid for device (Echo SERIAL) feature: power.",
+            f"Operation: setColor not valid for device ({DEVICE_NAME}) feature: power.",
         ),
     ],
     ids=[
@@ -284,7 +285,7 @@ async def test_set_feature_without_endpoint_raises(
 
     with pytest.raises(
         CannotSetFeature,
-        match=re.escape("Device (Echo SERIAL) does not have an endpoint ID."),
+        match=re.escape(f"Device ({DEVICE_NAME}) does not have an endpoint ID."),
     ):
         await api.call_feature_operation(device, "toggle", "turnOn", instance="11")
 

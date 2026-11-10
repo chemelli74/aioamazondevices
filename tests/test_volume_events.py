@@ -12,9 +12,7 @@ import pytest
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.structures import AmazonDevice, AmazonVolumeState
 
-from .const import TEST_SERIAL_1, TEST_SERIAL_2
-
-TEST_SERIAL_GROUP = "GROUP-1"
+from .const import TEST_SERIAL_1, TEST_SERIAL_2, TEST_SERIAL_GROUP
 
 
 def _volume_payload(serial: str, volume: int) -> dict[str, object]:

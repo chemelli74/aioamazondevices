@@ -16,10 +16,9 @@ from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.implementation.device import AmazonDeviceHandler
 from aioamazondevices.structures import AmazonDeviceFeature
 
-from .const import TEST_SERIAL_1, TEST_SERIAL_2
+from .const import TEST_CUSTOMER_ID, TEST_SERIAL_1, TEST_SERIAL_2, TEST_SERIAL_GROUP
 
 TEST_SERIAL_AQM = "AQM-1"
-TEST_SERIAL_GROUP = "GROUP-1"
 
 # the autouse fixture below replaces the lookup, keep the real one to test it
 _get_endpoints_features = AmazonDeviceHandler._get_endpoints_features
@@ -45,7 +44,7 @@ def _base_device(
         else ["MICROPHONE", "AUDIO_PLAYER"],
         "deviceFamily": device_family,
         "deviceType": device_type,
-        "deviceOwnerCustomerId": "CUSTOMER_ID",
+        "deviceOwnerCustomerId": TEST_CUSTOMER_ID,
         "serialNumber": serial_number,
         "clusterMembers": cluster_members,
         "parentClusters": [],
