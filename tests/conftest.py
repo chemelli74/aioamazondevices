@@ -4,9 +4,10 @@
 """Shared pytest fixtures for aioamazondevices tests."""
 
 from collections.abc import AsyncIterator, Callable
+from http import HTTPStatus
 from pathlib import Path
 from typing import Any
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from aiohttp import ClientSession
@@ -80,11 +81,14 @@ def mock_json_response(
 ) -> Callable[[dict[str, Any]], AsyncMock]:
     """Return a setter making every request return the given JSON response.
 
-    The setter returns the session_request mock, to assert on the request.
+    The response has status 200 unless another status is given. The setter
+    returns the session_request mock, to assert on the request.
     """
 
-    def _mock_json_response(response: dict[str, Any]) -> AsyncMock:
-        session_request = AsyncMock(return_value=(None, None))
+    def _mock_json_response(
+        response: dict[str, Any], status: int = HTTPStatus.OK
+    ) -> AsyncMock:
+        session_request = AsyncMock(return_value=(None, MagicMock(status=status)))
         monkeypatch.setattr(api._http_wrapper, "session_request", session_request)
         monkeypatch.setattr(
             api._http_wrapper, "response_to_json", AsyncMock(return_value=response)

@@ -1,0 +1,9 @@
+<!-- Minimal stand-in for the OTP (MFA) step of www.amazon.com/ap/signin -->
+<form
+  id="auth-mfa-form"
+  method="post"
+  action="https://www.amazon.com/ap/signin"
+>
+  <input type="hidden" name="appAction" value="SIGNIN_MFA" />
+  <input id="auth-mfa-otpcode" type="tel" name="otpCode" />
+</form>
