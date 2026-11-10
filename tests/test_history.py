@@ -16,7 +16,6 @@ from yarl import URL
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.http import (
     CSRF_A2Z,
-    REFRESH_ACCESS_TOKEN,
     URI_HISTORY_DATA,
     URI_HISTORY_FRONTEND,
 )
@@ -25,9 +24,14 @@ from aioamazondevices.implementation import history as history_module
 from aioamazondevices.implementation.history import AmazonHistoryHandler
 from aioamazondevices.structures import AmazonVocalRecord
 
-from .const import TEST_CSRF, TEST_SERIAL_1, TEST_SERIAL_2
+from .const import (
+    FIXTURES_DIR,
+    TEST_ACCESS_TOKEN,
+    TEST_CSRF,
+    TEST_SERIAL_1,
+    TEST_SERIAL_2,
+)
 
-TEST_BEARER = "access-token"
 NEW_CSRF = "new-csrf"
 
 TEST_PERSON = {
@@ -35,6 +39,12 @@ TEST_PERSON = {
     "personFirstName": "Alice",
     "personType": "ADULT",
 }
+
+
+def _history_page(csrf_token: str) -> str:
+    """Return the voice history page carrying the given CSRF token."""
+    page = (FIXTURES_DIR / "history" / "history_page.html").read_text(encoding="utf-8")
+    return page.format(csrf_token=csrf_token)
 
 
 def _history_record(serial: str, timestamp: int, **fields: object) -> dict[str, Any]:
@@ -58,14 +68,12 @@ def handler(monkeypatch: pytest.MonkeyPatch) -> AmazonHistoryHandler:
 
 
 @pytest.fixture
-def history_api(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> AmazonEchoApi:
+def history_api(
+    logged_in: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> AmazonEchoApi:
     """Return a logged in API that skips the backend refresh wait."""
     monkeypatch.setattr(history_module, "BACKEND_REFRESH_WAIT_SECONDS", 0)
-    api._session_state_data.login_stored_data = {REFRESH_ACCESS_TOKEN: TEST_BEARER}
-    monkeypatch.setattr(
-        api._http_wrapper, "refresh_data", AsyncMock(return_value=(True, {}))
-    )
-    return api
+    return logged_in
 
 
 @pytest.fixture
@@ -226,7 +234,7 @@ async def test_vocal_history_request(
         "input_data": {"previousRequestToken": None},
         "json_data": True,
         "extended_headers": {
-            "Authorization": f"Bearer {TEST_BEARER}",
+            "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
             CSRF_A2Z: TEST_CSRF,
         },
     }
@@ -261,7 +269,7 @@ async def test_csrf_token_is_read_and_cached(
     history_api: AmazonEchoApi, csrf_page: Callable[[str], AsyncMock]
 ) -> None:
     """The CSRF token is read from the history page and reused for 12 hours."""
-    session_request = csrf_page(f'<meta name="csrf-token" content="{TEST_CSRF}">')
+    session_request = csrf_page(_history_page(TEST_CSRF))
     handler = history_api._history_handler
 
     await handler._update_vocal_history_token()
@@ -281,7 +289,7 @@ async def test_csrf_token_is_refreshed_when_stale(
     history_api: AmazonEchoApi, csrf_page: Callable[[str], AsyncMock]
 ) -> None:
     """A token older than 12 hours is read again."""
-    session_request = csrf_page(f'<meta name="csrf-token" content="{NEW_CSRF}">')
+    session_request = csrf_page(_history_page(NEW_CSRF))
     handler = history_api._history_handler
     handler._csrf_a2z_token = TEST_CSRF
     handler._csrf_a2z_refresh_time = datetime.now(UTC) - timedelta(hours=13)
