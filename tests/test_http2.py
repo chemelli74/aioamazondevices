@@ -4,7 +4,6 @@
 """Tests for the AVS HTTP2 push client."""
 
 import asyncio
-import logging
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from http import HTTPStatus
@@ -17,6 +16,7 @@ import orjson
 import pytest
 from h2.errors import ErrorCodes
 from h2.events import ConnectionTerminated
+from yarl import URL
 
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.http import HTTP2_DIRECTIVES_VERSION, REFRESH_ACCESS_TOKEN
@@ -38,11 +38,10 @@ from aioamazondevices.implementation.http2 import (
 )
 from aioamazondevices.structures import AmazonPushMessage
 
-from .const import TEST_SERIAL_1
+from .const import TEST_ACCESS_TOKEN, TEST_SERIAL_1
 
-TEST_BEARER = "access-token"
-AVS_SITE = "https://bob-dispatch-prod-eu.amazon.com"
-NEW_AVS_SITE = "https://bob-dispatch-prod-na.amazon.com"
+AVS_SITE = URL("https://bob-dispatch-prod-eu.amazon.com")
+NEW_AVS_SITE = URL("https://bob-dispatch-prod-na.amazon.com")
 BOUNDARY = "avs-boundary"
 DELIMITER = f"--{BOUNDARY}".encode()
 MULTIPART = f'multipart/related; boundary="{BOUNDARY}"'
@@ -143,16 +142,11 @@ def avs_server() -> AvsServer:
 
 @pytest.fixture
 async def client(
-    api: AmazonEchoApi, avs_server: AvsServer, monkeypatch: pytest.MonkeyPatch
+    logged_in: AmazonEchoApi, avs_server: AvsServer
 ) -> AsyncIterator[AmazonHTTP2Client]:
     """Return a logged in HTTP2 client talking to the fake AVS server."""
-    api._session_state_data.login_stored_data = {
-        "customer_info": {"home_region": "eu"},
-        REFRESH_ACCESS_TOKEN: TEST_BEARER,
-    }
-    monkeypatch.setattr(
-        api._http_wrapper, "refresh_data", AsyncMock(return_value=(True, {}))
-    )
+    api = logged_in
+    api._session_state_data.login_stored_data["customer_info"] = {"home_region": "eu"}
     transport = httpx.MockTransport(avs_server.handle)
     async with httpx.AsyncClient(transport=transport) as httpx_client:
         yield AmazonHTTP2Client(
@@ -182,13 +176,6 @@ def avs_directives(
     monkeypatch.setattr(client, "_get_avs_directives", get_avs_directives)
     monkeypatch.setattr(client, "_ping_loop", AsyncMock())
     return get_avs_directives
-
-
-@pytest.fixture
-def debug_logs(caplog: pytest.LogCaptureFixture) -> pytest.LogCaptureFixture:
-    """Capture debug logs as well as warnings."""
-    caplog.set_level(logging.DEBUG)
-    return caplog
 
 
 @pytest.mark.parametrize(
@@ -385,7 +372,7 @@ async def test_check_avs_site_correct_site(
     (request,) = avs_server.requests
     assert request.method == "POST"
     assert str(request.url) == f"{AVS_SITE}/v{HTTP2_DIRECTIVES_VERSION}/events"
-    assert request.headers["Authorization"] == f"Bearer {TEST_BEARER}"
+    assert request.headers["Authorization"] == f"Bearer {TEST_ACCESS_TOKEN}"
     assert client._avs_directive_site == AVS_SITE
 
 
@@ -398,7 +385,7 @@ async def test_check_avs_site_updates_site(
         HTTPStatus.OK,
         headers={"content-type": MULTIPART},
         content=_multipart(
-            _part({"directive": {"payload": {"endpoint": NEW_AVS_SITE}}})
+            _part({"directive": {"payload": {"endpoint": str(NEW_AVS_SITE)}}})
         ),
     )
 
@@ -470,7 +457,7 @@ async def test_stream_delivers_push_events(
     assert str(stream_request.url) == (
         f"{AVS_SITE}/v{HTTP2_DIRECTIVES_VERSION}/directives"
     )
-    assert stream_request.headers["Authorization"] == f"Bearer {TEST_BEARER}"
+    assert stream_request.headers["Authorization"] == f"Bearer {TEST_ACCESS_TOKEN}"
     assert stream_request.headers["Accept"] == "multipart/related"
     # The empty part before the first delimiter triggers the site check.
     assert check_site_request.url.path.endswith("/events")
@@ -607,7 +594,7 @@ async def test_ping_resets_backoff(
 
     (request,) = avs_server.requests
     assert str(request.url) == f"{AVS_SITE}/ping"
-    assert request.headers["Authorization"] == f"Bearer {TEST_BEARER}"
+    assert request.headers["Authorization"] == f"Bearer {TEST_ACCESS_TOKEN}"
     assert client._reconnect_attempt == 0
 
 

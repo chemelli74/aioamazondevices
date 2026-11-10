@@ -3,6 +3,7 @@
 
 """Shared pytest fixtures for aioamazondevices tests."""
 
+import logging
 from collections.abc import AsyncIterator, Callable
 from pathlib import Path
 from typing import Any
@@ -12,6 +13,7 @@ import pytest
 from aiohttp import ClientSession
 
 from aioamazondevices.api import AmazonEchoApi
+from aioamazondevices.const.http import REFRESH_ACCESS_TOKEN
 from aioamazondevices.implementation.device import _parse_features
 from aioamazondevices.structures import (
     AmazonDevice,
@@ -20,6 +22,7 @@ from aioamazondevices.structures import (
 )
 
 from .const import (
+    TEST_ACCESS_TOKEN,
     TEST_CUSTOMER_ID,
     TEST_DEVICE_TYPE,
     TEST_EMAIL,
@@ -57,11 +60,26 @@ def api(client_session: ClientSession, tmp_path: Path) -> AmazonEchoApi:
 
 
 @pytest.fixture
-def logged_in(api: AmazonEchoApi) -> None:
-    """Store login data so the API acts as logged in."""
+def logged_in(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> AmazonEchoApi:
+    """Store login data so the API acts as logged in, and return the API.
+
+    Refreshing the access token succeeds without a request, keeping the stored one.
+    """
     api._session_state_data.login_stored_data = {
-        "account_customer_id": TEST_CUSTOMER_ID
+        "account_customer_id": TEST_CUSTOMER_ID,
+        REFRESH_ACCESS_TOKEN: TEST_ACCESS_TOKEN,
     }
+    monkeypatch.setattr(
+        api._http_wrapper, "refresh_data", AsyncMock(return_value=(True, {}))
+    )
+    return api
+
+
+@pytest.fixture
+def debug_logs(caplog: pytest.LogCaptureFixture) -> pytest.LogCaptureFixture:
+    """Capture debug logs as well as warnings."""
+    caplog.set_level(logging.DEBUG)
+    return caplog
 
 
 @pytest.fixture
