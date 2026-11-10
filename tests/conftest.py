@@ -3,6 +3,7 @@
 
 """Shared pytest fixtures for aioamazondevices tests."""
 
+import logging
 from collections.abc import AsyncIterator, Callable
 from http import HTTPStatus
 from pathlib import Path
@@ -73,6 +74,13 @@ def logged_in(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> AmazonEcho
         api._http_wrapper, "refresh_data", AsyncMock(return_value=(True, {}))
     )
     return api
+
+
+@pytest.fixture
+def debug_logs(caplog: pytest.LogCaptureFixture) -> pytest.LogCaptureFixture:
+    """Capture debug logs as well as warnings."""
+    caplog.set_level(logging.DEBUG)
+    return caplog
 
 
 @pytest.fixture
