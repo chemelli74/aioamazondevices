@@ -91,6 +91,8 @@ async def test_burst_collapses_into_single_fetch(
 
     for _ in range(3):
         await notified_api._handle_notification_change_event()
+        # Let the debounce start sleeping, so the next event cancels it mid-wait.
+        await asyncio.sleep(0)
 
     fetch.assert_not_awaited()
     await _settle(notified_api)
@@ -200,6 +202,18 @@ async def test_sync_notifications_primes_initial_state(
 
     assert received == [{SERIAL: {NOTIFICATION_TIMER: TIMER}}]
     assert notified_api._notification_debounce_task is None
+
+
+@pytest.mark.anyio
+async def test_sync_notifications_without_subscribers(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A sync with no subscribers fetches but has nobody to emit to."""
+    fetch = _mock_fetch(api, monkeypatch, {SERIAL: {NOTIFICATION_TIMER: TIMER}})
+
+    await api.sync_notifications()
+
+    fetch.assert_awaited_once()
 
 
 @pytest.mark.anyio
