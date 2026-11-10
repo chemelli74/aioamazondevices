@@ -6,8 +6,16 @@ Guidance for AI coding agents (and humans) working in this repository. See
 ## Tooling
 
 - Dependencies are managed with `uv`. Run tests with `uv run pytest`.
-- Lint, format and type check with `uv run prek run --files <files>` (or
+- Lint, format and type check with `prek run --files <files>` (or
   `--all-files`). This runs ruff, mypy and the other hooks CI runs.
+- `prek` is not a project dependency, so `uv sync` does not install it. The
+  dev container sets everything up through `scripts/setup.sh`. Outside the dev
+  container, run `scripts/setup.sh` from the repository root (it installs
+  `uv`, `prek` and the npm packages, syncs all dependency groups and installs
+  the git hooks), or at least install `prek` with `uv tool install prek`.
+- The installed git hooks run the lint hooks on commit and check the commit
+  message against conventional commits (`commitlint`, which needs the npm
+  packages).
 
 ## Test conventions
 
