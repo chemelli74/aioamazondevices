@@ -85,16 +85,25 @@ def mock_json_response(
 
 
 @pytest.fixture
+def send_message(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
+    """Replace the sequence handler's send_message and return the mock."""
+    send_message = AsyncMock()
+    monkeypatch.setattr(api._sequence_handler, "send_message", send_message)
+    return send_message
+
+
+@pytest.fixture
 def make_device() -> Callable[..., AmazonDevice]:
     """Return a factory that builds a minimal AmazonDevice for tests."""
 
-    def _make_device(
+    def _make_device(  # noqa: PLR0913
         serial: str,
         *,
         online: bool = True,
         capabilities: list[str] | None = None,
         device_family: str = "ECHO",
         voice_control_supported: bool = True,
+        media_player_supported: bool = False,
     ) -> AmazonDevice:
         return AmazonDevice(
             account_name=f"Echo {serial}",
@@ -115,7 +124,7 @@ def make_device() -> Callable[..., AmazonDevice]:
             endpoint_id=None,
             notifications_supported=False,
             notifications={},
-            media_player_supported=False,
+            media_player_supported=media_player_supported,
             communication_settings={},
             parent_clusters=[],
             voice_control_supported=voice_control_supported,

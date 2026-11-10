@@ -24,9 +24,14 @@ from aioamazondevices.structures import (
     AmazonSequenceType,
 )
 
-from .const import TEST_CUSTOMER_ID, TEST_DEVICE_TYPE, TEST_SERIAL_1, TEST_SERIAL_2
+from .const import (
+    TEST_CUSTOMER_ID,
+    TEST_DEVICE_TYPE,
+    TEST_MUSIC_PROVIDER_ID,
+    TEST_SERIAL_1,
+    TEST_SERIAL_2,
+)
 
-TEST_PROVIDER_ID = "AMAZON_MUSIC"
 OPAQUE_NODE = "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode"
 PARALLEL_NODE = "com.amazon.alexa.behaviors.model.ParallelNode"
 
@@ -38,14 +43,6 @@ def post_sequences(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> Async
     post_sequences = AsyncMock()
     monkeypatch.setattr(api._sequence_handler, "_post_sequences", post_sequences)
     return post_sequences
-
-
-@pytest.fixture
-def send_message(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
-    """Replace the sequence handler's send_message and return the mock."""
-    send_message = AsyncMock()
-    monkeypatch.setattr(api._sequence_handler, "send_message", send_message)
-    return send_message
 
 
 def _node(
@@ -101,7 +98,7 @@ async def _wait_for_batches(api: AmazonEchoApi) -> None:
             {
                 "searchPhrase": "jazz",
                 "sanitizedSearchPhrase": "jazz",
-                "musicProviderId": TEST_PROVIDER_ID,
+                "musicProviderId": TEST_MUSIC_PROVIDER_ID,
             },
             id="music",
         ),
@@ -155,7 +152,7 @@ async def test_build_operation_node(
     The music provider is passed to every type but used only by music.
     """
     node = api._sequence_handler._build_operation_node(
-        make_device(TEST_SERIAL_1), message_type, message_body, TEST_PROVIDER_ID
+        make_device(TEST_SERIAL_1), message_type, message_body, TEST_MUSIC_PROVIDER_ID
     )
 
     assert node == {
