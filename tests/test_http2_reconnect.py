@@ -4,8 +4,7 @@
 """Tests for resyncing pushed state after the HTTP2 stream reconnects."""
 
 import asyncio
-import contextlib
-from collections.abc import AsyncIterator, Callable
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
@@ -14,43 +13,14 @@ from unittest.mock import AsyncMock, MagicMock, call
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.const.http import REFRESH_ACCESS_TOKEN
 from aioamazondevices.exceptions import CannotRetrieveData
-from aioamazondevices.implementation.http2 import AmazonHTTP2Client, _TaskAction
+from aioamazondevices.implementation.http2 import AmazonHTTP2Client
 from aioamazondevices.structures import AmazonDevice
 
 from .const import TEST_SERIAL_1
 
 SYNCED_TEMPERATURE = 20.0
 RESYNCED_TEMPERATURE = 23.0
-
-
-def _http2_client() -> AmazonHTTP2Client:
-    """Build an HTTP2 client whose stream opens and closes straight away."""
-    session_state_data = MagicMock()
-    session_state_data.login_stored_data = {
-        "customer_info": {"home_region": "eu"},
-        REFRESH_ACCESS_TOKEN: "token",
-    }
-
-    async def aiter_bytes() -> AsyncIterator[bytes]:
-        for chunk in list[bytes]():
-            yield chunk
-
-    response = MagicMock(
-        status_code=200,
-        http_version="HTTP/2",
-        headers={"content-type": 'multipart/related; boundary="b"'},
-    )
-    response.aiter_bytes = aiter_bytes
-
-    @contextlib.asynccontextmanager
-    async def stream(*_args: object, **_kwargs: object) -> AsyncIterator[MagicMock]:
-        yield response
-
-    httpx_client = MagicMock()
-    httpx_client.stream = stream
-    return AmazonHTTP2Client(MagicMock(), session_state_data, httpx_client)
 
 
 def _temperature(value: float) -> dict[str, Any]:
@@ -112,40 +82,6 @@ async def _resync(api: AmazonEchoApi) -> None:
     await api._http2_reconnected_handler()
     assert api._resync_task is not None
     await api._resync_task
-
-
-@pytest.mark.anyio
-async def test_reconnected_is_only_sent_after_first_connect() -> None:
-    """Opening the stream for the first time is not a reconnect."""
-    client = _http2_client()
-    on_reconnected = AsyncMock()
-    client.on_reconnected.append(on_reconnected)
-    client.on_reconnected.freeze()
-
-    await client._stream_and_process()
-    on_reconnected.assert_not_awaited()
-
-    await client._stream_and_process()
-    await client._stream_and_process()
-    assert on_reconnected.await_args_list == [call(), call()]
-
-
-@pytest.mark.anyio
-async def test_restarted_processing_is_not_a_reconnect(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """A stop and start of processing resets the first connect."""
-    client = _http2_client()
-    client._has_connected = True
-
-    async def run_tasks(_delay: float) -> _TaskAction:
-        client._stop_event.set()
-        return _TaskAction.RECONNECT_IMMEDIATE
-
-    monkeypatch.setattr(client, "_run_tasks", run_tasks)
-    await client._orchestrate_tasks()
-
-    assert not client._has_connected
 
 
 @pytest.mark.anyio
