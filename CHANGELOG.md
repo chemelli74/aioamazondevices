@@ -1,5 +1,12 @@
 # Changelog
 
+## v17.2.10 (2026-11-10)
+
+### Bug fixes
+
+- Country codes should be lowercase ([`78486a4`](https://github.com/chemelli74/aioamazondevices/commit/78486a4bb9932e098dd7730624a953bf1dabfbe9))
+
+
 ## v17.2.9 (2026-11-10)
 
 ### Bug fixes
