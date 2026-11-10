@@ -29,10 +29,13 @@ from aioamazondevices.structures import (
     AmazonVolumeState,
 )
 
-from .const import TEST_SERIAL_1, TEST_SERIAL_2
-
-TEST_SERIAL_GROUP = "GROUP-1"
-TEST_PROVIDER_ID = "AMAZON_MUSIC"
+from .const import (
+    TEST_MUSIC_PROVIDER_ID,
+    TEST_SERIAL_1,
+    TEST_SERIAL_2,
+    TEST_SERIAL_3,
+    TEST_SERIAL_GROUP,
+)
 
 EMPTY_MEDIA_STATE = AmazonMediaState(
     player_state=None,
@@ -55,35 +58,6 @@ EMPTY_MEDIA_STATE = AmazonMediaState(
 )
 
 
-@pytest.fixture
-def media_device(make_device: Callable[..., AmazonDevice]) -> AmazonDevice:
-    """Return a device that supports the media player."""
-    return dataclasses.replace(make_device(TEST_SERIAL_1), media_player_supported=True)
-
-
-@pytest.fixture
-def send_message(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
-    """Replace the sequence handler's send_message and return the mock."""
-    send_message = AsyncMock()
-    monkeypatch.setattr(api._sequence_handler, "send_message", send_message)
-    return send_message
-
-
-@pytest.fixture
-def speaker_group(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
-) -> AmazonDevice:
-    """Register two member devices and return a speaker group containing them."""
-    group = make_device(TEST_SERIAL_GROUP)
-    group.device_cluster_members = {TEST_SERIAL_1: None, TEST_SERIAL_2: None}
-    api._device_handler._final_devices = {
-        TEST_SERIAL_1: make_device(TEST_SERIAL_1),
-        TEST_SERIAL_2: make_device(TEST_SERIAL_2),
-        TEST_SERIAL_GROUP: group,
-    }
-    return group
-
-
 def _music_provider(
     provider_id: str | None,
     *,
@@ -97,7 +71,9 @@ def _music_provider(
         "displayName": display_name,
         "availability": availability,
         "supportedProperties": list(supported),
-        "providerData": {"isDefaultMusicProvider": provider_id == TEST_PROVIDER_ID},
+        "providerData": {
+            "isDefaultMusicProvider": provider_id == TEST_MUSIC_PROVIDER_ID
+        },
     }
 
 
@@ -109,7 +85,7 @@ async def test_music_providers_are_fetched_once_and_filtered(
     session_request = mock_json_response(
         {
             ARRAY_WRAPPER: [
-                _music_provider(TEST_PROVIDER_ID, display_name="Amazon Music"),
+                _music_provider(TEST_MUSIC_PROVIDER_ID, display_name="Amazon Music"),
                 _music_provider("SPOTIFY", display_name="Spotify"),
                 _music_provider("NOT_MUSIC", supported=("Alexa.Other",)),
                 _music_provider(None),
@@ -124,8 +100,8 @@ async def test_music_providers_are_fetched_once_and_filtered(
     assert await handler.music_providers is providers
 
     assert providers == {
-        TEST_PROVIDER_ID: AmazonMusicProvider(
-            provider_id=TEST_PROVIDER_ID,
+        TEST_MUSIC_PROVIDER_ID: AmazonMusicProvider(
+            provider_id=TEST_MUSIC_PROVIDER_ID,
             provider_name="Amazon Music",
             availability="AVAILABLE",
             default_provider=True,
@@ -246,9 +222,10 @@ async def test_update_cached_speaker_group_volume(
 async def test_get_media_states_maps_sessions_by_serial(
     api: AmazonEchoApi,
     mock_json_response: Callable[[dict[str, Any]], AsyncMock],
-    media_device: AmazonDevice,
+    make_device: Callable[..., AmazonDevice],
 ) -> None:
     """Each endpoint in a session is mapped to that session by its serial."""
+    media_device = make_device(TEST_SERIAL_1, media_player_supported=True)
     group_session = {
         "endpointList": [
             {"id": {"deviceSerialNumber": TEST_SERIAL_1}},
@@ -288,11 +265,12 @@ async def test_get_media_states_maps_sessions_by_serial(
 async def test_get_media_states_without_sessions(
     api: AmazonEchoApi,
     mock_json_response: Callable[[dict[str, Any]], AsyncMock],
-    media_device: AmazonDevice,
+    make_device: Callable[..., AmazonDevice],
     response: dict[str, Any],
 ) -> None:
     """A missing or null session list returns no sessions."""
     mock_json_response(response)
+    media_device = make_device(TEST_SERIAL_1, media_player_supported=True)
 
     assert await api._media_handler._get_media_states(media_device) == {}
 
@@ -302,13 +280,11 @@ async def test_sync_media_state_parses_now_playing(
     api: AmazonEchoApi,
     monkeypatch: pytest.MonkeyPatch,
     make_device: Callable[..., AmazonDevice],
-    media_device: AmazonDevice,
 ) -> None:
     """Now playing data is parsed, and media devices without a session are empty."""
-    idle_device = dataclasses.replace(
-        make_device(TEST_SERIAL_2), media_player_supported=True
-    )
-    non_media_device = make_device(TEST_SERIAL_GROUP)
+    media_device = make_device(TEST_SERIAL_1, media_player_supported=True)
+    idle_device = make_device(TEST_SERIAL_2, media_player_supported=True)
+    non_media_device = make_device(TEST_SERIAL_3)
     now_playing = {
         "playerState": "PLAYING",
         "mainArt": {"largeUrl": "https://example.com/art.jpg"},
@@ -336,7 +312,7 @@ async def test_sync_media_state_parses_now_playing(
 
     await handler.sync_media_state(
         {
-            TEST_SERIAL_GROUP: non_media_device,
+            TEST_SERIAL_3: non_media_device,
             TEST_SERIAL_1: media_device,
             TEST_SERIAL_2: idle_device,
         }
@@ -395,14 +371,18 @@ async def test_sync_media_state_without_media_devices_skips_request(
 
 @pytest.mark.anyio
 async def test_sync_media_state_without_sessions_clears_states(
-    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch, media_device: AmazonDevice
+    api: AmazonEchoApi,
+    monkeypatch: pytest.MonkeyPatch,
+    make_device: Callable[..., AmazonDevice],
 ) -> None:
     """When no media sessions are returned the states are cleared."""
     handler = api._media_handler
     monkeypatch.setattr(handler, "_get_media_states", AsyncMock(return_value={}))
     handler._media_states = {TEST_SERIAL_1: EMPTY_MEDIA_STATE}
 
-    await handler.sync_media_state({TEST_SERIAL_1: media_device})
+    await handler.sync_media_state(
+        {TEST_SERIAL_1: make_device(TEST_SERIAL_1, media_player_supported=True)}
+    )
 
     assert await handler.media_states == {}
 
@@ -411,10 +391,11 @@ async def test_sync_media_state_without_sessions_clears_states(
 async def test_handler_send_media_command_posts_command(
     api: AmazonEchoApi,
     mock_json_response: Callable[[dict[str, Any]], AsyncMock],
-    media_device: AmazonDevice,
+    make_device: Callable[..., AmazonDevice],
 ) -> None:
     """The command is posted as JSON to the device's media control endpoint."""
     session_request = mock_json_response({})
+    media_device = make_device(TEST_SERIAL_1, media_player_supported=True)
     handler = api._media_handler
 
     await handler.send_media_command(media_device, AmazonMediaControls.Pause)
@@ -471,11 +452,12 @@ async def test_send_media_command_delegates_to_handler(
     api: AmazonEchoApi,
     monkeypatch: pytest.MonkeyPatch,
     send_message: AsyncMock,
-    media_device: AmazonDevice,
+    make_device: Callable[..., AmazonDevice],
     command: AmazonMediaControls,
 ) -> None:
     """Commands other than Stop go to the media control endpoint."""
     handler_command = AsyncMock()
+    media_device = make_device(TEST_SERIAL_1, media_player_supported=True)
     monkeypatch.setattr(api._media_handler, "send_media_command", handler_command)
 
     await api.send_media_command(media_device, command)
@@ -522,19 +504,22 @@ async def test_set_device_volume_out_of_range_raises(
 
 @pytest.mark.anyio
 async def test_call_alexa_music_sends_search_phrase(
-    api: AmazonEchoApi, send_message: AsyncMock, media_device: AmazonDevice
+    api: AmazonEchoApi,
+    send_message: AsyncMock,
+    make_device: Callable[..., AmazonDevice],
 ) -> None:
     """A known provider plays the search phrase on the device."""
+    media_device = make_device(TEST_SERIAL_1, media_player_supported=True)
     api._media_handler._music_providers = {
-        TEST_PROVIDER_ID: AmazonMusicProvider(
-            TEST_PROVIDER_ID, "Amazon Music", "AVAILABLE", default_provider=True
+        TEST_MUSIC_PROVIDER_ID: AmazonMusicProvider(
+            TEST_MUSIC_PROVIDER_ID, "Amazon Music", "AVAILABLE", default_provider=True
         )
     }
 
-    await api.call_alexa_music(media_device, "jazz", TEST_PROVIDER_ID)
+    await api.call_alexa_music(media_device, "jazz", TEST_MUSIC_PROVIDER_ID)
 
     send_message.assert_awaited_once_with(
-        media_device, AmazonSequenceType.Music, "jazz", TEST_PROVIDER_ID
+        media_device, AmazonSequenceType.Music, "jazz", TEST_MUSIC_PROVIDER_ID
     )
 
 
@@ -543,13 +528,15 @@ async def test_call_alexa_music_unknown_provider_raises(
     api: AmazonEchoApi,
     mock_json_response: Callable[[dict[str, Any]], AsyncMock],
     send_message: AsyncMock,
-    media_device: AmazonDevice,
+    make_device: Callable[..., AmazonDevice],
 ) -> None:
     """An unavailable provider is rejected before anything is sent."""
-    mock_json_response({ARRAY_WRAPPER: [_music_provider(TEST_PROVIDER_ID)]})
+    mock_json_response({ARRAY_WRAPPER: [_music_provider(TEST_MUSIC_PROVIDER_ID)]})
 
     with pytest.raises(ValueError, match="SPOTIFY is not available"):
-        await api.call_alexa_music(media_device, "jazz", "SPOTIFY")
+        await api.call_alexa_music(
+            make_device(TEST_SERIAL_1, media_player_supported=True), "jazz", "SPOTIFY"
+        )
 
     send_message.assert_not_awaited()
 
@@ -559,6 +546,6 @@ async def test_api_music_providers_returns_handler_providers(
     api: AmazonEchoApi, mock_json_response: Callable[[dict[str, Any]], AsyncMock]
 ) -> None:
     """The API exposes the music providers fetched by the media handler."""
-    mock_json_response({ARRAY_WRAPPER: [_music_provider(TEST_PROVIDER_ID)]})
+    mock_json_response({ARRAY_WRAPPER: [_music_provider(TEST_MUSIC_PROVIDER_ID)]})
 
-    assert list(await api.music_providers) == [TEST_PROVIDER_ID]
+    assert list(await api.music_providers) == [TEST_MUSIC_PROVIDER_ID]

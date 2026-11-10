@@ -4,7 +4,6 @@
 """Tests for the media state sync in AmazonMediaHandler."""
 
 import asyncio
-import dataclasses
 from collections.abc import Callable
 from typing import Any
 from unittest.mock import AsyncMock
@@ -28,6 +27,23 @@ def _media_sessions(state: str) -> dict[str, Any]:
     return {TEST_SERIAL_1: {"nowPlayingData": {"playerState": state}}}
 
 
+@pytest.fixture
+def loaded_devices(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    monkeypatch: pytest.MonkeyPatch,
+) -> dict[str, AmazonDevice]:
+    """Load a media device whose media state reports PLAYING."""
+    devices = {TEST_SERIAL_1: make_device(TEST_SERIAL_1, media_player_supported=True)}
+    api._device_handler._final_devices = devices
+    monkeypatch.setattr(
+        api._media_handler,
+        "_get_media_states",
+        AsyncMock(return_value=_media_sessions("PLAYING")),
+    )
+    return devices
+
+
 @pytest.mark.anyio
 async def test_media_state_not_overwritten_by_in_flight_sync(
     api: AmazonEchoApi,
@@ -35,10 +51,7 @@ async def test_media_state_not_overwritten_by_in_flight_sync(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A sync started mid-sync survives the stale response of the first one."""
-    device = dataclasses.replace(
-        make_device(TEST_SERIAL_1), media_player_supported=True
-    )
-    devices = {TEST_SERIAL_1: device}
+    devices = {TEST_SERIAL_1: make_device(TEST_SERIAL_1, media_player_supported=True)}
 
     started = asyncio.Event()
     release = asyncio.Event()
@@ -84,27 +97,6 @@ async def test_audio_player_event_skipped_before_devices_load(
     await api._handle_audio_player_state_event()
 
     sync.assert_not_awaited()
-
-
-@pytest.fixture
-def loaded_devices(
-    api: AmazonEchoApi,
-    make_device: Callable[..., AmazonDevice],
-    monkeypatch: pytest.MonkeyPatch,
-) -> dict[str, AmazonDevice]:
-    """Load a media device whose media state reports PLAYING."""
-    devices = {
-        TEST_SERIAL_1: dataclasses.replace(
-            make_device(TEST_SERIAL_1), media_player_supported=True
-        )
-    }
-    api._device_handler._final_devices = devices
-    monkeypatch.setattr(
-        api._media_handler,
-        "_get_media_states",
-        AsyncMock(return_value=_media_sessions("PLAYING")),
-    )
-    return devices
 
 
 @pytest.mark.anyio
