@@ -127,12 +127,6 @@ def make_device() -> Callable[..., AmazonDevice]:
 
 
 @pytest.fixture
-def device(make_device: Callable[..., AmazonDevice]) -> AmazonDevice:
-    """Return a minimal device with the first test serial."""
-    return make_device(TEST_SERIAL_1)
-
-
-@pytest.fixture
 def speaker_group(
     api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
 ) -> AmazonDevice:

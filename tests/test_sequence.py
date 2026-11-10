@@ -145,7 +145,7 @@ async def _wait_for_batches(api: AmazonEchoApi) -> None:
 )
 async def test_build_operation_node(
     api: AmazonEchoApi,
-    device: AmazonDevice,
+    make_device: Callable[..., AmazonDevice],
     message_type: str,
     message_body: str,
     expected: dict[str, Any],
@@ -155,7 +155,7 @@ async def test_build_operation_node(
     The music provider is passed to every type but used only by music.
     """
     node = api._sequence_handler._build_operation_node(
-        device, message_type, message_body, TEST_PROVIDER_ID
+        make_device(TEST_SERIAL_1), message_type, message_body, TEST_PROVIDER_ID
     )
 
     assert node == {
@@ -174,28 +174,30 @@ async def test_build_operation_node(
 @pytest.mark.anyio
 @pytest.mark.usefixtures("logged_in")
 async def test_build_operation_node_unknown_type_raises(
-    api: AmazonEchoApi, device: AmazonDevice
+    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
 ) -> None:
     """An unrecognised message type is rejected."""
     with pytest.raises(ValueError, match="is not recognised"):
-        api._sequence_handler._build_operation_node(device, "Alexa.Unknown", "")
+        api._sequence_handler._build_operation_node(
+            make_device(TEST_SERIAL_1), "Alexa.Unknown", ""
+        )
 
 
 @pytest.mark.anyio
 async def test_build_operation_node_requires_login(
-    api: AmazonEchoApi, device: AmazonDevice
+    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
 ) -> None:
     """A message cannot be built before logging in."""
     with pytest.raises(CannotConnect, match="as not logged in"):
         api._sequence_handler._build_operation_node(
-            device, AmazonSequenceType.Speak, "Hello"
+            make_device(TEST_SERIAL_1), AmazonSequenceType.Speak, "Hello"
         )
 
 
 @pytest.mark.anyio
 @pytest.mark.usefixtures("logged_in")
 async def test_build_operation_node_routine_replaces_placeholders(
-    api: AmazonEchoApi, device: AmazonDevice
+    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
 ) -> None:
     """A routine's start node is used with its device placeholders filled in."""
     start_node = {
@@ -212,7 +214,9 @@ async def test_build_operation_node_routine_replaces_placeholders(
     handler = api._sequence_handler
     handler._routines = {"Morning": {"startNode": start_node}}
 
-    node = handler._build_operation_node(device, AmazonSequenceType.Routines, "Morning")
+    node = handler._build_operation_node(
+        make_device(TEST_SERIAL_1), AmazonSequenceType.Routines, "Morning"
+    )
 
     assert node == {
         "nodesToExecute": [
@@ -270,10 +274,10 @@ async def test_post_sequences_groups_devices_in_parallel(
     api: AmazonEchoApi,
     mock_json_response: Callable[[dict[str, Any]], AsyncMock],
     make_device: Callable[..., AmazonDevice],
-    device: AmazonDevice,
 ) -> None:
     """The same message to different devices runs in parallel, others in series."""
     session_request = mock_json_response({})
+    device = make_device(TEST_SERIAL_1)
     other_device = make_device(TEST_SERIAL_2)
     nodes = [
         _node(device, AmazonSequenceType.Speak, "Hello"),
@@ -315,14 +319,14 @@ async def test_post_sequences_groups_devices_in_parallel(
 async def test_post_sequences_requires_login(
     api: AmazonEchoApi,
     mock_json_response: Callable[[dict[str, Any]], AsyncMock],
-    device: AmazonDevice,
+    make_device: Callable[..., AmazonDevice],
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Nothing is posted before logging in."""
     session_request = mock_json_response({})
 
     await api._sequence_handler._post_sequences(
-        [_node(device, AmazonSequenceType.Speak, "Hello")]
+        [_node(make_device(TEST_SERIAL_1), AmazonSequenceType.Speak, "Hello")]
     )
 
     session_request.assert_not_awaited()
@@ -334,11 +338,11 @@ async def test_post_sequences_requires_login(
 async def test_send_message_batches_messages(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
-    device: AmazonDevice,
     post_sequences: AsyncMock,
 ) -> None:
     """Messages sent together are posted as one batch, later ones as another."""
     handler = api._sequence_handler
+    device = make_device(TEST_SERIAL_1)
     other_device = make_device(TEST_SERIAL_2)
 
     await handler.send_message(device, AmazonSequenceType.Speak, "Hello")
@@ -369,13 +373,14 @@ async def test_send_message_batches_messages(
 @pytest.mark.usefixtures("logged_in")
 async def test_process_batch_logs_failure(
     api: AmazonEchoApi,
-    device: AmazonDevice,
+    make_device: Callable[..., AmazonDevice],
     post_sequences: AsyncMock,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A failed post is logged rather than raised, and later batches still run."""
     post_sequences.side_effect = [CannotConnect("boom"), None]
     handler = api._sequence_handler
+    device = make_device(TEST_SERIAL_1)
 
     await handler.send_message(device, AmazonSequenceType.Speak, "Hello")
     await _wait_for_batches(api)
