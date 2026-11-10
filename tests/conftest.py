@@ -19,7 +19,15 @@ from aioamazondevices.structures import (
     AmazonSaveDataConfig,
 )
 
-from .const import TEST_EMAIL, TEST_PASSWORD
+from .const import (
+    TEST_CUSTOMER_ID,
+    TEST_DEVICE_TYPE,
+    TEST_EMAIL,
+    TEST_PASSWORD,
+    TEST_SERIAL_1,
+    TEST_SERIAL_2,
+    TEST_SERIAL_GROUP,
+)
 
 SYNC_ENDPOINT = "sync-endpoint"
 
@@ -46,6 +54,14 @@ def api(client_session: ClientSession, tmp_path: Path) -> AmazonEchoApi:
         TEST_PASSWORD,
         save_data=AmazonSaveDataConfig(path=tmp_path),
     )
+
+
+@pytest.fixture
+def logged_in(api: AmazonEchoApi) -> None:
+    """Store login data so the API acts as logged in."""
+    api._session_state_data.login_stored_data = {
+        "account_customer_id": TEST_CUSTOMER_ID
+    }
 
 
 @pytest.fixture
@@ -84,9 +100,9 @@ def make_device() -> Callable[..., AmazonDevice]:
             account_name=f"Echo {serial}",
             capabilities=capabilities if capabilities is not None else [],
             device_family=device_family,
-            device_type="A1B2C3",
+            device_type=TEST_DEVICE_TYPE,
             primary_display_category="ALEXA_VOICE_ENABLED",
-            device_owner_customer_id="CUSTOMER_ID",
+            device_owner_customer_id=TEST_CUSTOMER_ID,
             household_device=False,
             device_cluster_members={},
             online=online,
@@ -108,6 +124,21 @@ def make_device() -> Callable[..., AmazonDevice]:
         )
 
     return _make_device
+
+
+@pytest.fixture
+def speaker_group(
+    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
+) -> AmazonDevice:
+    """Register two member devices and return a speaker group containing them."""
+    group = make_device(TEST_SERIAL_GROUP)
+    group.device_cluster_members = {TEST_SERIAL_1: None, TEST_SERIAL_2: None}
+    api._device_handler._final_devices = {
+        TEST_SERIAL_1: make_device(TEST_SERIAL_1),
+        TEST_SERIAL_2: make_device(TEST_SERIAL_2),
+        TEST_SERIAL_GROUP: group,
+    }
+    return group
 
 
 @pytest.fixture
