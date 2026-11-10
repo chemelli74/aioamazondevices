@@ -85,7 +85,7 @@ def _patch_sources(
     monkeypatch: pytest.MonkeyPatch,
     handler: AmazonDeviceHandler,
     devices_endpoints: dict[str, dict[str, Any]],
-    base_devices: dict[str, dict[str, Any]] | AsyncMock,
+    base_devices: dict[str, dict[str, Any]],
 ) -> None:
     """Replace the two data sources of the device handler."""
     monkeypatch.setattr(
@@ -96,9 +96,7 @@ def _patch_sources(
     monkeypatch.setattr(
         handler,
         "_get_base_devices_data",
-        base_devices
-        if isinstance(base_devices, AsyncMock)
-        else AsyncMock(return_value=base_devices),
+        AsyncMock(return_value=base_devices),
     )
 
 

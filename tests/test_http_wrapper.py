@@ -58,12 +58,10 @@ async def test_retry_behaviour(
     sleeps: list[float] = []
     requests: list[web.Request] = []
 
-    async def _sleep(delay: float) -> None:
-        # aiohttp internals also yield with sleep(0)
-        if delay:
-            sleeps.append(delay)
+    async def sleep(delay: float) -> None:
+        sleeps.append(delay)
 
-    monkeypatch.setattr(http_wrapper_module.asyncio, "sleep", _sleep)
+    monkeypatch.setattr(http_wrapper_module.asyncio, "sleep", sleep)
 
     async def handler(request: web.Request) -> web.Response:
         requests.append(request)
@@ -77,5 +75,6 @@ async def test_retry_behaviour(
                 HTTPMethod.GET, server.make_url("/"), fail_fast=fail_fast
             )
 
-    assert sleeps == expected_sleeps
+    # aiohttp internals also yield with sleep(0), so only the delays are compared.
+    assert [delay for delay in sleeps if delay] == expected_sleeps
     assert len(requests) == expected_requests
