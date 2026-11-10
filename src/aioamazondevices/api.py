@@ -270,8 +270,12 @@ class AmazonEchoApi:
         """Return music providers."""
         return await self._media_handler.music_providers
 
-    async def _refresh_basic_data(self) -> None:
-        """Refresh base data if interval has passed."""
+    async def _refresh_basic_data(self) -> bool:
+        """Refresh base data if interval has passed.
+
+        Returns True if the refresh ran, which includes a full sensor sync.
+        """
+        refreshed = False
         delta_daily = datetime.now(UTC) - self._last_daily_refresh
         if delta_daily >= timedelta(days=1):
             _LOGGER.debug(
@@ -291,12 +295,15 @@ class AmazonEchoApi:
             await self._todo_handler.update_lists()
 
             self._last_daily_refresh = datetime.now(UTC)
+            refreshed = True
 
         # Resolve the default device only once devices are loaded: sensor-only
         # devices (e.g. Amazon Air Quality Monitor) are created by
         # update_devices() and would otherwise be missed, aborting the refresh
         # with NoOnlineDevicesError.
         await self._init_default_device()
+
+        return refreshed
 
     async def get_devices_data(
         self,
@@ -308,7 +315,7 @@ class AmazonEchoApi:
         are refreshed by HTTP2 push events, so need start_http2_processing.
         """
         # Perform a refresh to ensure your data is as up-to-date as possible.
-        await self._refresh_basic_data()
+        sensors_synced = await self._refresh_basic_data()
 
         devices = self._device_handler.devices
         notifications = await self._notification_handler.get_notifications()
@@ -322,9 +329,12 @@ class AmazonEchoApi:
         # retry a resync that failed after an HTTP2 reconnect
         if self._sensor_resync_required:
             await self._resync_sensors()
+            sensors_synced = True
 
-        # pushed sensors are synced by the device refresh, the rest are polled
-        await self._sensor_handler.update_polled_sensors()
+        # a full sync already fetched every sensor, so polling again straight
+        # after only adds an API call that Amazon may rate limit
+        if not sensors_synced:
+            await self._sensor_handler.update_polled_sensors()
         # devices are rebuilt by a refresh, so always reapply online status
         self._sensor_handler.update_device_online_statuses(devices)
 
