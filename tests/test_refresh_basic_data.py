@@ -39,8 +39,12 @@ async def test_refresh_resolves_default_device_from_endpoint_only_account(
     monkeypatch.setattr(api._sequence_handler, "update_routines", AsyncMock())
     monkeypatch.setattr(api._todo_handler, "update_lists", AsyncMock())
 
-    await api._refresh_basic_data()
+    assert await api._refresh_basic_data() is True
 
     assert call_order == ["update_devices"]
     default_device = await api.get_default_device()
     assert default_device.serial_number == TEST_SERIAL_1
+
+    # not due again, so no refresh and no full sensor sync
+    assert await api._refresh_basic_data() is False
+    assert call_order == ["update_devices"]

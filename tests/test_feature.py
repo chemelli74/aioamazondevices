@@ -42,7 +42,7 @@ def _feature(*operations: str) -> AmazonDeviceFeature:
         properties=[],
         sensor_keys={},
         supported_operations=list(operations),
-        supported_modes=[],
+        supported_modes={},
         friendly_name=None,
         minimum_value=None,
         maximum_value=None,
