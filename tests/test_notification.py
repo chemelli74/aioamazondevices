@@ -19,7 +19,7 @@ from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.implementation import notification
 from aioamazondevices.structures import AmazonDevice, AmazonSchedule
 
-from .const import TEST_SERIAL_1, TEST_SERIAL_2
+from .const import TEST_DEVICE_TYPE, TEST_SERIAL_1, TEST_SERIAL_2, TEST_SERIAL_3
 
 # A Wednesday, so weekday and weekend rules land on different days.
 NOW = datetime(2026, 10, 28, 12, 0, tzinfo=UTC)
@@ -28,12 +28,14 @@ HOUR_MS = 3_600_000
 
 
 class FrozenDatetime(datetime):
-    """A datetime whose now() always returns NOW."""
+    """A datetime whose now() always returns the frozen time, NOW by default."""
+
+    frozen = NOW
 
     @classmethod
     def now(cls, tz: tzinfo | None = None) -> "FrozenDatetime":
-        """Return NOW in the given timezone."""
-        return cls.fromtimestamp(NOW.timestamp(), tz=tz or UTC)
+        """Return the frozen time in the given timezone."""
+        return cls.fromtimestamp(cls.frozen.timestamp(), tz=tz or UTC)
 
     def astimezone(self, tz: tzinfo | None = None) -> "FrozenDatetime":
         """Treat UTC as the host's local timezone."""
@@ -55,7 +57,7 @@ def _schedule(
     schedule_type: str,
     *,
     serial: str = TEST_SERIAL_1,
-    device_type: str = "A1B2C3",
+    device_type: str = TEST_DEVICE_TYPE,
     status: str = "ON",
     label: str = "",
     **fields: object,
@@ -73,7 +75,11 @@ def _schedule(
 
 
 def _timer(
-    offset_ms: int, label: str, *, status: str = "ON", device_type: str = "A1B2C3"
+    offset_ms: int,
+    label: str,
+    *,
+    status: str = "ON",
+    device_type: str = TEST_DEVICE_TYPE,
 ) -> dict[str, Any]:
     """Build a timer that fires offset_ms after NOW."""
     return _schedule(
@@ -205,6 +211,37 @@ async def test_parse_next_occurrence(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
+    ("site", "pattern", "expected"),
+    [
+        pytest.param("com", "XXXX-WD", _at(30, 7), id="default-weekdays"),
+        pytest.param("com", "XXXX-WE", _at(31, 7), id="default-weekends"),
+        pytest.param("co.il", "XXXX-WD", _at(1, 7), id="fri-sat-weekdays"),
+        pytest.param("co.il", "XXXX-WE", _at(30, 7), id="fri-sat-weekends"),
+        pytest.param("ir", "XXXX-WD", _at(31, 7), id="thu-fri-weekdays"),
+        pytest.param("ir", "XXXX-WE", _at(30, 7), id="thu-fri-weekends"),
+    ],
+)
+async def test_parse_next_occurrence_country_weekend(
+    api: AmazonEchoApi,
+    monkeypatch: pytest.MonkeyPatch,
+    site: str,
+    pattern: str,
+    expected: datetime,
+) -> None:
+    """Weekday and weekend alarms follow the weekend of the account's country.
+
+    From Thursday noon, a 07:00 weekday alarm next rings on Friday by default,
+    but skips Friday where it is part of the weekend.
+    """
+    monkeypatch.setattr(FrozenDatetime, "frozen", _at(29, 12))
+    api._session_state_data.country_specific_data(f"https://www.amazon.{site}")
+    schedule = {"type": "Alarm", "recurringPattern": pattern, "originalTime": "07:00"}
+
+    assert api._notification_handler._parse_next_occurrence(schedule) == expected
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
     ("schedule", "message"),
     [
         pytest.param(
@@ -317,14 +354,14 @@ async def test_update_device_notifications_by_capability(
     all_types = {"Alarm": alarm, "Timer": timer, "Reminder": reminder}
     reminders_only = make_device(TEST_SERIAL_1, capabilities=["REMINDERS"])
     timers_and_alarms = make_device(TEST_SERIAL_2, capabilities=["TIMERS_AND_ALARMS"])
-    no_notifications = make_device("9999", capabilities=["REMINDERS"])
+    no_notifications = make_device(TEST_SERIAL_3, capabilities=["REMINDERS"])
     no_notifications.notifications = {"Reminder": reminder}
 
     api._notification_handler.update_device_notifications(
         {
             TEST_SERIAL_1: reminders_only,
             TEST_SERIAL_2: timers_and_alarms,
-            "9999": no_notifications,
+            TEST_SERIAL_3: no_notifications,
         },
         {TEST_SERIAL_1: all_types, TEST_SERIAL_2: all_types},
     )
