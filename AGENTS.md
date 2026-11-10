@@ -107,4 +107,3 @@ These come from review feedback. Follow them for any new or changed test.
 
 - Name fake functions after the method they replace, with no leading
   underscore.
-- Write comments as full sentences, capitalised and ending in a full stop.
