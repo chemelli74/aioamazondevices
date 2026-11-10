@@ -32,13 +32,8 @@ PARALLEL_NODE = "com.amazon.alexa.behaviors.model.ParallelNode"
 
 
 @pytest.fixture
-def device(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
-) -> AmazonDevice:
-    """Log in and return a device."""
-    api._session_state_data.login_stored_data = {
-        "account_customer_id": TEST_CUSTOMER_ID
-    }
+def device(make_device: Callable[..., AmazonDevice]) -> AmazonDevice:
+    """Return a device to send messages to."""
     return make_device(TEST_SERIAL_1)
 
 
@@ -78,6 +73,7 @@ async def _wait_for_batches(api: AmazonEchoApi) -> None:
 
 
 @pytest.mark.anyio
+@pytest.mark.usefixtures("logged_in")
 @pytest.mark.parametrize(
     ("message_type", "message_body", "expected"),
     [
@@ -182,6 +178,7 @@ async def test_build_operation_node(
 
 
 @pytest.mark.anyio
+@pytest.mark.usefixtures("logged_in")
 async def test_build_operation_node_unknown_type_raises(
     api: AmazonEchoApi, device: AmazonDevice
 ) -> None:
@@ -192,16 +189,17 @@ async def test_build_operation_node_unknown_type_raises(
 
 @pytest.mark.anyio
 async def test_build_operation_node_requires_login(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
+    api: AmazonEchoApi, device: AmazonDevice
 ) -> None:
     """A message cannot be built before logging in."""
     with pytest.raises(CannotConnect, match="as not logged in"):
         api._sequence_handler._build_operation_node(
-            make_device(TEST_SERIAL_1), AmazonSequenceType.Speak, "Hello"
+            device, AmazonSequenceType.Speak, "Hello"
         )
 
 
 @pytest.mark.anyio
+@pytest.mark.usefixtures("logged_in")
 async def test_build_operation_node_routine_replaces_placeholders(
     api: AmazonEchoApi, device: AmazonDevice
 ) -> None:
@@ -273,6 +271,7 @@ async def test_update_routines_without_routines(
 
 
 @pytest.mark.anyio
+@pytest.mark.usefixtures("logged_in")
 async def test_post_sequences_groups_devices_in_parallel(
     api: AmazonEchoApi,
     mock_json_response: Callable[[dict[str, Any]], AsyncMock],
@@ -322,14 +321,14 @@ async def test_post_sequences_groups_devices_in_parallel(
 async def test_post_sequences_requires_login(
     api: AmazonEchoApi,
     mock_json_response: Callable[[dict[str, Any]], AsyncMock],
-    make_device: Callable[..., AmazonDevice],
+    device: AmazonDevice,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Nothing is posted before logging in."""
     session_request = mock_json_response({})
 
     await api._sequence_handler._post_sequences(
-        [_node(make_device(TEST_SERIAL_1), AmazonSequenceType.Speak, "Hello")]
+        [_node(device, AmazonSequenceType.Speak, "Hello")]
     )
 
     session_request.assert_not_awaited()
@@ -337,6 +336,7 @@ async def test_post_sequences_requires_login(
 
 
 @pytest.mark.anyio
+@pytest.mark.usefixtures("logged_in")
 async def test_send_message_batches_messages(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
@@ -372,6 +372,7 @@ async def test_send_message_batches_messages(
 
 
 @pytest.mark.anyio
+@pytest.mark.usefixtures("logged_in")
 async def test_process_batch_logs_failure(
     api: AmazonEchoApi,
     device: AmazonDevice,

@@ -57,6 +57,14 @@ def api(client_session: ClientSession, tmp_path: Path) -> AmazonEchoApi:
 
 
 @pytest.fixture
+def logged_in(api: AmazonEchoApi) -> None:
+    """Store login data so the API acts as logged in."""
+    api._session_state_data.login_stored_data = {
+        "account_customer_id": TEST_CUSTOMER_ID
+    }
+
+
+@pytest.fixture
 def mock_json_response(
     api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
 ) -> Callable[[dict[str, Any]], AsyncMock]:
