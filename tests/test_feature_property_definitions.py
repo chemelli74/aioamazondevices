@@ -59,20 +59,29 @@ def test_templated_property_definition(
     )
 
 
+@pytest.mark.parametrize(
+    ("instance", "expected_key"),
+    [
+        pytest.param("1", "rangeValue-1", id="keyed-by-property-and-instance"),
+        pytest.param("", "rangeValue", id="without-instance-keyed-by-property"),
+    ],
+)
 def test_specific_sensor_without_name_uses_fallback(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, instance: str, expected_key: str
 ) -> None:
-    """An override without a name is keyed by property name and instance."""
+    """An override without a name is keyed by property name and its instance."""
     monkeypatch.setitem(
-        feature_property_definitions.SPECIFIC_SENSORS, "TESTTYPE", {"range": {"1": {}}}
+        feature_property_definitions.SPECIFIC_SENSORS,
+        "TESTTYPE",
+        {"range": {instance: {}}},
     )
 
     definition = resolve_feature_property_definition(
-        "TESTTYPE", "range", "1", "rangeValue"
+        "TESTTYPE", "range", instance, "rangeValue"
     )
 
     assert definition is not None
-    assert definition.key == "rangeValue-1"
+    assert definition.key == expected_key
 
 
 @pytest.mark.parametrize(

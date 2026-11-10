@@ -222,6 +222,32 @@ async def test_device_specific_sensor_without_name_uses_fallback(
 
 
 @pytest.mark.anyio
+async def test_device_specific_sensor_without_scale_keeps_value_scale(
+    make_device: Callable[..., AmazonDevice],
+    sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An override without a scale keeps the scale read from the value."""
+    monkeypatch.setitem(
+        feature_property_definitions.SENSOR_TEMPLATES,
+        "testSensor",
+        feature_property_definitions.SENSOR_TEMPLATES["temperatureSensor"],
+    )
+    monkeypatch.setitem(
+        feature_property_definitions.SPECIFIC_SENSORS,
+        "TESTTYPE",
+        {"testSensor": {"": {}}},
+    )
+    endpoint = _temperature_endpoint("value")
+    endpoint["features"][0]["name"] = "testSensor"
+
+    sensors = sync_sensors(endpoint, _make_typed_device(make_device, "TESTTYPE"))
+
+    assert sensors["temperature"].value == TEST_TEMPERATURE
+    assert sensors["temperature"].scale == "CELSIUS"
+
+
+@pytest.mark.anyio
 @pytest.mark.parametrize(
     ("response", "message"),
     [
