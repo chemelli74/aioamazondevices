@@ -115,7 +115,7 @@ async def test_get_devices_data_applies_settings(
     get_communications = AsyncMock(return_value=COMMUNICATIONS)
     update_polled_sensors = AsyncMock()
     update_online_statuses = Mock()
-    monkeypatch.setattr(api, "_refresh_basic_data", AsyncMock())
+    monkeypatch.setattr(api, "_refresh_basic_data", AsyncMock(return_value=False))
     monkeypatch.setattr(
         api._notification_handler,
         "get_notifications",
@@ -140,3 +140,46 @@ async def test_get_devices_data_applies_settings(
     update_online_statuses.assert_called_once_with(devices)
     assert device.notifications == {NOTIFICATION_REMINDER: REMINDER}
     assert device.communication_settings == COMMUNICATIONS[TEST_SERIAL_1]
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("daily_refreshed", "resync_required", "polled"),
+    [
+        pytest.param(False, False, True, id="no_full_sync"),
+        pytest.param(True, False, False, id="daily_refresh"),
+        pytest.param(False, True, False, id="resync_retry"),
+    ],
+)
+async def test_get_devices_data_skips_poll_after_full_sync(
+    api: AmazonEchoApi,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    daily_refreshed: bool,
+    resync_required: bool,
+    polled: bool,
+) -> None:
+    """A full sensor sync in the same poll makes the polled query redundant."""
+    update_polled_sensors = AsyncMock()
+    resync_sensors = AsyncMock()
+    api._sensor_resync_required = resync_required
+    monkeypatch.setattr(
+        api, "_refresh_basic_data", AsyncMock(return_value=daily_refreshed)
+    )
+    monkeypatch.setattr(api, "_resync_sensors", resync_sensors)
+    monkeypatch.setattr(
+        api._notification_handler, "get_notifications", AsyncMock(return_value=None)
+    )
+    monkeypatch.setattr(
+        api._communication_handler,
+        "get_communication_preferences",
+        AsyncMock(return_value={}),
+    )
+    monkeypatch.setattr(
+        api._sensor_handler, "update_polled_sensors", update_polled_sensors
+    )
+
+    await api.get_devices_data()
+
+    assert resync_sensors.await_count == int(resync_required)
+    assert update_polled_sensors.await_count == int(polled)
