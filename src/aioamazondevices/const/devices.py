@@ -32,6 +32,10 @@ DEVICE_TYPES_HARDCODED_METADATA: dict[str, dict[str, str]] = {
         "model": "Echo Spot (1st Generation)",
         "manufacturer": "Amazon",
     },
+    DEVICE_TYPE_GLOW: {
+        "model": "Echo Glow",
+        "manufacturer": "Amazon",
+    },
     DEVICE_TYPE_SPEAKER_GROUP: {
         "model": "Speaker Group",
         "manufacturer": "Amazon",
