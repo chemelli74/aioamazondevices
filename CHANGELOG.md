@@ -1,5 +1,12 @@
 # Changelog
 
+## v17.2.11 (2026-11-10)
+
+### Bug fixes
+
+- Store friendly name in supported modes ([`f680d0b`](https://github.com/chemelli74/aioamazondevices/commit/f680d0b66eadc2ddf6c154d54381165819dd3e0a))
+
+
 ## v17.2.10 (2026-11-10)
 
 ### Bug fixes
