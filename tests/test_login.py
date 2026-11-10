@@ -5,23 +5,81 @@
 
 from collections.abc import Callable
 from contextlib import AbstractContextManager, nullcontext
+from datetime import UTC, datetime
+from http import HTTPMethod, HTTPStatus
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, call
 
 import pytest
 from bs4 import BeautifulSoup
 from yarl import URL
 
 from aioamazondevices.api import AmazonEchoApi
+from aioamazondevices.capabilities import DEVICE_CAPABILITIES
+from aioamazondevices.const.http import REFRESH_ACCESS_TOKEN, REFRESH_AUTH_COOKIES
 from aioamazondevices.exceptions import (
     CannotAuthenticate,
+    CannotRegisterDevice,
     MissingCountryError,
     WrongMethod,
 )
+from aioamazondevices.login import AmazonLogin
 
-from .const import FIXTURES_DIR, TEST_EMAIL, TEST_PASSWORD
+from .const import FIXTURES_DIR, TEST_CUSTOMER_ID, TEST_EMAIL, TEST_PASSWORD
 
 MAPLANDING_URL = URL("https://www.amazon.com/ap/maplanding")
+AUTH_CODE_URL = MAPLANDING_URL.with_query({"openid.oa2.authorization_code": "AN1"})
+SIGNIN_URL = URL("https://www.amazon.com/ap/signin")
+OAUTH_DATA = {"authorization_code": "AUTH_CODE", "code_verifier": b"VERIFIER"}
+LOGIN_FIXTURES = FIXTURES_DIR / "login"
+
+
+def _read_page(name: str) -> str:
+    """Return the HTML of a login page fixture."""
+    return (LOGIN_FIXTURES / f"{name}.html").read_text(encoding="utf-8")
+
+
+EMAIL_PAGE = _read_page("email")
+PASSWORD_PAGE = _read_page("password")
+MFA_PAGE = _read_page("mfa")
+ERROR_BOX = _read_page("error_box")
+
+
+def _page(html: str, url: URL) -> tuple[BeautifulSoup, MagicMock]:
+    """Build a session_request result for a page served from url."""
+    resp = MagicMock()
+    resp.url = url
+    return BeautifulSoup(html, "html.parser"), resp
+
+
+def _register_response() -> dict[str, Any]:
+    """Build a successful device registration response."""
+    return {
+        "response": {
+            "success": {
+                "tokens": {
+                    "mac_dms": {
+                        "adp_token": "ADP_TOKEN",
+                        "device_private_key": "PRIVATE_KEY",
+                    },
+                    "store_authentication_cookie": {"cookie": "STORE_COOKIE"},
+                    "bearer": {
+                        "access_token": "ACCESS",
+                        "refresh_token": "REFRESH",
+                        "expires_in": "3600",
+                    },
+                    "website_cookies": [
+                        {"Name": "session-id", "Value": '"SESSION_ID"'},
+                        {"Name": "ubid-main", "Value": "UBID"},
+                    ],
+                },
+                "extensions": {
+                    "device_info": {"device_serial_number": "SERIAL"},
+                    "customer_info": {"home_region": "NA"},
+                },
+            }
+        }
+    }
 
 
 @pytest.mark.anyio
@@ -53,9 +111,7 @@ async def test_extract_code_from_url_missing_code(api: AmazonEchoApi, url: URL) 
 @pytest.mark.anyio
 async def test_get_inputs_from_soup(api: AmazonEchoApi) -> None:
     """Only the hidden inputs of the sign-in form are collected."""
-    soup = BeautifulSoup(
-        (FIXTURES_DIR / "ap_signin.html").read_text(encoding="utf-8"), "html.parser"
-    )
+    soup = BeautifulSoup(_read_page("ap_signin"), "html.parser")
 
     assert api._login._get_inputs_from_soup(soup) == {
         "appActionToken": "APP_ACTION_TOKEN",
@@ -77,40 +133,6 @@ async def test_get_inputs_from_soup_without_form(api: AmazonEchoApi) -> None:
 
     with pytest.raises(CannotAuthenticate):
         api._login._get_inputs_from_soup(soup)
-
-
-SIGNIN_URL = URL("https://www.amazon.com/ap/signin")
-EMAIL_PAGE = """
-<form name="signIn" method="post" action="/ax/claim?arb=ARB">
-  <input type="hidden" name="appAction" value="SIGNIN_CLAIM_COLLECT" />
-  <input type="text" name="email" />
-</form>
-"""
-PASSWORD_PAGE = """
-<form name="signIn" method="post" action="https://www.amazon.com/ap/signin">
-  <input type="hidden" name="appAction" value="SIGNIN_PWD_COLLECT" />
-  <input type="password" name="password" />
-</form>
-"""  # noqa: S105
-MFA_PAGE = """
-<form id="auth-mfa-form" method="post" action="https://www.amazon.com/ap/signin">
-  <input type="hidden" name="appAction" value="SIGNIN_MFA" />
-  <input id="auth-mfa-otpcode" type="tel" name="otpCode" />
-</form>
-"""
-ERROR_BOX = """
-<div id="auth-{kind}-message-box">
-  <h4>There was a problem</h4>
-  <div>{message}</div>
-</div>
-"""
-
-
-def _page(html: str, url: URL) -> tuple[BeautifulSoup, MagicMock]:
-    """Build a session_request result for a page served from url."""
-    resp = MagicMock()
-    resp.url = url
-    return BeautifulSoup(html, "html.parser"), resp
 
 
 @pytest.mark.anyio
@@ -190,10 +212,7 @@ async def test_login_interactive_oauth(
             _page(EMAIL_PAGE, SIGNIN_URL),
             _page(PASSWORD_PAGE, URL("https://www.amazon.com/ax/claim")),
             _page(MFA_PAGE, SIGNIN_URL),
-            _page(
-                "",
-                MAPLANDING_URL.with_query({"openid.oa2.authorization_code": "AN1"}),
-            ),
+            _page("", AUTH_CODE_URL),
         ]
     )
     monkeypatch.setattr(login._http_wrapper, "session_request", session_request)
@@ -289,8 +308,8 @@ async def test_login_interactive_oauth_unexpected_page(
     ):
         await login._login_mode_interactive_oauth("123456")
 
-    for call in session_request.await_args_list:
-        assert "password" not in (call.kwargs.get("input_data") or {})
+    _, email = session_request.await_args_list
+    assert "password" not in email.kwargs["input_data"]
 
 
 @pytest.mark.anyio
@@ -306,7 +325,7 @@ async def test_login_interactive_oauth_code_with_warning(
             _page(MFA_PAGE, SIGNIN_URL),
             _page(
                 ERROR_BOX.format(kind="warning", message="Enable cookies"),
-                MAPLANDING_URL.with_query({"openid.oa2.authorization_code": "AN1"}),
+                AUTH_CODE_URL,
             ),
         ]
     )
@@ -324,7 +343,7 @@ async def test_login_stored_data_registers_capabilities(
     """Stored-data login re-registers device capabilities."""
     state = api._login._session_state_data
     state.login_stored_data = {"customer_info": {}}
-    state.account_customer_id = "CUSTOMER_ID"
+    state.account_customer_id = TEST_CUSTOMER_ID
     register_device_capabilities = AsyncMock()
     monkeypatch.setattr(
         api._login, "_register_device_capabilities", register_device_capabilities
@@ -349,25 +368,25 @@ async def test_login_stored_data_without_data_raises(api: AmazonEchoApi) -> None
     ("response", "expected_customer_id", "expectation"),
     [
         pytest.param(
-            {"id": "CUSTOMER_ID", "countryOfResidence": "US"},
-            "CUSTOMER_ID",
+            {"id": TEST_CUSTOMER_ID, "countryOfResidence": "US"},
+            TEST_CUSTOMER_ID,
             nullcontext(),
             id="country_set",
         ),
         pytest.param(
-            {"id": "CUSTOMER_ID"},
+            {"id": TEST_CUSTOMER_ID},
             None,
             pytest.raises(MissingCountryError),
             id="country_missing",
         ),
         pytest.param(
-            {"id": "CUSTOMER_ID", "countryOfResidence": None},
+            {"id": TEST_CUSTOMER_ID, "countryOfResidence": None},
             None,
             pytest.raises(MissingCountryError),
             id="country_none",
         ),
         pytest.param(
-            {"id": "CUSTOMER_ID", "countryOfResidence": ""},
+            {"id": TEST_CUSTOMER_ID, "countryOfResidence": ""},
             None,
             pytest.raises(MissingCountryError),
             id="country_empty",
@@ -389,3 +408,320 @@ async def test_obtain_account_customer_id(
         await login.obtain_account_customer_id()
 
     assert login._session_state_data.account_customer_id == expected_customer_id
+
+
+@pytest.mark.anyio
+async def test_serial_number_is_loaded_from_stored_data(api: AmazonEchoApi) -> None:
+    """A login with stored data reuses the registered device serial number."""
+    api._session_state_data.login_stored_data = {
+        "device_info": {"device_serial_number": "STORED_SERIAL"}
+    }
+
+    login = AmazonLogin(api._http_wrapper, api._session_state_data)
+
+    assert login._serial == "STORED_SERIAL"
+
+
+@pytest.mark.anyio
+async def test_get_inputs_from_soup_skips_unnamed_inputs(api: AmazonEchoApi) -> None:
+    """Hidden inputs without a name are not collected."""
+    soup = BeautifulSoup(
+        '<form><input type="hidden" value="ORPHAN" />'
+        '<input type="hidden" name="kept" value="VALUE" /></form>',
+        "html.parser",
+    )
+
+    assert api._login._get_inputs_from_soup(soup) == {"kept": "VALUE"}
+
+
+@pytest.mark.anyio
+async def test_register_device(
+    api: AmazonEchoApi, mock_json_response: Callable[..., AsyncMock]
+) -> None:
+    """A registered device returns its tokens, cookies and account details."""
+    session_request = mock_json_response(_register_response())
+    api._http_wrapper.cookies["frc"] = "FRC"
+    login = api._login
+    before = datetime.now(UTC).timestamp()
+
+    login_data = await login._register_device(OAUTH_DATA)
+
+    expires = login_data.pop("expires")
+    assert before + 3600 <= expires <= datetime.now(UTC).timestamp() + 3600
+    assert login_data == {
+        "adp_token": "ADP_TOKEN",
+        "device_private_key": "PRIVATE_KEY",
+        "access_token": "ACCESS",
+        "refresh_token": "REFRESH",
+        "website_cookies": {"session-id": "SESSION_ID", "ubid-main": "UBID"},
+        "store_authentication_cookie": {"cookie": "STORE_COOKIE"},
+        "device_info": {"device_serial_number": "SERIAL"},
+        "customer_info": {"home_region": "NA"},
+    }
+    (request,) = session_request.await_args_list
+    assert request.kwargs["method"] == HTTPMethod.POST
+    assert request.kwargs["url"] == URL("https://api.amazon.com/auth/register")
+    body = request.kwargs["input_data"]
+    assert body["auth_data"]["authorization_code"] == "AUTH_CODE"
+    assert body["auth_data"]["code_verifier"] == "VERIFIER"
+    assert body["auth_data"]["client_id"] == login._build_client_id()
+    assert body["registration_data"]["device_serial"] == login._serial
+    assert body["user_context_map"] == {"frc": "FRC"}
+    assert body["cookies"]["domain"] == ".amazon.com"
+
+
+@pytest.mark.anyio
+async def test_register_device_failure_raises(
+    api: AmazonEchoApi, mock_json_response: Callable[..., AsyncMock]
+) -> None:
+    """A rejected registration raises with Amazon's message."""
+    mock_json_response(
+        {"response": {"error": {"message": "Invalid authorization code"}}},
+        status=HTTPStatus.BAD_REQUEST,
+    )
+    api._http_wrapper.cookies["frc"] = "FRC"
+
+    with pytest.raises(
+        CannotRegisterDevice, match="Bad Request: Invalid authorization code"
+    ):
+        await api._login._register_device(OAUTH_DATA)
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("status", "expectation"),
+    [
+        pytest.param(HTTPStatus.NO_CONTENT, nullcontext(), id="registered"),
+        pytest.param(
+            HTTPStatus.BAD_REQUEST,
+            pytest.raises(CannotRegisterDevice, match="returned 400"),
+            id="rejected",
+        ),
+    ],
+)
+async def test_register_device_capabilities(
+    api: AmazonEchoApi,
+    mock_json_response: Callable[..., AsyncMock],
+    monkeypatch: pytest.MonkeyPatch,
+    status: HTTPStatus,
+    expectation: AbstractContextManager[object],
+) -> None:
+    """Capabilities are sent with a fresh access token and must return 204."""
+    session_request = mock_json_response({}, status=status)
+    refresh_data = AsyncMock(return_value=(True, {REFRESH_ACCESS_TOKEN: "FRESH"}))
+    monkeypatch.setattr(api._http_wrapper, "refresh_data", refresh_data)
+
+    with expectation:
+        await api._login._register_device_capabilities()
+
+    refresh_data.assert_awaited_once_with(REFRESH_ACCESS_TOKEN)
+    session_request.assert_awaited_once_with(
+        method=HTTPMethod.PUT,
+        url=URL("https://api.amazonalexa.com/v1/devices/@self/capabilities"),
+        input_data=DEVICE_CAPABILITIES,
+        json_data=True,
+        extended_headers={"Authorization": "Bearer FRESH"},
+    )
+
+
+@pytest.mark.anyio
+async def test_login_interactive_runs_each_step(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An interactive login registers the device and stores its login data."""
+    login = api._login
+    steps = MagicMock()
+    for name, mock in (
+        ("_login_mode_interactive_oauth", AsyncMock(return_value=OAUTH_DATA)),
+        ("_register_device", AsyncMock(return_value={"access_token": "ACCESS"})),
+        ("_domain_refresh_auth_cookies", AsyncMock()),
+        ("_register_device_capabilities", AsyncMock()),
+        ("obtain_account_customer_id", AsyncMock()),
+    ):
+        monkeypatch.setattr(login, name, mock)
+        steps.attach_mock(mock, name)
+
+    login_data = await login.login_mode_interactive("123456")
+
+    assert steps.mock_calls == [
+        call._login_mode_interactive_oauth("123456"),
+        call._register_device(OAUTH_DATA),
+        call._domain_refresh_auth_cookies(),
+        call._register_device_capabilities(),
+        call.obtain_account_customer_id(),
+    ]
+    assert login_data == {
+        "access_token": "ACCESS",
+        "site": "https://www.amazon.com",
+    }
+    assert login._session_state_data.login_stored_data is login_data
+
+
+@pytest.mark.anyio
+async def test_login_interactive_oauth_retries_captcha_in_japanese(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A captcha on the first sign-in is retried with Japanese as the language."""
+    login = api._login
+    oauth_login = AsyncMock(
+        side_effect=[
+            (
+                SIGNIN_URL,
+                BeautifulSoup('<form id="cvf-aamation-challenge-form">', "html.parser"),
+            ),
+            (SIGNIN_URL, BeautifulSoup(MFA_PAGE, "html.parser")),
+        ]
+    )
+    monkeypatch.setattr(login, "_oauth_login", oauth_login)
+    monkeypatch.setattr(
+        login._http_wrapper,
+        "session_request",
+        AsyncMock(return_value=_page("", AUTH_CODE_URL)),
+    )
+
+    result = await login._login_mode_interactive_oauth("123456")
+
+    assert result["authorization_code"] == "AN1"
+    first, retry = oauth_login.await_args_list
+    assert first.kwargs == {}
+    assert retry.kwargs == {"registration_language": "ja_JP"}
+    assert retry.args == first.args
+
+
+@pytest.mark.anyio
+async def test_login_stored_data_obtains_missing_customer_id(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Stored-data login looks up the customer id when it is not stored."""
+    api._session_state_data.login_stored_data = {"customer_info": {}}
+    obtain_account_customer_id = AsyncMock()
+    monkeypatch.setattr(
+        api._login, "obtain_account_customer_id", obtain_account_customer_id
+    )
+    monkeypatch.setattr(api._login, "_register_device_capabilities", AsyncMock())
+
+    await api._login.login_mode_stored_data()
+
+    obtain_account_customer_id.assert_awaited_once()
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("response", "expected"),
+    [
+        pytest.param(
+            {"alexaHostName": "alexa.amazon.co.uk"}, "alexa.amazon.co.uk", id="named"
+        ),
+        pytest.param({}, "alexa.amazon.com", id="default"),
+    ],
+)
+async def test_get_alexa_domain(
+    api: AmazonEchoApi,
+    mock_json_response: Callable[[dict[str, Any]], AsyncMock],
+    response: dict[str, Any],
+    expected: str,
+) -> None:
+    """The Alexa host name is read from the welcome page, else the current one."""
+    session_request = mock_json_response(response)
+
+    assert await api._login._get_alexa_domain() == expected
+    session_request.assert_awaited_once_with(
+        method=HTTPMethod.GET, url=URL("https://alexa.amazon.com/api/welcome")
+    )
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("home_region", "alexa_host", "expected"),
+    [
+        pytest.param("FE", None, ([], [call()], "co.jp"), id="far-east"),
+        pytest.param(
+            "EU",
+            "alexa.amazon.co.uk",
+            ([call()], [call()], "co.uk"),
+            id="other-domain",
+        ),
+        pytest.param(
+            "NA", "alexa.amazon.com", ([call()], [], "com"), id="default-domain"
+        ),
+    ],
+)
+async def test_domain_refresh_auth_cookies(
+    api: AmazonEchoApi,
+    monkeypatch: pytest.MonkeyPatch,
+    home_region: str,
+    alexa_host: str | None,
+    expected: tuple[list[Any], list[Any], str],
+) -> None:
+    """Cookies are refreshed for the account's own site when it is not .com."""
+    expected_domain_lookups, expected_refreshes, expected_domain = expected
+    login = api._login
+    login._session_state_data.login_stored_data = {
+        "customer_info": {"home_region": home_region}
+    }
+    get_alexa_domain = AsyncMock(return_value=alexa_host)
+    refresh_auth_cookies = AsyncMock()
+    monkeypatch.setattr(login, "_get_alexa_domain", get_alexa_domain)
+    monkeypatch.setattr(login, "_refresh_auth_cookies", refresh_auth_cookies)
+    monkeypatch.setattr(login._http_wrapper, "clear_csrf_cookie", AsyncMock())
+
+    await login._domain_refresh_auth_cookies()
+
+    assert get_alexa_domain.await_args_list == expected_domain_lookups
+    assert refresh_auth_cookies.await_args_list == expected_refreshes
+    assert login._session_state_data.domain == expected_domain
+
+
+@pytest.mark.anyio
+async def test_refresh_auth_cookies(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Refreshed cookies replace the old ones for each of their domains."""
+    login = api._login
+    login._session_state_data.login_stored_data = {
+        "website_cookies": {"old": "OLD"},
+        "store_authentication_cookie": {"cookie": "OLD_SESSION"},
+    }
+    refresh_data = AsyncMock(
+        return_value=(
+            True,
+            {
+                "response": {
+                    "tokens": {
+                        "cookies": {
+                            ".amazon.co.uk": [
+                                {"Name": "session-token", "Value": '"NEW_SESSION"'},
+                                {"Name": "ubid-acbuk", "Value": "UBID"},
+                            ],
+                            ".amazon.com": [{"Name": "at-main", "Value": "AT"}],
+                        }
+                    }
+                }
+            },
+        )
+    )
+    clear_cookies = AsyncMock()
+    set_cookies = AsyncMock()
+    monkeypatch.setattr(login._http_wrapper, "refresh_data", refresh_data)
+    monkeypatch.setattr(login._http_wrapper, "clear_cookies", clear_cookies)
+    monkeypatch.setattr(login._http_wrapper, "set_cookies", set_cookies)
+
+    await login._refresh_auth_cookies()
+
+    refresh_data.assert_awaited_once_with(REFRESH_AUTH_COOKIES)
+    clear_cookies.assert_awaited_once()
+    uk = URL.build(scheme="https", host=".amazon.co.uk")
+    com = URL.build(scheme="https", host=".amazon.com")
+    assert set_cookies.await_args_list == [
+        call({"session-token": "NEW_SESSION"}, uk),
+        call({"ubid-acbuk": "UBID"}, uk),
+        call({"at-main": "AT"}, com),
+    ]
+    assert login._session_state_data.login_stored_data == {
+        "website_cookies": {
+            "session-token": "NEW_SESSION",
+            "ubid-acbuk": "UBID",
+            "at-main": "AT",
+        },
+        "store_authentication_cookie": {"cookie": "NEW_SESSION"},
+    }
