@@ -45,7 +45,7 @@ class AmazonAlarmHandler(AmazonNotificationHandler):
                 ),
                 raw_data=schedule,
             )
-            for schedule in notifications["notifications"]
+            for schedule in notifications.get("notifications", [])
             if schedule["type"] in (NOTIFICATION_ALARM, NOTIFICATION_MUSIC_ALARM)
             and schedule["deviceSerialNumber"] == device.serial_number
         ]

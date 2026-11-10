@@ -181,3 +181,15 @@ async def test_get_alarms_keeps_raw_data(
     (alarm_1,) = await handler.get_alarms(make_device(TEST_SERIAL_1))
 
     assert alarm_1.raw_data["rRuleData"]["recurrenceRules"] == ["FREQ=WEEKLY;BYDAY=MO"]
+
+
+@pytest.mark.anyio
+async def test_get_alarms_empty_response(
+    handler: AmazonAlarmHandler,
+    make_device: Callable[..., AmazonDevice],
+    mock_json_response: Callable[[dict[str, Any]], AsyncMock],
+) -> None:
+    """An empty response means no alarms."""
+    mock_json_response({})
+
+    assert await handler.get_alarms(make_device(TEST_SERIAL_1)) == []
