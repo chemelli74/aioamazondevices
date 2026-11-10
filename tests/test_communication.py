@@ -14,7 +14,7 @@ from aioamazondevices.const.devices import DEVICE_TYPE_AQM, SPEAKER_GROUP_FAMILY
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.structures import AmazonDevice
 
-from .const import TEST_SERIAL_1, TEST_SERIAL_2
+from .const import TEST_DEVICE_TYPE, TEST_SERIAL_1, TEST_SERIAL_2
 
 
 def _preferences(state: str) -> dict[str, Any]:
@@ -78,7 +78,7 @@ async def test_get_communication_preferences_keeps_cached_values(
 @pytest.mark.parametrize(
     ("device_family", "device_type"),
     [
-        pytest.param(SPEAKER_GROUP_FAMILY, "A1B2C3", id="speaker-group"),
+        pytest.param(SPEAKER_GROUP_FAMILY, TEST_DEVICE_TYPE, id="speaker-group"),
         pytest.param("ECHO", DEVICE_TYPE_AQM, id="air-quality-monitor"),
     ],
 )
@@ -91,8 +91,9 @@ async def test_get_communication_preferences_skips_unsupported_devices(
 ) -> None:
     """Unsupported devices are not requested, and later devices still are."""
     session_request = mock_json_response(_preferences("ON"))
-    unsupported = make_device(TEST_SERIAL_1, device_family=device_family)
-    unsupported.device_type = device_type
+    unsupported = make_device(
+        TEST_SERIAL_1, device_family=device_family, device_type=device_type
+    )
 
     result = await api._communication_handler.get_communication_preferences(
         [unsupported, make_device(TEST_SERIAL_2)]

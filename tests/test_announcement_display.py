@@ -20,11 +20,8 @@ from .const import TEST_SERIAL_1, TEST_SERIAL_2
 
 
 @pytest.fixture
-def device(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
-) -> AmazonDevice:
-    """Return a logged in device that is its own cluster member."""
-    api._session_state_data.login_stored_data = {"test": True}
+def device(make_device: Callable[..., AmazonDevice]) -> AmazonDevice:
+    """Return a device that is its own cluster member."""
     device = make_device(TEST_SERIAL_1)
     device.device_cluster_members = {device.serial_number: device.device_type}
     return device
@@ -39,6 +36,7 @@ def enqueue(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
 
 
 @pytest.mark.anyio
+@pytest.mark.usefixtures("logged_in")
 @pytest.mark.parametrize(
     ("display_text", "expected_display"),
     [
@@ -81,6 +79,7 @@ async def test_announcement_display_text(
 
 
 @pytest.mark.anyio
+@pytest.mark.usefixtures("logged_in")
 async def test_send_message_display_text_positional_argument(
     api: AmazonEchoApi,
     device: AmazonDevice,
@@ -102,7 +101,7 @@ async def test_send_message_display_text_positional_argument(
     assert content["speak"] == {"type": "text", "value": "Doctor Smith"}
 
 
-@pytest.mark.usefixtures("anyio_backend")
+@pytest.mark.usefixtures("anyio_backend", "logged_in")
 def test_build_operation_node_display_text_positional_argument(
     api: AmazonEchoApi,
     device: AmazonDevice,
