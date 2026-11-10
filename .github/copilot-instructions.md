@@ -1,5 +1,7 @@
 # Copilot Instructions
 
+Follow the tooling and test conventions in [AGENTS.md](../AGENTS.md).
+
 This repository is developed inside a dev container. Use these defaults when assisting with code changes and local commands.
 
 ## Environment
