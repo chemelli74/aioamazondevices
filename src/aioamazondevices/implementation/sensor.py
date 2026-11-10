@@ -111,7 +111,7 @@ def _parse_property(
     error_msg = api_error.get("message")
     if not api_error:
         try:
-            value_raw = feature_property[template["value_key"] or ""]
+            value_raw = feature_property[template["value_key"]]
             if not value_raw:
                 _LOGGER.warning(
                     "Sensor %s [device %s] ignored due to empty value",
@@ -121,12 +121,12 @@ def _parse_property(
                 return None
             scale = (
                 value_raw[scale_template]
-                if (scale_template := template["value_scale_key"])
+                if (scale_template := template.get("value_scale_key"))
                 else None
             )
             value = (
                 value_raw[subkey_template]
-                if (subkey_template := template["value_subkey"])
+                if (subkey_template := template.get("value_subkey"))
                 else value_raw
             )
 
@@ -157,8 +157,9 @@ def _parse_property(
         error_msg = f"{value} {scale} is invalid."
         _LOGGER.debug("invalid value in sensor %s - %s", property_name, error_msg)
 
+    # an override without a scale keeps the one read from the value
     if definition.override is not None:
-        scale = definition.override.get("scale")
+        scale = definition.override.get("scale", scale)
 
     return AmazonDeviceSensor(
         definition.key,
