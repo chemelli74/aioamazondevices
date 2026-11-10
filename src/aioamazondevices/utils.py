@@ -60,9 +60,12 @@ def http2_extract_json_from_part(part: bytes) -> dict[str, Any] | None:
 
     def _get_payload(msg: EmailMessage) -> bytes:
         payload = msg.get_payload(decode=True)
-        if payload is None:
+        # Unreachable, as only multipart messages have no payload and decoded
+        # payloads are always bytes, while only application/json parts get here.
+        # Kept to narrow the type of the payload and as a safeguard.
+        if payload is None:  # pragma: no cover
             raise ValueError("No payload")
-        if not isinstance(payload, bytes):
+        if not isinstance(payload, bytes):  # pragma: no cover
             raise TypeError(f"Expected bytes payload, got {type(payload)!r}")
         return payload
 

@@ -177,10 +177,7 @@ class AmazonHttpWrapper:
         return self._cookies
 
     def _load_website_cookies(self, language: str) -> dict[str, str]:
-        """Get website cookies, if available."""
-        if not self._session_state_data.login_stored_data:
-            return {}
-
+        """Get website cookies, only called once logged in."""
         website_cookies: dict[str, Any] = self._session_state_data.login_stored_data[
             "website_cookies"
         ]
@@ -233,12 +230,6 @@ class AmazonHttpWrapper:
             URI_CAPABILITIES in response.url.path
             and response.status == HTTPStatus.NO_CONTENT
         )
-
-    async def set_session_state_data(
-        self, session_state_data: AmazonSessionStateData
-    ) -> None:
-        """Set the current session state data."""
-        self._session_state_data = session_state_data
 
     async def http_phrase_error(self, error: int) -> str:
         """Convert numeric error in human phrase."""
@@ -384,7 +375,9 @@ class AmazonHttpWrapper:
             ]:
                 break
 
-        if resp is None:
+        # Unreachable, as the loop runs at least once and each attempt either sets
+        # resp or raises. Kept to narrow the type of resp and as a safeguard.
+        if resp is None:  # pragma: no cover
             _LOGGER.error("No response received from %s", url)
             raise CannotConnect(f"No response received from {url}")
 

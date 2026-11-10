@@ -222,7 +222,9 @@ class AmazonNotificationHandler:
                 candidate = rrulestr(rule, dtstart=reference_start_date).after(
                     now_reference, True
                 )
-                if candidate is not None:
+                # Always true, as the patterns repeat without end. Kept as a
+                # safeguard in case a pattern with an end is added.
+                if candidate is not None:  # pragma: no branch
                     next_candidates.append(candidate)
 
             return min(next_candidates) if next_candidates else None

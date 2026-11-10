@@ -819,7 +819,9 @@ class AmazonEchoApi:
         self, vocal_history: dict[str, AmazonVocalRecord]
     ) -> None:
         """Emit vocal history event to subscribers."""
-        if self.on_history_event.frozen:
+        # Always true, as the only caller returns early without subscribers.
+        # Kept as a safeguard, like the other emit helpers.
+        if self.on_history_event.frozen:  # pragma: no branch
             _LOGGER.debug("Emitting vocal history event to subscribers")
             await self.on_history_event.send(vocal_history)
 
