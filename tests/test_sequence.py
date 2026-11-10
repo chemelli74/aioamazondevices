@@ -24,11 +24,9 @@ from aioamazondevices.structures import (
     AmazonSequenceType,
 )
 
-from .const import TEST_SERIAL_1, TEST_SERIAL_2
+from .const import TEST_CUSTOMER_ID, TEST_DEVICE_TYPE, TEST_SERIAL_1, TEST_SERIAL_2
 
-TEST_CUSTOMER_ID = "CUSTOMER_ID"
 TEST_PROVIDER_ID = "AMAZON_MUSIC"
-TEST_SERIAL_GROUP = "GROUP-1"
 OPAQUE_NODE = "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode"
 PARALLEL_NODE = "com.amazon.alexa.behaviors.model.ParallelNode"
 
@@ -61,21 +59,6 @@ def send_message(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> AsyncMo
     return send_message
 
 
-@pytest.fixture
-def speaker_group(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
-) -> AmazonDevice:
-    """Register two member devices and return a speaker group containing them."""
-    group = make_device(TEST_SERIAL_GROUP)
-    group.device_cluster_members = {TEST_SERIAL_1: None, TEST_SERIAL_2: None}
-    api._device_handler._final_devices = {
-        TEST_SERIAL_1: make_device(TEST_SERIAL_1),
-        TEST_SERIAL_2: make_device(TEST_SERIAL_2),
-        TEST_SERIAL_GROUP: group,
-    }
-    return group
-
-
 def _node(
     device: AmazonDevice, message_type: str, message_body: str
 ) -> AmazonSequenceNode:
@@ -106,7 +89,10 @@ async def _wait_for_batches(api: AmazonEchoApi) -> None:
                 "target": {
                     "customerId": TEST_CUSTOMER_ID,
                     "devices": [
-                        {"deviceSerialNumber": TEST_SERIAL_1, "deviceTypeId": "A1B2C3"}
+                        {
+                            "deviceSerialNumber": TEST_SERIAL_1,
+                            "deviceTypeId": TEST_DEVICE_TYPE,
+                        }
                     ],
                 },
                 "skillId": "amzn1.ask.1p.saysomething",
@@ -140,7 +126,7 @@ async def _wait_for_batches(api: AmazonEchoApi) -> None:
             "amzn1.ask.skill.123",
             {
                 "targetDevice": {
-                    "deviceType": "A1B2C3",
+                    "deviceType": TEST_DEVICE_TYPE,
                     "deviceSerialNumber": TEST_SERIAL_1,
                 },
                 "connectionRequest": {
@@ -156,7 +142,10 @@ async def _wait_for_batches(api: AmazonEchoApi) -> None:
             "",
             {
                 "devices": [
-                    {"deviceSerialNumber": TEST_SERIAL_1, "deviceType": "A1B2C3"}
+                    {
+                        "deviceSerialNumber": TEST_SERIAL_1,
+                        "deviceType": TEST_DEVICE_TYPE,
+                    }
                 ],
                 "skillId": "amzn1.ask.1p.alexadevicecontrols",
             },
@@ -183,7 +172,7 @@ async def test_build_operation_node(
         "@type": OPAQUE_NODE,
         "type": message_type,
         "operationPayload": {
-            "deviceType": "A1B2C3",
+            "deviceType": TEST_DEVICE_TYPE,
             "deviceSerialNumber": TEST_SERIAL_1,
             "locale": api._session_state_data.language,
             "customerId": TEST_CUSTOMER_ID,
@@ -238,7 +227,7 @@ async def test_build_operation_node_routine_replaces_placeholders(
             {
                 "operationPayload": {
                     "deviceSerialNumber": TEST_SERIAL_1,
-                    "deviceType": "A1B2C3",
+                    "deviceType": TEST_DEVICE_TYPE,
                     "text": "Good morning",
                 }
             }
