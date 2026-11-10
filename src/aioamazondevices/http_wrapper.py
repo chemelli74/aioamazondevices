@@ -132,11 +132,6 @@ class AmazonSessionStateData:
         """Set account customer id."""
         self._login_stored_data["account_customer_id"] = customer_id
 
-    @property
-    def user_id(self) -> str | None:
-        """Return user id."""
-        return self._login_stored_data.get("customer_info", {}).get("user_id") or None
-
     def country_specific_data(self, login_site: str) -> None:
         """Set country specific data."""
         # Force lower case
