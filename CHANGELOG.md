@@ -1,5 +1,18 @@
 # Changelog
 
+## v17.2.9 (2026-11-10)
+
+### Bug fixes
+
+- Avoid unecessary graphql call ([`6c786c1`](https://github.com/chemelli74/aioamazondevices/commit/6c786c1c4e9bfdbe5fedf6eebb82be22611ff166))
+
+
+### Build system
+
+- Make cleanup scripts safer to run ([`5faee3e`](https://github.com/chemelli74/aioamazondevices/commit/5faee3e4f358c5b69b24dccafbb459ed494805e7))
+- Stop grouping python dependency bumps ([`f09df15`](https://github.com/chemelli74/aioamazondevices/commit/f09df1551576ce056a2e50e25c4127c87840eef0))
+
+
 ## v17.2.8 (2026-11-05)
 
 ### Bug fixes
