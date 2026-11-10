@@ -32,12 +32,6 @@ PARALLEL_NODE = "com.amazon.alexa.behaviors.model.ParallelNode"
 
 
 @pytest.fixture
-def device(make_device: Callable[..., AmazonDevice]) -> AmazonDevice:
-    """Return a device to send messages to."""
-    return make_device(TEST_SERIAL_1)
-
-
-@pytest.fixture
 def post_sequences(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
     """Send batches immediately and replace posting them, returning the mock."""
     monkeypatch.setattr(sequence, "SEQUENCE_BATCH_DELAY", 0)
