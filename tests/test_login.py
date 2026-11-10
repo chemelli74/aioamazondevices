@@ -31,30 +31,18 @@ MAPLANDING_URL = URL("https://www.amazon.com/ap/maplanding")
 AUTH_CODE_URL = MAPLANDING_URL.with_query({"openid.oa2.authorization_code": "AN1"})
 SIGNIN_URL = URL("https://www.amazon.com/ap/signin")
 OAUTH_DATA = {"authorization_code": "AUTH_CODE", "code_verifier": b"VERIFIER"}
-EMAIL_PAGE = """
-<form name="signIn" method="post" action="/ax/claim?arb=ARB">
-  <input type="hidden" name="appAction" value="SIGNIN_CLAIM_COLLECT" />
-  <input type="text" name="email" />
-</form>
-"""
-PASSWORD_PAGE = """
-<form name="signIn" method="post" action="https://www.amazon.com/ap/signin">
-  <input type="hidden" name="appAction" value="SIGNIN_PWD_COLLECT" />
-  <input type="password" name="password" />
-</form>
-"""  # noqa: S105
-MFA_PAGE = """
-<form id="auth-mfa-form" method="post" action="https://www.amazon.com/ap/signin">
-  <input type="hidden" name="appAction" value="SIGNIN_MFA" />
-  <input id="auth-mfa-otpcode" type="tel" name="otpCode" />
-</form>
-"""
-ERROR_BOX = """
-<div id="auth-{kind}-message-box">
-  <h4>There was a problem</h4>
-  <div>{message}</div>
-</div>
-"""
+LOGIN_FIXTURES = FIXTURES_DIR / "login"
+
+
+def _read_page(name: str) -> str:
+    """Return the HTML of a login page fixture."""
+    return (LOGIN_FIXTURES / f"{name}.html").read_text(encoding="utf-8")
+
+
+EMAIL_PAGE = _read_page("email")
+PASSWORD_PAGE = _read_page("password")
+MFA_PAGE = _read_page("mfa")
+ERROR_BOX = _read_page("error_box")
 
 
 def _page(html: str, url: URL) -> tuple[BeautifulSoup, MagicMock]:
@@ -123,9 +111,7 @@ async def test_extract_code_from_url_missing_code(api: AmazonEchoApi, url: URL) 
 @pytest.mark.anyio
 async def test_get_inputs_from_soup(api: AmazonEchoApi) -> None:
     """Only the hidden inputs of the sign-in form are collected."""
-    soup = BeautifulSoup(
-        (FIXTURES_DIR / "ap_signin.html").read_text(encoding="utf-8"), "html.parser"
-    )
+    soup = BeautifulSoup(_read_page("ap_signin"), "html.parser")
 
     assert api._login._get_inputs_from_soup(soup) == {
         "appActionToken": "APP_ACTION_TOKEN",
