@@ -1,5 +1,56 @@
 # Changelog
 
+## v17.2.9 (2026-11-10)
+
+### Bug fixes
+
+- Avoid unecessary graphql call ([`6c786c1`](https://github.com/chemelli74/aioamazondevices/commit/6c786c1c4e9bfdbe5fedf6eebb82be22611ff166))
+
+
+### Build system
+
+- Make cleanup scripts safer to run ([`5faee3e`](https://github.com/chemelli74/aioamazondevices/commit/5faee3e4f358c5b69b24dccafbb459ed494805e7))
+- Stop grouping python dependency bumps ([`f09df15`](https://github.com/chemelli74/aioamazondevices/commit/f09df1551576ce056a2e50e25c4127c87840eef0))
+
+
+## v17.2.8 (2026-11-05)
+
+### Bug fixes
+
+- Restore echo glow hardcoded model metadata ([`3b7a3c3`](https://github.com/chemelli74/aioamazondevices/commit/3b7a3c3b5a0108190586eb6a564b2c12c6670729))
+
+
+## v17.2.7 (2026-11-05)
+
+### Bug fixes
+
+- Errors on comms endpoint ([`c708020`](https://github.com/chemelli74/aioamazondevices/commit/c708020fef268b5a022f06a5dcff80462dc184e3))
+
+
+## v17.2.6 (2026-11-03)
+
+### Bug fixes
+
+- Key and scale defaults for device specific sensors ([`a0345b3`](https://github.com/chemelli74/aioamazondevices/commit/a0345b368c9979d1030941c82cce73a3bfce853d))
+
+
+## v17.2.5 (2026-11-02)
+
+### Documentation
+
+- Contrib-readme-action has updated readme ([`5b755ed`](https://github.com/chemelli74/aioamazondevices/commit/5b755ed07b0107523dda6ff069996d6ea8bca4f6))
+
+
+### Bug fixes
+
+- Report temperature calibration placeholder as an error ([`4ad0d83`](https://github.com/chemelli74/aioamazondevices/commit/4ad0d8304ed6298500f3de27aa332b7a0a7ff367))
+
+
+### Testing
+
+- Load fixtures with orjson ([`7f25041`](https://github.com/chemelli74/aioamazondevices/commit/7f25041007480fc5af66b3e25fd3b31a45da36bb))
+
+
 ## v17.2.4 (2026-11-02)
 
 ### Bug fixes
