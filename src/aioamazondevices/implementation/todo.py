@@ -173,8 +173,13 @@ class AmazonToDoHandler:
                 return
 
         for item_id, event_type in changes.items():
-            # an item removed again before the fetch is reported as deleted
-            items = list_items.get(item_id)
+            # a deleted item has no details, even if a stale fetch still lists it,
+            # and an item removed again before the fetch is reported as deleted
+            items = (
+                None
+                if event_type == AmazonListEventType.DELETED
+                else list_items.get(item_id)
+            )
             # a failing subscriber must not drop the remaining events
             try:
                 await self._on_list_event(
