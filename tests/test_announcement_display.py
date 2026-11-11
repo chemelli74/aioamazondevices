@@ -119,10 +119,10 @@ def test_build_operation_node_display_text_positional_argument(
 @pytest.mark.parametrize(
     ("first_display", "second_display"),
     [
-        (None, None),
-        ("Dr. Smith", "Dr. Smith"),
-        ("Dr. Smith", "Other"),
-        (None, "Dr. Smith"),
+        pytest.param(None, None, id="both-default"),
+        pytest.param("Dr. Smith", "Dr. Smith", id="same-override"),
+        pytest.param("Dr. Smith", "Other", id="different-overrides"),
+        pytest.param(None, "Dr. Smith", id="one-override"),
     ],
 )
 def test_batch_preserves_display_text(
