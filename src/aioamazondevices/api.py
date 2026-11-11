@@ -14,6 +14,7 @@ from aiohttp import ClientSession
 from aiosignal import Signal
 from anyio import Path
 
+from aioamazondevices.implementation.alarm import AmazonAlarmHandler
 from aioamazondevices.implementation.communication import AlexaCommunicationsHandler
 from aioamazondevices.implementation.device import AmazonDeviceHandler
 from aioamazondevices.implementation.feature import AmazonFeatureHandler
@@ -39,6 +40,7 @@ from .implementation.notification import AmazonNotificationHandler
 from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
 from .structures import (
+    AmazonAlarm,
     AmazonDevice,
     AmazonDeviceSensor,
     AmazonDropInStatus,
@@ -145,6 +147,11 @@ class AmazonEchoApi:
         )
 
         self._communication_handler = AlexaCommunicationsHandler(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
+        self._alarm_handler = AmazonAlarmHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
         )
@@ -715,6 +722,10 @@ class AmazonEchoApi:
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
+
+    async def get_alarms(self, device: AmazonDevice) -> list[AmazonAlarm]:
+        """Return all alarms of a device, including disabled ones."""
+        return await self._alarm_handler.get_alarms(device)
 
     async def call_feature_operation(
         self,
