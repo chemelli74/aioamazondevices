@@ -3,6 +3,7 @@
 
 """Tests for the HTTP wrapper."""
 
+import logging
 from http import HTTPMethod, HTTPStatus
 
 import pytest
@@ -15,6 +16,15 @@ from aioamazondevices.const.http import CSRF_COOKIE
 from aioamazondevices.exceptions import CannotRetrieveData
 
 from .const import TEST_CSRF
+
+SDP_ICE_VALUE = "rtc-private-value"
+SDP_ADDRESS = "192.0.2.123"
+EXPECTED_REDACTED_LOGS = 2
+SDP = (
+    "v=0\r\n"
+    f"a=ice-pwd:{SDP_ICE_VALUE}\r\n"
+    f"a=candidate:1 1 UDP 2122260223 {SDP_ADDRESS} 54400 typ host\r\n"
+)
 
 
 @pytest.mark.anyio
@@ -79,3 +89,37 @@ async def test_retry_behaviour(
 
     assert sleeps == expected_sleeps
     assert len(requests) == expected_requests
+
+
+@pytest.mark.anyio
+async def test_sdp_is_redacted_from_request_and_response_logs(
+    api: AmazonEchoApi, caplog: pytest.LogCaptureFixture
+) -> None:
+    """SDP credentials and addresses are sent over the wire but omitted from logs."""
+    request_payload = {"payload": {"offer": {"format": "SDP", "value": SDP}}}
+    response_payload = {"responsePayload": {"answer": {"format": "SDP", "value": SDP}}}
+    received_payloads: list[object] = []
+
+    async def handler(request: web.Request) -> web.Response:
+        received_payloads.append(await request.json())
+        return web.json_response(response_payload)
+
+    app = web.Application()
+    app.router.add_post("/", handler)
+    async with TestServer(app) as server:
+        with caplog.at_level(logging.DEBUG, logger="aioamazondevices"):
+            _, response = await api._http_wrapper.session_request(
+                HTTPMethod.POST,
+                server.make_url("/"),
+                input_data=request_payload,
+                json_data=True,
+            )
+            parsed_response = await api._http_wrapper.response_to_json(
+                response, "RTC session"
+            )
+
+    assert received_payloads == [request_payload]
+    assert parsed_response == response_payload
+    assert SDP_ICE_VALUE not in caplog.text
+    assert SDP_ADDRESS not in caplog.text
+    assert caplog.text.count("[REDACTED]") == EXPECTED_REDACTED_LOGS

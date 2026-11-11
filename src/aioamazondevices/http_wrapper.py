@@ -48,7 +48,9 @@ from .exceptions import (
     CannotRetrieveData,
 )
 from .structures import AmazonSaveDataConfig
-from .utils import _LOGGER, scrub_fields
+from .utils import _LOGGER, TO_REDACT, scrub_fields
+
+HTTP_LOG_REDACT_FIELDS = TO_REDACT | {"answer", "offer"}
 
 
 class AmazonSessionStateData:
@@ -313,7 +315,7 @@ class AmazonHttpWrapper:
             "%s request: %s with payload %s [json=%s]",
             method,
             url,
-            scrub_fields(input_data) if input_data else None,
+            scrub_fields(input_data, HTTP_LOG_REDACT_FIELDS) if input_data else None,
             json_data,
         )
 
@@ -444,7 +446,11 @@ class AmazonHttpWrapper:
                 # generated key to convert list to dict
                 data = {ARRAY_WRAPPER: data}
             if description:
-                _LOGGER.debug("JSON '%s' data: %s", description, scrub_fields(data))
+                _LOGGER.debug(
+                    "JSON '%s' data: %s",
+                    description,
+                    scrub_fields(data, HTTP_LOG_REDACT_FIELDS),
+                )
             return cast("dict[str, Any]", data)
         except ContentTypeError as exc:
             if URI_SIGNIN in raw_resp.url.path:
