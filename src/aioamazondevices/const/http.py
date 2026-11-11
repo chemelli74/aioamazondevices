@@ -37,6 +37,7 @@ REQUEST_AGENT = {
 REFRESH_ACCESS_TOKEN = "access_token"  # noqa: S105
 REFRESH_AUTH_COOKIES = "auth_cookies"
 
+URI_ALARMS = "v1/alerts/alarms"
 URI_BEHAVIORS_AUTOMATIONS = "api/behaviors/v2/automations"
 URI_BEHAVIORS_PREVIEW = "api/behaviors/preview"
 URI_CAPABILITIES = "v1/devices/@self/capabilities"
@@ -45,6 +46,7 @@ URI_DEVICE_VOLUMES = "api/devices/deviceType/dsn/audio/v1/allDeviceVolumes"
 URI_DEVICES = "api/devices-v2/device"
 URI_DND_STATUS_ALL = "api/dnd/device-status-list"
 URI_DND_STATUS_DEVICE = "api/dnd/status"
+URI_ENDPOINTS = "api/endpoints"
 URI_HISTORY_DATA = "alexa-privacy/apd/rah/alexa-history-records-v2"
 URI_HISTORY_FRONTEND = "alexa-privacy/apd/rvh"
 URI_MEDIA_CONTROL = "api/np/command"

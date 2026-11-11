@@ -78,3 +78,47 @@ async def test_retry_behaviour(
     # aiohttp internals also yield with sleep(0), so only the delays are compared.
     assert [delay for delay in sleeps if delay] == expected_sleeps
     assert len(requests) == expected_requests
+
+
+@pytest.mark.anyio
+async def test_alarms_no_content_is_success(api: AmazonEchoApi) -> None:
+    """A 204 from the alarms API is a success."""
+
+    async def handler(_request: web.Request) -> web.Response:
+        return web.Response(status=HTTPStatus.NO_CONTENT)
+
+    app = web.Application()
+    app.router.add_put("/v1/alerts/alarms/idx-1/cancel", handler)
+    async with TestServer(app) as server:
+        _, resp = await api._http_wrapper.session_request(
+            HTTPMethod.PUT, server.make_url("/v1/alerts/alarms/idx-1/cancel")
+        )
+
+    assert resp.status == HTTPStatus.NO_CONTENT
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("path", "status"),
+    [
+        pytest.param(
+            "/v1/alerts/alarms/idx-1/cancel",
+            HTTPStatus.NOT_FOUND,
+            id="alarms-not-found",
+        ),
+        pytest.param("/api/other", HTTPStatus.NO_CONTENT, id="other-no-content"),
+    ],
+)
+async def test_alarms_errors(api: AmazonEchoApi, path: str, status: HTTPStatus) -> None:
+    """Other statuses of the alarms API, and 204 elsewhere, are errors."""
+
+    async def handler(_request: web.Request) -> web.Response:
+        return web.Response(status=status)
+
+    app = web.Application()
+    app.router.add_put(path, handler)
+    async with TestServer(app) as server:
+        with pytest.raises(CannotRetrieveData):
+            await api._http_wrapper.session_request(
+                HTTPMethod.PUT, server.make_url(path)
+            )

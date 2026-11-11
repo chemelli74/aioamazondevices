@@ -14,6 +14,7 @@ from aiohttp import ClientSession
 from aiosignal import Signal
 from anyio import Path
 
+from aioamazondevices.implementation.alarm import AmazonAlarmHandler
 from aioamazondevices.implementation.communication import AlexaCommunicationsHandler
 from aioamazondevices.implementation.device import AmazonDeviceHandler
 from aioamazondevices.implementation.feature import AmazonFeatureHandler
@@ -39,6 +40,7 @@ from .implementation.notification import AmazonNotificationHandler
 from .implementation.sequence import AmazonSequenceHandler
 from .login import AmazonLogin
 from .structures import (
+    AmazonAlarm,
     AmazonDevice,
     AmazonDeviceSensor,
     AmazonDropInStatus,
@@ -145,6 +147,11 @@ class AmazonEchoApi:
         )
 
         self._communication_handler = AlexaCommunicationsHandler(
+            http_wrapper=self._http_wrapper,
+            session_state_data=self._session_state_data,
+        )
+
+        self._alarm_handler = AmazonAlarmHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
         )
@@ -715,6 +722,49 @@ class AmazonEchoApi:
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
+
+    async def get_alarms(self, device: AmazonDevice) -> list[AmazonAlarm]:
+        """Return all alarms of a device, including disabled ones."""
+        return await self._alarm_handler.get_alarms(device)
+
+    async def create_alarm(
+        self,
+        device: AmazonDevice,
+        scheduled_time: datetime,
+        repeat_days: list[str] | None = None,
+    ) -> None:
+        """Create an alarm on a device.
+
+        A naive scheduled_time is the device's local time, an aware one is
+        converted to the local time of this host, assumed to be the device's.
+        repeat_days are days of the week (MO, TU, ...), None for a one-off alarm.
+        """
+        await self._alarm_handler.create_alarm(device, scheduled_time, repeat_days)
+
+    async def update_alarm(
+        self,
+        alarm: AmazonAlarm,
+        scheduled_time: datetime,
+        repeat_days: list[str] | None = None,
+    ) -> None:
+        """Change the time of an alarm.
+
+        Keeps the alarm's repeat days unless given, an empty list for a one-off.
+        Raises ValueError if they are not given and the alarm repeats in a way
+        repeat days can't express. A disabled alarm is enabled.
+        """
+        await self._alarm_handler.update_alarm(alarm, scheduled_time, repeat_days)
+
+    async def set_alarm_status(self, alarm: AmazonAlarm, enable: bool) -> None:
+        """Enable or disable an alarm.
+
+        Enabling raises ValueError if the next occurrence of the alarm is unknown.
+        """
+        await self._alarm_handler.set_alarm_status(alarm, enable)
+
+    async def delete_alarm(self, alarm: AmazonAlarm) -> None:
+        """Delete an alarm."""
+        await self._alarm_handler.delete_alarm(alarm)
 
     async def call_feature_operation(
         self,

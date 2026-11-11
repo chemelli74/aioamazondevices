@@ -38,6 +38,7 @@ from .const.http import (
     REFRESH_ACCESS_TOKEN,
     REFRESH_AUTH_COOKIES,
     REQUEST_AGENT,
+    URI_ALARMS,
     URI_CAPABILITIES,
     URI_SIGNIN,
     URI_TOKEN,
@@ -234,6 +235,14 @@ class AmazonHttpWrapper:
             and response.status == HTTPStatus.NO_CONTENT
         )
 
+    async def _ignore_alarms_error(self, response: ClientResponse) -> bool:
+        """Return true if error is due to alarms endpoint."""
+        # Endpoint alarms replies with 2xx statuses other than 200
+        return (
+            URI_ALARMS in response.url.path
+            and HTTPStatus.OK <= response.status < HTTPStatus.MULTIPLE_CHOICES
+        )
+
     async def set_session_state_data(
         self, session_state_data: AmazonSessionStateData
     ) -> None:
@@ -408,9 +417,11 @@ class AmazonHttpWrapper:
                 HTTPStatus.UNAUTHORIZED,
             ]:
                 raise CannotAuthenticate(await self.http_phrase_error(resp.status))
-            if not await self._ignore_ap_signin_error(
-                resp
-            ) and not await self._ignore_capabilities_error(resp):
+            if (
+                not await self._ignore_ap_signin_error(resp)
+                and not await self._ignore_capabilities_error(resp)
+                and not await self._ignore_alarms_error(resp)
+            ):
                 raise CannotRetrieveData(
                     f"Request failed: {await self.http_phrase_error(resp.status)}"
                 )
