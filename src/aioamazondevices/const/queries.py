@@ -342,6 +342,21 @@ mutation setEndpointFeatures(
       instance
       featureOperationName
       code
+      responsePayload {
+        type
+        ... on AnswerGeneratedForSessionResponse {
+          sessionId
+          sessionDomain
+          answer {
+            format
+            value
+          }
+        }
+        ... on SessionDisconnectedResponse {
+          sessionId
+          sessionDomain
+        }
+      }
     }
     errors {
       endpointId

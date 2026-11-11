@@ -36,9 +36,10 @@ class AmazonFeatureHandler:
         operation_name: str,
         command_payload: dict[str, Any] | None = None,
         instance: str | None = None,
-    ) -> None:
+    ) -> dict[str, Any] | None:
         """Invoke a feature operation on an endpoint.
 
+        Return the operation response payload when Amazon provides one.
         Raises CannotSetFeature if the operation is rejected.
         """
         request: dict[str, Any] = {
@@ -77,19 +78,23 @@ class AmazonFeatureHandler:
             f"{feature_name}[{instance or ''}].{operation_name} on {endpoint_id}"
         )
 
-        self._parse_response(response, readable_form)
+        return self._parse_response(response, readable_form)
 
-    def _parse_response(self, response: dict[str, Any], readable_form: str) -> None:
-        """Raise CannotSetFeature if the response reports any error."""
+    def _parse_response(
+        self, response: dict[str, Any], readable_form: str
+    ) -> dict[str, Any] | None:
+        """Return the operation payload or raise if the response reports an error."""
         try:
-            self._check_response(response, readable_form)
+            return self._check_response(response, readable_form)
         except (AttributeError, IndexError, TypeError) as exc:
             raise CannotSetFeature(
                 f"Malformed response received setting {readable_form}: {response}"
             ) from exc
 
-    def _check_response(self, response: dict[str, Any], readable_form: str) -> None:
-        """Raise CannotSetFeature if the response reports any failure."""
+    def _check_response(
+        self, response: dict[str, Any], readable_form: str
+    ) -> dict[str, Any] | None:
+        """Return the operation payload or raise if the response reports a failure."""
         if check_and_log_graphql_errors("MUTATION_SET_ENDPOINT_FEATURES", response):
             raise CannotSetFeature(f"Cannot set {readable_form}.")
 
@@ -117,3 +122,10 @@ class AmazonFeatureHandler:
             _LOGGER.debug(
                 "Feature set: %s [%s]", readable_form, response_details.get("code")
             )
+
+        response_payload = responses[0].get("responsePayload")
+        if response_payload is not None and not isinstance(response_payload, dict):
+            raise CannotSetFeature(
+                f"Malformed response received setting {readable_form}: {response}"
+            )
+        return response_payload

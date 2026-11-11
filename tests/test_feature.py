@@ -5,7 +5,7 @@
 
 import logging
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import Any, cast
 from unittest.mock import AsyncMock, MagicMock
 
@@ -15,13 +15,21 @@ import pytest
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.exceptions import CannotSetFeature
 from aioamazondevices.implementation.feature import OPERATION_NAME
-from aioamazondevices.structures import AmazonDevice, AmazonDeviceFeature
+from aioamazondevices.structures import (
+    AmazonDevice,
+    AmazonDeviceFeature,
+    AmazonRTCSession,
+)
 
 from .const import FIXTURES_DIR, TEST_SERIAL_1
 
 ENDPOINT_ID = "amzn1.alexa.endpoint.00000000-0000-0000-0000-000000000000"
 INVALID_ENDPOINT_ID = "amzn1.alexa.endpoint.123"
 DEVICE_NAME = f"Echo {TEST_SERIAL_1}"
+RTC_SESSION_ID = "2ab54ad2-9600-4f33-a72e-3c77a0ef2534"
+RTC_SESSION_DOMAIN = "amzn1.alexa.rtc.session.test"
+RTC_OFFER_SDP = "v=0\r\no=- 1 1 IN IP4 127.0.0.1\r\n"
+RTC_ANSWER_SDP = "v=0\r\no=- 2 2 IN IP4 127.0.0.1\r\n"
 
 type JsonBody = dict[str, Any] | list[dict[str, Any]]
 
@@ -35,6 +43,18 @@ def _fixture(name: str) -> list[dict[str, Any]]:
 def _result(result: dict[str, Any] | list[Any] | None) -> list[dict[str, Any]]:
     """Wrap a setEndpointFeatures result in a GraphQL response."""
     return [{"data": {OPERATION_NAME: result}}]
+
+
+def _success(response_payload: Mapping[str, object] | None) -> list[dict[str, Any]]:
+    """Build a successful feature operation response with a response payload."""
+    return _result(
+        {
+            "featureControlResponses": [
+                {"code": "SUCCESS", "responsePayload": response_payload}
+            ],
+            "errors": [],
+        }
+    )
 
 
 def _feature(*operations: str) -> AmazonDeviceFeature:
@@ -63,6 +83,9 @@ def device(make_device: Callable[..., AmazonDevice]) -> AmazonDevice:
     device.features = {
         "toggle": {"11": toggle, "21": toggle},
         "power": {"": _feature("turnOn", "turnOff")},
+    }
+    device.unsupported_features = {
+        "rtcSession": {"": _feature("initiateSessionWithOffer", "disconnectSession")}
     }
     return device
 
@@ -134,6 +157,88 @@ async def test_set_feature_sends_payload(
     assert _sent_request(session_request)["payload"] == {"value": 1}
 
 
+@pytest.mark.anyio
+async def test_initiate_rtc_session_returns_sdp_answer(
+    api: AmazonEchoApi, device: AmazonDevice
+) -> None:
+    """RTC initiation supports an operation-only feature and returns its answer."""
+    response_payload = {
+        "type": "AnswerGeneratedForSessionResponse",
+        "sessionId": RTC_SESSION_ID,
+        "sessionDomain": RTC_SESSION_DOMAIN,
+        "answer": {"format": "SDP", "value": RTC_ANSWER_SDP},
+    }
+    session_request = _mock_response(api, _success(response_payload))
+
+    session = await api.initiate_rtc_session(device, RTC_SESSION_ID, RTC_OFFER_SDP)
+
+    assert session == AmazonRTCSession(
+        session_id=RTC_SESSION_ID,
+        session_domain=RTC_SESSION_DOMAIN,
+        answer_sdp=RTC_ANSWER_SDP,
+    )
+    assert _sent_request(session_request) == {
+        "endpointId": ENDPOINT_ID,
+        "featureName": "rtcSession",
+        "featureOperationName": "initiateSessionWithOffer",
+        "payload": {
+            "sessionId": RTC_SESSION_ID,
+            "offer": {"format": "SDP", "value": RTC_OFFER_SDP},
+        },
+    }
+
+
+@pytest.mark.anyio
+async def test_disconnect_rtc_session(api: AmazonEchoApi, device: AmazonDevice) -> None:
+    """RTC disconnection sends the session identifier."""
+    session_request = _mock_response(api, _success(None))
+
+    await api.disconnect_rtc_session(device, RTC_SESSION_ID)
+
+    assert _sent_request(session_request) == {
+        "endpointId": ENDPOINT_ID,
+        "featureName": "rtcSession",
+        "featureOperationName": "disconnectSession",
+        "payload": {"sessionId": RTC_SESSION_ID},
+    }
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "response_payload",
+    [
+        None,
+        {"sessionId": 1},
+        {"sessionId": RTC_SESSION_ID, "sessionDomain": 1},
+        {
+            "sessionId": RTC_SESSION_ID,
+            "sessionDomain": RTC_SESSION_DOMAIN,
+            "answer": "invalid",
+        },
+        {
+            "sessionId": RTC_SESSION_ID,
+            "sessionDomain": RTC_SESSION_DOMAIN,
+            "answer": {"format": "JSON", "value": RTC_ANSWER_SDP},
+        },
+        {
+            "sessionId": RTC_SESSION_ID,
+            "sessionDomain": RTC_SESSION_DOMAIN,
+            "answer": {"format": "SDP", "value": 1},
+        },
+    ],
+)
+async def test_initiate_rtc_session_rejects_malformed_response(
+    api: AmazonEchoApi,
+    device: AmazonDevice,
+    response_payload: Mapping[str, object] | None,
+) -> None:
+    """RTC initiation rejects responses without a valid SDP answer."""
+    _mock_response(api, _success(response_payload))
+
+    with pytest.raises(CannotSetFeature, match="Malformed RTC session response"):
+        await api.initiate_rtc_session(device, RTC_SESSION_ID, RTC_OFFER_SDP)
+
+
 @pytest.mark.parametrize(
     ("fixture", "request_args", "message"),
     [
@@ -191,6 +296,10 @@ async def test_set_feature_rejected(
             "Malformed response received setting",
         ),
         (
+            _result({"featureControlResponses": [{"responsePayload": "invalid"}]}),
+            "Malformed response received setting",
+        ),
+        (
             _result({"errors": [{}]}),
             "Unknown code: no message",
         ),
@@ -205,6 +314,7 @@ async def test_set_feature_rejected(
         "data_not_dict",
         "error_not_dict",
         "control_response_not_dict",
+        "response_payload_not_dict",
         "error_without_details",
         "no_responses",
     ],

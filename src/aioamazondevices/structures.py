@@ -78,6 +78,15 @@ class AmazonDeviceFeature:
 
 
 @dataclass
+class AmazonRTCSession:
+    """Amazon real-time communication session."""
+
+    session_id: str
+    session_domain: str
+    answer_sdp: str
+
+
+@dataclass
 class AmazonDevice:
     """Amazon device class."""
 
