@@ -50,6 +50,7 @@ from .structures import (
     AmazonMediaState,
     AmazonMusicProvider,
     AmazonPushMessage,
+    AmazonRTCSession,
     AmazonSaveDataConfig,
     AmazonSchedule,
     AmazonSequenceType,
@@ -60,6 +61,9 @@ from .utils import _LOGGER, scrub_fields
 
 SETTINGS_FILENAME = "settings.json"
 SETTINGS_DEFAULT_DEVICE = "default_device"
+RTC_FEATURE = "rtcSession"
+RTC_INITIATE_OPERATION = "initiateSessionWithOffer"
+RTC_DISCONNECT_OPERATION = "disconnectSession"
 
 
 class AmazonEchoApi:
@@ -723,9 +727,10 @@ class AmazonEchoApi:
         operation_name: str,
         command_payload: dict[str, Any] | None = None,
         instance: str | None = None,
-    ) -> None:
+    ) -> dict[str, Any] | None:
         """Invoke a feature operation on a device endpoint.
 
+        Return the operation response payload when Amazon provides one.
         Raises CannotSetFeature if the operation fails.
         """
         if not device.endpoint_id:
@@ -734,27 +739,73 @@ class AmazonEchoApi:
             )
 
         instance_text = f" instance: {instance}" if instance else ""
-        if not (feat := device.features.get(feature_name)) or not (
-            feat_instance := feat.get(instance or "")
-        ):
+        feature_instance = (device.features.get(feature_name) or {}).get(
+            instance or ""
+        ) or (device.unsupported_features.get(feature_name) or {}).get(instance or "")
+        if not feature_instance:
             raise CannotSetFeature(
                 f"Device ({device.account_name}) does not have"
                 f" feature: {feature_name}{instance_text}."
             )
 
-        if operation_name not in feat_instance.supported_operations:
+        if operation_name not in feature_instance.supported_operations:
             raise CannotSetFeature(
                 f"Operation: {operation_name} not valid for"
                 f" device ({device.account_name})"
                 f" feature: {feature_name}{instance_text}."
             )
 
-        await self._feature_handler.set_feature(
+        return await self._feature_handler.set_feature(
             endpoint_id=device.endpoint_id,
             feature_name=feature_name,
             operation_name=operation_name,
             command_payload=command_payload,
             instance=instance,
+        )
+
+    async def initiate_rtc_session(
+        self, device: AmazonDevice, session_id: str, offer_sdp: str
+    ) -> AmazonRTCSession:
+        """Initiate a WebRTC session and return Amazon's SDP answer."""
+        response = await self.call_feature_operation(
+            device,
+            RTC_FEATURE,
+            RTC_INITIATE_OPERATION,
+            command_payload={
+                "sessionId": session_id,
+                "offer": {"format": "SDP", "value": offer_sdp},
+            },
+        )
+
+        answer = response.get("answer") if response else None
+        if (
+            not response
+            or not isinstance(response.get("sessionId"), str)
+            or not isinstance(response.get("sessionDomain"), str)
+            or not isinstance(answer, dict)
+            or answer.get("format") != "SDP"
+            or not isinstance(answer.get("value"), str)
+        ):
+            raise CannotSetFeature(
+                f"Malformed RTC session response received for device"
+                f" ({device.account_name})."
+            )
+
+        return AmazonRTCSession(
+            session_id=response["sessionId"],
+            session_domain=response["sessionDomain"],
+            answer_sdp=answer["value"],
+        )
+
+    async def disconnect_rtc_session(
+        self, device: AmazonDevice, session_id: str
+    ) -> None:
+        """Disconnect an active WebRTC session."""
+        await self.call_feature_operation(
+            device,
+            RTC_FEATURE,
+            RTC_DISCONNECT_OPERATION,
+            command_payload={"sessionId": session_id},
         )
 
     async def set_communication_status(
