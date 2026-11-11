@@ -345,7 +345,7 @@ class AmazonHttpWrapper:
                 _cookies, URL.build(scheme="https", host=".amazon.com")
             )
 
-        resp: ClientResponse | None = None
+        resp: ClientResponse
         retry_delays = [0, 2, 5] if not fail_fast else [0]
         for delay in retry_delays:
             if delay:
@@ -374,12 +374,6 @@ class AmazonHttpWrapper:
                 HTTPStatus.TOO_MANY_REQUESTS,
             ]:
                 break
-
-        # Unreachable, as the loop runs at least once and each attempt either sets
-        # resp or raises. Kept to narrow the type of resp and as a safeguard.
-        if resp is None:  # pragma: no cover
-            _LOGGER.error("No response received from %s", url)
-            raise CannotConnect(f"No response received from {url}")
 
         if csrf_value := resp.cookies.get(CSRF_COOKIE, Morsel()).value:
             self._csrf_cookie = csrf_value
