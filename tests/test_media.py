@@ -482,6 +482,46 @@ async def test_set_device_volume_sends_to_each_member(
 
 
 @pytest.mark.anyio
+async def test_set_device_volume_skips_unaddressable_cluster_member(
+    api: AmazonEchoApi,
+    send_message: AsyncMock,
+    speaker_group: AmazonDevice,
+    debug_logs: pytest.LogCaptureFixture,
+) -> None:
+    """A non-addressable Echo Sub does not prevent setting the Studios' volumes."""
+    devices = api._device_handler.devices
+    # Amazon includes an Echo Sub in the cluster, but excludes it from devices.
+    speaker_group.device_cluster_members = {
+        TEST_SERIAL_1: None,
+        TEST_SERIAL_3: None,
+        TEST_SERIAL_2: None,
+    }
+    assert TEST_SERIAL_3 not in devices
+
+    await api.set_device_volume(speaker_group, 35)
+
+    assert send_message.await_args_list == [
+        call(devices[TEST_SERIAL_1], AmazonSequenceType.Volume, "35", None),
+        call(devices[TEST_SERIAL_2], AmazonSequenceType.Volume, "35", None),
+    ]
+    assert f"Skipping cluster member {TEST_SERIAL_3}" in debug_logs.text
+
+
+@pytest.mark.anyio
+async def test_set_device_volume_skips_cluster_with_no_addressable_members(
+    api: AmazonEchoApi,
+    send_message: AsyncMock,
+    speaker_group: AmazonDevice,
+) -> None:
+    """A cluster with no addressable members sends no volume commands."""
+    speaker_group.device_cluster_members = {TEST_SERIAL_3: None}
+
+    await api.set_device_volume(speaker_group, 35)
+
+    send_message.assert_not_awaited()
+
+
+@pytest.mark.anyio
 @pytest.mark.parametrize(
     "volume",
     [
