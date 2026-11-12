@@ -232,6 +232,22 @@ async def test_build_operation_node_routine_replaces_placeholders(
 
 
 @pytest.mark.anyio
+@pytest.mark.usefixtures("logged_in")
+async def test_build_operation_node_routine_with_empty_start_node(
+    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
+) -> None:
+    """A routine with an empty start node has no placeholders to replace."""
+    handler = api._sequence_handler
+    handler._routines = {"Morning": {"startNode": {}}}
+
+    node = handler._build_operation_node(
+        make_device(TEST_SERIAL_1), AmazonSequenceType.Routines, "Morning"
+    )
+
+    assert node == {}
+
+
+@pytest.mark.anyio
 async def test_update_routines_keeps_enabled_routines(
     api: AmazonEchoApi, mock_json_response: Callable[[dict[str, Any]], AsyncMock]
 ) -> None:
