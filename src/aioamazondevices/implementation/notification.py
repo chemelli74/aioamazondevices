@@ -187,36 +187,26 @@ class AmazonNotificationHandler:
         if recurring_rules:
             next_candidates: list[datetime] = []
             for recurring_rule in recurring_rules:
-                # Already in RFC5545 format
-                if "FREQ=" in recurring_rule:
-                    rule = self._add_hours_minutes(recurring_rule, original_time)
+                # A rule containing FREQ= is already in RFC5545 format.
+                rule = recurring_rule
+                if "FREQ=" not in recurring_rule:
+                    if recurring_rule not in RECURRING_PATTERNS:
+                        _LOGGER.warning(
+                            "Unknown recurring rule <%s> for schedule type <%s>",
+                            recurring_rule,
+                            schedule["type"],
+                        )
+                        return None
 
-                    # `after` may return None when no next occurrence exists.
-                    candidate = rrulestr(rule, dtstart=reference_start_date).after(
-                        now_reference, True
-                    )
-                    if candidate is not None:
-                        next_candidates.append(candidate)
-                    continue
+                    # Adjust recurring rules for country specific weekend exceptions
+                    recurring_pattern = RECURRING_PATTERNS.copy()
+                    for group, countries in COUNTRY_GROUPS.items():
+                        if self._session_state_data.country_code in countries:
+                            recurring_pattern |= WEEKEND_EXCEPTIONS[group]
+                            break
+                    rule = recurring_pattern[recurring_rule]
 
-                if recurring_rule not in RECURRING_PATTERNS:
-                    _LOGGER.warning(
-                        "Unknown recurring rule <%s> for schedule type <%s>",
-                        recurring_rule,
-                        schedule["type"],
-                    )
-                    return None
-
-                # Adjust recurring rules for country specific weekend exceptions
-                recurring_pattern = RECURRING_PATTERNS.copy()
-                for group, countries in COUNTRY_GROUPS.items():
-                    if self._session_state_data.country_code in countries:
-                        recurring_pattern |= WEEKEND_EXCEPTIONS[group]
-                        break
-
-                rule = self._add_hours_minutes(
-                    recurring_pattern[recurring_rule], original_time
-                )
+                rule = self._add_hours_minutes(rule, original_time)
 
                 # `after` may return None when no next occurrence exists.
                 candidate = rrulestr(rule, dtstart=reference_start_date).after(
