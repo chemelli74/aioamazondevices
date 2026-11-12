@@ -269,9 +269,12 @@ async def test_connection_error(api: AmazonEchoApi) -> None:
 @pytest.mark.parametrize(
     "status",
     [
-        HTTPStatus.UNAUTHORIZED,
-        HTTPStatus.FORBIDDEN,
-        HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
+        pytest.param(HTTPStatus.UNAUTHORIZED, id="unauthorized"),
+        pytest.param(HTTPStatus.FORBIDDEN, id="forbidden"),
+        pytest.param(
+            HTTPStatus.PROXY_AUTHENTICATION_REQUIRED,
+            id="proxy-authentication-required",
+        ),
     ],
 )
 async def test_authentication_error(
