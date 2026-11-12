@@ -3,7 +3,6 @@
 
 """Tests for sensor sync, poll and push handling in AmazonSensorHandler."""
 
-import logging
 from collections.abc import Callable
 from typing import Any
 from unittest.mock import AsyncMock
@@ -408,9 +407,8 @@ async def test_sync_skips_features_without_definition(
         "instance": "4",
         "properties": [{"name": "rangeValue", "rangeValue": {"value": 40}}],
     }
-    device = make_device(TEST_SERIAL_1)
+    device = make_device(TEST_SERIAL_1, device_type=DEVICE_TYPE_AQM)
     device.endpoint_id = ENDPOINT
-    device.device_type = DEVICE_TYPE_AQM
     _supports(device, aqm_humidity)
     # Range sensors are only defined for the air quality monitor.
     device.device_type = "OTHER"
@@ -461,14 +459,12 @@ async def test_malformed_smart_home_event_is_logged(
 
 @pytest.mark.anyio
 async def test_unknown_push_event_is_ignored(
-    api: AmazonEchoApi, caplog: pytest.LogCaptureFixture
+    api: AmazonEchoApi, debug_logs: pytest.LogCaptureFixture
 ) -> None:
     """Push events of an unknown type are logged and otherwise ignored."""
-    caplog.set_level(logging.DEBUG)
-
     await api._http2_push_event_handler("UNKNOWN_EVENT", {})
 
-    assert "Unhandled push event type: UNKNOWN_EVENT" in caplog.text
+    assert "Unhandled push event type: UNKNOWN_EVENT" in debug_logs.text
 
 
 @pytest.mark.anyio

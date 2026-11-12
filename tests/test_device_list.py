@@ -16,10 +16,9 @@ from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.implementation.device import AmazonDeviceHandler
 from aioamazondevices.structures import AmazonDeviceFeature
 
-from .const import TEST_SERIAL_1, TEST_SERIAL_2
+from .const import TEST_CUSTOMER_ID, TEST_SERIAL_1, TEST_SERIAL_2, TEST_SERIAL_GROUP
 
 TEST_SERIAL_AQM = "AQM-1"
-TEST_SERIAL_GROUP = "GROUP-1"
 
 # the autouse fixture below replaces the lookup, keep the real one to test it
 _get_endpoints_features = AmazonDeviceHandler._get_endpoints_features
@@ -45,7 +44,7 @@ def _base_device(
         else ["MICROPHONE", "AUDIO_PLAYER"],
         "deviceFamily": device_family,
         "deviceType": device_type,
-        "deviceOwnerCustomerId": "CUSTOMER_ID",
+        "deviceOwnerCustomerId": TEST_CUSTOMER_ID,
         "serialNumber": serial_number,
         "clusterMembers": cluster_members,
         "parentClusters": [],
@@ -86,7 +85,7 @@ def _patch_sources(
     monkeypatch: pytest.MonkeyPatch,
     handler: AmazonDeviceHandler,
     devices_endpoints: dict[str, dict[str, Any]],
-    base_devices: dict[str, dict[str, Any]] | AsyncMock,
+    base_devices: dict[str, dict[str, Any]],
 ) -> None:
     """Replace the two data sources of the device handler."""
     monkeypatch.setattr(
@@ -97,9 +96,7 @@ def _patch_sources(
     monkeypatch.setattr(
         handler,
         "_get_base_devices_data",
-        base_devices
-        if isinstance(base_devices, AsyncMock)
-        else AsyncMock(return_value=base_devices),
+        AsyncMock(return_value=base_devices),
     )
 
 
@@ -108,7 +105,7 @@ def _feature(**overrides: object) -> AmazonDeviceFeature:
     fields: dict[str, Any] = {
         "supported_operations": [],
         "properties": [],
-        "supported_modes": [],
+        "supported_modes": {},
         "friendly_name": None,
         "minimum_value": None,
         "maximum_value": None,
@@ -446,6 +443,17 @@ async def test_features_are_read_for_the_built_devices(
         "unitOfMeasure": _text("Alexa.Unit.Percent"),
         "presets": None,
     }
+    # light modes have numeric IDs, only the friendly names are meaningful
+    mode_configuration = {
+        "friendlyName": _text("Mode"),
+        "order": "UNORDERED",
+        "modeOptions": [
+            {"value": "4", "modeResources": {"friendlyName": _text("Campfire")}},
+            {"value": "6", "modeResources": {"friendlyName": _text("Christmas")}},
+            # options without a friendly name fall back to the ID
+            {"value": "3", "modeResources": None},
+        ],
+    }
     features: list[dict[str, Any]] = [
         {
             "name": "power",
@@ -455,11 +463,9 @@ async def test_features_are_read_for_the_built_devices(
         },
         {
             "name": "mode",
-            "instance": "Fan.Speed",
+            "instance": "1",
             "operations": [{"name": "setMode"}],
-            "configuration": {
-                "modeOptions": [{"value": "Low"}, {"value": "High"}],
-            },
+            "configuration": mode_configuration,
         },
         {
             "name": "thermostat",
@@ -541,17 +547,16 @@ async def test_features_are_read_for_the_built_devices(
         "motionSensor": {"": _feature(properties=["sensitivity"])},
         "power": {"": _feature(supported_operations=["turnOn", "turnOff"])},
         "mode": {
-            "Fan.Speed": _feature(
+            "1": _feature(
                 supported_operations=["setMode"],
-                supported_modes=["Low", "High"],
-                raw_configuration={
-                    "modeOptions": [{"value": "Low"}, {"value": "High"}],
-                },
+                supported_modes={"4": "Campfire", "6": "Christmas", "3": "3"},
+                friendly_name="Mode",
+                raw_configuration=mode_configuration,
             )
         },
         "thermostat": {
             "": _feature(
-                supported_modes=["HEAT", "OFF"],
+                supported_modes={"HEAT": "HEAT", "OFF": "OFF"},
                 raw_configuration={"supportedModes": ["HEAT", "OFF"]},
             )
         },

@@ -59,33 +59,44 @@ def test_templated_property_definition(
     )
 
 
+@pytest.mark.parametrize(
+    ("instance", "expected_key"),
+    [
+        pytest.param("1", "rangeValue-1", id="keyed-by-property-and-instance"),
+        pytest.param("", "rangeValue", id="without-instance-keyed-by-property"),
+    ],
+)
 def test_specific_sensor_without_name_uses_fallback(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, instance: str, expected_key: str
 ) -> None:
-    """An override without a name is keyed by property name and instance."""
+    """An override without a name is keyed by property name and its instance."""
     monkeypatch.setitem(
-        feature_property_definitions.SPECIFIC_SENSORS, "TESTTYPE", {"range": {"1": {}}}
+        feature_property_definitions.SPECIFIC_SENSORS,
+        "TESTTYPE",
+        {"range": {instance: {}}},
     )
 
     definition = resolve_feature_property_definition(
-        "TESTTYPE", "range", "1", "rangeValue"
+        "TESTTYPE", "range", instance, "rangeValue"
     )
 
     assert definition is not None
-    assert definition.key == "rangeValue-1"
+    assert definition.key == expected_key
 
 
 @pytest.mark.parametrize(
     ("device_type", "feature_name", "instance", "property_name"),
     [
-        # feature without a template
-        ("ANYTYPE", "power", "", "powerState"),
-        # property without a template
-        ("ANYTYPE", "motionSensor", "", "sensitivity"),
-        # specific feature on a device type that does not enable it
-        ("ANYTYPE", "range", "4", "rangeValue"),
-        # specific feature on an instance that is not enabled
-        (DEVICE_TYPE_AQM, "range", "99", "rangeValue"),
+        pytest.param("ANYTYPE", "power", "", "powerState", id="feature-untemplated"),
+        pytest.param(
+            "ANYTYPE", "motionSensor", "", "sensitivity", id="property-untemplated"
+        ),
+        pytest.param(
+            "ANYTYPE", "range", "4", "rangeValue", id="device-type-not-enabled"
+        ),
+        pytest.param(
+            DEVICE_TYPE_AQM, "range", "99", "rangeValue", id="instance-not-enabled"
+        ),
     ],
 )
 def test_untemplated_property_has_no_definition(

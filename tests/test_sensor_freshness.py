@@ -14,14 +14,14 @@ from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 from .const import TEST_SERIAL_1
 
 
-def _illuminance_endpoint(time_of_sample: str | int | None = None) -> dict[str, Any]:
+def _illuminance_endpoint(**fields: object) -> dict[str, Any]:
+    """Build an illuminance sensor endpoint, adding any fields to the property."""
     property_data: dict[str, Any] = {
         "name": "illuminance",
         "illuminanceValue": {"value": 42.0},
         "error": None,
+        **fields,
     }
-    if time_of_sample is not None:
-        property_data["timeOfSample"] = time_of_sample
 
     return {
         "features": [
@@ -38,43 +38,39 @@ def _illuminance_endpoint(time_of_sample: str | int | None = None) -> dict[str, 
 def sync_illuminance(
     make_device: Callable[..., AmazonDevice],
     sync_sensors: Callable[..., dict[str, AmazonDeviceSensor]],
-) -> Callable[[str | int | None], dict[str, AmazonDeviceSensor]]:
+) -> Callable[[dict[str, object]], dict[str, AmazonDeviceSensor]]:
     """Return a helper that syncs an illuminance sample and returns the sensors."""
 
-    def _sync_illuminance(
-        time_of_sample: str | int | None,
-    ) -> dict[str, AmazonDeviceSensor]:
-        return sync_sensors(
-            _illuminance_endpoint(time_of_sample), make_device(TEST_SERIAL_1)
-        )
+    def _sync_illuminance(fields: dict[str, object]) -> dict[str, AmazonDeviceSensor]:
+        return sync_sensors(_illuminance_endpoint(**fields), make_device(TEST_SERIAL_1))
 
     return _sync_illuminance
 
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    ("time_of_sample", "expected", "logged"),
+    ("fields", "expected", "logged"),
     [
         pytest.param(
-            "2026-09-12T08:09:17.922Z",
+            {"timeOfSample": "2026-09-12T08:09:17.922Z"},
             datetime(2026, 9, 12, 8, 9, 17, 922000, tzinfo=UTC),
             False,
             id="parsed",
         ),
-        pytest.param(None, None, False, id="missing"),
-        pytest.param("not-a-timestamp", None, True, id="unparsable"),
-        pytest.param(12345, None, True, id="non-string"),
+        pytest.param({}, None, False, id="missing"),
+        pytest.param({"timeOfSample": "not-a-timestamp"}, None, True, id="unparsable"),
+        pytest.param({"timeOfSample": 12345}, None, True, id="non-string"),
     ],
 )
 async def test_time_of_sample(
-    sync_illuminance: Callable[[str | int | None], dict[str, AmazonDeviceSensor]],
+    sync_illuminance: Callable[[dict[str, object]], dict[str, AmazonDeviceSensor]],
     caplog: pytest.LogCaptureFixture,
-    time_of_sample: str | int | None,
+    fields: dict[str, object],
     expected: datetime | None,
     logged: bool,
 ) -> None:
     """A valid timeOfSample is parsed, anything else is unset and logged."""
-    sensors = sync_illuminance(time_of_sample)
+    sensors = sync_illuminance(fields)
 
     assert sensors["illuminance"].time_of_sample == expected
     assert ("unparsable timeOfSample" in caplog.text) is logged

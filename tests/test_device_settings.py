@@ -4,7 +4,8 @@
 """Tests for applying notifications and communication settings to devices."""
 
 from collections.abc import Callable
-from unittest.mock import AsyncMock, Mock
+from typing import Any
+from unittest.mock import AsyncMock, Mock, call
 
 import pytest
 
@@ -115,7 +116,7 @@ async def test_get_devices_data_applies_settings(
     get_communications = AsyncMock(return_value=COMMUNICATIONS)
     update_polled_sensors = AsyncMock()
     update_online_statuses = Mock()
-    monkeypatch.setattr(api, "_refresh_basic_data", AsyncMock())
+    monkeypatch.setattr(api, "_refresh_basic_data", AsyncMock(return_value=False))
     monkeypatch.setattr(
         api._notification_handler,
         "get_notifications",
@@ -135,8 +136,53 @@ async def test_get_devices_data_applies_settings(
 
     assert await api.get_devices_data() is devices
 
-    get_communications.assert_awaited_once_with()
+    get_communications.assert_awaited_once_with([device])
     update_polled_sensors.assert_awaited_once_with()
     update_online_statuses.assert_called_once_with(devices)
     assert device.notifications == {NOTIFICATION_REMINDER: REMINDER}
     assert device.communication_settings == COMMUNICATIONS[TEST_SERIAL_1]
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("daily_refreshed", "resync_required", "expected"),
+    [
+        pytest.param(False, False, ([], [call()]), id="no-full-sync"),
+        pytest.param(True, False, ([], []), id="daily-refresh"),
+        pytest.param(False, True, ([call()], []), id="resync-retry"),
+    ],
+)
+async def test_get_devices_data_skips_poll_after_full_sync(
+    api: AmazonEchoApi,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    daily_refreshed: bool,
+    resync_required: bool,
+    expected: tuple[list[Any], list[Any]],
+) -> None:
+    """A full sensor sync in the same poll makes the polled query redundant."""
+    update_polled_sensors = AsyncMock()
+    resync_sensors = AsyncMock()
+    api._sensor_resync_required = resync_required
+    monkeypatch.setattr(
+        api, "_refresh_basic_data", AsyncMock(return_value=daily_refreshed)
+    )
+    monkeypatch.setattr(api, "_resync_sensors", resync_sensors)
+    monkeypatch.setattr(
+        api._notification_handler, "get_notifications", AsyncMock(return_value=None)
+    )
+    monkeypatch.setattr(
+        api._communication_handler,
+        "get_communication_preferences",
+        AsyncMock(return_value={}),
+    )
+    monkeypatch.setattr(
+        api._sensor_handler, "update_polled_sensors", update_polled_sensors
+    )
+
+    expected_resyncs, expected_polls = expected
+
+    await api.get_devices_data()
+
+    assert resync_sensors.await_args_list == expected_resyncs
+    assert update_polled_sensors.await_args_list == expected_polls
