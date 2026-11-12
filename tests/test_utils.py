@@ -27,6 +27,10 @@ from aioamazondevices.utils import (
 TEST_ENDPOINTS = [{"endpointId": "endpoint-1"}]
 
 
+def _raise_outside_library() -> None:
+    raise ValueError("test")
+
+
 @pytest.mark.parametrize(
     ("raw_model", "expected_model", "expected_hardware_version"),
     [
@@ -218,7 +222,7 @@ def test_scrub_fields() -> None:
         pytest.param("{not json", "{not json", id="not-json"),
     ],
 )
-def test_string_recursive_parse(value: str, expected: Any) -> None:  # noqa: ANN401
+def test_string_recursive_parse(value: str, expected: object) -> None:
     """JSON strings are parsed recursively, other strings are kept."""
     assert string_recursive_parse(value) == expected
 
@@ -239,10 +243,6 @@ def test_replace_routine_placeholders_keeps_other_values(
     payload = {"volume": 5, "text": "hello", "flag": None}
 
     assert replace_routine_placeholders(payload, make_device("1234")) == payload
-
-
-def _raise_outside_library() -> None:
-    raise ValueError("test")
 
 
 def test_get_innermost_frame() -> None:
