@@ -87,14 +87,16 @@ def test_specific_sensor_without_name_uses_fallback(
 @pytest.mark.parametrize(
     ("device_type", "feature_name", "instance", "property_name"),
     [
-        # feature without a template
-        ("ANYTYPE", "power", "", "powerState"),
-        # property without a template
-        ("ANYTYPE", "motionSensor", "", "sensitivity"),
-        # specific feature on a device type that does not enable it
-        ("ANYTYPE", "range", "4", "rangeValue"),
-        # specific feature on an instance that is not enabled
-        (DEVICE_TYPE_AQM, "range", "99", "rangeValue"),
+        pytest.param("ANYTYPE", "power", "", "powerState", id="feature-untemplated"),
+        pytest.param(
+            "ANYTYPE", "motionSensor", "", "sensitivity", id="property-untemplated"
+        ),
+        pytest.param(
+            "ANYTYPE", "range", "4", "rangeValue", id="device-type-not-enabled"
+        ),
+        pytest.param(
+            DEVICE_TYPE_AQM, "range", "99", "rangeValue", id="instance-not-enabled"
+        ),
     ],
 )
 def test_untemplated_property_has_no_definition(

@@ -4,7 +4,8 @@
 """Tests for applying notifications and communication settings to devices."""
 
 from collections.abc import Callable
-from unittest.mock import AsyncMock, Mock
+from typing import Any
+from unittest.mock import AsyncMock, Mock, call
 
 import pytest
 
@@ -144,11 +145,11 @@ async def test_get_devices_data_applies_settings(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    ("daily_refreshed", "resync_required", "polled"),
+    ("daily_refreshed", "resync_required", "expected"),
     [
-        pytest.param(False, False, True, id="no_full_sync"),
-        pytest.param(True, False, False, id="daily_refresh"),
-        pytest.param(False, True, False, id="resync_retry"),
+        pytest.param(False, False, ([], [call()]), id="no-full-sync"),
+        pytest.param(True, False, ([], []), id="daily-refresh"),
+        pytest.param(False, True, ([call()], []), id="resync-retry"),
     ],
 )
 async def test_get_devices_data_skips_poll_after_full_sync(
@@ -157,7 +158,7 @@ async def test_get_devices_data_skips_poll_after_full_sync(
     *,
     daily_refreshed: bool,
     resync_required: bool,
-    polled: bool,
+    expected: tuple[list[Any], list[Any]],
 ) -> None:
     """A full sensor sync in the same poll makes the polled query redundant."""
     update_polled_sensors = AsyncMock()
@@ -179,7 +180,9 @@ async def test_get_devices_data_skips_poll_after_full_sync(
         api._sensor_handler, "update_polled_sensors", update_polled_sensors
     )
 
+    expected_resyncs, expected_polls = expected
+
     await api.get_devices_data()
 
-    assert resync_sensors.await_count == int(resync_required)
-    assert update_polled_sensors.await_count == int(polled)
+    assert resync_sensors.await_args_list == expected_resyncs
+    assert update_polled_sensors.await_args_list == expected_polls

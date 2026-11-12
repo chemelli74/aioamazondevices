@@ -15,7 +15,7 @@ from aioamazondevices.const.http import ARRAY_WRAPPER
 from aioamazondevices.implementation import feature_property_definitions
 from aioamazondevices.structures import AmazonDevice, AmazonDeviceSensor
 
-from .const import TEST_SERIAL_1
+from .const import TEST_DEVICE_TYPE, TEST_SERIAL_1
 
 TEST_TEMPERATURE = 21.3
 TEST_RANGE_VALUE = 42
@@ -46,6 +46,34 @@ def _temperature_endpoint(
     }
 
 
+def _empty_temperature_endpoint() -> dict[str, Any]:
+    """Build a temperature property without a value."""
+    endpoint = _temperature_endpoint("value")
+    endpoint["features"][0]["properties"][0]["value"] = None
+    return endpoint
+
+
+def _range_endpoint(instance: str) -> dict[str, Any]:
+    """Build a range value for the given instance."""
+    return {
+        "features": [
+            {
+                "name": "range",
+                "instance": instance,
+                "properties": [
+                    {
+                        "name": "rangeValue",
+                        "type": "RETRIEVABLE",
+                        "error": None,
+                        "__typename": "RangeValue",
+                        "rangeValue": {"value": TEST_RANGE_VALUE},
+                    }
+                ],
+            }
+        ]
+    }
+
+
 @pytest.mark.anyio
 async def test_sensor_value_is_read(
     make_device: Callable[..., AmazonDevice],
@@ -63,12 +91,18 @@ async def test_sensor_value_is_read(
 @pytest.mark.parametrize(
     ("value", "scale", "expected"),
     [
-        pytest.param(19, "CELSIUS", (False, None), id="19C"),
-        pytest.param(70, "FAHRENHEIT", (False, None), id="70F"),
-        pytest.param(-279, "CELSIUS", (False, None), id="-279C"),
-        pytest.param(-280, "CELSIUS", (True, "INVALID_TEMPERATURE"), id="-280C"),
-        pytest.param(-300, "CELSIUS", (True, "INVALID_TEMPERATURE"), id="-300C"),
-        pytest.param(-280, "FAHRENHEIT", (True, "INVALID_TEMPERATURE"), id="-280F"),
+        pytest.param(19, "CELSIUS", (False, None), id="19-celsius"),
+        pytest.param(70, "FAHRENHEIT", (False, None), id="70-fahrenheit"),
+        pytest.param(-279, "CELSIUS", (False, None), id="minus-279-celsius"),
+        pytest.param(
+            -280, "CELSIUS", (True, "INVALID_TEMPERATURE"), id="minus-280-celsius"
+        ),
+        pytest.param(
+            -300, "CELSIUS", (True, "INVALID_TEMPERATURE"), id="minus-300-celsius"
+        ),
+        pytest.param(
+            -280, "FAHRENHEIT", (True, "INVALID_TEMPERATURE"), id="minus-280-fahrenheit"
+        ),
     ],
 )
 async def test_temperature_calibration_value_is_an_error(
@@ -89,13 +123,6 @@ async def test_temperature_calibration_value_is_an_error(
     sensor = sensors["temperature"]
     assert sensor.value == value
     assert (sensor.error, sensor.error_type) == expected
-
-
-def _empty_temperature_endpoint() -> dict[str, Any]:
-    """Build a temperature property without a value."""
-    endpoint = _temperature_endpoint("value")
-    endpoint["features"][0]["properties"][0]["value"] = None
-    return endpoint
 
 
 @pytest.mark.anyio
@@ -126,47 +153,17 @@ async def test_unusable_sensor_value_is_skipped(
     assert message in caplog.text
 
 
-def _make_typed_device(
-    make_device: Callable[..., AmazonDevice], device_type: str
-) -> AmazonDevice:
-    """Build a test device with the given device type."""
-    device = make_device(TEST_SERIAL_1)
-    device.device_type = device_type
-    return device
-
-
-def _range_endpoint(instance: str) -> dict[str, Any]:
-    """Build a range value for the given instance."""
-    return {
-        "features": [
-            {
-                "name": "range",
-                "instance": instance,
-                "properties": [
-                    {
-                        "name": "rangeValue",
-                        "type": "RETRIEVABLE",
-                        "error": None,
-                        "__typename": "RangeValue",
-                        "rangeValue": {"value": TEST_RANGE_VALUE},
-                    }
-                ],
-            }
-        ]
-    }
-
-
 @pytest.mark.anyio
 @pytest.mark.parametrize(
     ("endpoint", "device_type"),
     [
         pytest.param(
             {"features": [{"name": "unknownFeature", "properties": []}]},
-            "A1B2C3",
+            TEST_DEVICE_TYPE,
             id="unknown-feature",
         ),
         pytest.param(_range_endpoint("99"), DEVICE_TYPE_AQM, id="unknown-instance"),
-        pytest.param(_range_endpoint("4"), "A1B2C3", id="other-device-type"),
+        pytest.param(_range_endpoint("4"), TEST_DEVICE_TYPE, id="other-device-type"),
     ],
 )
 async def test_untemplated_sensor_is_skipped(
@@ -176,7 +173,9 @@ async def test_untemplated_sensor_is_skipped(
     device_type: str,
 ) -> None:
     """Features, instances and device types without a template are ignored."""
-    sensors = sync_sensors(endpoint, _make_typed_device(make_device, device_type))
+    sensors = sync_sensors(
+        endpoint, make_device(TEST_SERIAL_1, device_type=device_type)
+    )
 
     assert sensors == {}
 
@@ -189,7 +188,7 @@ async def test_device_specific_sensor_uses_override(
     """A device type specific instance takes its name and scale from the override."""
     sensors = sync_sensors(
         _range_endpoint("4"),
-        _make_typed_device(make_device, DEVICE_TYPE_AQM),
+        make_device(TEST_SERIAL_1, device_type=DEVICE_TYPE_AQM),
     )
 
     assert sensors["Humidity"].value == TEST_RANGE_VALUE
@@ -214,7 +213,7 @@ async def test_device_specific_sensor_without_name_uses_fallback(
 
     sensors = sync_sensors(
         _range_endpoint("1"),
-        _make_typed_device(make_device, "TESTTYPE"),
+        make_device(TEST_SERIAL_1, device_type="TESTTYPE"),
     )
 
     assert sensors["rangeValue-1"].value == TEST_RANGE_VALUE
@@ -241,7 +240,7 @@ async def test_device_specific_sensor_without_scale_keeps_value_scale(
     endpoint = _temperature_endpoint("value")
     endpoint["features"][0]["name"] = "testSensor"
 
-    sensors = sync_sensors(endpoint, _make_typed_device(make_device, "TESTTYPE"))
+    sensors = sync_sensors(endpoint, make_device(TEST_SERIAL_1, device_type="TESTTYPE"))
 
     assert sensors["temperature"].value == TEST_TEMPERATURE
     assert sensors["temperature"].scale == "CELSIUS"
