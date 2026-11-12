@@ -10,7 +10,11 @@ from unittest.mock import AsyncMock
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM, SPEAKER_GROUP_FAMILY
+from aioamazondevices.const.devices import (
+    DEVICE_TYPE_AQM,
+    DEVICE_TYPES_TO_IGNORE,
+    SPEAKER_GROUP_FAMILY,
+)
 from aioamazondevices.const.http import ARRAY_WRAPPER
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.implementation.device import AmazonDeviceHandler
@@ -692,3 +696,23 @@ async def test_no_endpoints_skips_the_features_request(
 
     assert await _get_endpoints_features(handler, []) == {}
     session_request.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_base_devices_data_skips_unusable_devices(
+    api: AmazonEchoApi, mock_json_response: Callable[[dict[str, Any]], AsyncMock]
+) -> None:
+    """Empty, ignored and microphone-less devices are left out of devices-v2 data."""
+    device = _base_device(TEST_SERIAL_1)
+    mock_json_response(
+        {
+            "devices": [
+                {},
+                _base_device("IGNORED", device_type=DEVICE_TYPES_TO_IGNORE[0]),
+                _base_device("NO-MIC", capabilities=["AUDIO_PLAYER"]),
+                device,
+            ]
+        }
+    )
+
+    assert await api._device_handler._get_base_devices_data() == {TEST_SERIAL_1: device}
