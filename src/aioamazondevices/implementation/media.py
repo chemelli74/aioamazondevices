@@ -124,7 +124,11 @@ class AmazonMediaHandler:
         """Set device volume."""
         # The endpoint takes a relative step: on a speaker group it would shift
         # every member by the same amount instead of setting them all to volume.
-        device_volumes = await self.device_volumes
+        if not self._device_volumes.keys() >= device.device_cluster_members.keys():
+            # Nothing synced yet, or a member was discovered since the last sync.
+            await self.sync_device_volumes()
+        device_volumes = self._device_volumes
+
         members: list[tuple[str, str, AmazonVolumeState]] = []
         for member_serial, member_type in device.device_cluster_members.items():
             member_volume = device_volumes.get(member_serial)

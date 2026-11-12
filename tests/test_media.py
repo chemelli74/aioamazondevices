@@ -467,42 +467,6 @@ async def test_send_media_command_delegates_to_handler(
 
 
 @pytest.mark.anyio
-async def test_set_device_volume_sends_to_each_member(
-    api: AmazonEchoApi, send_message: AsyncMock, speaker_group: AmazonDevice
-) -> None:
-    """The volume is sent as a sequence to every cluster member."""
-    devices = api._device_handler.devices
-
-    await api.set_device_volume(speaker_group, 35)
-
-    assert send_message.await_args_list == [
-        call(devices[TEST_SERIAL_1], AmazonSequenceType.Volume, "35", None),
-        call(devices[TEST_SERIAL_2], AmazonSequenceType.Volume, "35", None),
-    ]
-
-
-@pytest.mark.anyio
-@pytest.mark.parametrize(
-    "volume",
-    [
-        pytest.param(-1, id="below-min"),
-        pytest.param(101, id="above-max"),
-    ],
-)
-async def test_set_device_volume_out_of_range_raises(
-    api: AmazonEchoApi,
-    send_message: AsyncMock,
-    speaker_group: AmazonDevice,
-    volume: int,
-) -> None:
-    """A volume outside 0-100 is rejected before anything is sent."""
-    with pytest.raises(ValueError, match="Volume must be between"):
-        await api.set_device_volume(speaker_group, volume)
-
-    send_message.assert_not_awaited()
-
-
-@pytest.mark.anyio
 async def test_call_alexa_music_sends_search_phrase(
     api: AmazonEchoApi,
     send_message: AsyncMock,

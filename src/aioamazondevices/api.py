@@ -681,9 +681,12 @@ class AmazonEchoApi:
         # Held across the requests so a concurrent set cannot step from a stale
         # cached volume.
         async with self._device_volumes_lock:
-            await self._media_handler.set_device_volume(device, volume)
-            for member_serial in device.device_cluster_members:
-                self._update_cached_parent_cluster_volumes(member_serial)
+            try:
+                await self._media_handler.set_device_volume(device, volume)
+            finally:
+                # Members set before a failed request have a new cached volume.
+                for member_serial in device.device_cluster_members:
+                    self._update_cached_parent_cluster_volumes(member_serial)
 
     async def _call_alexa_command_per_cluster_member(
         self,
