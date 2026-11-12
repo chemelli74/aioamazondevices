@@ -492,6 +492,24 @@ async def test_stream_subscriber_error_is_logged(
 
 
 @pytest.mark.anyio
+async def test_stream_subscriber_cancellation_is_raised(
+    client: AmazonHTTP2Client, avs_server: AvsServer
+) -> None:
+    """A cancelled subscriber stops the stream instead of being logged."""
+    on_push_event = AsyncMock(side_effect=asyncio.CancelledError)
+    client.on_push_event.append(on_push_event)
+    client.on_push_event.freeze()
+    avs_server.set_stream(_stream(_multipart(_part(_directive(_update(), _update())))))
+
+    with pytest.raises(asyncio.CancelledError):
+        await client._stream_and_process()
+
+    on_push_event.assert_awaited_once_with(
+        AmazonPushMessage.VolumeChange.value, VOLUME_PAYLOAD
+    )
+
+
+@pytest.mark.anyio
 async def test_stream_stops_reading_once_stopped(
     client: AmazonHTTP2Client, avs_server: AvsServer
 ) -> None:
@@ -885,6 +903,15 @@ async def test_start_and_stop_processing(
     on_push_event.assert_awaited_once_with(
         AmazonPushMessage.VolumeChange.value, VOLUME_PAYLOAD
     )
+
+
+@pytest.mark.anyio
+async def test_stop_without_processing(client: AmazonHTTP2Client) -> None:
+    """Stopping before processing was started only sets the stop event."""
+    await client.stop_processing()
+
+    assert client._run_task is None
+    assert client._stop_event.is_set()
 
 
 @pytest.mark.anyio
