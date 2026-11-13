@@ -424,7 +424,9 @@ class AmazonHttpWrapper:
         try:
             data = await raw_resp.json(loads=orjson.loads, content_type=content_type)
             if not data:
-                _LOGGER.warning("Empty JSON data received")
+                # An empty array is a valid "no items" reply, e.g. no routines
+                if not isinstance(data, list):
+                    _LOGGER.warning("Empty JSON data received")
                 data = {}
             if isinstance(data, list):
                 # if anonymous array is returned wrap it inside

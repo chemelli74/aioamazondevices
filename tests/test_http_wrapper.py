@@ -353,6 +353,32 @@ async def test_response_to_json(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
+    ("text", "warned"),
+    [
+        pytest.param("[]", False, id="empty-array"),
+        pytest.param("{}", True, id="empty-object"),
+        pytest.param("null", True, id="null"),
+    ],
+)
+async def test_response_to_json_empty_data_warning(
+    api: AmazonEchoApi,
+    server: TestServer,
+    caplog: pytest.LogCaptureFixture,
+    text: str,
+    warned: bool,
+) -> None:
+    """An empty array is a valid reply and is not logged as empty data."""
+    _, response = await api._http_wrapper.session_request(
+        HTTPMethod.GET,
+        server.make_url("/body").with_query(text=text, content_type="application/json"),
+    )
+
+    assert await api._http_wrapper.response_to_json(response, "") == {}
+    assert ("Empty JSON data received" in caplog.text) is warned
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
     ("url", "error"),
     [
         pytest.param(
