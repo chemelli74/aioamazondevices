@@ -256,3 +256,26 @@ def test_get_innermost_frame() -> None:
         "http2_parse_boundary_delimiter:"
     )
     assert get_innermost_frame(test_error.value) == "unknown"
+
+
+def test_scrub_fields_keeps_feature_names() -> None:
+    """Feature and property names stay readable, other names are redacted."""
+    payload = {
+        "name": "Jane Doe",
+        "features": [
+            {
+                "name": "thermostat",
+                "properties": [{"name": "targetSetpoint", "token": "secret"}],
+            }
+        ],
+    }
+
+    assert scrub_fields(payload) == {
+        "name": "[REDACTED]",
+        "features": [
+            {
+                "name": "thermostat",
+                "properties": [{"name": "targetSetpoint", "token": "[REDACTED]"}],
+            }
+        ],
+    }
