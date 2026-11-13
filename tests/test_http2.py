@@ -254,6 +254,20 @@ def test_process_rendering_update_rejects(
     assert message in caplog.text
 
 
+def test_process_rendering_update_obfuscates_customer_id(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Customer IDs in logged push messages are obfuscated, not shown."""
+    update = _update(
+        resource_id="PUSH_SOMETHING_NEW",
+        payload={**VOLUME_PAYLOAD, "customerId": "A1B2C3D4E5F6G7"},
+    )
+
+    assert _process_rendering_update(update) is None
+    assert "A1B********6G7" in caplog.text
+    assert "A1B2C3D4E5F6G7" not in caplog.text
+
+
 @pytest.mark.parametrize(
     ("rendering_update", "expected"),
     [

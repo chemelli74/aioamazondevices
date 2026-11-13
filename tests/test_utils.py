@@ -16,7 +16,9 @@ from aioamazondevices.utils import (
     get_innermost_frame,
     http2_extract_json_from_part,
     http2_parse_boundary_delimiter,
+    obfuscate_customer_id,
     obfuscate_email,
+    obfuscate_string,
     parse_device_details,
     replace_routine_placeholders,
     scrub_fields,
@@ -194,11 +196,32 @@ def test_obfuscate_email(email: str, expected: str) -> None:
     assert obfuscate_email(email) == expected
 
 
+@pytest.mark.parametrize(
+    ("value", "visible_prefix", "visible_suffix", "expected"),
+    [
+        pytest.param("secret", 1, 0, "s*****", id="prefix-only"),
+        pytest.param("secret", 2, 2, "se**et", id="prefix-and-suffix"),
+        pytest.param("abc", 2, 2, "***", id="too-short"),
+    ],
+)
+def test_obfuscate_string(
+    value: str, visible_prefix: int, visible_suffix: int, expected: str
+) -> None:
+    """Only the requested leading and trailing characters stay visible."""
+    assert obfuscate_string(value, visible_prefix, visible_suffix) == expected
+
+
+def test_obfuscate_customer_id() -> None:
+    """Customer IDs keep enough characters to tell accounts apart."""
+    assert obfuscate_customer_id("A1B2C3D4E5F6G7") == "A1B********6G7"
+
+
 def test_scrub_fields() -> None:
     """Sensitive keys are redacted inside every kind of container."""
     data = {
         "email": "john@example.com",
         "items": (
+            {"customerId": "A1B2C3D4E5F6G7", "deviceOwnerCustomerId": 123},
             {"user_id": "secret", "volume": "kept"},
             ["kept"],
         ),
@@ -208,6 +231,7 @@ def test_scrub_fields() -> None:
     assert scrub_fields(data) == {
         "email": "j***@e******.com",
         "items": (
+            {"customerId": "A1B********6G7", "deviceOwnerCustomerId": "[REDACTED]"},
             {"user_id": "[REDACTED]", "volume": "kept"},
             ["kept"],
         ),
