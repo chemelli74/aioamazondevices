@@ -260,6 +260,7 @@ class AmazonListItem:
     status: AmazonListItemStatus
     name: str
     version: int
+    note: str | None = None
 
 
 class AmazonListEventType(StrEnum):

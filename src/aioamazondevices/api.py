@@ -832,9 +832,11 @@ class AmazonEchoApi:
             list_id, item_id, checked, version
         )
 
-    async def add_todo_list_item(self, list_id: str, item_name: str) -> None:
+    async def add_todo_list_item(
+        self, list_id: str, item_name: str, note: str | None = None
+    ) -> None:
         """Add item to a ToDo list."""
-        await self._todo_handler.add_item(list_id, item_name)
+        await self._todo_handler.add_item(list_id, item_name, note)
 
     async def delete_todo_list_item(
         self, list_id: str, item_id: str, version: int
@@ -847,6 +849,12 @@ class AmazonEchoApi:
     ) -> None:
         """Rename ToDo list item."""
         await self._todo_handler.rename_item(list_id, item_id, new_name, version)
+
+    async def set_todo_list_item_note(
+        self, list_id: str, item_id: str, note: str | None, version: int
+    ) -> None:
+        """Set or remove ToDo list item note."""
+        await self._todo_handler.set_item_note(list_id, item_id, note, version)
 
     async def get_todo_list_items(self, list_id: str) -> dict[str, AmazonListItem]:
         """Return ToDo all list items."""
