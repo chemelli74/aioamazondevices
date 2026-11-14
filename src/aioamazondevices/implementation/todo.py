@@ -84,6 +84,8 @@ class AmazonToDoHandler:
             method=HTTPMethod.POST,
             path=f"{list_id}/items/fetch",
             query={"limit": limit},
+            # Amazon only returns notes when asked for them
+            input_data={"itemAttributesToProject": ["note"]},
         )
 
         response_json = await self._http_wrapper.response_to_json(
@@ -98,6 +100,7 @@ class AmazonToDoHandler:
                 name=(item_info["itemName"]).capitalize(),
                 status=AmazonListItemStatus(item_info["itemStatus"]),
                 version=item_info["version"],
+                note=item_info.get("note") or None,
             )
             for item_info in item_info_list
         ]
@@ -123,9 +126,9 @@ class AmazonToDoHandler:
             },
         )
 
-    async def add_item(self, list_id: str, name: str) -> None:
+    async def add_item(self, list_id: str, name: str, note: str | None = None) -> None:
         """Add a new item to a shopping list."""
-        await self._call_lists_api(
+        raw_resp = await self._call_lists_api(
             method=HTTPMethod.POST,
             path=f"{list_id}/items",
             input_data={
@@ -136,6 +139,17 @@ class AmazonToDoHandler:
                     }
                 ]
             },
+        )
+        if not note:
+            return
+
+        # Amazon ignores a note sent with the new item, so set it afterwards
+        response_json = await self._http_wrapper.response_to_json(
+            raw_resp, "(todo)ItemsAdd"
+        )
+        item_info = response_json["itemInfoList"][0]
+        await self.set_item_note(
+            list_id, item_info["itemId"], note, item_info["version"]
         )
 
     async def delete_item(self, list_id: str, item_id: str, version: int) -> None:
@@ -158,4 +172,28 @@ class AmazonToDoHandler:
                 "itemAttributesToUpdate": [{"type": "itemName", "value": new_name}],
                 "itemAttributesToRemove": [],
             },
+        )
+
+    async def set_item_note(
+        self, list_id: str, item_id: str, note: str | None, version: int
+    ) -> None:
+        """Set the note of an item in a shopping list, None or "" removes it."""
+        input_data: dict[str, Any]
+        if note:
+            input_data = {
+                "itemAttributesToUpdate": [{"type": "note", "value": note}],
+                "itemAttributesToRemove": [],
+            }
+        else:
+            # Amazon rejects an empty note, it has to be removed instead
+            input_data = {
+                "itemAttributesToUpdate": [],
+                "itemAttributesToRemove": ["note"],
+            }
+
+        await self._call_lists_api(
+            method=HTTPMethod.PUT,
+            path=f"{list_id}/items/{item_id}",
+            query={"version": version},
+            input_data=input_data,
         )
