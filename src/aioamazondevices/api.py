@@ -690,8 +690,15 @@ class AmazonEchoApi:
     ) -> None:
         """Call Alexa command per cluster member."""
         for cluster_member in device.device_cluster_members:
+            member = self._device_handler.devices.get(cluster_member)
+            if member is None:
+                _LOGGER.debug(
+                    "Skipping cluster member %s: device is not addressable",
+                    cluster_member,
+                )
+                continue
             await self._sequence_handler.send_message(
-                self._device_handler.devices[cluster_member],
+                member,
                 message_type,
                 message_body,
                 music_provider_id,
