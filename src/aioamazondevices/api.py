@@ -715,6 +715,8 @@ class AmazonEchoApi:
     async def set_do_not_disturb(self, device: AmazonDevice, enable: bool) -> None:
         """Set Do Not Disturb status for a device."""
         await self._dnd_handler.set_do_not_disturb(device, enable)
+        # Amazon sends no push event for some devices, e.g. Echo Show
+        await self._apply_dnd_state(device.serial_number, enable)
 
     async def call_feature_operation(
         self,
@@ -877,8 +879,12 @@ class AmazonEchoApi:
         if not serial:
             return
 
+        await self._apply_dnd_state(serial, enabled)
+
+    async def _apply_dnd_state(self, serial: str, enabled: bool) -> None:
+        """Update the cached DND state of a device and emit all states."""
         # The lock serializes the full sync with incremental updates, so that a
-        # sync response predating this event cannot overwrite it.
+        # sync response predating this update cannot overwrite it.
         async with self._dnd_lock:
             # Ensure initial full sync happens before applying incremental updates
             if not self._dnd_initialized:
