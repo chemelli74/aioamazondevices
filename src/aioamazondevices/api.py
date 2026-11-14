@@ -557,7 +557,9 @@ class AmazonEchoApi:
         event_name = payload.get("eventName")
 
         if list_id is None or item_id is None or event_name is None:
-            _LOGGER.warning("Received malformed ItemChange payload: %s", payload)
+            _LOGGER.warning(
+                "Received malformed ItemChange payload: %s", scrub_fields(payload)
+            )
             return
 
         _LOGGER.debug("Received ItemChange for %s: %s", list_id, event_name)
