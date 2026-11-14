@@ -20,6 +20,7 @@ from aioamazondevices.const.http import (
     URI_MEDIA_STATE,
     URI_MUSIC_PROVIDERS,
 )
+from aioamazondevices.exceptions import InvalidInput
 from aioamazondevices.structures import (
     AmazonDevice,
     AmazonMediaControls,
@@ -496,7 +497,7 @@ async def test_set_device_volume_out_of_range_raises(
     volume: int,
 ) -> None:
     """A volume outside 0-100 is rejected before anything is sent."""
-    with pytest.raises(ValueError, match="Volume must be between"):
+    with pytest.raises(InvalidInput, match="Volume must be between"):
         await api.set_device_volume(speaker_group, volume)
 
     send_message.assert_not_awaited()
@@ -533,7 +534,7 @@ async def test_call_alexa_music_unknown_provider_raises(
     """An unavailable provider is rejected before anything is sent."""
     mock_json_response({ARRAY_WRAPPER: [_music_provider(TEST_MUSIC_PROVIDER_ID)]})
 
-    with pytest.raises(ValueError, match="SPOTIFY is not available"):
+    with pytest.raises(InvalidInput, match="SPOTIFY is not available"):
         await api.call_alexa_music(
             make_device(TEST_SERIAL_1, media_player_supported=True), "jazz", "SPOTIFY"
         )

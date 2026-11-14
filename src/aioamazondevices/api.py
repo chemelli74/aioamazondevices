@@ -30,7 +30,7 @@ from .const.metadata import (
     VOLUME_MAX,
     VOLUME_MIN,
 )
-from .exceptions import CannotSetFeature, NoOnlineDevicesError
+from .exceptions import CannotSetFeature, InvalidInput, NoOnlineDevicesError
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
 from .implementation.history import AmazonHistoryHandler
@@ -624,7 +624,7 @@ class AmazonEchoApi:
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
         if not (await self._media_handler.music_providers).get(provider_id):
-            raise ValueError(f"{provider_id} is not available as a music provider")
+            raise InvalidInput(f"{provider_id} is not available as a music provider")
 
         await self._sequence_handler.send_message(
             device, AmazonSequenceType.Music, search_phrase, provider_id
@@ -657,7 +657,7 @@ class AmazonEchoApi:
     ) -> None:
         """Call Info skill."""
         if info_skill not in ALEXA_INFO_SKILLS:
-            raise ValueError(f"Unsupported info skill: {info_skill}")
+            raise InvalidInput(f"Unsupported info skill: {info_skill}")
         await self._call_alexa_command_per_cluster_member(device, info_skill, "")
 
     async def call_routine(
@@ -676,7 +676,7 @@ class AmazonEchoApi:
     async def set_device_volume(self, device: AmazonDevice, volume: int) -> None:
         """Set device volume."""
         if not (VOLUME_MIN <= volume <= VOLUME_MAX):
-            raise ValueError(f"Volume must be between {VOLUME_MIN} and {VOLUME_MAX}")
+            raise InvalidInput(f"Volume must be between {VOLUME_MIN} and {VOLUME_MAX}")
         await self._call_alexa_command_per_cluster_member(
             device, AmazonSequenceType.Volume, str(volume)
         )
