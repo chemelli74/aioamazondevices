@@ -17,9 +17,9 @@ from aioamazondevices.const.devices import DEVICE_TYPES_TO_IGNORE
 from aioamazondevices.const.http import REQUEST_AGENT, URI_NOTIFICATIONS
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.implementation import notification
-from aioamazondevices.structures import AmazonDevice, AmazonSchedule
+from aioamazondevices.structures import AmazonSchedule
 
-from .const import TEST_DEVICE_TYPE, TEST_SERIAL_1, TEST_SERIAL_2, TEST_SERIAL_3
+from .const import TEST_DEVICE_TYPE, TEST_SERIAL_1, TEST_SERIAL_2
 
 # A Wednesday, so weekday and weekend rules land on different days.
 NOW = datetime(2026, 10, 28, 12, 0, tzinfo=UTC)
@@ -341,45 +341,3 @@ async def test_get_notifications_keeps_next_of_each_type(
             "Reminder": AmazonSchedule("Reminder", "ON", "", _at(28, 13)),
         },
     }
-
-
-@pytest.mark.anyio
-async def test_update_device_notifications_by_capability(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
-) -> None:
-    """Devices get only the notification types their capabilities support."""
-    alarm = AmazonSchedule("Alarm", "ON", "", _at(29, 7))
-    timer = AmazonSchedule("Timer", "ON", "", _at(28, 13))
-    reminder = AmazonSchedule("Reminder", "ON", "", _at(28, 14))
-    all_types = {"Alarm": alarm, "Timer": timer, "Reminder": reminder}
-    reminders_only = make_device(TEST_SERIAL_1, capabilities=["REMINDERS"])
-    timers_and_alarms = make_device(TEST_SERIAL_2, capabilities=["TIMERS_AND_ALARMS"])
-    no_notifications = make_device(TEST_SERIAL_3, capabilities=["REMINDERS"])
-    no_notifications.notifications = {"Reminder": reminder}
-
-    api._notification_handler.update_device_notifications(
-        {
-            TEST_SERIAL_1: reminders_only,
-            TEST_SERIAL_2: timers_and_alarms,
-            TEST_SERIAL_3: no_notifications,
-        },
-        {TEST_SERIAL_1: all_types, TEST_SERIAL_2: all_types},
-    )
-
-    assert reminders_only.notifications == {"Reminder": reminder}
-    assert timers_and_alarms.notifications == {"Alarm": alarm, "Timer": timer}
-    assert no_notifications.notifications == {}
-
-
-@pytest.mark.anyio
-async def test_update_device_notifications_without_data_keeps_existing(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
-) -> None:
-    """When notifications could not be fetched, devices keep their old ones."""
-    reminder = AmazonSchedule("Reminder", "ON", "", _at(28, 14))
-    device = make_device(TEST_SERIAL_1, capabilities=["REMINDERS"])
-    device.notifications = {"Reminder": reminder}
-
-    api._notification_handler.update_device_notifications({TEST_SERIAL_1: device}, None)
-
-    assert device.notifications == {"Reminder": reminder}

@@ -146,7 +146,6 @@ def make_device() -> Callable[..., AmazonDevice]:
             entity_id=None,
             endpoint_id=None,
             notifications_supported=False,
-            notifications={},
             media_player_supported=media_player_supported,
             communication_settings={},
             parent_clusters=[],
