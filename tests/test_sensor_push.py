@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM
+from aioamazondevices.const.devices import DEVICE_TYPE_AQM, DEVICE_TYPE_THERMOSTAT
 from aioamazondevices.implementation.device import _parse_features
 from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.structures import AmazonDevice
@@ -53,6 +53,16 @@ def _reachability(status: str) -> dict[str, Any]:
         "name": "connectivity",
         "instance": None,
         "properties": [{"name": "reachability", "reachabilityStatusValue": status}],
+    }
+
+
+def _hvac_stage(property_name: str, stage: str) -> dict[str, Any]:
+    return {
+        "name": "hvac",
+        "instance": None,
+        "properties": [
+            {"name": property_name, f"{property_name}Value": {"value": stage}}
+        ],
     }
 
 
@@ -183,6 +193,38 @@ async def test_poll_only_updates_polled_sensors(
     get_polled_sensor_states.assert_awaited_once_with([ENDPOINT])
     assert api.sensors[TEST_SERIAL_1]["illuminance"].value == POLLED_ILLUMINANCE
     assert api.sensors[TEST_SERIAL_1]["temperature"].value == SYNCED_TEMPERATURE
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "property_name", ["coolerStage", "primaryHeaterStage", "fanStage"]
+)
+async def test_poll_updates_hvac_stage(
+    api: AmazonEchoApi,
+    make_device: Callable[..., AmazonDevice],
+    monkeypatch: pytest.MonkeyPatch,
+    property_name: str,
+) -> None:
+    """Amazon does not push HVAC stage changes, so they are polled."""
+    thermostat = make_device(TEST_SERIAL_1)
+    thermostat.device_type = DEVICE_TYPE_THERMOSTAT
+    thermostat.endpoint_id = ENDPOINT
+    _supports(thermostat, _hvac_stage(property_name, "OFF"))
+    handler = api._sensor_handler
+    handler.full_sensor_sync(
+        {TEST_SERIAL_1: thermostat},
+        {ENDPOINT: _endpoint(_hvac_stage(property_name, "OFF"))},
+    )
+    get_polled_sensor_states = _stub_poll(
+        monkeypatch,
+        handler,
+        {ENDPOINT: _endpoint(_hvac_stage(property_name, "STAGE_1"))},
+    )
+
+    await handler.update_polled_sensors()
+
+    get_polled_sensor_states.assert_awaited_once_with([ENDPOINT])
+    assert api.sensors[TEST_SERIAL_1][property_name].value == "STAGE_1"
 
 
 @pytest.mark.anyio
