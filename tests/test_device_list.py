@@ -10,16 +10,19 @@ from unittest.mock import AsyncMock
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM, SPEAKER_GROUP_FAMILY
+from aioamazondevices.const.devices import (
+    DEVICE_TYPE_AQM,
+    DEVICE_TYPES_TO_IGNORE,
+    SPEAKER_GROUP_FAMILY,
+)
 from aioamazondevices.const.http import ARRAY_WRAPPER
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.implementation.device import AmazonDeviceHandler
 from aioamazondevices.structures import AmazonDeviceFeature
 
-from .const import TEST_SERIAL_1, TEST_SERIAL_2
+from .const import TEST_CUSTOMER_ID, TEST_SERIAL_1, TEST_SERIAL_2, TEST_SERIAL_GROUP
 
 TEST_SERIAL_AQM = "AQM-1"
-TEST_SERIAL_GROUP = "GROUP-1"
 
 # the autouse fixture below replaces the lookup, keep the real one to test it
 _get_endpoints_features = AmazonDeviceHandler._get_endpoints_features
@@ -45,7 +48,7 @@ def _base_device(
         else ["MICROPHONE", "AUDIO_PLAYER"],
         "deviceFamily": device_family,
         "deviceType": device_type,
-        "deviceOwnerCustomerId": "CUSTOMER_ID",
+        "deviceOwnerCustomerId": TEST_CUSTOMER_ID,
         "serialNumber": serial_number,
         "clusterMembers": cluster_members,
         "parentClusters": [],
@@ -86,7 +89,7 @@ def _patch_sources(
     monkeypatch: pytest.MonkeyPatch,
     handler: AmazonDeviceHandler,
     devices_endpoints: dict[str, dict[str, Any]],
-    base_devices: dict[str, dict[str, Any]] | AsyncMock,
+    base_devices: dict[str, dict[str, Any]],
 ) -> None:
     """Replace the two data sources of the device handler."""
     monkeypatch.setattr(
@@ -97,9 +100,7 @@ def _patch_sources(
     monkeypatch.setattr(
         handler,
         "_get_base_devices_data",
-        base_devices
-        if isinstance(base_devices, AsyncMock)
-        else AsyncMock(return_value=base_devices),
+        AsyncMock(return_value=base_devices),
     )
 
 
@@ -695,3 +696,23 @@ async def test_no_endpoints_skips_the_features_request(
 
     assert await _get_endpoints_features(handler, []) == {}
     session_request.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_base_devices_data_skips_unusable_devices(
+    api: AmazonEchoApi, mock_json_response: Callable[[dict[str, Any]], AsyncMock]
+) -> None:
+    """Empty, ignored and microphone-less devices are left out of devices-v2 data."""
+    device = _base_device(TEST_SERIAL_1)
+    mock_json_response(
+        {
+            "devices": [
+                {},
+                _base_device("IGNORED", device_type=DEVICE_TYPES_TO_IGNORE[0]),
+                _base_device("NO-MIC", capabilities=["AUDIO_PLAYER"]),
+                device,
+            ]
+        }
+    )
+
+    assert await api._device_handler._get_base_devices_data() == {TEST_SERIAL_1: device}

@@ -1,5 +1,40 @@
 # Changelog
 
+## v17.2.12 (2026-11-14)
+
+### Bug fixes
+
+- Don't warn about empty json data for an empty array reply ([`d65792c`](https://github.com/chemelli74/aioamazondevices/commit/d65792cc57f8048425002587aad93038631031d8))
+
+
+### Testing
+
+- Cover missing branches ([`9a17dad`](https://github.com/chemelli74/aioamazondevices/commit/9a17dad8e2900591196c6b007ce9469348d7fbb9))
+- Cover missing branches ([`52d31fd`](https://github.com/chemelli74/aioamazondevices/commit/52d31fdea6d556d7b3a5a7e9b8a5ae4265b3dce7))
+- Cover missing branches ([`78a490e`](https://github.com/chemelli74/aioamazondevices/commit/78a490e92cbb41776bb9f49e81ebe23aa71a579b))
+- Cover the sounds list ([`42b4d60`](https://github.com/chemelli74/aioamazondevices/commit/42b4d60d767db540e18d64d3c66814ba720e492a))
+- Cover missing branches ([`8055b6a`](https://github.com/chemelli74/aioamazondevices/commit/8055b6a05c59fe6457165ec57945f7a4216eeb59))
+- Cover missing branches ([`4a65771`](https://github.com/chemelli74/aioamazondevices/commit/4a657712a48ab22d0dfeba09249be59eac5646bd))
+- Cover missing branches ([`17c1764`](https://github.com/chemelli74/aioamazondevices/commit/17c176417882bb91ffa7efc8ffa5a0b265cbd3fb))
+- Apply standards to existing tests ([`948d194`](https://github.com/chemelli74/aioamazondevices/commit/948d194ea5aaa9338341504a16ea2832b4fabbdf))
+- Clean up feature tests ([`8489ab4`](https://github.com/chemelli74/aioamazondevices/commit/8489ab46b2567bf46e2679ee563df7633b4e0a1a))
+- Remove branching and await counts from tests ([`a264636`](https://github.com/chemelli74/aioamazondevices/commit/a2646365b52a7c6cc0a6b44dc0365dcdc0ce0c9a))
+- Remove duplicated tests and move http2 client tests ([`72276e4`](https://github.com/chemelli74/aioamazondevices/commit/72276e460a839050623b32905f0056431f3ef465))
+- Give every parametrize case a kebab-case id ([`8579742`](https://github.com/chemelli74/aioamazondevices/commit/857974286779f37f22bccc2fe75a6e77170caa1e))
+- Use shared constants and fixtures ([`f6bfd8b`](https://github.com/chemelli74/aioamazondevices/commit/f6bfd8b4a8c434388f6c7f643cf5e5f376da6d47))
+- Http2 tests ([`8c5fed8`](https://github.com/chemelli74/aioamazondevices/commit/8c5fed8743ad07536560127fb91c82cfa1799376))
+- Notification tests ([`5ef50cc`](https://github.com/chemelli74/aioamazondevices/commit/5ef50cc44b679d28d54a6cb54cf5dd167d1ea010))
+- Dnd, history and todo tests ([`cd3ae00`](https://github.com/chemelli74/aioamazondevices/commit/cd3ae00ed1886f09907c29a01cca074c5b926027))
+- Login tests ([`619893e`](https://github.com/chemelli74/aioamazondevices/commit/619893e573af24e227876e2e6b414b4e6d82c904))
+- Media tests ([`37fffa5`](https://github.com/chemelli74/aioamazondevices/commit/37fffa50af2511063a34157728b799a705822d56))
+- Sequence tests ([`cbcee5b`](https://github.com/chemelli74/aioamazondevices/commit/cbcee5b786c88db0ca6ba7b29d69af1376dfbf93))
+
+
+### Refactoring
+
+- Remove unreachable code ([`8c92600`](https://github.com/chemelli74/aioamazondevices/commit/8c9260003d6495308ed379bd677a0881928f485e))
+
+
 ## v17.2.11 (2026-11-10)
 
 ### Bug fixes

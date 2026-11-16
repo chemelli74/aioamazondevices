@@ -58,14 +58,6 @@ def http2_extract_json_from_part(part: bytes) -> dict[str, Any] | None:
         if content_type != "application/json":
             raise ValueError(f"Unexpected content-type: {content_type!r}")
 
-    def _get_payload(msg: EmailMessage) -> bytes:
-        payload = msg.get_payload(decode=True)
-        if payload is None:
-            raise ValueError("No payload")
-        if not isinstance(payload, bytes):
-            raise TypeError(f"Expected bytes payload, got {type(payload)!r}")
-        return payload
-
     def _validate_json_object(parsed: Any) -> dict[str, Any]:  # noqa: ANN401
         if not isinstance(parsed, dict):
             raise TypeError(f"Expected JSON object, got {type(parsed)!r}")
@@ -74,7 +66,8 @@ def http2_extract_json_from_part(part: bytes) -> dict[str, Any] | None:
     try:
         msg = BytesParser(policy=default).parsebytes(part + b"\r\n")
         _validate_content_type(msg.get_content_type())
-        body = _get_payload(msg)
+        # The part is application/json, so its decoded content is bytes.
+        body = msg.get_content()
         parsed = _validate_json_object(string_recursive_parse(orjson.loads(body)))
     except (TypeError, ValueError, orjson.JSONDecodeError):
         _LOGGER.warning(

@@ -4,12 +4,11 @@
 """Test optional display text and announcement batching."""
 
 from collections.abc import Callable
-from unittest.mock import AsyncMock, _Call, call
+from unittest.mock import AsyncMock
 
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.implementation.sequence import AmazonSequenceHandler
 from aioamazondevices.structures import (
     AmazonDevice,
     AmazonSequenceNode,
@@ -20,11 +19,8 @@ from .const import TEST_SERIAL_1, TEST_SERIAL_2
 
 
 @pytest.fixture
-def device(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
-) -> AmazonDevice:
-    """Return a logged in device that is its own cluster member."""
-    api._session_state_data.login_stored_data = {"test": True}
+def device(make_device: Callable[..., AmazonDevice]) -> AmazonDevice:
+    """Return a device that is its own cluster member."""
     device = make_device(TEST_SERIAL_1)
     device.device_cluster_members = {device.serial_number: device.device_type}
     return device
@@ -39,24 +35,25 @@ def enqueue(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
 
 
 @pytest.mark.anyio
+@pytest.mark.usefixtures("logged_in")
 @pytest.mark.parametrize(
     ("display_text", "expected_display"),
     [
-        pytest.param(call(), "Doctor Smith", id="omitted"),
-        pytest.param(call(display_text=None), "Doctor Smith", id="none-keyword"),
-        pytest.param(call(None), "Doctor Smith", id="none-positional"),
-        pytest.param(call(display_text=""), "Doctor Smith", id="empty-keyword"),
-        pytest.param(call(""), "Doctor Smith", id="empty-positional"),
+        pytest.param(((), {}), "Doctor Smith", id="omitted"),
+        pytest.param(((), {"display_text": None}), "Doctor Smith", id="none-keyword"),
+        pytest.param(((None,), {}), "Doctor Smith", id="none-positional"),
+        pytest.param(((), {"display_text": ""}), "Doctor Smith", id="empty-keyword"),
+        pytest.param((("",), {}), "Doctor Smith", id="empty-positional"),
         pytest.param(
-            call(display_text="Dr. Smith"), "Dr. Smith", id="override-keyword"
+            ((), {"display_text": "Dr. Smith"}), "Dr. Smith", id="override-keyword"
         ),
-        pytest.param(call("Dr. Smith"), "Dr. Smith", id="override-positional"),
+        pytest.param((("Dr. Smith",), {}), "Dr. Smith", id="override-positional"),
     ],
 )
 async def test_announcement_display_text(
     api: AmazonEchoApi,
     device: AmazonDevice,
-    display_text: _Call,
+    display_text: tuple[tuple[str | None, ...], dict[str, str | None]],
     expected_display: str,
     enqueue: AsyncMock,
 ) -> None:
@@ -66,11 +63,11 @@ async def test_announcement_display_text(
     original = handler._build_operation_node(
         device, AmazonSequenceType.Announcement, spoken
     )
-    await api.call_alexa_announcement(
-        device, spoken, *display_text.args, **display_text.kwargs
-    )
+    args, kwargs = display_text
+    await api.call_alexa_announcement(device, spoken, *args, **kwargs)
 
-    node = enqueue.call_args.args[0]
+    (enqueued,) = enqueue.await_args_list
+    node = enqueued.args[0]
     expected = original
     expected["operationPayload"]["content"][0]["display"]["body"] = expected_display
     assert node.operation_node == expected
@@ -81,6 +78,7 @@ async def test_announcement_display_text(
 
 
 @pytest.mark.anyio
+@pytest.mark.usefixtures("logged_in")
 async def test_send_message_display_text_positional_argument(
     api: AmazonEchoApi,
     device: AmazonDevice,
@@ -96,14 +94,16 @@ async def test_send_message_display_text_positional_argument(
         "Dr. Smith",
     )
 
-    operation = enqueue.call_args.args[0].operation_node
+    (enqueued,) = enqueue.await_args_list
+    operation = enqueued.args[0].operation_node
     content = operation["operationPayload"]["content"][0]
     assert content["display"]["body"] == "Dr. Smith"
     assert content["speak"] == {"type": "text", "value": "Doctor Smith"}
 
 
-@pytest.mark.usefixtures("anyio_backend")
-def test_build_operation_node_display_text_positional_argument(
+@pytest.mark.anyio
+@pytest.mark.usefixtures("logged_in")
+async def test_build_operation_node_display_text_positional_argument(
     api: AmazonEchoApi,
     device: AmazonDevice,
 ) -> None:
@@ -117,16 +117,18 @@ def test_build_operation_node_display_text_positional_argument(
     assert content["speak"] == {"type": "text", "value": "Doctor Smith"}
 
 
+@pytest.mark.anyio
 @pytest.mark.parametrize(
     ("first_display", "second_display"),
     [
-        (None, None),
-        ("Dr. Smith", "Dr. Smith"),
-        ("Dr. Smith", "Other"),
-        (None, "Dr. Smith"),
+        pytest.param(None, None, id="both-default"),
+        pytest.param("Dr. Smith", "Dr. Smith", id="same-override"),
+        pytest.param("Dr. Smith", "Other", id="different-overrides"),
+        pytest.param(None, "Dr. Smith", id="one-override"),
     ],
 )
-def test_batch_preserves_display_text(
+async def test_batch_preserves_display_text(
+    api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
     first_display: str | None,
     second_display: str | None,
@@ -145,14 +147,13 @@ def test_batch_preserves_display_text(
             (TEST_SERIAL_2, second_display),
         ]
     ]
-    handler = object.__new__(AmazonSequenceHandler)
-    result = list(handler._optimise_sequence_nodes(nodes))
-    assert len(result) == 1
-    assert result[0]["nodesToExecute"] == [node.operation_node for node in nodes]
+    (group,) = api._sequence_handler._optimise_sequence_nodes(nodes)
+    assert group["nodesToExecute"] == [node.operation_node for node in nodes]
 
 
-def test_batch_keeps_same_device_operations_separate(
-    make_device: Callable[..., AmazonDevice],
+@pytest.mark.anyio
+async def test_batch_keeps_same_device_operations_separate(
+    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
 ) -> None:
     """Announcements for the same device remain separate operations."""
     nodes = [
@@ -165,6 +166,5 @@ def test_batch_keeps_same_device_operations_separate(
         )
         for display in ["Dr. Smith", "Other"]
     ]
-    handler = object.__new__(AmazonSequenceHandler)
-    result = list(handler._optimise_sequence_nodes(nodes))
+    result = list(api._sequence_handler._optimise_sequence_nodes(nodes))
     assert result == [node.operation_node for node in nodes]

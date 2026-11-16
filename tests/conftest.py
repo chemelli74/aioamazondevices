@@ -124,6 +124,7 @@ def make_device() -> Callable[..., AmazonDevice]:
         online: bool = True,
         capabilities: list[str] | None = None,
         device_family: str = "ECHO",
+        device_type: str = TEST_DEVICE_TYPE,
         voice_control_supported: bool = True,
         media_player_supported: bool = False,
     ) -> AmazonDevice:
@@ -131,7 +132,7 @@ def make_device() -> Callable[..., AmazonDevice]:
             account_name=f"Echo {serial}",
             capabilities=capabilities if capabilities is not None else [],
             device_family=device_family,
-            device_type=TEST_DEVICE_TYPE,
+            device_type=device_type,
             primary_display_category="ALEXA_VOICE_ENABLED",
             device_owner_customer_id=TEST_CUSTOMER_ID,
             household_device=False,

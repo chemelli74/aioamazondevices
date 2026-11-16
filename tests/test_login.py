@@ -96,9 +96,9 @@ async def test_extract_code_from_url(api: AmazonEchoApi) -> None:
 @pytest.mark.parametrize(
     "url",
     [
-        pytest.param(MAPLANDING_URL, id="no_query"),
+        pytest.param(MAPLANDING_URL, id="no-query"),
         pytest.param(
-            MAPLANDING_URL.with_query({"openid.mode": "id_res"}), id="missing_code"
+            MAPLANDING_URL.with_query({"openid.mode": "id_res"}), id="missing-code"
         ),
     ],
 )
@@ -167,8 +167,8 @@ async def test_get_request_from_soup(
 @pytest.mark.parametrize(
     "html",
     [
-        pytest.param("<html><body>No form</body></html>", id="no_form"),
-        pytest.param('<form name="signIn" method="post"></form>', id="no_action"),
+        pytest.param("<html><body>No form</body></html>", id="no-form"),
+        pytest.param('<form name="signIn" method="post"></form>', id="no-action"),
     ],
 )
 async def test_get_request_from_soup_without_form(
@@ -261,9 +261,9 @@ async def test_login_interactive_oauth_wrong_email(
         pytest.param(
             ERROR_BOX.format(kind="error", message="The code is not valid") + MFA_PAGE,
             "The code is not valid",
-            id="error_box",
+            id="error-box",
         ),
-        pytest.param("", "Unable to extract authorization code", id="no_error_box"),
+        pytest.param("", "Unable to extract authorization code", id="no-error-box"),
     ],
 )
 async def test_login_interactive_oauth_no_code(
@@ -371,25 +371,25 @@ async def test_login_stored_data_without_data_raises(api: AmazonEchoApi) -> None
             {"id": TEST_CUSTOMER_ID, "countryOfResidence": "US"},
             TEST_CUSTOMER_ID,
             nullcontext(),
-            id="country_set",
+            id="country-set",
         ),
         pytest.param(
             {"id": TEST_CUSTOMER_ID},
             None,
             pytest.raises(MissingCountryError),
-            id="country_missing",
+            id="country-missing",
         ),
         pytest.param(
             {"id": TEST_CUSTOMER_ID, "countryOfResidence": None},
             None,
             pytest.raises(MissingCountryError),
-            id="country_none",
+            id="country-none",
         ),
         pytest.param(
             {"id": TEST_CUSTOMER_ID, "countryOfResidence": ""},
             None,
             pytest.raises(MissingCountryError),
-            id="country_empty",
+            id="country-empty",
         ),
     ],
 )

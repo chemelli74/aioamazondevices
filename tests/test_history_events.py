@@ -21,31 +21,34 @@ RECORD = AmazonVocalRecord(
 )
 
 
-@pytest.mark.anyio
-@pytest.mark.parametrize(
-    "subscribed",
-    [
-        pytest.param(False, id="no-subscribers"),
-        pytest.param(True, id="subscribed"),
-    ],
-)
-async def test_eq_event_fetches_history_only_for_subscribers(
-    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch, subscribed: bool
-) -> None:
-    """The history is fetched and emitted only when someone is subscribed."""
+@pytest.fixture
+def get_vocal_history(api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
+    """Replace fetching the vocal history, returning one record."""
     get_vocal_history = AsyncMock(return_value={TEST_SERIAL_1: RECORD})
     monkeypatch.setattr(api._history_handler, "get_vocal_history", get_vocal_history)
+    return get_vocal_history
 
-    received: list[dict[str, AmazonVocalRecord]] = []
 
-    async def on_history(history: dict[str, AmazonVocalRecord]) -> None:
-        received.append(history)
+@pytest.mark.anyio
+async def test_eq_event_without_subscribers_skips_history(
+    api: AmazonEchoApi, get_vocal_history: AsyncMock
+) -> None:
+    """The history is not fetched when nobody is subscribed."""
+    await api._handle_eq_event_as_history_proxy()
 
-    if subscribed:
-        api.on_history_event.append(on_history)
-        api.on_history_event.freeze()
+    get_vocal_history.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_eq_event_emits_history_to_subscribers(
+    api: AmazonEchoApi, get_vocal_history: AsyncMock
+) -> None:
+    """The history is fetched and emitted when someone is subscribed."""
+    on_history = AsyncMock()
+    api.on_history_event.append(on_history)
+    api.on_history_event.freeze()
 
     await api._handle_eq_event_as_history_proxy()
 
-    assert get_vocal_history.await_count == int(subscribed)
-    assert received == ([{TEST_SERIAL_1: RECORD}] if subscribed else [])
+    get_vocal_history.assert_awaited_once_with()
+    on_history.assert_awaited_once_with({TEST_SERIAL_1: RECORD})
