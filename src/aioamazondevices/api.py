@@ -232,7 +232,7 @@ class AmazonEchoApi:
             device for device in self._device_handler.devices.values() if device.online
         ]
         if not online_devices:
-            raise NoOnlineDevicesError("No online devices found")
+            raise NoOnlineDevicesError(len(self._device_handler.devices))
 
         # accounts without a voice device (e.g. thermostat only) still need one
         device = next(
