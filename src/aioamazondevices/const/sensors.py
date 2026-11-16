@@ -232,11 +232,19 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, SpecificSensor]]] = {
     DEVICE_TYPE_THERMOSTAT: {
         "mode": {
             "5": {
-                "sensor_key_override": "fan_mode",
+                "sensor_key_override": "thermostat_fan_mode",
             }
         },
         "thermostat": {"": {}},
         "thermostatConfiguration": {"": {}},
         "hvac": {"": {}},
+        "range": {
+            "1": {
+                "sensor_key_override": "amz_therm_active_brightness",
+            },
+            "2": {
+                "sensor_key_override": "amz_therm_inactive_brightness",
+            },
+        },
     },
 }
