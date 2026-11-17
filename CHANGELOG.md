@@ -1,5 +1,12 @@
 # Changelog
 
+## v17.3.0 (2026-11-17)
+
+### Features
+
+- Obfuscation enhancements ([`cdecb29`](https://github.com/chemelli74/aioamazondevices/commit/cdecb29284ccf52e363595710aa9609343946dee))
+
+
 ## v17.2.12 (2026-11-14)
 
 ### Bug fixes
