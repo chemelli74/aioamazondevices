@@ -33,6 +33,7 @@ TO_REDACT = {
     "anti-csrftoken-a2z",
     "appActionToken",
     "Authorization",
+    "authorization_code",
     "city",
     "code_verifier",
     "cookies",
@@ -62,6 +63,7 @@ TO_REDACT = {
 # Partially shown so log lines of different accounts can be told apart
 TO_OBFUSCATE = {
     "customerId",
+    "destinationUserId",
     "deviceOwnerCustomerId",
     "searchCustomerId",
 }
