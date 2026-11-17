@@ -16,7 +16,7 @@ from yarl import URL
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.http import ARRAY_WRAPPER, URI_BEHAVIORS_PREVIEW
 from aioamazondevices.const.metadata import ALEXA_INFO_SKILLS
-from aioamazondevices.exceptions import CannotConnect, InvalidInput
+from aioamazondevices.exceptions import CannotConnect, InvalidInputError
 from aioamazondevices.implementation import sequence
 from aioamazondevices.structures import (
     AmazonDevice,
@@ -470,7 +470,7 @@ async def test_call_alexa_info_skill_unknown_raises(
     api: AmazonEchoApi, send_message: AsyncMock, speaker_group: AmazonDevice
 ) -> None:
     """An unsupported info skill is rejected before anything is sent."""
-    with pytest.raises(InvalidInput, match="Unsupported info skill"):
+    with pytest.raises(InvalidInputError, match="Unsupported info skill"):
         await api.call_alexa_info_skill(speaker_group, "Alexa.Nope")
 
     send_message.assert_not_awaited()
