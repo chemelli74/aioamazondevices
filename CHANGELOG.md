@@ -1,5 +1,12 @@
 # Changelog
 
+## v17.3.2 (2026-11-17)
+
+### Bug fixes
+
+- Flag invalid input as separate error ([`081fa99`](https://github.com/chemelli74/aioamazondevices/commit/081fa9964ecefd3cbcf01d139ddd57023f580a34))
+
+
 ## v17.3.1 (2026-11-17)
 
 ### Bug fixes
