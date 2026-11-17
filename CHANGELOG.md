@@ -1,5 +1,12 @@
 # Changelog
 
+## v17.3.1 (2026-11-17)
+
+### Bug fixes
+
+- Scrub sensitive fields from logged push payloads ([`323b886`](https://github.com/chemelli74/aioamazondevices/commit/323b88615ba485edc6f19317dc38fdc96932ca89))
+
+
 ## v17.3.0 (2026-11-17)
 
 ### Features
