@@ -53,25 +53,26 @@ def _empty_temperature_endpoint() -> dict[str, Any]:
     return endpoint
 
 
+def _range_feature(instance: str, value: float = TEST_RANGE_VALUE) -> dict[str, Any]:
+    """Build a range feature for the given instance."""
+    return {
+        "name": "range",
+        "instance": instance,
+        "properties": [
+            {
+                "name": "rangeValue",
+                "type": "RETRIEVABLE",
+                "error": None,
+                "__typename": "RangeValue",
+                "rangeValue": {"value": value},
+            }
+        ],
+    }
+
+
 def _range_endpoint(instance: str) -> dict[str, Any]:
     """Build a range value for the given instance."""
-    return {
-        "features": [
-            {
-                "name": "range",
-                "instance": instance,
-                "properties": [
-                    {
-                        "name": "rangeValue",
-                        "type": "RETRIEVABLE",
-                        "error": None,
-                        "__typename": "RangeValue",
-                        "rangeValue": {"value": TEST_RANGE_VALUE},
-                    }
-                ],
-            }
-        ]
-    }
+    return {"features": [_range_feature(instance)]}
 
 
 @pytest.mark.anyio
@@ -295,6 +296,8 @@ def _thermostat_endpoint() -> dict[str, Any]:
                     },
                 ],
             },
+            _range_feature("1", 4),
+            _range_feature("2", 3),
         ]
     }
 
@@ -319,7 +322,9 @@ async def test_thermostat_sensors_are_read(
         "coolerStage": ("OFF", None),
         "primaryHeaterStage": ("STAGE_1", None),
         "fanStage": ("STAGE_1", None),
-        "fan_mode": ("2", None),
+        "thermostat_fan_mode": ("2", None),
+        "amz_therm_active_brightness": (4, None),
+        "amz_therm_inactive_brightness": (3, None),
     }
 
 
