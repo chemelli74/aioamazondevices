@@ -239,6 +239,18 @@ def test_scrub_fields() -> None:
     }
 
 
+def test_scrub_fields_keeps_null_values() -> None:
+    """JSON nulls stay None, even under keys that would be redacted."""
+    data = {
+        "email": None,
+        "customerId": None,
+        "user_id": None,
+        "nested": [{"token": None, "volume": None}],
+    }
+
+    assert scrub_fields(data) == data
+
+
 @pytest.mark.parametrize(
     ("value", "expected"),
     [

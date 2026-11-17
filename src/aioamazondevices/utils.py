@@ -148,11 +148,13 @@ def scrub_fields(
 ) -> Any:  # noqa: ANN401
     """Return a deep-copied version of *obj* with redacted keys."""
     if isinstance(obj, dict):
-        result = {}
+        result: dict[Any, Any] = {}
         for k, v in obj.items():
-            # If the key itself is sensitive → overwrite its value
-            if k == "email":
-                result[k] = obfuscate_email(v)
+            # Keep empty values, obfuscate or redact sensitive keys
+            if v is None:
+                result[k] = None
+            elif k == "email":
+                result[k] = obfuscate_email(v) if isinstance(v, str) else replacement
             elif k in TO_OBFUSCATE:
                 result[k] = (
                     obfuscate_customer_id(v) if isinstance(v, str) else replacement
