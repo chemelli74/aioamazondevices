@@ -1,5 +1,26 @@
 # Changelog
 
+## v17.3.2 (2026-11-17)
+
+### Bug fixes
+
+- Flag invalid input as separate error ([`081fa99`](https://github.com/chemelli74/aioamazondevices/commit/081fa9964ecefd3cbcf01d139ddd57023f580a34))
+
+
+## v17.3.1 (2026-11-17)
+
+### Bug fixes
+
+- Scrub sensitive fields from logged push payloads ([`323b886`](https://github.com/chemelli74/aioamazondevices/commit/323b88615ba485edc6f19317dc38fdc96932ca89))
+
+
+## v17.3.0 (2026-11-17)
+
+### Features
+
+- Obfuscation enhancements ([`cdecb29`](https://github.com/chemelli74/aioamazondevices/commit/cdecb29284ccf52e363595710aa9609343946dee))
+
+
 ## v17.2.12 (2026-11-14)
 
 ### Bug fixes

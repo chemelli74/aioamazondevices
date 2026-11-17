@@ -229,6 +229,20 @@ def test_process_rendering_update_rejects(
     assert message in caplog.text
 
 
+def test_process_rendering_update_scrubs_logged_payload(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Sensitive fields in logged push messages are redacted."""
+    update = _update(
+        resource_id="PUSH_SOMETHING_NEW",
+        payload={**VOLUME_PAYLOAD, "user_id": "secret_user_id"},
+    )
+
+    assert _process_rendering_update(update) is None
+    assert "[REDACTED]" in caplog.text
+    assert "secret_user_id" not in caplog.text
+
+
 @pytest.mark.parametrize(
     ("rendering_update", "expected"),
     [
