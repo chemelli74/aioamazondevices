@@ -1,5 +1,19 @@
 # Changelog
 
+## v17.5.0 (2026-11-18)
+
+### Features
+
+- Add amazon smart plug support ([`75ddc36`](https://github.com/chemelli74/aioamazondevices/commit/75ddc36eb47fbe878fb844d35e75276f4e45d683))
+
+
+## v17.4.0 (2026-11-18)
+
+### Features
+
+- Add amazon thermostat support ([`2cf338d`](https://github.com/chemelli74/aioamazondevices/commit/2cf338d35217eb16527d7a55efdbd0a35ba18715))
+
+
 ## v17.3.2 (2026-11-17)
 
 ### Bug fixes
