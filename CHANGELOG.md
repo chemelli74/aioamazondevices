@@ -1,5 +1,12 @@
 # Changelog
 
+## v17.5.0 (2026-11-18)
+
+### Features
+
+- Add amazon smart plug support ([`75ddc36`](https://github.com/chemelli74/aioamazondevices/commit/75ddc36eb47fbe878fb844d35e75276f4e45d683))
+
+
 ## v17.4.0 (2026-11-18)
 
 ### Features
