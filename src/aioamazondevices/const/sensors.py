@@ -6,6 +6,7 @@
 from typing import NotRequired, TypedDict
 
 from aioamazondevices.const.devices import (
+    DEVICE_TYPE_ALEXA_SMART_PLUG,
     DEVICE_TYPE_AQM,
     DEVICE_TYPE_GLOW,
     DEVICE_TYPE_THERMOSTAT,
@@ -245,6 +246,13 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, SpecificSensor]]] = {
             "2": {
                 "sensor_key_override": "amz_therm_inactive_brightness",
             },
+        },
+    },
+    DEVICE_TYPE_ALEXA_SMART_PLUG: {
+        "power": {
+            "": {
+                "sensor_key_override": "plug_power",
+            }
         },
     },
 }
