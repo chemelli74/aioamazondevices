@@ -1,3 +1,4 @@
+
 # Copyright 2024 Simone Chemelli and contributors
 # SPDX-License-Identifier: Apache-2.0
 
@@ -89,30 +90,43 @@ class AmazonHistoryHandler:
             _LOGGER.debug("Processing vocal history record: %s", record)
             utterance_type = record.get("utteranceType")
             device_info = record.get("deviceInfo")
-            if (
-                utterance_type
-                in [
-                    "ASR_TIMEOUT",
-                    "DEVICE_ARBITRATION",
-                    "NO_EXPRESSED_INTENT",
-                    "WAKE_WORD_ONLY",
-                ]
-                # InvokeRoutineIntent, AddToListIntent are not linked to a device
-                or device_info is None
-            ):
+
+            if utterance_type in [
+                "ASR_TIMEOUT",
+                "DEVICE_ARBITRATION",
+                "NO_EXPRESSED_INTENT",
+                "WAKE_WORD_ONLY",
+            ]:
                 continue
 
             if isinstance(device_info, list):
                 device_info = device_info[0] if device_info else None
-            if not isinstance(device_info, dict):
+
+            if isinstance(device_info, dict):
+                serial = device_info.get("deviceSerialNumber")
+            else:
+                # Third-party Alexa devices (e.g. Sonos) may
+                # omit deviceInfo from vocal history records.
+                # Extract the serial number from activityKey.
+                # Format: customer#timestamp#deviceType#serial
+                activity_key = record.get("activityKey")
+                parts = (
+                    activity_key.split("#")
+                    if isinstance(activity_key, str)
+                    else []
+                )
+                serial = parts[3] if len(parts) == 4 else None
+
+            if not isinstance(serial, str) or not serial:
                 continue
-            serial = device_info["deviceSerialNumber"]
+
             timestamp = record["timestamp"]
             person_info = record.get("personsInfo")
             if isinstance(person_info, list):
                 person_info = person_info[0] if person_info else None
             if not isinstance(person_info, dict):
                 person_info = {}
+
             new_record = AmazonVocalRecord(
                 timestamp=timestamp,
                 history_type=utterance_type or record.get("recordType") or "Unknown",
@@ -122,6 +136,7 @@ class AmazonHistoryHandler:
                 person_first_name=person_info.get("personFirstName"),
                 person_type=person_info.get("personType"),
             )
+
             # Store only the latest record per serial number
             if serial not in records or timestamp > records[serial].timestamp:
                 records[serial] = new_record
