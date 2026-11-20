@@ -13,7 +13,6 @@ import orjson
 from aiohttp import ClientSession
 from aiosignal import Signal
 from anyio import Path
-
 from aioamazondevices.implementation.communication import AlexaCommunicationsHandler
 from aioamazondevices.implementation.device import AmazonDeviceHandler
 from aioamazondevices.implementation.feature import AmazonFeatureHandler
@@ -22,14 +21,8 @@ from aioamazondevices.implementation.sensor import AmazonSensorHandler
 from aioamazondevices.implementation.todo import AmazonToDoHandler
 
 from . import __version__
-from .const.http import (
-    DEFAULT_SITE,
-)
-from .const.metadata import (
-    ALEXA_INFO_SKILLS,
-    VOLUME_MAX,
-    VOLUME_MIN,
-)
+from .const.http import DEFAULT_SITE
+from .const.metadata import ALEXA_INFO_SKILLS, VOLUME_MAX, VOLUME_MIN
 from .exceptions import CannotSetFeature, InvalidInputError, NoOnlineDevicesError
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
@@ -61,6 +54,17 @@ from .utils import _LOGGER, scrub_fields
 SETTINGS_FILENAME = "settings.json"
 SETTINGS_DEFAULT_DEVICE = "default_device"
 
+# Third-party Alexa devices observed to emit volume pushes during speech.
+SONOS_ALEXA_DEVICE_TYPES = frozenset(
+    {
+        "AVD3HM0HOJAAL",  # Sonos One Second Edition
+        "A2OSP3UA4VC85F",  # Sonos One
+        "A39OV95SPFQ9YG",  # Sonos Era 100
+    }
+)
+SONOS_HISTORY_DEBOUNCE_SECONDS = 0.5
+HISTORY_MIN_INTERVAL_SECONDS = 2.0
+
 
 class AmazonEchoApi:
     """Queries Amazon for Echo devices."""
@@ -76,7 +80,6 @@ class AmazonEchoApi:
     ) -> None:
         """Initialize the scanner."""
         _LOGGER.debug("Initialize library v%s", __version__)
-
         self._settings_file = Path(save_data.path, SETTINGS_FILENAME)
         self._default_device_serial: str = ""
 
@@ -87,7 +90,6 @@ class AmazonEchoApi:
         self._session_state_data = AmazonSessionStateData(
             site, login_email, login_password, login_data
         )
-
         self._http_wrapper = AmazonHttpWrapper(
             client_session,
             self._session_state_data,
@@ -103,7 +105,6 @@ class AmazonEchoApi:
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
         )
-
         self._sensor_handler = AmazonSensorHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
@@ -118,7 +119,6 @@ class AmazonEchoApi:
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
         )
-
         self._dnd_handler = AmazonDnDHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
@@ -133,7 +133,6 @@ class AmazonEchoApi:
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
         )
-
         self._history_handler = AmazonHistoryHandler(
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
@@ -148,7 +147,6 @@ class AmazonEchoApi:
             http_wrapper=self._http_wrapper,
             session_state_data=self._session_state_data,
         )
-
         self._device_volumes_initialized: bool = False
         self._dnd_initialized: bool = False
         self._dnd_lock = asyncio.Lock()
@@ -163,10 +161,15 @@ class AmazonEchoApi:
         # set when a sensor resync failed, so the next poll retries it
         self._sensor_resync_required: bool = False
 
+        # Serialize all Alexa history API requests. Sonos activity is debounced.
+        self._history_fetch_lock = asyncio.Lock()
+        self._last_history_fetch_start = float("-inf")
+        self._sonos_history_task: asyncio.Task[None] | None = None
+        self._sonos_history_pending = False
+
         # force initial refresh
         initial_time = datetime.now(UTC) - timedelta(days=2)
         self._last_daily_refresh: datetime = initial_time
-
         self.on_media_state_event = Signal[dict[str, AmazonMediaState]](self)
         self.on_volume_state_event = Signal[dict[str, AmazonVolumeState]](self)
         self.on_history_event = Signal[dict[str, AmazonVocalRecord]](self)
@@ -212,28 +215,24 @@ class AmazonEchoApi:
 
     async def _init_default_device(self) -> None:
         """Resolve default device serial from settings or the first online device.
-
         Online devices that can be spoken to are preferred, as voice commands
         and routines are sent to the default device.
         """
         if self._default_device_serial in self._device_handler.devices:
             return
         self._default_device_serial = ""
-
         settings = await self._load_settings()
         if (
             serial_number := settings.get(SETTINGS_DEFAULT_DEVICE)
         ) and serial_number in self._device_handler.devices:
             self._default_device_serial = serial_number
             return
-
         # Use first online device as default if no default device has been set yet
         online_devices = [
             device for device in self._device_handler.devices.values() if device.online
         ]
         if not online_devices:
             raise NoOnlineDevicesError("No online devices found")
-
         # accounts without a voice device (e.g. thermostat only) still need one
         device = next(
             (device for device in online_devices if device.voice_control_supported),
@@ -245,7 +244,6 @@ class AmazonEchoApi:
         """Load persisted settings from disk."""
         if not await self._settings_file.exists():
             return {}
-
         try:
             settings = orjson.loads(await self._settings_file.read_bytes())
         except orjson.JSONDecodeError:
@@ -272,7 +270,6 @@ class AmazonEchoApi:
 
     async def _refresh_basic_data(self) -> bool:
         """Refresh base data if interval has passed.
-
         Returns True if the refresh ran, which includes a full sensor sync.
         """
         refreshed = False
@@ -293,7 +290,6 @@ class AmazonEchoApi:
             await self._media_handler.update_music_providers()
             await self._sequence_handler.update_routines()
             await self._todo_handler.update_lists()
-
             self._last_daily_refresh = datetime.now(UTC)
             refreshed = True
 
@@ -316,7 +312,6 @@ class AmazonEchoApi:
         """
         # Perform a refresh to ensure your data is as up-to-date as possible.
         sensors_synced = await self._refresh_basic_data()
-
         devices = self._device_handler.devices
         notifications = await self._notification_handler.get_notifications()
         communications = (
@@ -325,12 +320,10 @@ class AmazonEchoApi:
             )
         )
         self._update_device_settings(devices, notifications, communications)
-
         # retry a resync that failed after an HTTP2 reconnect
         if self._sensor_resync_required:
             await self._resync_sensors()
             sensors_synced = True
-
         # a full sync already fetched every sensor, so polling again straight
         # after only adds an API call that Amazon may rate limit
         if not sensors_synced:
@@ -351,7 +344,6 @@ class AmazonEchoApi:
             device.communication_settings = (
                 communications.get(device.serial_number) or {}
             )
-
         self._notification_handler.update_device_notifications(devices, notifications)
 
     async def start_http2_processing(
@@ -360,7 +352,6 @@ class AmazonEchoApi:
         on_reauth_required: Callable[[], Coroutine[Any, Any, None]] | None = None,
     ) -> asyncio.Task[None]:
         """Start HTTP2 background processing.
-
         returns as Task so callers can decide how to handle it.
         awaiting task will block until http2 processing is stopped or errors
         to capture errors without blocking, callers can add a done callback to the task.
@@ -368,7 +359,6 @@ class AmazonEchoApi:
         httpx client must have http2 enabled and a timeout of None to
         allow for long-lived connections.
         Caller is responsible for ensuring its properly configured and closed after use.
-
         Required for pushed sensors (e.g. temperature, air quality), which are
         only refreshed by push events.
         """
@@ -383,7 +373,6 @@ class AmazonEchoApi:
             self._http2_client.on_push_event.freeze()
             self._http2_client.on_reconnected.append(self._http2_reconnected_handler)
             self._http2_client.on_reconnected.freeze()
-
         return await self._http2_client.start_processing()
 
     async def stop_http2_processing(self) -> None:
@@ -391,7 +380,6 @@ class AmazonEchoApi:
         if self._http2_client:
             await self._http2_client.stop_processing()
             self._http2_client = None
-
         if (resync_task := self._resync_task) and not resync_task.done():
             resync_task.cancel()
             try:
@@ -402,9 +390,19 @@ class AmazonEchoApi:
         self._resync_task = None
         self._resync_pending = False
 
+        # Stop Sonos history polling before unloading the integration.
+        self._sonos_history_pending = False
+        if (sonos_task := self._sonos_history_task) and not sonos_task.done():
+            sonos_task.cancel()
+            try:
+                await sonos_task
+            except asyncio.CancelledError:
+                if (t := asyncio.current_task()) and t.cancelling():
+                    raise
+        self._sonos_history_task = None
+
     async def _http2_reconnected_handler(self) -> None:
         """Resync pushed state in the background, as pushes may have been missed.
-
         Runs as a separate task so the stream is not blocked by the queries,
         and a failed query cannot take the stream down.
         """
@@ -421,7 +419,6 @@ class AmazonEchoApi:
         while True:
             self._resync_pending = False
             _LOGGER.debug("HTTP2 stream reconnected, resyncing pushed state")
-
             try:
                 await self._resync_sensors()
             except Exception as err:  # noqa: BLE001
@@ -431,7 +428,6 @@ class AmazonEchoApi:
                     err,
                 )
                 self._sensor_resync_required = True
-
             # on failure the flags stay cleared, so the next push event
             # triggers the full sync before applying its update
             self._dnd_initialized = False
@@ -443,7 +439,6 @@ class AmazonEchoApi:
                     _LOGGER.warning(
                         "%s after HTTP2 reconnect failed: %s", sync_call.__name__, err
                     )
-
             if not self._resync_pending:
                 return
 
@@ -461,10 +456,10 @@ class AmazonEchoApi:
         self, event_type: str, payload: dict[str, Any]
     ) -> None:
         _LOGGER.debug("Event - %s : Payload - %s", event_type, scrub_fields(payload))
-
         match event_type:
             case AmazonPushMessage.VolumeChange.value:
                 await self._handle_volume_change_event(payload)
+                self._schedule_sonos_history_fetch(payload)
             case AmazonPushMessage.EqualizerStateChange.value:
                 await self._handle_eq_event_as_history_proxy()
             case AmazonPushMessage.AudioPlayerState.value:
@@ -514,7 +509,6 @@ class AmazonEchoApi:
             if not self._device_volumes_initialized:
                 await self._media_handler.sync_device_volumes()
                 self._device_volumes_initialized = True
-
             if serial := payload.get("dopplerId", {}).get("deviceSerialNumber"):
                 volume = AmazonVolumeState(
                     payload.get("volumeSetting"), payload.get("isMuted")
@@ -530,15 +524,60 @@ class AmazonEchoApi:
                                 parent_serial,
                                 list(parent_cluster.device_cluster_members),
                             )
-
         await self._emit_volume_state_event()
 
+    def _schedule_sonos_history_fetch(self, payload: dict[str, Any]) -> None:
+        """Start a history fetch on pushes from supported Sonos Alexa devices."""
+        if not self.on_history_event.frozen:
+            return
+        doppler_id = payload.get("dopplerId")
+        if not isinstance(doppler_id, dict):
+            return
+        if doppler_id.get("deviceType") not in SONOS_ALEXA_DEVICE_TYPES:
+            return
+        self._sonos_history_pending = True
+        if self._sonos_history_task is None or self._sonos_history_task.done():
+            self._sonos_history_task = asyncio.create_task(
+                self._sonos_history_worker(), name="aioamazondevices_sonos_history"
+            )
+
+    async def _sonos_history_worker(self) -> None:
+        """Fetch after a short debounce, coalescing simultaneous Sonos pushes."""
+        try:
+            while self._sonos_history_pending:
+                self._sonos_history_pending = False
+                await asyncio.sleep(SONOS_HISTORY_DEBOUNCE_SECONDS)
+                # Merge pushes received during the debounce interval.
+                self._sonos_history_pending = False
+                try:
+                    _LOGGER.debug("Sonos push: fetching Alexa vocal history")
+                    await self._handle_eq_event_as_history_proxy()
+                except Exception as err:  # noqa: BLE001
+                    _LOGGER.warning("Sonos vocal history fetch failed: %s", err)
+        finally:
+            self._sonos_history_task = None
+            if self._sonos_history_pending:
+                self._sonos_history_task = asyncio.create_task(
+                    self._sonos_history_worker(), name="aioamazondevices_sonos_history"
+                )
+
     async def _handle_eq_event_as_history_proxy(self) -> None:
+        """Fetch voice history with serialized requests and 2-second spacing."""
         if not self.on_history_event.frozen:
             _LOGGER.debug("No vocal history subscribers, skipping fetch")
             return
-        vocal_history = await self._history_handler.get_vocal_history()
-        await self._emit_history_event(vocal_history)
+        async with self._history_fetch_lock:
+            loop = asyncio.get_running_loop()
+            delay = max(
+                0.0,
+                HISTORY_MIN_INTERVAL_SECONDS
+                - (loop.time() - self._last_history_fetch_start),
+            )
+            if delay:
+                await asyncio.sleep(delay)
+            self._last_history_fetch_start = loop.time()
+            vocal_history = await self._history_handler.get_vocal_history()
+            await self._emit_history_event(vocal_history)
 
     async def _handle_audio_player_state_event(self) -> None:
         if not self._device_handler.devices:
@@ -563,7 +602,6 @@ class AmazonEchoApi:
             return
 
         _LOGGER.debug("Received ItemChange for %s: %s", list_id, event_name)
-
         if event_name not in AmazonListEventType:
             _LOGGER.warning("Received unsupported list event type: %s", event_name)
             return
@@ -576,7 +614,6 @@ class AmazonEchoApi:
             items = list_items[item_id]
 
         list_event = AmazonListEvent(list_id, item_id, list_event_type, items=items)
-
         await self._emit_todo_event(list_event)
 
     async def call_alexa_speak(
@@ -596,7 +633,6 @@ class AmazonEchoApi:
         display_text: str | None = None,
     ) -> None:
         """Send an announcement with an optional display body.
-
         An omitted, None, or empty display_text uses the spoken text.
         The spoken text and display title stay unchanged.
         The optional display_text accepts positional or keyword use.
@@ -629,7 +665,6 @@ class AmazonEchoApi:
             raise InvalidInputError(
                 f"{provider_id} is not available as a music provider"
             )
-
         await self._sequence_handler.send_message(
             device, AmazonSequenceType.Music, search_phrase, provider_id
         )
@@ -731,14 +766,12 @@ class AmazonEchoApi:
         instance: str | None = None,
     ) -> None:
         """Invoke a feature operation on a device endpoint.
-
         Raises CannotSetFeature if the operation fails.
         """
         if not device.endpoint_id:
             raise CannotSetFeature(
                 f"Device ({device.account_name}) does not have an endpoint ID."
             )
-
         instance_text = f" instance: {instance}" if instance else ""
         if not (feat := device.features.get(feature_name)) or not (
             feat_instance := feat.get(instance or "")
@@ -747,14 +780,12 @@ class AmazonEchoApi:
                 f"Device ({device.account_name}) does not have"
                 f" feature: {feature_name}{instance_text}."
             )
-
         if operation_name not in feat_instance.supported_operations:
             raise CannotSetFeature(
                 f"Operation: {operation_name} not valid for"
                 f" device ({device.account_name})"
                 f" feature: {feature_name}{instance_text}."
             )
-
         await self._feature_handler.set_feature(
             endpoint_id=device.endpoint_id,
             feature_name=feature_name,
@@ -788,7 +819,6 @@ class AmazonEchoApi:
         async with self._device_volumes_lock:
             await self._media_handler.sync_device_volumes()
             self._device_volumes_initialized = True
-
         await self._emit_volume_state_event()
         await self._media_handler.sync_media_state(self._device_handler.devices)
         await self._emit_media_state_event()
@@ -815,11 +845,20 @@ class AmazonEchoApi:
 
     async def sync_history_state(self) -> dict[str, AmazonVocalRecord]:
         """Sync history state.
-
         This will be called at startup to sync history state of all devices
         and can be called later to refresh history state.
         """
-        return await self._history_handler.get_vocal_history()
+        async with self._history_fetch_lock:
+            loop = asyncio.get_running_loop()
+            delay = max(
+                0.0,
+                HISTORY_MIN_INTERVAL_SECONDS
+                - (loop.time() - self._last_history_fetch_start),
+            )
+            if delay:
+                await asyncio.sleep(delay)
+            self._last_history_fetch_start = loop.time()
+            return await self._history_handler.get_vocal_history()
 
     async def _emit_history_event(
         self, vocal_history: dict[str, AmazonVocalRecord]
@@ -834,30 +873,29 @@ class AmazonEchoApi:
         self, list_id: str, item_id: str, checked: bool, version: int
     ) -> None:
         """Set ToDo list item checked status."""
-        await self._todo_handler.set_item_checked_status(
+        await self._todo_handler.set_todo_list_item_checked_status(
             list_id, item_id, checked, version
         )
 
     async def add_todo_list_item(self, list_id: str, item_name: str) -> None:
-        """Add item to a ToDo list."""
+        """Add item to ToDo list."""
         await self._todo_handler.add_item(list_id, item_name)
 
     async def delete_todo_list_item(
         self, list_id: str, item_id: str, version: int
     ) -> None:
-        """Delete item from a ToDo list."""
+        """Delete a ToDo list item."""
         await self._todo_handler.delete_item(list_id, item_id, version)
 
     async def rename_todo_list_item(
         self, list_id: str, item_id: str, new_name: str, version: int
     ) -> None:
-        """Rename ToDo list item."""
+        """Rename a ToDo list item."""
         await self._todo_handler.rename_item(list_id, item_id, new_name, version)
 
     async def get_todo_list_items(self, list_id: str) -> dict[str, AmazonListItem]:
         """Return ToDo all list items."""
         items = await self._todo_handler.get_list_items(list_id)
-
         return {item.id: item for item in items}
 
     async def restart_device(self, device: AmazonDevice) -> None:
@@ -869,7 +907,6 @@ class AmazonEchoApi:
         async with self._dnd_lock:
             await self._dnd_handler.sync_do_not_disturb_status()
             self._dnd_initialized = True
-
         await self._emit_dnd_state_event()
 
     async def _handle_dnd_event(self, payload: dict[str, Any]) -> None:
@@ -882,7 +919,6 @@ class AmazonEchoApi:
             return
         if not serial:
             return
-
         # The lock serializes the full sync with incremental updates, so that a
         # sync response predating this event cannot overwrite it.
         async with self._dnd_lock:
@@ -892,7 +928,6 @@ class AmazonEchoApi:
                 self._dnd_initialized = True
 
             self._dnd_handler.update_cached_dnd_state(serial, enabled)
-
         await self._emit_dnd_state_event()
 
     async def _emit_dnd_state_event(self) -> None:
