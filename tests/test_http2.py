@@ -32,7 +32,6 @@ from aioamazondevices.implementation.http2 import (
     AmazonHTTP2Client,
     AvsDirectiveStreamParser,
     _extract_rendering_updates,
-    _is_notification_change_duplicate,
     _process_rendering_update,
     _TaskAction,
 )
@@ -204,22 +203,6 @@ def test_extract_rendering_updates(
 
 
 @pytest.mark.parametrize(
-    ("payload", "expected"),
-    [
-        pytest.param({"notificationVersion": 3}, False, id="odd"),
-        pytest.param({"notificationVersion": 4}, True, id="even"),
-        pytest.param({}, False, id="missing"),
-        pytest.param({"notificationVersion": "4"}, False, id="not-an-int"),
-    ],
-)
-def test_is_notification_change_duplicate(
-    payload: dict[str, Any], expected: bool
-) -> None:
-    """Even notification versions are duplicates."""
-    assert _is_notification_change_duplicate(payload) is expected
-
-
-@pytest.mark.parametrize(
     ("rendering_update", "message"),
     [
         pytest.param("update", "Malformed rendering update node", id="not-a-dict"),
@@ -236,20 +219,12 @@ def test_is_notification_change_duplicate(
             "PUSH_SOMETHING_NEW",
             id="unknown-type",
         ),
-        pytest.param(
-            _update(
-                AmazonPushMessage.NotificationChange.value,
-                {"notificationVersion": 2},
-            ),
-            "",
-            id="duplicate-notification",
-        ),
     ],
 )
 def test_process_rendering_update_rejects(
     caplog: pytest.LogCaptureFixture, rendering_update: object, message: str
 ) -> None:
-    """Malformed, unknown and duplicate updates are dropped."""
+    """Malformed and unknown updates are dropped."""
     assert _process_rendering_update(rendering_update) is None
     assert message in caplog.text
 
