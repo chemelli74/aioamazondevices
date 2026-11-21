@@ -8,10 +8,7 @@ from http import HTTPMethod
 from yarl import URL
 
 from aioamazondevices.const.devices import (
-    DEVICE_TYPE_ALEXA_SMART_PLUG,
-    DEVICE_TYPE_AQM,
-    DEVICE_TYPE_GLOW,
-    DEVICE_TYPE_THERMOSTAT,
+    ENDPOINT_ONLY_DEVICES,
     SPEAKER_GROUP_FAMILY,
 )
 from aioamazondevices.const.http import COMM_SITE, REQUEST_AGENT, URI_COMM_PREFERENCES
@@ -78,11 +75,9 @@ class AlexaCommunicationsHandler:
     ) -> dict[str, dict[str, str]]:
         """Get communication preferences for a device."""
         for device in devices:
-            if device.device_family == SPEAKER_GROUP_FAMILY or device.device_type in (
-                DEVICE_TYPE_AQM,
-                DEVICE_TYPE_GLOW,
-                DEVICE_TYPE_ALEXA_SMART_PLUG,
-                DEVICE_TYPE_THERMOSTAT,
+            if (
+                device.device_family == SPEAKER_GROUP_FAMILY
+                or device.device_type in ENDPOINT_ONLY_DEVICES
             ):
                 # avoid unnecessary call for devices that don't support communications
                 continue
