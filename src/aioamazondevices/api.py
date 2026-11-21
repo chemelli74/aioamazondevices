@@ -51,7 +51,6 @@ from .structures import (
     AmazonMusicProvider,
     AmazonPushMessage,
     AmazonSaveDataConfig,
-    AmazonSchedule,
     AmazonSequenceType,
     AmazonVocalRecord,
     AmazonVolumeState,
@@ -294,6 +293,16 @@ class AmazonEchoApi:
             await self._sequence_handler.update_routines()
             await self._todo_handler.update_lists()
 
+            communications = (
+                await self._communication_handler.get_communication_preferences(
+                    list(self._device_handler.devices.values())
+                )
+            )
+            for device in self._device_handler.devices.values():
+                device.communication_settings = (
+                    communications.get(device.serial_number) or {}
+                )
+
             self._last_daily_refresh = datetime.now(UTC)
             refreshed = True
 
@@ -319,12 +328,7 @@ class AmazonEchoApi:
 
         devices = self._device_handler.devices
         notifications = await self._notification_handler.get_notifications()
-        communications = (
-            await self._communication_handler.get_communication_preferences(
-                list(devices.values())
-            )
-        )
-        self._update_device_settings(devices, notifications, communications)
+        self._notification_handler.update_device_notifications(devices, notifications)
 
         # retry a resync that failed after an HTTP2 reconnect
         if self._sensor_resync_required:
@@ -339,20 +343,6 @@ class AmazonEchoApi:
         self._sensor_handler.update_device_online_statuses(devices)
 
         return devices
-
-    def _update_device_settings(
-        self,
-        devices: dict[str, AmazonDevice],
-        notifications: dict[str, dict[str, AmazonSchedule]] | None,
-        communications: dict[str, dict[str, str]],
-    ) -> None:
-        """Update communication settings and notifications of all devices."""
-        for device in devices.values():
-            device.communication_settings = (
-                communications.get(device.serial_number) or {}
-            )
-
-        self._notification_handler.update_device_notifications(devices, notifications)
 
     async def start_http2_processing(
         self,

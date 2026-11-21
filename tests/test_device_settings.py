@@ -1,7 +1,7 @@
 # Copyright 2024 Simone Chemelli and contributors
 # SPDX-License-Identifier: Apache-2.0
 
-"""Tests for applying notifications and communication settings to devices."""
+"""Tests for applying notifications and polled settings to devices."""
 
 from collections.abc import Callable
 from typing import Any
@@ -17,7 +17,7 @@ from aioamazondevices.const.schedules import (
 )
 from aioamazondevices.structures import AmazonDevice, AmazonSchedule
 
-from .const import TEST_SERIAL_1, TEST_SERIAL_2
+from .const import TEST_SERIAL_1
 
 
 def _schedule(schedule_type: str) -> AmazonSchedule:
@@ -27,7 +27,6 @@ def _schedule(schedule_type: str) -> AmazonSchedule:
     )
 
 
-COMMUNICATIONS = {TEST_SERIAL_1: {"communicationsEnabled": "true"}}
 REMINDER = _schedule(NOTIFICATION_REMINDER)
 TIMER = _schedule(NOTIFICATION_TIMER)
 ALARM = _schedule(NOTIFICATION_ALARM)
@@ -87,33 +86,16 @@ async def test_update_device_notifications(
 
 
 @pytest.mark.anyio
-async def test_communication_settings_are_applied(
-    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
-) -> None:
-    """Communication settings are set, and cleared for devices without any."""
-    device = make_device(TEST_SERIAL_1)
-    other = make_device(TEST_SERIAL_2)
-    other.communication_settings = {"communicationsEnabled": "false"}
-
-    api._update_device_settings(
-        {TEST_SERIAL_1: device, TEST_SERIAL_2: other}, None, COMMUNICATIONS
-    )
-
-    assert device.communication_settings == COMMUNICATIONS[TEST_SERIAL_1]
-    assert other.communication_settings == {}
-
-
-@pytest.mark.anyio
 async def test_get_devices_data_applies_settings(
     api: AmazonEchoApi,
     make_device: Callable[..., AmazonDevice],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """A poll applies notifications and communication settings, then sensors."""
+    """A poll applies notifications then sensors, but skips communications."""
     device = make_device(TEST_SERIAL_1, capabilities=["REMINDERS"])
     devices = {TEST_SERIAL_1: device}
     api._device_handler._final_devices = devices
-    get_communications = AsyncMock(return_value=COMMUNICATIONS)
+    get_communications = AsyncMock()
     update_polled_sensors = AsyncMock()
     update_online_statuses = Mock()
     monkeypatch.setattr(api, "_refresh_basic_data", AsyncMock(return_value=False))
@@ -136,11 +118,10 @@ async def test_get_devices_data_applies_settings(
 
     assert await api.get_devices_data() is devices
 
-    get_communications.assert_awaited_once_with([device])
+    get_communications.assert_not_awaited()
     update_polled_sensors.assert_awaited_once_with()
     update_online_statuses.assert_called_once_with(devices)
     assert device.notifications == {NOTIFICATION_REMINDER: REMINDER}
-    assert device.communication_settings == COMMUNICATIONS[TEST_SERIAL_1]
 
 
 @pytest.mark.anyio
@@ -170,11 +151,6 @@ async def test_get_devices_data_skips_poll_after_full_sync(
     monkeypatch.setattr(api, "_resync_sensors", resync_sensors)
     monkeypatch.setattr(
         api._notification_handler, "get_notifications", AsyncMock(return_value=None)
-    )
-    monkeypatch.setattr(
-        api._communication_handler,
-        "get_communication_preferences",
-        AsyncMock(return_value={}),
     )
     monkeypatch.setattr(
         api._sensor_handler, "update_polled_sensors", update_polled_sensors
