@@ -11,6 +11,7 @@ import pytest
 
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.schedules import NOTIFICATION_TIMER
+from aioamazondevices.exceptions import CannotConnect
 from aioamazondevices.implementation.http2 import _process_rendering_update
 from aioamazondevices.structures import AmazonPushMessage, AmazonSchedule
 
@@ -236,6 +237,26 @@ async def test_sync_notifications_survives_failed_fetch(
 
     assert received == [{}]
     assert not notified_api._notification_resync_required
+
+
+@pytest.mark.anyio
+async def test_sync_notifications_connection_error_is_retried(
+    notified_api: AmazonEchoApi,
+    received: list[NotificationMap],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A connection error raised by the fetch still marks the sync for retry."""
+    monkeypatch.setattr(
+        notified_api._notification_handler,
+        "get_notifications",
+        AsyncMock(side_effect=CannotConnect("Connection error during GET")),
+    )
+
+    with pytest.raises(CannotConnect):
+        await notified_api.sync_notifications()
+
+    assert received == []
+    assert notified_api._notification_resync_required
 
 
 @pytest.mark.anyio

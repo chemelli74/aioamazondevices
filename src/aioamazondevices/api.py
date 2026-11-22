@@ -936,10 +936,11 @@ class AmazonEchoApi:
         as the lock is held while subscribers run.
         """
         async with self._notification_lock:
+            # set first, so a raised fetch error is retried too
+            self._notification_resync_required = True
             notifications = await self._notification_handler.get_notifications()
             if notifications is None:
                 _LOGGER.debug("Notification fetch returned None, skipping update")
-                self._notification_resync_required = True
                 return
 
             self._notification_resync_required = False
