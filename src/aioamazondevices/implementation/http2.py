@@ -71,35 +71,12 @@ def _extract_rendering_updates(
     return updates_nodes
 
 
-def _is_notification_change_duplicate(payload: dict[str, Any]) -> bool:
-    """Filter duplicate NotificationChange events.
-
-    Observed behavior: even notificationVersion values are duplicates.
-    """
-    # Ignore AmazonPushMessage.NotificationChange duplicates
-    # where notificationVersion is even
-    notification_version = payload.get("notificationVersion", 1)
-    if not isinstance(notification_version, int):
-        _LOGGER.warning(
-            "Unexpected type of notification_version: %s", type(notification_version)
-        )
-        return False
-
-    is_duplicate = notification_version % 2 == 0
-    _LOGGER.debug(
-        "Checking for duplicate NotificationChange: version=%s, is_duplicate=%s",
-        notification_version,
-        is_duplicate,
-    )
-    return is_duplicate
-
-
 def _is_known_event_type(push_event_type: str) -> bool:
     """Check if the push event type is known."""
     return push_event_type in AmazonPushMessage._value2member_map_
 
 
-def _process_rendering_update(  # noqa: PLR0911
+def _process_rendering_update(
     rendering_update: object,
 ) -> tuple[str, dict[str, Any]] | None:
     """Process a single rendering update node."""
@@ -140,12 +117,6 @@ def _process_rendering_update(  # noqa: PLR0911
             push_event_type,
             scrub_fields(rendering_update),
         )
-        return None
-
-    if (
-        push_event_type == AmazonPushMessage.NotificationChange.value
-        and _is_notification_change_duplicate(payload)
-    ):
         return None
 
     _LOGGER.debug(
@@ -210,6 +181,8 @@ class AmazonHTTP2Client:
         self._avs_directive_site = URL(HTTP2_SITE.format(region=region))
 
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
+        # sent when the stream first opens, so state fetched before it can be refreshed
+        self.on_connected: Signal[()] = Signal(self)
         # sent when the stream reopens after a drop, as pushes may have been missed
         self.on_reconnected: Signal[()] = Signal(self)
 
@@ -534,8 +507,9 @@ class AmazonHTTP2Client:
             # Stream confirmed open — allow the ping loop to start firing.
             self._connected_event.set()
 
-            if self._has_connected and self.on_reconnected.frozen:
-                await self.on_reconnected.send()
+            signal = self.on_reconnected if self._has_connected else self.on_connected
+            if signal.frozen:
+                await signal.send()
             self._has_connected = True
 
             avs_stream_parser = AvsDirectiveStreamParser(boundary)
