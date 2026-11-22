@@ -1,5 +1,12 @@
 # Changelog
 
+## v17.5.1 (2026-11-21)
+
+### Bug fixes
+
+- Avoid comms calls for unsupported devices ([`1233100`](https://github.com/chemelli74/aioamazondevices/commit/1233100624d0194cb3fe7c65970788aab410f3fb))
+
+
 ## v17.5.0 (2026-11-18)
 
 ### Features
