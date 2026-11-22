@@ -30,7 +30,8 @@ from .const.metadata import (
     VOLUME_MAX,
     VOLUME_MIN,
 )
-from .exceptions import CannotSetFeature, NoOnlineDevicesError
+from .const.schedules import NOTIFICATION_DEBOUNCE_DELAY
+from .exceptions import CannotSetFeature, InvalidInputError, NoOnlineDevicesError
 from .http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
 from .implementation.dnd import AmazonDnDHandler
 from .implementation.history import AmazonHistoryHandler
@@ -153,6 +154,14 @@ class AmazonEchoApi:
         self._dnd_initialized: bool = False
         self._dnd_lock = asyncio.Lock()
         self._device_volumes_lock = asyncio.Lock()
+        # keeps an older snapshot from reaching subscribers after a newer one
+        self._notification_lock = asyncio.Lock()
+        # the sync still inside its debounce window, and so still cancellable
+        self._notification_debounce_task: asyncio.Task[None] | None = None
+        # a debounced sync waiting for the lock, its fetch covers later pushes
+        self._notification_sync_queued: bool = False
+        # strong refs, so a running sync cannot be garbage collected
+        self._notification_tasks: set[asyncio.Task[None]] = set()
         # serializes the daily device refresh with a resync after reconnect,
         # so a resync cannot apply endpoint states of an outdated device list
         self._sensor_sync_lock = asyncio.Lock()
@@ -162,6 +171,8 @@ class AmazonEchoApi:
         self._resync_pending: bool = False
         # set when a sensor resync failed, so the next poll retries it
         self._sensor_resync_required: bool = False
+        # retried by the next poll, as no push replays a missed change
+        self._notification_resync_required: bool = False
 
         # force initial refresh
         initial_time = datetime.now(UTC) - timedelta(days=2)
@@ -172,6 +183,7 @@ class AmazonEchoApi:
         self.on_history_event = Signal[dict[str, AmazonVocalRecord]](self)
         self.on_todo_event = Signal[AmazonListEvent](self)
         self.on_dnd_event = Signal[dict[str, bool]](self)
+        self.on_notification_event = Signal[dict[str, dict[str, AmazonSchedule]]](self)
         self.on_sensor_event: Signal[()] = Signal(self)
 
     @property
@@ -318,18 +330,20 @@ class AmazonEchoApi:
         sensors_synced = await self._refresh_basic_data()
 
         devices = self._device_handler.devices
-        notifications = await self._notification_handler.get_notifications()
         communications = (
             await self._communication_handler.get_communication_preferences(
                 list(devices.values())
             )
         )
-        self._update_device_settings(devices, notifications, communications)
+        self._update_device_settings(devices, communications)
 
         # retry a resync that failed after an HTTP2 reconnect
         if self._sensor_resync_required:
             await self._resync_sensors()
             sensors_synced = True
+
+        if self._notification_resync_required:
+            await self.sync_notifications()
 
         # a full sync already fetched every sensor, so polling again straight
         # after only adds an API call that Amazon may rate limit
@@ -343,16 +357,13 @@ class AmazonEchoApi:
     def _update_device_settings(
         self,
         devices: dict[str, AmazonDevice],
-        notifications: dict[str, dict[str, AmazonSchedule]] | None,
         communications: dict[str, dict[str, str]],
     ) -> None:
-        """Update communication settings and notifications of all devices."""
+        """Update communication settings of all devices."""
         for device in devices.values():
             device.communication_settings = (
                 communications.get(device.serial_number) or {}
             )
-
-        self._notification_handler.update_device_notifications(devices, notifications)
 
     async def start_http2_processing(
         self,
@@ -381,6 +392,11 @@ class AmazonEchoApi:
             )
             self._http2_client.on_push_event.append(self._http2_push_event_handler)
             self._http2_client.on_push_event.freeze()
+            # changes made before the stream opened were never pushed
+            self._http2_client.on_connected.append(
+                self._handle_notification_change_event
+            )
+            self._http2_client.on_connected.freeze()
             self._http2_client.on_reconnected.append(self._http2_reconnected_handler)
             self._http2_client.on_reconnected.freeze()
 
@@ -388,9 +404,18 @@ class AmazonEchoApi:
 
     async def stop_http2_processing(self) -> None:
         """Stop HTTP2 background processing."""
+        # stop push events first, so no new notification task can start
+        # while the existing ones are drained
         if self._http2_client:
             await self._http2_client.stop_processing()
             self._http2_client = None
+
+        tasks = tuple(self._notification_tasks)
+        for task in tasks:
+            task.cancel()
+        # wait, so no sync is still using the session once we return
+        await asyncio.gather(*tasks, return_exceptions=True)
+        self._notification_debounce_task = None
 
         if (resync_task := self._resync_task) and not resync_task.done():
             resync_task.cancel()
@@ -436,7 +461,12 @@ class AmazonEchoApi:
             # triggers the full sync before applying its update
             self._dnd_initialized = False
             self._device_volumes_initialized = False
-            for sync_call in (self.sync_dnd_state, self.sync_media_state):
+            sync_calls = [self.sync_dnd_state, self.sync_media_state]
+            # notification changes are not sent in the push, so only refetch
+            # them for subscribers
+            if self.on_notification_event.frozen:
+                sync_calls.append(self.sync_notifications)
+            for sync_call in sync_calls:
                 try:
                     await sync_call()
                 except Exception as err:  # noqa: BLE001
@@ -473,6 +503,8 @@ class AmazonEchoApi:
                 await self._handle_item_change_event(payload)
             case AmazonPushMessage.DoNotDisturbChange.value:
                 await self._handle_dnd_event(payload)
+            case AmazonPushMessage.NotificationChange.value:
+                await self._handle_notification_change_event()
             case AmazonPushMessage.SmartHome.value:
                 await self._handle_smart_home_event(payload)
             case _:
@@ -551,13 +583,51 @@ class AmazonEchoApi:
         await self._media_handler.sync_media_state(self._device_handler.devices)
         await self._emit_media_state_event()
 
+    async def _handle_notification_change_event(self) -> None:
+        if not self.on_notification_event.frozen:
+            _LOGGER.debug("No notification subscribers, skipping fetch")
+            return
+        # Amazon sends a burst of these for a single timer/alarm/reminder change,
+        # so collapse them into one call to the notifications endpoint.
+        if self._notification_debounce_task:
+            self._notification_debounce_task.cancel()
+
+        task = asyncio.create_task(self._debounced_notification_sync())
+        self._notification_debounce_task = task
+        self._notification_tasks.add(task)
+        task.add_done_callback(self._notification_tasks.discard)
+
+    async def _debounced_notification_sync(self) -> None:
+        """Sync notifications once the push event burst has settled."""
+        try:
+            await asyncio.sleep(NOTIFICATION_DEBOUNCE_DELAY)
+        except asyncio.CancelledError:
+            # Superseded by a newer push event
+            return
+        self._notification_debounce_task = None
+
+        if self._notification_sync_queued:
+            return
+        self._notification_sync_queued = True
+        try:
+            await self._notification_lock.acquire()
+        finally:
+            # cleared once fetching, so a push during the fetch queues another
+            self._notification_sync_queued = False
+        try:
+            await self._sync_notifications_locked()
+        finally:
+            self._notification_lock.release()
+
     async def _handle_item_change_event(self, payload: dict[str, Any]) -> None:
         list_id = payload.get("listId")
         item_id = payload.get("listItemId")
         event_name = payload.get("eventName")
 
         if list_id is None or item_id is None or event_name is None:
-            _LOGGER.warning("Received malformed ItemChange payload: %s", payload)
+            _LOGGER.warning(
+                "Received malformed ItemChange payload: %s", scrub_fields(payload)
+            )
             return
 
         _LOGGER.debug("Received ItemChange for %s: %s", list_id, event_name)
@@ -624,7 +694,9 @@ class AmazonEchoApi:
     ) -> None:
         """Call Alexa.Music.PlaySearchPhrase to play music."""
         if not (await self._media_handler.music_providers).get(provider_id):
-            raise ValueError(f"{provider_id} is not available as a music provider")
+            raise InvalidInputError(
+                f"{provider_id} is not available as a music provider"
+            )
 
         await self._sequence_handler.send_message(
             device, AmazonSequenceType.Music, search_phrase, provider_id
@@ -657,7 +729,7 @@ class AmazonEchoApi:
     ) -> None:
         """Call Info skill."""
         if info_skill not in ALEXA_INFO_SKILLS:
-            raise ValueError(f"Unsupported info skill: {info_skill}")
+            raise InvalidInputError(f"Unsupported info skill: {info_skill}")
         await self._call_alexa_command_per_cluster_member(device, info_skill, "")
 
     async def call_routine(
@@ -676,7 +748,9 @@ class AmazonEchoApi:
     async def set_device_volume(self, device: AmazonDevice, volume: int) -> None:
         """Set device volume."""
         if not (VOLUME_MIN <= volume <= VOLUME_MAX):
-            raise ValueError(f"Volume must be between {VOLUME_MIN} and {VOLUME_MAX}")
+            raise InvalidInputError(
+                f"Volume must be between {VOLUME_MIN} and {VOLUME_MAX}"
+            )
         await self._call_alexa_command_per_cluster_member(
             device, AmazonSequenceType.Volume, str(volume)
         )
@@ -801,6 +875,14 @@ class AmazonEchoApi:
                 await self._media_handler.device_volumes
             )
 
+    async def _emit_notification_event(
+        self, notifications: dict[str, dict[str, AmazonSchedule]]
+    ) -> None:
+        """Emit notification event to subscribers."""
+        if self.on_notification_event.frozen:
+            _LOGGER.debug("Emitting notification event to subscribers")
+            await self.on_notification_event.send(notifications)
+
     async def _emit_todo_event(self, list_event: AmazonListEvent) -> None:
         """Emit todo event to subscribers."""
         if self.on_todo_event.frozen:
@@ -857,6 +939,29 @@ class AmazonEchoApi:
     async def restart_device(self, device: AmazonDevice) -> None:
         """Restart a device."""
         await self._device_handler.restart_device(device)
+
+    async def sync_notifications(self) -> None:
+        """Sync notifications state.
+
+        This will be called at startup to sync alarms, timers and reminders
+        of all devices and can be called later to refresh them.
+        Must not be awaited from an on_notification_event subscriber,
+        as the lock is held while subscribers run.
+        """
+        async with self._notification_lock:
+            await self._sync_notifications_locked()
+
+    async def _sync_notifications_locked(self) -> None:
+        """Fetch and emit notifications, with _notification_lock held."""
+        # set first, so a raised fetch error is retried too
+        self._notification_resync_required = True
+        notifications = await self._notification_handler.get_notifications()
+        if notifications is None:
+            _LOGGER.debug("Notification fetch returned None, skipping update")
+            return
+
+        self._notification_resync_required = False
+        await self._emit_notification_event(notifications)
 
     async def sync_dnd_state(self) -> None:
         """Sync Do Not Disturb state for all devices."""
