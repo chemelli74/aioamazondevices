@@ -111,3 +111,37 @@ async def test_get_devices_data_skips_poll_after_full_sync(
 
     assert resync_sensors.await_args_list == expected_resyncs
     assert update_polled_sensors.await_args_list == expected_polls
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("resync_required", "expected"),
+    [
+        pytest.param(False, [], id="no-retry"),
+        pytest.param(True, [call()], id="failed-fetch-retry"),
+    ],
+)
+async def test_get_devices_data_retries_failed_notification_sync(
+    api: AmazonEchoApi,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    resync_required: bool,
+    expected: list[Any],
+) -> None:
+    """A notification sync that failed is retried by the next poll."""
+    get_notifications = AsyncMock(return_value={})
+    api._notification_resync_required = resync_required
+    monkeypatch.setattr(api, "_refresh_basic_data", AsyncMock(return_value=True))
+    monkeypatch.setattr(
+        api._notification_handler, "get_notifications", get_notifications
+    )
+    monkeypatch.setattr(
+        api._communication_handler,
+        "get_communication_preferences",
+        AsyncMock(return_value={}),
+    )
+
+    await api.get_devices_data()
+
+    assert get_notifications.await_args_list == expected
+    assert not api._notification_resync_required

@@ -169,6 +169,8 @@ class AmazonEchoApi:
         self._resync_pending: bool = False
         # set when a sensor resync failed, so the next poll retries it
         self._sensor_resync_required: bool = False
+        # retried by the next poll, as no push replays a missed change
+        self._notification_resync_required: bool = False
 
         # force initial refresh
         initial_time = datetime.now(UTC) - timedelta(days=2)
@@ -338,6 +340,9 @@ class AmazonEchoApi:
             await self._resync_sensors()
             sensors_synced = True
 
+        if self._notification_resync_required:
+            await self.sync_notifications()
+
         # a full sync already fetched every sensor, so polling again straight
         # after only adds an API call that Amazon may rate limit
         if not sensors_synced:
@@ -385,6 +390,11 @@ class AmazonEchoApi:
             )
             self._http2_client.on_push_event.append(self._http2_push_event_handler)
             self._http2_client.on_push_event.freeze()
+            # changes made before the stream opened were never pushed
+            self._http2_client.on_connected.append(
+                self._handle_notification_change_event
+            )
+            self._http2_client.on_connected.freeze()
             self._http2_client.on_reconnected.append(self._http2_reconnected_handler)
             self._http2_client.on_reconnected.freeze()
 
@@ -929,8 +939,10 @@ class AmazonEchoApi:
             notifications = await self._notification_handler.get_notifications()
             if notifications is None:
                 _LOGGER.debug("Notification fetch returned None, skipping update")
+                self._notification_resync_required = True
                 return
 
+            self._notification_resync_required = False
             await self._emit_notification_event(notifications)
 
     async def sync_dnd_state(self) -> None:

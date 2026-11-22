@@ -106,6 +106,8 @@ async def test_start_and_stop_http2_processing(
     assert api._http2_client is client
     assert list(client.on_reconnected) == [api._http2_reconnected_handler]
     assert client.on_reconnected.frozen
+    assert list(client.on_connected) == [api._handle_notification_change_event]
+    assert client.on_connected.frozen
 
     await api.stop_http2_processing()
 

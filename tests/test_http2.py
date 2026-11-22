@@ -569,16 +569,21 @@ async def test_stream_buffer_overflow_forces_reconnect(
 async def test_reconnected_is_only_sent_after_first_connect(
     client: AmazonHTTP2Client,
 ) -> None:
-    """Opening the stream for the first time is not a reconnect."""
+    """Opening the stream for the first time is a connect, not a reconnect."""
+    on_connected = AsyncMock()
+    client.on_connected.append(on_connected)
+    client.on_connected.freeze()
     on_reconnected = AsyncMock()
     client.on_reconnected.append(on_reconnected)
     client.on_reconnected.freeze()
 
     await client._stream_and_process()
+    on_connected.assert_awaited_once_with()
     on_reconnected.assert_not_awaited()
 
     await client._stream_and_process()
     await client._stream_and_process()
+    on_connected.assert_awaited_once_with()
     assert on_reconnected.await_args_list == [call(), call()]
 
 

@@ -222,12 +222,20 @@ async def test_sync_notifications_survives_failed_fetch(
     received: list[NotificationMap],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """A failed initial sync emits nothing and raises nothing."""
+    """A failed initial sync emits nothing, raises nothing and is retried."""
     _mock_fetch(notified_api, monkeypatch, None)
 
     await notified_api.sync_notifications()
 
     assert received == []
+    assert notified_api._notification_resync_required
+
+    _mock_fetch(notified_api, monkeypatch, {})
+
+    await notified_api.sync_notifications()
+
+    assert received == [{}]
+    assert not notified_api._notification_resync_required
 
 
 @pytest.mark.anyio

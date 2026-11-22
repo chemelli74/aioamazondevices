@@ -181,6 +181,8 @@ class AmazonHTTP2Client:
         self._avs_directive_site = URL(HTTP2_SITE.format(region=region))
 
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
+        # sent when the stream first opens, so state fetched before it can be refreshed
+        self.on_connected: Signal[()] = Signal(self)
         # sent when the stream reopens after a drop, as pushes may have been missed
         self.on_reconnected: Signal[()] = Signal(self)
 
@@ -505,8 +507,9 @@ class AmazonHTTP2Client:
             # Stream confirmed open — allow the ping loop to start firing.
             self._connected_event.set()
 
-            if self._has_connected and self.on_reconnected.frozen:
-                await self.on_reconnected.send()
+            signal = self.on_reconnected if self._has_connected else self.on_connected
+            if signal.frozen:
+                await signal.send()
             self._has_connected = True
 
             avs_stream_parser = AvsDirectiveStreamParser(boundary)
