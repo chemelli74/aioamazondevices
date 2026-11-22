@@ -306,6 +306,76 @@ async def test_stop_http2_processing_waits_for_running_sync(
     assert not notified_api._notification_tasks
 
 
+def _gated_fetch(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> list[asyncio.Event]:
+    """Block each fetch until its gate, in call order, is set."""
+    gates: list[asyncio.Event] = []
+
+    async def fetch() -> NotificationMap:
+        gate = asyncio.Event()
+        gates.append(gate)
+        await gate.wait()
+        return {}
+
+    monkeypatch.setattr(api._notification_handler, "get_notifications", fetch)
+    return gates
+
+
+async def _push_past_debounce(api: AmazonEchoApi) -> None:
+    """Send a push event and wait until its debounce window has passed."""
+    await api._handle_notification_change_event()
+    await asyncio.sleep(0.05)
+
+
+@pytest.mark.anyio
+@pytest.mark.usefixtures("fast_debounce")
+async def test_pushes_during_slow_fetch_queue_one_follow_up(
+    notified_api: AmazonEchoApi,
+    received: list[NotificationMap],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Pushes during a fetch queue a single follow-up fetch, not one each."""
+    gates = _gated_fetch(notified_api, monkeypatch)
+
+    await _push_past_debounce(notified_api)
+    for _ in range(3):
+        await _push_past_debounce(notified_api)
+
+    gates[0].set()
+    await asyncio.sleep(0.01)
+    assert [gate.is_set() for gate in gates] == [True, False]
+    assert not notified_api._notification_sync_queued
+
+    # A push during the follow-up fetch is not covered by it, so queues another.
+    await _push_past_debounce(notified_api)
+    gates[1].set()
+    await asyncio.sleep(0.01)
+    gates[2].set()
+    await asyncio.gather(*notified_api._notification_tasks)
+
+    assert [gate.is_set() for gate in gates] == [True, True, True]
+    assert received == [{}, {}, {}]
+
+
+@pytest.mark.anyio
+@pytest.mark.usefixtures("fast_debounce")
+async def test_stop_http2_processing_cancels_queued_sync(
+    notified_api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A queued sync cancelled while waiting does not block later ones."""
+    gates = _gated_fetch(notified_api, monkeypatch)
+
+    await _push_past_debounce(notified_api)
+    await _push_past_debounce(notified_api)
+
+    await notified_api.stop_http2_processing()
+
+    assert [gate.is_set() for gate in gates] == [False]
+    assert not notified_api._notification_sync_queued
+    assert not notified_api._notification_lock.locked()
+
+
 @pytest.mark.anyio
 async def test_overlapping_syncs_emit_in_fetch_order(
     api: AmazonEchoApi,

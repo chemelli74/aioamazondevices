@@ -158,6 +158,8 @@ class AmazonEchoApi:
         self._notification_lock = asyncio.Lock()
         # the sync still inside its debounce window, and so still cancellable
         self._notification_debounce_task: asyncio.Task[None] | None = None
+        # a debounced sync waiting for the lock, its fetch covers later pushes
+        self._notification_sync_queued: bool = False
         # strong refs, so a running sync cannot be garbage collected
         self._notification_tasks: set[asyncio.Task[None]] = set()
         # serializes the daily device refresh with a resync after reconnect,
@@ -604,7 +606,18 @@ class AmazonEchoApi:
             return
         self._notification_debounce_task = None
 
-        await self.sync_notifications()
+        if self._notification_sync_queued:
+            return
+        self._notification_sync_queued = True
+        try:
+            await self._notification_lock.acquire()
+        finally:
+            # cleared once fetching, so a push during the fetch queues another
+            self._notification_sync_queued = False
+        try:
+            await self._sync_notifications_locked()
+        finally:
+            self._notification_lock.release()
 
     async def _handle_item_change_event(self, payload: dict[str, Any]) -> None:
         list_id = payload.get("listId")
@@ -936,15 +949,19 @@ class AmazonEchoApi:
         as the lock is held while subscribers run.
         """
         async with self._notification_lock:
-            # set first, so a raised fetch error is retried too
-            self._notification_resync_required = True
-            notifications = await self._notification_handler.get_notifications()
-            if notifications is None:
-                _LOGGER.debug("Notification fetch returned None, skipping update")
-                return
+            await self._sync_notifications_locked()
 
-            self._notification_resync_required = False
-            await self._emit_notification_event(notifications)
+    async def _sync_notifications_locked(self) -> None:
+        """Fetch and emit notifications, with _notification_lock held."""
+        # set first, so a raised fetch error is retried too
+        self._notification_resync_required = True
+        notifications = await self._notification_handler.get_notifications()
+        if notifications is None:
+            _LOGGER.debug("Notification fetch returned None, skipping update")
+            return
+
+        self._notification_resync_required = False
+        await self._emit_notification_event(notifications)
 
     async def sync_dnd_state(self) -> None:
         """Sync Do Not Disturb state for all devices."""
