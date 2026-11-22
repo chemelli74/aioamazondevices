@@ -1,5 +1,12 @@
 # Changelog
 
+## v18.0.0 (2026-11-22)
+
+### Features
+
+- Push notification updates ([`e43e85c`](https://github.com/chemelli74/aioamazondevices/commit/e43e85c4841ba3c65da328e1067b38b6262fe1aa))
+
+
 ## v17.5.1 (2026-11-21)
 
 ### Bug fixes
