@@ -887,9 +887,13 @@ class AmazonEchoApi:
         # sync response predating this update cannot overwrite it.
         async with self._dnd_lock:
             # Ensure initial full sync happens before applying incremental updates
-            if not self._dnd_initialized:
+            synced = not self._dnd_initialized
+            if synced:
                 await self._dnd_handler.sync_do_not_disturb_status()
                 self._dnd_initialized = True
+            # A push event echoing a set already applied carries nothing new
+            elif self._dnd_handler.dnd_states.get(serial) == enabled:
+                return
 
             self._dnd_handler.update_cached_dnd_state(serial, enabled)
 
