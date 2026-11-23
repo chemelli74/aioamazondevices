@@ -1,5 +1,12 @@
 # Changelog
 
+## v18.0.1 (2026-11-23)
+
+### Bug fixes
+
+- Cache and emit dnd state after a successful set ([`ff0d6af`](https://github.com/chemelli74/aioamazondevices/commit/ff0d6afbcc61e461d573e3dcda286a199dfe7608))
+
+
 ## v18.0.0 (2026-11-22)
 
 ### Features
