@@ -328,6 +328,18 @@ class AmazonLogin:
                 code_verifier, registration_language="ja_JP"
             )
 
+        # Amazon does not ask every account for a 2-step code. Without one, the
+        # password is answered with a redirect straight to the landing page,
+        # whose URL already carries the authorization code (the page itself is
+        # a 404 titled "Page Not Found")
+        if "openid.oa2.authorization_code" in login_url.query:
+            _LOGGER.debug("Login completed without OTP code entry")
+            return {
+                "authorization_code": self._extract_code_from_url(login_url),
+                "code_verifier": code_verifier,
+                "domain": self._session_state_data.domain,
+            }
+
         if not login_soup.find("input", id="auth-mfa-otpcode"):
             # e.g. captcha, email verification or an unsupported MFA method
             title = login_soup.title.get_text(strip=True) if login_soup.title else ""
