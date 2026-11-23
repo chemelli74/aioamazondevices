@@ -40,6 +40,7 @@ from aioamazondevices.utils import (
     get_innermost_frame,
     http2_extract_json_from_part,
     http2_parse_boundary_delimiter,
+    scrub_fields,
 )
 
 _HTTP2_TASK_AVS_MAIN = "aioamazondevices-avs-main"
@@ -58,37 +59,16 @@ def _extract_rendering_updates(
     try:
         updates_nodes = chunk_json["directive"]["payload"]["renderingUpdates"]
     except (KeyError, TypeError):
-        _LOGGER.warning("Malformed directive payload: %s", chunk_json)
+        _LOGGER.warning("Malformed directive payload: %s", scrub_fields(chunk_json))
         return None
 
     if not isinstance(updates_nodes, list):
-        _LOGGER.warning("Malformed renderingUpdates payload: %s", updates_nodes)
+        _LOGGER.warning(
+            "Malformed renderingUpdates payload: %s", scrub_fields(updates_nodes)
+        )
         return None
 
     return updates_nodes
-
-
-def _is_notification_change_duplicate(payload: dict[str, Any]) -> bool:
-    """Filter duplicate NotificationChange events.
-
-    Observed behavior: even notificationVersion values are duplicates.
-    """
-    # Ignore AmazonPushMessage.NotificationChange duplicates
-    # where notificationVersion is even
-    notification_version = payload.get("notificationVersion", 1)
-    if not isinstance(notification_version, int):
-        _LOGGER.warning(
-            "Unexpected type of notification_version: %s", type(notification_version)
-        )
-        return False
-
-    is_duplicate = notification_version % 2 == 0
-    _LOGGER.debug(
-        "Checking for duplicate NotificationChange: version=%s, is_duplicate=%s",
-        notification_version,
-        is_duplicate,
-    )
-    return is_duplicate
 
 
 def _is_known_event_type(push_event_type: str) -> bool:
@@ -96,29 +76,35 @@ def _is_known_event_type(push_event_type: str) -> bool:
     return push_event_type in AmazonPushMessage._value2member_map_
 
 
-def _process_rendering_update(  # noqa: PLR0911
+def _process_rendering_update(
     rendering_update: object,
 ) -> tuple[str, dict[str, Any]] | None:
     """Process a single rendering update node."""
     if not isinstance(rendering_update, dict):
-        _LOGGER.warning("Malformed rendering update node: %s", rendering_update)
+        _LOGGER.warning(
+            "Malformed rendering update node: %s", scrub_fields(rendering_update)
+        )
         return None
 
     push_event_type = rendering_update.get("resourceId")
     if rendering_update.get("route") == "EventBus:AlexaMobile::FDAL":
         push_event_type = AmazonPushMessage.SmartHome.value
     if not push_event_type:
-        _LOGGER.warning("Missing resourceId in update node: %s", rendering_update)
+        _LOGGER.warning(
+            "Missing resourceId in update node: %s", scrub_fields(rendering_update)
+        )
         return None
 
     resource_metadata = rendering_update.get("resourceMetadata")
     if not isinstance(resource_metadata, dict):
-        _LOGGER.warning("Malformed resourceMetadata: %s", rendering_update)
+        _LOGGER.warning(
+            "Malformed resourceMetadata: %s", scrub_fields(rendering_update)
+        )
         return None
 
     payload = resource_metadata.get("payload")
     if not isinstance(payload, dict):
-        _LOGGER.warning("Malformed push payload: %s", rendering_update)
+        _LOGGER.warning("Malformed push payload: %s", scrub_fields(rendering_update))
         return None
 
     doppler_id = payload.get("dopplerId") or {}
@@ -129,14 +115,8 @@ def _process_rendering_update(  # noqa: PLR0911
             "Unknown HTTP2 push message from device %s: %s\n\n%s",
             device_serial,
             push_event_type,
-            rendering_update,
+            scrub_fields(rendering_update),
         )
-        return None
-
-    if (
-        push_event_type == AmazonPushMessage.NotificationChange.value
-        and _is_notification_change_duplicate(payload)
-    ):
         return None
 
     _LOGGER.debug(
@@ -201,6 +181,8 @@ class AmazonHTTP2Client:
         self._avs_directive_site = URL(HTTP2_SITE.format(region=region))
 
         self.on_push_event: Signal[str, dict[str, Any]] = Signal(self)
+        # sent when the stream first opens, so state fetched before it can be refreshed
+        self.on_connected: Signal[()] = Signal(self)
         # sent when the stream reopens after a drop, as pushes may have been missed
         self.on_reconnected: Signal[()] = Signal(self)
 
@@ -525,8 +507,9 @@ class AmazonHTTP2Client:
             # Stream confirmed open — allow the ping loop to start firing.
             self._connected_event.set()
 
-            if self._has_connected and self.on_reconnected.frozen:
-                await self.on_reconnected.send()
+            signal = self.on_reconnected if self._has_connected else self.on_connected
+            if signal.frozen:
+                await signal.send()
             self._has_connected = True
 
             avs_stream_parser = AvsDirectiveStreamParser(boundary)
@@ -566,7 +549,8 @@ class AmazonHTTP2Client:
             result = _process_rendering_update(rendering_update)
             if result is None:
                 _LOGGER.debug(
-                    "Failed to process rendering update: %s", rendering_update
+                    "Failed to process rendering update: %s",
+                    scrub_fields(rendering_update),
                 )
                 continue
             push_event_type, payload = result
