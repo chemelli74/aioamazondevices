@@ -4,13 +4,16 @@
 """Tests for the Do Not Disturb push-event handling in AmazonEchoApi."""
 
 import asyncio
+from collections.abc import Callable
+from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
+from aioamazondevices.structures import AmazonDevice
 
-from .const import TEST_SERIAL_1
+from .const import TEST_SERIAL_1, TEST_SERIAL_2
 
 
 def _dnd_payload(serial: str, enabled: bool) -> dict[str, object]:
@@ -87,3 +90,65 @@ async def test_dnd_event_without_enabled_is_ignored(
 
     sync.assert_not_awaited()
     assert api._dnd_handler.dnd_states == {}
+
+
+@pytest.mark.anyio
+async def test_dnd_set_survives_push_for_other_device(
+    api: AmazonEchoApi,
+    mock_json_response: Callable[[dict[str, Any]], AsyncMock],
+    make_device: Callable[..., AmazonDevice],
+) -> None:
+    """A set without its own push event is kept when another device pushes."""
+    mock_json_response({})
+    api._dnd_initialized = True
+    api._dnd_handler._dnd_states = {TEST_SERIAL_1: False, TEST_SERIAL_2: False}
+    on_dnd_event = AsyncMock()
+    api.on_dnd_event.append(on_dnd_event)
+    api.on_dnd_event.freeze()
+
+    # Amazon sends no push for this device, e.g. an Echo Show
+    await api.set_do_not_disturb(make_device(TEST_SERIAL_1), True)
+    await api._handle_dnd_event(_dnd_payload(TEST_SERIAL_2, True))
+
+    on_dnd_event.assert_awaited_with({TEST_SERIAL_1: True, TEST_SERIAL_2: True})
+
+
+@pytest.mark.anyio
+async def test_dnd_push_echoing_set_is_not_emitted(
+    api: AmazonEchoApi,
+    mock_json_response: Callable[[dict[str, Any]], AsyncMock],
+    make_device: Callable[..., AmazonDevice],
+) -> None:
+    """The push event a set triggers does not emit the same states again."""
+    mock_json_response({})
+    api._dnd_initialized = True
+    api._dnd_handler._dnd_states = {TEST_SERIAL_1: False}
+    on_dnd_event = AsyncMock()
+    api.on_dnd_event.append(on_dnd_event)
+    api.on_dnd_event.freeze()
+
+    await api.set_do_not_disturb(make_device(TEST_SERIAL_1), True)
+    await api._handle_dnd_event(_dnd_payload(TEST_SERIAL_1, True))
+
+    on_dnd_event.assert_awaited_once_with({TEST_SERIAL_1: True})
+
+
+@pytest.mark.anyio
+async def test_dnd_first_event_emits_synced_states(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The first event emits the initial sync even if it matches the sync."""
+
+    async def sync_do_not_disturb_status() -> None:
+        api._dnd_handler._dnd_states = {TEST_SERIAL_1: True}
+
+    monkeypatch.setattr(
+        api._dnd_handler, "sync_do_not_disturb_status", sync_do_not_disturb_status
+    )
+    on_dnd_event = AsyncMock()
+    api.on_dnd_event.append(on_dnd_event)
+    api.on_dnd_event.freeze()
+
+    await api._handle_dnd_event(_dnd_payload(TEST_SERIAL_1, True))
+
+    on_dnd_event.assert_awaited_once_with({TEST_SERIAL_1: True})
