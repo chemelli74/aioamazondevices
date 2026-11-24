@@ -5,7 +5,12 @@
 
 from typing import NotRequired, TypedDict
 
-from aioamazondevices.const.devices import DEVICE_TYPE_AQM, DEVICE_TYPE_GLOW
+from aioamazondevices.const.devices import (
+    DEVICE_TYPE_ALEXA_SMART_PLUG,
+    DEVICE_TYPE_AQM,
+    DEVICE_TYPE_GLOW,
+    DEVICE_TYPE_THERMOSTAT,
+)
 
 SENSOR_STATE_OFF = "NOT_DETECTED"
 
@@ -84,6 +89,45 @@ SENSOR_TEMPLATES: dict[str, dict[str, SensorTemplate]] = {
             "value_key": "toggleStateValue",
         },
     },
+    "thermostat": {
+        "targetSetpoint": {
+            "value_key": "value",
+            "value_subkey": "value",
+            "value_scale_key": "scale",
+        },
+        "upperSetpoint": {
+            "value_key": "value",
+            "value_subkey": "value",
+            "value_scale_key": "scale",
+        },
+        "lowerSetpoint": {
+            "value_key": "value",
+            "value_subkey": "value",
+            "value_scale_key": "scale",
+        },
+        "thermostatMode": {
+            "value_key": "thermostatModeValue",
+        },
+    },
+    "hvac": {
+        "coolerStage": {
+            "value_key": "coolerStageValue",
+            "value_subkey": "value",
+        },
+        "primaryHeaterStage": {
+            "value_key": "primaryHeaterStageValue",
+            "value_subkey": "value",
+        },
+        "fanStage": {
+            "value_key": "fanStageValue",
+            "value_subkey": "value",
+        },
+    },
+    "thermostatConfiguration": {
+        "allowedTemperatureRange": {
+            "value_key": "thermostatAllowedTemperatureRangeValue",
+        },
+    },
 }
 
 # These templates will be applied to all devices
@@ -98,6 +142,7 @@ COMMON_SENSORS: list[str] = [
 POLLED_SENSOR_FEATURES: frozenset[str] = frozenset(
     {
         "connectivity",
+        "hvac",
         "lightSensor",
         "motionSensor",
     }
@@ -182,6 +227,31 @@ SPECIFIC_SENSORS: dict[str, dict[str, dict[str, SpecificSensor]]] = {
         "toggle": {
             "3": {
                 "sensor_key_override": "glow_tap",
+            }
+        },
+    },
+    DEVICE_TYPE_THERMOSTAT: {
+        "mode": {
+            "5": {
+                "sensor_key_override": "thermostat_fan_mode",
+            }
+        },
+        "thermostat": {"": {}},
+        "thermostatConfiguration": {"": {}},
+        "hvac": {"": {}},
+        "range": {
+            "1": {
+                "sensor_key_override": "amz_therm_active_brightness",
+            },
+            "2": {
+                "sensor_key_override": "amz_therm_inactive_brightness",
+            },
+        },
+    },
+    DEVICE_TYPE_ALEXA_SMART_PLUG: {
+        "power": {
+            "": {
+                "sensor_key_override": "plug_power",
             }
         },
     },

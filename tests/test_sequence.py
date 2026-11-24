@@ -16,7 +16,7 @@ from yarl import URL
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.http import ARRAY_WRAPPER, URI_BEHAVIORS_PREVIEW
 from aioamazondevices.const.metadata import ALEXA_INFO_SKILLS
-from aioamazondevices.exceptions import CannotConnect
+from aioamazondevices.exceptions import CannotConnect, InvalidInputError
 from aioamazondevices.implementation import sequence
 from aioamazondevices.structures import (
     AmazonDevice,
@@ -229,6 +229,22 @@ async def test_build_operation_node_routine_replaces_placeholders(
     # The stored routine is left unchanged for the next device.
     payload = start_node["nodesToExecute"][0]["operationPayload"]
     assert payload["deviceSerialNumber"] == "ALEXA_CURRENT_DSN"
+
+
+@pytest.mark.anyio
+@pytest.mark.usefixtures("logged_in")
+async def test_build_operation_node_routine_with_empty_start_node(
+    api: AmazonEchoApi, make_device: Callable[..., AmazonDevice]
+) -> None:
+    """A routine with an empty start node has no placeholders to replace."""
+    handler = api._sequence_handler
+    handler._routines = {"Morning": {"startNode": {}}}
+
+    node = handler._build_operation_node(
+        make_device(TEST_SERIAL_1), AmazonSequenceType.Routines, "Morning"
+    )
+
+    assert node == {}
 
 
 @pytest.mark.anyio
@@ -454,7 +470,7 @@ async def test_call_alexa_info_skill_unknown_raises(
     api: AmazonEchoApi, send_message: AsyncMock, speaker_group: AmazonDevice
 ) -> None:
     """An unsupported info skill is rejected before anything is sent."""
-    with pytest.raises(ValueError, match="Unsupported info skill"):
+    with pytest.raises(InvalidInputError, match="Unsupported info skill"):
         await api.call_alexa_info_skill(speaker_group, "Alexa.Nope")
 
     send_message.assert_not_awaited()

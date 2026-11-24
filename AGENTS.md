@@ -17,17 +17,24 @@ Guidance for AI coding agents (and humans) working in this repository. See
   message against conventional commits (`commitlint`, which needs the npm
   packages).
 
+## No suppressions
+
+- Never add `# type: ignore`, in production code or tests. Fix the underlying
+  type issue instead.
+- Avoid `# noqa`. Fix the lint issue where possible; if a suppression is
+  unavoidable, scope it to the specific rule (e.g. `# noqa: S105`), never bare.
+
 ## Test conventions
 
 These come from review feedback. Follow them for any new or changed test.
 
-### No suppressions
+### No suppressions in tests
 
 - Don't use `# type: ignore` in tests. Patch methods with
   `monkeypatch.setattr` instead of assigning mocks onto them, and keep a
   reference to the mock (for example from a fixture that returns it) so you can
   assert on it without `attr-defined` ignores.
-- Don't suppress ruff rules such as `PLR2004` with `# noqa`. For example, use
+- Avoid `# noqa` comments where possible. For example, to avoid `PLR2004`, use
   `assert mock.await_args_list == [call(), call()]` rather than
   `assert mock.await_count == 2`.
 - Ruff caps tests at 5 arguments (`PLR0913`/`PLR0917`). Get under it by moving

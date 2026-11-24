@@ -25,7 +25,7 @@ from aioamazondevices.const.schedules import (
 )
 from aioamazondevices.exceptions import CannotRetrieveData
 from aioamazondevices.http_wrapper import AmazonHttpWrapper, AmazonSessionStateData
-from aioamazondevices.structures import AmazonDevice, AmazonSchedule
+from aioamazondevices.structures import AmazonSchedule
 from aioamazondevices.utils import _LOGGER
 
 
@@ -41,41 +41,8 @@ class AmazonNotificationHandler:
         self._session_state_data = session_state_data
         self._http_wrapper = http_wrapper
 
-    def update_device_notifications(
-        self,
-        devices: dict[str, AmazonDevice],
-        notifications: dict[str, dict[str, AmazonSchedule]] | None,
-    ) -> None:
-        """Update the notifications of all devices."""
-        if notifications is None:
-            return  # notifications were not obtained, do not update
-
-        for device in devices.values():
-            # Clear old notifications to handle cancelled ones
-            device.notifications = {}
-
-            # Update notifications
-            device_notifications = notifications.get(device.serial_number, {})
-
-            # Add only supported notification types
-            for capability, notification_type in [
-                ("REMINDERS", NOTIFICATION_REMINDER),
-                ("TIMERS_AND_ALARMS", NOTIFICATION_ALARM),
-                ("TIMERS_AND_ALARMS", NOTIFICATION_TIMER),
-            ]:
-                if (
-                    capability in device.capabilities
-                    and notification_type in device_notifications
-                    and (
-                        notification_object := device_notifications.get(
-                            notification_type
-                        )
-                    )
-                ):
-                    device.notifications[notification_type] = notification_object
-
     async def get_notifications(self) -> dict[str, dict[str, AmazonSchedule]] | None:
-        """Get all notifications (alarms, timers, reminders)."""
+        """Get all notifications."""
         final_notifications: dict[str, dict[str, AmazonSchedule]] = {}
 
         try:
@@ -187,36 +154,26 @@ class AmazonNotificationHandler:
         if recurring_rules:
             next_candidates: list[datetime] = []
             for recurring_rule in recurring_rules:
-                # Already in RFC5545 format
-                if "FREQ=" in recurring_rule:
-                    rule = self._add_hours_minutes(recurring_rule, original_time)
+                # A rule containing FREQ= is already in RFC5545 format.
+                rule = recurring_rule
+                if "FREQ=" not in recurring_rule:
+                    if recurring_rule not in RECURRING_PATTERNS:
+                        _LOGGER.warning(
+                            "Unknown recurring rule <%s> for schedule type <%s>",
+                            recurring_rule,
+                            schedule["type"],
+                        )
+                        return None
 
-                    # `after` may return None when no next occurrence exists.
-                    candidate = rrulestr(rule, dtstart=reference_start_date).after(
-                        now_reference, True
-                    )
-                    if candidate is not None:
-                        next_candidates.append(candidate)
-                    continue
+                    # Adjust recurring rules for country specific weekend exceptions
+                    recurring_pattern = RECURRING_PATTERNS.copy()
+                    for group, countries in COUNTRY_GROUPS.items():
+                        if self._session_state_data.country_code in countries:
+                            recurring_pattern |= WEEKEND_EXCEPTIONS[group]
+                            break
+                    rule = recurring_pattern[recurring_rule]
 
-                if recurring_rule not in RECURRING_PATTERNS:
-                    _LOGGER.warning(
-                        "Unknown recurring rule <%s> for schedule type <%s>",
-                        recurring_rule,
-                        schedule["type"],
-                    )
-                    return None
-
-                # Adjust recurring rules for country specific weekend exceptions
-                recurring_pattern = RECURRING_PATTERNS.copy()
-                for group, countries in COUNTRY_GROUPS.items():
-                    if self._session_state_data.country_code in countries:
-                        recurring_pattern |= WEEKEND_EXCEPTIONS[group]
-                        break
-
-                rule = self._add_hours_minutes(
-                    recurring_pattern[recurring_rule], original_time
-                )
+                rule = self._add_hours_minutes(rule, original_time)
 
                 # `after` may return None when no next occurrence exists.
                 candidate = rrulestr(rule, dtstart=reference_start_date).after(

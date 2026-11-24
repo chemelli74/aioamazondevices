@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, call
 import pytest
 
 from aioamazondevices.api import AmazonEchoApi
-from aioamazondevices.exceptions import CannotConnect
+from aioamazondevices.exceptions import CannotConnect, InvalidInputError
 from aioamazondevices.structures import AmazonDevice, AmazonVolumeState
 
 from .const import TEST_DEVICE_TYPE, TEST_SERIAL_1, TEST_SERIAL_2, TEST_SERIAL_GROUP
@@ -295,7 +295,7 @@ async def test_set_device_volume_out_of_range(
     """Volumes outside 0-100 are rejected before any request."""
     session_request = mock_json_response({})
 
-    with pytest.raises(ValueError, match="Volume must be between"):
+    with pytest.raises(InvalidInputError, match="Volume must be between"):
         await api.set_device_volume(make_volume_device(TEST_SERIAL_1), volume)
 
     session_request.assert_not_awaited()

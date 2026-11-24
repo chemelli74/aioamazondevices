@@ -32,7 +32,6 @@ from aioamazondevices.implementation.http2 import (
     AmazonHTTP2Client,
     AvsDirectiveStreamParser,
     _extract_rendering_updates,
-    _is_notification_change_duplicate,
     _process_rendering_update,
     _TaskAction,
 )
@@ -204,22 +203,6 @@ def test_extract_rendering_updates(
 
 
 @pytest.mark.parametrize(
-    ("payload", "expected"),
-    [
-        pytest.param({"notificationVersion": 3}, False, id="odd"),
-        pytest.param({"notificationVersion": 4}, True, id="even"),
-        pytest.param({}, False, id="missing"),
-        pytest.param({"notificationVersion": "4"}, False, id="not-an-int"),
-    ],
-)
-def test_is_notification_change_duplicate(
-    payload: dict[str, Any], expected: bool
-) -> None:
-    """Even notification versions are duplicates."""
-    assert _is_notification_change_duplicate(payload) is expected
-
-
-@pytest.mark.parametrize(
     ("rendering_update", "message"),
     [
         pytest.param("update", "Malformed rendering update node", id="not-a-dict"),
@@ -236,22 +219,28 @@ def test_is_notification_change_duplicate(
             "PUSH_SOMETHING_NEW",
             id="unknown-type",
         ),
-        pytest.param(
-            _update(
-                AmazonPushMessage.NotificationChange.value,
-                {"notificationVersion": 2},
-            ),
-            "",
-            id="duplicate-notification",
-        ),
     ],
 )
 def test_process_rendering_update_rejects(
     caplog: pytest.LogCaptureFixture, rendering_update: object, message: str
 ) -> None:
-    """Malformed, unknown and duplicate updates are dropped."""
+    """Malformed and unknown updates are dropped."""
     assert _process_rendering_update(rendering_update) is None
     assert message in caplog.text
+
+
+def test_process_rendering_update_scrubs_logged_payload(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Sensitive fields in logged push messages are redacted."""
+    update = _update(
+        resource_id="PUSH_SOMETHING_NEW",
+        payload={**VOLUME_PAYLOAD, "user_id": "secret_user_id"},
+    )
+
+    assert _process_rendering_update(update) is None
+    assert "[REDACTED]" in caplog.text
+    assert "secret_user_id" not in caplog.text
 
 
 @pytest.mark.parametrize(
@@ -492,6 +481,24 @@ async def test_stream_subscriber_error_is_logged(
 
 
 @pytest.mark.anyio
+async def test_stream_subscriber_cancellation_is_raised(
+    client: AmazonHTTP2Client, avs_server: AvsServer
+) -> None:
+    """A cancelled subscriber stops the stream instead of being logged."""
+    on_push_event = AsyncMock(side_effect=asyncio.CancelledError)
+    client.on_push_event.append(on_push_event)
+    client.on_push_event.freeze()
+    avs_server.set_stream(_stream(_multipart(_part(_directive(_update(), _update())))))
+
+    with pytest.raises(asyncio.CancelledError):
+        await client._stream_and_process()
+
+    on_push_event.assert_awaited_once_with(
+        AmazonPushMessage.VolumeChange.value, VOLUME_PAYLOAD
+    )
+
+
+@pytest.mark.anyio
 async def test_stream_stops_reading_once_stopped(
     client: AmazonHTTP2Client, avs_server: AvsServer
 ) -> None:
@@ -562,16 +569,21 @@ async def test_stream_buffer_overflow_forces_reconnect(
 async def test_reconnected_is_only_sent_after_first_connect(
     client: AmazonHTTP2Client,
 ) -> None:
-    """Opening the stream for the first time is not a reconnect."""
+    """Opening the stream for the first time is a connect, not a reconnect."""
+    on_connected = AsyncMock()
+    client.on_connected.append(on_connected)
+    client.on_connected.freeze()
     on_reconnected = AsyncMock()
     client.on_reconnected.append(on_reconnected)
     client.on_reconnected.freeze()
 
     await client._stream_and_process()
+    on_connected.assert_awaited_once_with()
     on_reconnected.assert_not_awaited()
 
     await client._stream_and_process()
     await client._stream_and_process()
+    on_connected.assert_awaited_once_with()
     assert on_reconnected.await_args_list == [call(), call()]
 
 
@@ -885,6 +897,15 @@ async def test_start_and_stop_processing(
     on_push_event.assert_awaited_once_with(
         AmazonPushMessage.VolumeChange.value, VOLUME_PAYLOAD
     )
+
+
+@pytest.mark.anyio
+async def test_stop_without_processing(client: AmazonHTTP2Client) -> None:
+    """Stopping before processing was started only sets the stop event."""
+    await client.stop_processing()
+
+    assert client._run_task is None
+    assert client._stop_event.is_set()
 
 
 @pytest.mark.anyio

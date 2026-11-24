@@ -29,25 +29,43 @@ TO_REDACT = {
     "address1",
     "address2",
     "address3",
+    "adp_token",
     "anti-csrftoken-a2z",
+    "appActionToken",
     "Authorization",
+    "authorization_code",
     "city",
+    "code_verifier",
+    "cookies",
     "county",
-    "customerId",
+    "csrf",
+    "device_private_key",
     "deviceAccountId",
     "deviceAddress",
-    "deviceOwnerCustomerId",
     "given_name",
+    "metadata1",
     "name",
+    "otpCode",
     "password",
     "postalCode",
-    "searchCustomerId",
+    "refresh_token",
     "secureSessionToken",
     "source_token",
     "state",
+    "store_authentication_cookie",
     "street",
     "token",
+    "user_context_map",
     "user_id",
+    "website_cookies",
+}
+
+# Partially shown so log lines of different accounts can be told apart
+TO_OBFUSCATE = {
+    "customerId",
+    "destinationUserId",
+    "deviceOwnerCustomerId",
+    "searchCustomerId",
 }
 
 
@@ -58,14 +76,6 @@ def http2_extract_json_from_part(part: bytes) -> dict[str, Any] | None:
         if content_type != "application/json":
             raise ValueError(f"Unexpected content-type: {content_type!r}")
 
-    def _get_payload(msg: EmailMessage) -> bytes:
-        payload = msg.get_payload(decode=True)
-        if payload is None:
-            raise ValueError("No payload")
-        if not isinstance(payload, bytes):
-            raise TypeError(f"Expected bytes payload, got {type(payload)!r}")
-        return payload
-
     def _validate_json_object(parsed: Any) -> dict[str, Any]:  # noqa: ANN401
         if not isinstance(parsed, dict):
             raise TypeError(f"Expected JSON object, got {type(parsed)!r}")
@@ -74,7 +84,8 @@ def http2_extract_json_from_part(part: bytes) -> dict[str, Any] | None:
     try:
         msg = BytesParser(policy=default).parsebytes(part + b"\r\n")
         _validate_content_type(msg.get_content_type())
-        body = _get_payload(msg)
+        # The part is application/json, so its decoded content is bytes.
+        body = msg.get_content()
         parsed = _validate_json_object(string_recursive_parse(orjson.loads(body)))
     except (TypeError, ValueError, orjson.JSONDecodeError):
         _LOGGER.warning(
@@ -100,20 +111,29 @@ def http2_parse_boundary_delimiter(content_type: str) -> bytes:
     return f"--{boundary}".encode()
 
 
+def obfuscate_string(
+    value: str, visible_prefix: int = 1, visible_suffix: int = 0
+) -> str:
+    """Mask a string, keeping only its first and last characters visible."""
+    if len(value) <= visible_prefix + visible_suffix:
+        return "*" * len(value)
+    hidden = len(value) - visible_prefix - visible_suffix
+    return value[:visible_prefix] + "*" * hidden + value[len(value) - visible_suffix :]
+
+
+def obfuscate_customer_id(customer_id: str) -> str:
+    """Obfuscate an Amazon customer ID, keeping it recognizable."""
+    return obfuscate_string(customer_id, visible_prefix=3, visible_suffix=3)
+
+
 def obfuscate_email(email: str) -> str:
     """Obfuscate an email address partially."""
     try:
         username, domain = email.split("@")
         domain_name, domain_ext = domain.rsplit(".", 1)
 
-        def obfuscate_part(part: str, visible: int = 1) -> str:
-            if len(part) <= visible:
-                return "*" * len(part)
-            return part[:visible] + "*" * (len(part) - visible)
-
-        # Obfuscate username and domain parts
-        obf_user = ".".join(obfuscate_part(u, 1) for u in username.split("."))
-        obf_domain = obfuscate_part(domain_name, 1)
+        obf_user = ".".join(obfuscate_string(u) for u in username.split("."))
+        obf_domain = obfuscate_string(domain_name)
 
     except (SyntaxError, ValueError):
         return "[invalid email]"
@@ -128,13 +148,22 @@ def scrub_fields(
 ) -> Any:  # noqa: ANN401
     """Return a deep-copied version of *obj* with redacted keys."""
     if isinstance(obj, dict):
-        result = {}
+        result: dict[Any, Any] = {}
         for k, v in obj.items():
-            # If the key itself is sensitive → overwrite its value
-            if k == "email":
-                result[k] = obfuscate_email(v)
+            # Keep empty values, obfuscate or redact sensitive keys
+            if v is None:
+                result[k] = None
+            elif k == "email":
+                result[k] = obfuscate_email(v) if isinstance(v, str) else replacement
+            elif k in TO_OBFUSCATE:
+                result[k] = (
+                    obfuscate_customer_id(v) if isinstance(v, str) else replacement
+                )
             elif k in field_names:
                 result[k] = replacement
+            elif k == "features":
+                # feature and property names are identifiers, not personal data
+                result[k] = scrub_fields(v, set(field_names) - {"name"}, replacement)
             else:
                 # Otherwise keep walking
                 result[k] = scrub_fields(v, field_names, replacement)
