@@ -85,11 +85,18 @@ async def test_set_do_not_disturb(
     make_device: Callable[..., AmazonDevice],
     enable: bool,
 ) -> None:
-    """The device's DND flag is set through the API."""
+    """The device's DND flag is set through the API, cached and emitted."""
     session_request = mock_json_response({})
+    api._dnd_initialized = True
+    api._dnd_handler.update_cached_dnd_state(TEST_SERIAL_2, True)
+    on_dnd_event = AsyncMock()
+    api.on_dnd_event.append(on_dnd_event)
+    api.on_dnd_event.freeze()
 
     await api.set_do_not_disturb(make_device(TEST_SERIAL_1), enable)
 
+    assert api._dnd_handler.dnd_states == {TEST_SERIAL_2: True, TEST_SERIAL_1: enable}
+    on_dnd_event.assert_awaited_once_with({TEST_SERIAL_2: True, TEST_SERIAL_1: enable})
     session_request.assert_awaited_once_with(
         method=HTTPMethod.PUT,
         url=URL.joinpath(

@@ -140,6 +140,21 @@ fragment EndpointFeatures on Endpoint {
         timeOfSample
         timeOfLastChange
       }
+      ... on HvacCoolerStage {
+        coolerStageValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on HvacPrimaryHeaterStage {
+        primaryHeaterStageValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
+      ... on HvacFanStage {
+        fanStageValue { value }
+        timeOfSample
+        timeOfLastChange
+      }
       ... on ThermostatScheduleScheduleEnabled {
         thermostatScheduleScheduleEnabledValue { value }
         timeOfSample
@@ -309,6 +324,24 @@ fragment EndpointState on Endpoint {
         name
         error { type message }
         detectionStateValue
+        timeOfSample
+      }
+      ... on HvacCoolerStage {
+        name
+        error { type message }
+        coolerStageValue { value }
+        timeOfSample
+      }
+      ... on HvacPrimaryHeaterStage {
+        name
+        error { type message }
+        primaryHeaterStageValue { value }
+        timeOfSample
+      }
+      ... on HvacFanStage {
+        name
+        error { type message }
+        fanStageValue { value }
         timeOfSample
       }
     }

@@ -1,6 +1,6 @@
 [project]
 name = "aioamazondevices"
-version = "17.2.11"
+version = "18.0.1"
 requires-python = ">=3.13"
 description = "Python library to control Amazon devices"
 authors = [
@@ -40,12 +40,12 @@ dev = [
     "colorlog",
     "pytest>=9.2.0,<10",
     "pytest-cov>=7.1.0,<8",
-    "types-python-dateutil>=2.9.0.20261104,<3",
+    "types-python-dateutil>=2.9.0.20261122,<3",
 ]
 
 [tool.uv-version]
 # Source of truth for the uv version. All other version references must be derived from this value.
-version = "0.13.8" # renovate: depName=uv datasource=pypi
+version = "0.13.9" # renovate: depName=uv datasource=pypi
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
