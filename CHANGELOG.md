@@ -1,5 +1,61 @@
 # Changelog
 
+## v18.0.1 (2026-11-23)
+
+### Bug fixes
+
+- Cache and emit dnd state after a successful set ([`ff0d6af`](https://github.com/chemelli74/aioamazondevices/commit/ff0d6afbcc61e461d573e3dcda286a199dfe7608))
+
+
+## v18.0.0 (2026-11-22)
+
+### Features
+
+- Push notification updates ([`e43e85c`](https://github.com/chemelli74/aioamazondevices/commit/e43e85c4841ba3c65da328e1067b38b6262fe1aa))
+
+
+## v17.5.1 (2026-11-21)
+
+### Bug fixes
+
+- Avoid comms calls for unsupported devices ([`1233100`](https://github.com/chemelli74/aioamazondevices/commit/1233100624d0194cb3fe7c65970788aab410f3fb))
+
+
+## v17.5.0 (2026-11-18)
+
+### Features
+
+- Add amazon smart plug support ([`75ddc36`](https://github.com/chemelli74/aioamazondevices/commit/75ddc36eb47fbe878fb844d35e75276f4e45d683))
+
+
+## v17.4.0 (2026-11-18)
+
+### Features
+
+- Add amazon thermostat support ([`2cf338d`](https://github.com/chemelli74/aioamazondevices/commit/2cf338d35217eb16527d7a55efdbd0a35ba18715))
+
+
+## v17.3.2 (2026-11-17)
+
+### Bug fixes
+
+- Flag invalid input as separate error ([`081fa99`](https://github.com/chemelli74/aioamazondevices/commit/081fa9964ecefd3cbcf01d139ddd57023f580a34))
+
+
+## v17.3.1 (2026-11-17)
+
+### Bug fixes
+
+- Scrub sensitive fields from logged push payloads ([`323b886`](https://github.com/chemelli74/aioamazondevices/commit/323b88615ba485edc6f19317dc38fdc96932ca89))
+
+
+## v17.3.0 (2026-11-17)
+
+### Features
+
+- Obfuscation enhancements ([`cdecb29`](https://github.com/chemelli74/aioamazondevices/commit/cdecb29284ccf52e363595710aa9609343946dee))
+
+
 ## v17.2.12 (2026-11-14)
 
 ### Bug fixes

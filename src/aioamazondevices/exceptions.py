@@ -57,3 +57,7 @@ class MissingCountryError(AmazonError):
 
 class CannotSetFeature(AmazonError):
     """Exception raised when setting an endpoint feature fails."""
+
+
+class InvalidInputError(AmazonError):
+    """Exception raised when the input is invalid."""
