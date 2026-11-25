@@ -480,6 +480,42 @@ async def test_stream_subscriber_error_is_logged(
     ]
 
 
+@pytest.mark.parametrize(
+    "error",
+    [
+        pytest.param(CannotConnect("Connection error during POST"), id="connect"),
+        pytest.param(
+            CannotRetrieveData("Request failed: Service Unavailable"), id="retrieve"
+        ),
+    ],
+)
+@pytest.mark.anyio
+async def test_stream_subscriber_amazon_error_is_logged_without_traceback(
+    client: AmazonHTTP2Client,
+    avs_server: AvsServer,
+    caplog: pytest.LogCaptureFixture,
+    error: Exception,
+) -> None:
+    """An expected library error is a one-line warning, not a traceback."""
+    on_push_event = AsyncMock(side_effect=[error, None])
+    client.on_push_event.append(on_push_event)
+    client.on_push_event.freeze()
+    avs_server.set_stream(_stream(_multipart(_part(_directive(_update(), _update())))))
+
+    await client._stream_and_process()
+
+    [record] = [r for r in caplog.records if "push event" in r.getMessage()]
+    assert record.levelname == "WARNING"
+    assert record.exc_info is None
+    assert record.getMessage() == (
+        f"Error processing push event type <PUSH_VOLUME_CHANGE>: {error}"
+    )
+    assert on_push_event.await_args_list == [
+        call(AmazonPushMessage.VolumeChange.value, VOLUME_PAYLOAD),
+        call(AmazonPushMessage.VolumeChange.value, VOLUME_PAYLOAD),
+    ]
+
+
 @pytest.mark.anyio
 async def test_stream_subscriber_cancellation_is_raised(
     client: AmazonHTTP2Client, avs_server: AvsServer

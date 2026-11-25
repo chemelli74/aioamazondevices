@@ -26,6 +26,7 @@ from aioamazondevices.const.http import (
     REFRESH_ACCESS_TOKEN,
 )
 from aioamazondevices.exceptions import (
+    AmazonError,
     AVSStreamEndedUnexpectedly,
     CannotAuthenticate,
     CannotConnect,
@@ -558,6 +559,10 @@ class AmazonHTTP2Client:
                 await self.on_push_event.send(push_event_type, payload)
             except asyncio.CancelledError:
                 raise
+            except AmazonError as err:
+                _LOGGER.warning(
+                    "Error processing push event type <%s>: %s", push_event_type, err
+                )
             except Exception:  # noqa: BLE001
                 _LOGGER.exception(
                     "Error processing push event type <%s>: %s",
