@@ -1,5 +1,17 @@
 # Changelog
 
+## v18.0.2 (2026-11-25)
+
+### Bug fixes
+
+- Log expected errors in push event handlers without traceback ([`80911a9`](https://github.com/chemelli74/aioamazondevices/commit/80911a9f1f1dd3f60e9449fa41684f5757d2978e))
+
+
+### Documentation
+
+- Forbid type: ignore and noqa suppressions in all code ([`e87a4b3`](https://github.com/chemelli74/aioamazondevices/commit/e87a4b3b1a08f380f0926d678af18ba63a99cc73))
+
+
 ## v18.0.1 (2026-11-23)
 
 ### Bug fixes
