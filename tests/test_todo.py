@@ -110,6 +110,7 @@ async def test_get_list_items(
                     "itemName": "BREAD rolls",
                     "itemStatus": "COMPLETE",
                     "version": 1,
+                    "note": "Wholegrain",
                 },
             ]
         }
@@ -124,12 +125,13 @@ async def test_get_list_items(
             status=AmazonListItemStatus.COMPLETE,
             name="Bread rolls",
             version=1,
+            note="Wholegrain",
         ),
     }
     session_request.assert_awaited_once_with(
         method=HTTPMethod.POST,
         url=_lists_url(api, f"{TEST_LIST_ID}/items/fetch", {"limit": 100}),
-        input_data={},
+        input_data={"itemAttributesToProject": ["note"]},
         json_data=True,
     )
 
@@ -205,6 +207,35 @@ async def test_get_list_items_without_items(
             ),
             id="rename",
         ),
+        pytest.param(
+            lambda api: api.set_todo_list_item_note(
+                TEST_LIST_ID, TEST_ITEM_ID, "Lactose free", 3
+            ),
+            (
+                HTTPMethod.PUT,
+                f"{TEST_LIST_ID}/items/{TEST_ITEM_ID}",
+                {"version": 3},
+                {
+                    "itemAttributesToUpdate": [
+                        {"type": "note", "value": "Lactose free"}
+                    ],
+                    "itemAttributesToRemove": [],
+                },
+            ),
+            id="note",
+        ),
+        pytest.param(
+            lambda api: api.set_todo_list_item_note(
+                TEST_LIST_ID, TEST_ITEM_ID, None, 3
+            ),
+            (
+                HTTPMethod.PUT,
+                f"{TEST_LIST_ID}/items/{TEST_ITEM_ID}",
+                {"version": 3},
+                {"itemAttributesToUpdate": [], "itemAttributesToRemove": ["note"]},
+            ),
+            id="remove-note",
+        ),
     ],
 )
 async def test_item_changes(
@@ -225,6 +256,36 @@ async def test_item_changes(
         input_data=input_data,
         json_data=True,
     )
+
+
+@pytest.mark.anyio
+async def test_add_item_with_note(
+    api: AmazonEchoApi, mock_json_response: Callable[[dict[str, Any]], AsyncMock]
+) -> None:
+    """The note is set on the new item after adding it."""
+    session_request = mock_json_response(
+        {"itemInfoList": [{"itemId": TEST_ITEM_ID, "version": 1}]}
+    )
+
+    await api.add_todo_list_item(TEST_LIST_ID, "Eggs", "Free range")
+
+    assert session_request.await_args_list == [
+        call(
+            method=HTTPMethod.POST,
+            url=_lists_url(api, f"{TEST_LIST_ID}/items", None),
+            input_data={"items": [{"itemType": "KEYWORD", "itemName": "Eggs"}]},
+            json_data=True,
+        ),
+        call(
+            method=HTTPMethod.PUT,
+            url=_lists_url(api, f"{TEST_LIST_ID}/items/{TEST_ITEM_ID}", {"version": 1}),
+            input_data={
+                "itemAttributesToUpdate": [{"type": "note", "value": "Free range"}],
+                "itemAttributesToRemove": [],
+            },
+            json_data=True,
+        ),
+    ]
 
 
 @pytest.mark.anyio
