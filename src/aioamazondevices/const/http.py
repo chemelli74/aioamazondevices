@@ -41,6 +41,9 @@ URI_BEHAVIORS_AUTOMATIONS = "api/behaviors/v2/automations"
 URI_BEHAVIORS_PREVIEW = "api/behaviors/preview"
 URI_CAPABILITIES = "v1/devices/@self/capabilities"
 URI_COMM_PREFERENCES = "devicesTypes/{device_type}/deviceId/{serial_number}/preferences"
+URI_DEVICE_SPEAKER_VOLUME = (
+    "api/devices/{device_type}/{serial_number}/audio/v2/speakerVolume"
+)
 URI_DEVICE_VOLUMES = "api/devices/deviceType/dsn/audio/v1/allDeviceVolumes"
 URI_DEVICES = "api/devices-v2/device"
 URI_DND_STATUS_ALL = "api/dnd/device-status-list"
