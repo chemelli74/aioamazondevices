@@ -25,6 +25,7 @@ _PACKAGE_DIR = Path(__file__).parent
 
 TO_REDACT = {
     "access_token",
+    "accessToken",
     "address",
     "address1",
     "address2",
@@ -57,6 +58,7 @@ TO_REDACT = {
     "token",
     "user_context_map",
     "user_id",
+    "username",
     "website_cookies",
 }
 
