@@ -42,6 +42,7 @@ def _read_page(name: str) -> str:
 EMAIL_PAGE = _read_page("email")
 PASSWORD_PAGE = _read_page("password")
 MFA_PAGE = _read_page("mfa")
+MAPLANDING_PAGE = _read_page("maplanding")
 ERROR_BOX = _read_page("error_box")
 
 
@@ -227,6 +228,29 @@ async def test_login_interactive_oauth(
     assert password.kwargs["url"] == SIGNIN_URL
     assert password.kwargs["input_data"]["password"] == TEST_PASSWORD
     assert otp.kwargs["input_data"]["otpCode"] == "123456"
+
+
+@pytest.mark.anyio
+async def test_login_interactive_oauth_without_otp_page(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A sign-in Amazon completes at the password step skips the OTP code."""
+    login = api._login
+    session_request = AsyncMock(
+        side_effect=[
+            _page(EMAIL_PAGE, SIGNIN_URL),
+            _page(PASSWORD_PAGE, URL("https://www.amazon.com/ax/claim")),
+            _page(MAPLANDING_PAGE, AUTH_CODE_URL),
+        ]
+    )
+    monkeypatch.setattr(login._http_wrapper, "session_request", session_request)
+
+    result = await login._login_mode_interactive_oauth("123456")
+
+    assert result["authorization_code"] == "AN1"
+    # Nothing is posted after the password
+    _, _, password = session_request.await_args_list
+    assert password.kwargs["input_data"]["password"] == TEST_PASSWORD
 
 
 @pytest.mark.anyio
