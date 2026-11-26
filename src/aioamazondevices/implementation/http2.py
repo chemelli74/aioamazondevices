@@ -57,10 +57,22 @@ def _extract_rendering_updates(
     chunk_json: dict[str, Any],
 ) -> list[object] | None:
     """Extract renderingUpdates list from directive payload."""
-    try:
-        updates_nodes = chunk_json["directive"]["payload"]["renderingUpdates"]
-    except (KeyError, TypeError):
-        _LOGGER.warning("Malformed directive payload: %s", scrub_fields(chunk_json))
+    if not (directive_node := chunk_json.get("directive")):
+        _LOGGER.warning(
+            "Event has missing or empty directive node: %s", scrub_fields(chunk_json)
+        )
+        return None
+    if not (payload_node := directive_node.get("payload")):
+        _LOGGER.warning(
+            "Event has missing or empty payload node: %s", scrub_fields(chunk_json)
+        )
+        return None
+    updates_nodes = payload_node.get("renderingUpdates")
+    if updates_nodes is None:
+        _LOGGER.warning(
+            "Event missing renderingUpdates node: %s",
+            scrub_fields(chunk_json),
+        )
         return None
 
     if not isinstance(updates_nodes, list):
