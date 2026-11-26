@@ -59,7 +59,7 @@ repos:
           - anyio==4.15.1
           - beautifulsoup4==4.15.0
           - h2==4.4.1
-          - httpx==0.28.1
+          - httpx==0.29.0
           - langcodes==3.5.1
           - multidict==7.2.1
           - orjson==3.13.0
