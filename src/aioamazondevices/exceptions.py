@@ -29,6 +29,11 @@ class CannotRetrieveData(AmazonError):
 class NoOnlineDevicesError(AmazonError):
     """Exception raised when no online devices are found."""
 
+    def __init__(self, devices_count: int) -> None:
+        """Initialize with the number of devices found, all offline."""
+        super().__init__(f"{devices_count} devices found, none online")
+        self.devices_count = devices_count
+
 
 class CannotRegisterDevice(AmazonError):
     """Exception raised when device registration fails."""

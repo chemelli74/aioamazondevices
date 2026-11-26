@@ -133,8 +133,11 @@ async def test_init_default_device_raises_without_online_devices(
     offline_device = make_device(TEST_SERIAL_1, online=False)
     api._device_handler._final_devices = {offline_device.serial_number: offline_device}
 
-    with pytest.raises(NoOnlineDevicesError):
+    with pytest.raises(NoOnlineDevicesError) as exc_info:
         await api._init_default_device()
+
+    assert exc_info.value.devices_count == 1
+    assert str(exc_info.value) == "1 devices found, none online"
 
 
 @pytest.mark.anyio
