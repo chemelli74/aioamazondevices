@@ -3,6 +3,7 @@
 
 """Tests for the Alexa lists handler and the API calls that use it."""
 
+import asyncio
 from collections.abc import Awaitable, Callable
 from http import HTTPMethod
 from typing import Any
@@ -13,6 +14,8 @@ from yarl import URL
 
 from aioamazondevices.api import AmazonEchoApi
 from aioamazondevices.const.http import URI_TODO_BASE
+from aioamazondevices.implementation import todo as todo_module
+from aioamazondevices.implementation.todo import AmazonToDoHandler
 from aioamazondevices.structures import (
     AmazonListEvent,
     AmazonListEventType,
@@ -23,7 +26,9 @@ from aioamazondevices.structures import (
 )
 
 TEST_LIST_ID = "LIST-1"
+TEST_OTHER_LIST_ID = "LIST-2"
 TEST_ITEM_ID = "ITEM-1"
+DEBOUNCE_DELAY = 0.05  # seconds
 
 ITEM = AmazonListItem(
     id=TEST_ITEM_ID, status=AmazonListItemStatus.ACTIVE, name="Milk", version=3
@@ -52,13 +57,53 @@ def _item_status(status: AmazonListItemStatus) -> dict[str, Any]:
     }
 
 
+def _item(item_id: str) -> AmazonListItem:
+    """Build a list item."""
+    return AmazonListItem(item_id, AmazonListItemStatus.ACTIVE, item_id.title(), 1)
+
+
+def _payload(list_id: str, item_id: str, event_name: str) -> dict[str, str]:
+    """Build an ItemChange push payload."""
+    return {"listId": list_id, "listItemId": item_id, "eventName": event_name}
+
+
 @pytest.fixture
-def on_todo_event(api: AmazonEchoApi) -> AsyncMock:
-    """Subscribe to list events and return the subscriber mock."""
-    on_todo_event = AsyncMock()
+def handler(api: AmazonEchoApi) -> AmazonToDoHandler:
+    """Return the todo handler of the API."""
+    return api._todo_handler
+
+
+@pytest.fixture
+def events(
+    api: AmazonEchoApi, monkeypatch: pytest.MonkeyPatch
+) -> list[AmazonListEvent]:
+    """Collect emitted todo events, with a short debounce delay."""
+    monkeypatch.setattr(todo_module, "TODO_DEBOUNCE_DELAY", DEBOUNCE_DELAY)
+    received: list[AmazonListEvent] = []
+
+    async def on_todo_event(list_event: AmazonListEvent) -> None:
+        received.append(list_event)
+
     api.on_todo_event.append(on_todo_event)
     api.on_todo_event.freeze()
-    return on_todo_event
+    return received
+
+
+@pytest.fixture
+def get_list_items(
+    handler: AmazonToDoHandler, monkeypatch: pytest.MonkeyPatch
+) -> AsyncMock:
+    """Stub the list fetch, returning items a and b, and return the mock."""
+    get_list_items = AsyncMock(return_value=[_item("a"), _item("b")])
+    monkeypatch.setattr(handler, "get_list_items", get_list_items)
+    return get_list_items
+
+
+async def _settle(handler: AmazonToDoHandler) -> None:
+    """Wait for all debounced todo changes to be processed."""
+    await asyncio.sleep(DEBOUNCE_DELAY * 2)
+    assert not handler._timers
+    await asyncio.gather(*handler._tasks)
 
 
 @pytest.mark.anyio
@@ -228,49 +273,7 @@ async def test_item_changes(
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize(
-    ("event_type", "expected"),
-    [
-        pytest.param(
-            AmazonListEventType.CREATED,
-            (ITEM, [call(TEST_LIST_ID)]),
-            id="created",
-        ),
-        pytest.param(
-            AmazonListEventType.UPDATED,
-            (ITEM, [call(TEST_LIST_ID)]),
-            id="updated",
-        ),
-        pytest.param(AmazonListEventType.DELETED, (None, []), id="deleted"),
-    ],
-)
-async def test_item_change_event_emits_list_event(
-    api: AmazonEchoApi,
-    monkeypatch: pytest.MonkeyPatch,
-    on_todo_event: AsyncMock,
-    event_type: AmazonListEventType,
-    expected: tuple[AmazonListItem | None, list[Any]],
-) -> None:
-    """A list push event emits the change, with the item unless it was deleted."""
-    expected_items, expected_fetches = expected
-    get_list_items = AsyncMock(return_value=[ITEM])
-    monkeypatch.setattr(api._todo_handler, "get_list_items", get_list_items)
-
-    await api._handle_item_change_event(
-        {
-            "listId": TEST_LIST_ID,
-            "listItemId": TEST_ITEM_ID,
-            "eventName": event_type.value,
-        }
-    )
-
-    on_todo_event.assert_awaited_once_with(
-        AmazonListEvent(TEST_LIST_ID, TEST_ITEM_ID, event_type, items=expected_items)
-    )
-    assert get_list_items.await_args_list == expected_fetches
-
-
-@pytest.mark.anyio
+@pytest.mark.usefixtures("events")
 @pytest.mark.parametrize(
     ("payload", "message"),
     [
@@ -293,7 +296,7 @@ async def test_item_change_event_emits_list_event(
 async def test_item_change_event_rejected(
     api: AmazonEchoApi,
     caplog: pytest.LogCaptureFixture,
-    on_todo_event: AsyncMock,
+    handler: AmazonToDoHandler,
     payload: dict[str, Any],
     message: str,
 ) -> None:
@@ -301,4 +304,402 @@ async def test_item_change_event_rejected(
     await api._handle_item_change_event(payload)
 
     assert message in caplog.text
-    on_todo_event.assert_not_awaited()
+    assert not handler._changes
+    assert not handler._timers
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("event_name", "expected"),
+    [
+        pytest.param(
+            "itemCreated",
+            (
+                AmazonListEvent(
+                    TEST_LIST_ID, "a", AmazonListEventType.CREATED, _item("a")
+                ),
+                [call(TEST_LIST_ID)],
+            ),
+            id="created",
+        ),
+        pytest.param(
+            "itemUpdated",
+            (
+                AmazonListEvent(
+                    TEST_LIST_ID, "a", AmazonListEventType.UPDATED, _item("a")
+                ),
+                [call(TEST_LIST_ID)],
+            ),
+            id="updated",
+        ),
+        pytest.param(
+            "itemDeleted",
+            (AmazonListEvent(TEST_LIST_ID, "a", AmazonListEventType.DELETED), []),
+            id="deleted",
+        ),
+    ],
+)
+async def test_single_change_emits_event(
+    api: AmazonEchoApi,
+    events: list[AmazonListEvent],
+    get_list_items: AsyncMock,
+    event_name: str,
+    expected: tuple[AmazonListEvent, list[Any]],
+) -> None:
+    """A change emits its event, with the item unless it was deleted."""
+    expected_event, expected_fetches = expected
+
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "a", event_name))
+    await _settle(api._todo_handler)
+
+    assert events == [expected_event]
+    assert get_list_items.await_args_list == expected_fetches
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "fetched",
+    [
+        pytest.param([_item("b")], id="deleted-item-gone"),
+        pytest.param([_item("a"), _item("b")], id="deleted-item-still-fetched"),
+    ],
+)
+async def test_deletion_batched_with_update(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    events: list[AmazonListEvent],
+    get_list_items: AsyncMock,
+    fetched: list[AmazonListItem],
+) -> None:
+    """A deletion in a fetched batch is emitted without an item, even if stale."""
+    get_list_items.return_value = fetched
+
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "a", "itemDeleted"))
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "b", "itemUpdated"))
+    await _settle(handler)
+
+    get_list_items.assert_awaited_once_with(TEST_LIST_ID)
+    assert events == [
+        AmazonListEvent(TEST_LIST_ID, "a", AmazonListEventType.DELETED),
+        AmazonListEvent(TEST_LIST_ID, "b", AmazonListEventType.UPDATED, _item("b")),
+    ]
+
+
+@pytest.mark.anyio
+async def test_burst_of_changes_fetches_list_once(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    events: list[AmazonListEvent],
+    get_list_items: AsyncMock,
+) -> None:
+    """Changes within the debounce window share a single list fetch."""
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "a", "itemUpdated"))
+    first_timer = handler._timers[TEST_LIST_ID]
+    # This restarts the window, so the first change is not flushed on its own.
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "b", "itemUpdated"))
+
+    assert first_timer.cancelled()
+    assert handler._timers[TEST_LIST_ID] is not first_timer
+    assert handler._changes == {
+        TEST_LIST_ID: {
+            "a": AmazonListEventType.UPDATED,
+            "b": AmazonListEventType.UPDATED,
+        }
+    }
+
+    await _settle(handler)
+
+    get_list_items.assert_awaited_once_with(TEST_LIST_ID)
+    assert events == [
+        AmazonListEvent(TEST_LIST_ID, "a", AmazonListEventType.UPDATED, _item("a")),
+        AmazonListEvent(TEST_LIST_ID, "b", AmazonListEventType.UPDATED, _item("b")),
+    ]
+    assert not handler._tasks
+    assert not handler._changes
+
+
+@pytest.mark.anyio
+async def test_lists_are_debounced_separately(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    events: list[AmazonListEvent],
+    get_list_items: AsyncMock,
+) -> None:
+    """Each list is fetched for its own changes."""
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "a", "itemCreated"))
+    await api._handle_item_change_event(
+        _payload(TEST_OTHER_LIST_ID, "a", "itemCreated")
+    )
+    await _settle(handler)
+
+    assert sorted(call.args[0] for call in get_list_items.await_args_list) == [
+        TEST_LIST_ID,
+        TEST_OTHER_LIST_ID,
+    ]
+    assert sorted(event.list_id for event in events) == [
+        TEST_LIST_ID,
+        TEST_OTHER_LIST_ID,
+    ]
+
+
+@pytest.mark.anyio
+async def test_batches_of_one_list_are_processed_in_order(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    events: list[AmazonListEvent],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A later batch waits for a slow earlier batch of the same list."""
+    first_started = asyncio.Event()
+    release_first = asyncio.Event()
+    fetched: list[str] = []
+
+    async def get_list_items(_list_id: str) -> list[AmazonListItem]:
+        if not fetched:
+            fetched.append("first")
+            first_started.set()
+            await release_first.wait()
+        else:
+            fetched.append("second")
+        return [_item("a"), _item("b")]
+
+    monkeypatch.setattr(handler, "get_list_items", get_list_items)
+
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "a", "itemUpdated"))
+    await first_started.wait()
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "b", "itemUpdated"))
+    await asyncio.sleep(DEBOUNCE_DELAY * 2)
+
+    # The second batch is flushed but must not fetch before the first finishes.
+    assert not handler._timers
+    first_task, second_task = handler._tasks
+    assert not first_task.done()
+    assert not second_task.done()
+    assert fetched == ["first"]
+
+    release_first.set()
+    await _settle(handler)
+
+    assert fetched == ["first", "second"]
+    assert [event.item_id for event in events] == ["a", "b"]
+
+
+@pytest.mark.anyio
+@pytest.mark.usefixtures("get_list_items")
+@pytest.mark.parametrize(
+    ("event_names", "expected_type"),
+    [
+        pytest.param(
+            ["itemCreated", "itemUpdated"],
+            AmazonListEventType.CREATED,
+            id="created-then-updated",
+        ),
+        pytest.param(
+            ["itemUpdated", "itemUpdated"],
+            AmazonListEventType.UPDATED,
+            id="updated-twice",
+        ),
+        pytest.param(
+            ["itemCreated", "itemDeleted"],
+            AmazonListEventType.DELETED,
+            id="created-then-deleted",
+        ),
+        pytest.param(
+            ["itemUpdated", "itemDeleted"],
+            AmazonListEventType.DELETED,
+            id="updated-then-deleted",
+        ),
+    ],
+)
+async def test_changes_to_one_item_are_merged(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    events: list[AmazonListEvent],
+    event_names: list[str],
+    expected_type: AmazonListEventType,
+) -> None:
+    """Several changes to one item emit a single event."""
+    for event_name in event_names:
+        await api._handle_item_change_event(_payload(TEST_LIST_ID, "a", event_name))
+    await _settle(handler)
+
+    assert [(event.item_id, event.type) for event in events] == [("a", expected_type)]
+
+
+@pytest.mark.anyio
+async def test_only_deletions_skip_fetch(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    events: list[AmazonListEvent],
+    get_list_items: AsyncMock,
+) -> None:
+    """Deleted items need no list fetch."""
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "a", "itemDeleted"))
+    await _settle(handler)
+
+    get_list_items.assert_not_awaited()
+    assert events == [AmazonListEvent(TEST_LIST_ID, "a", AmazonListEventType.DELETED)]
+
+
+@pytest.mark.anyio
+async def test_item_missing_from_fetch_is_deleted(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    events: list[AmazonListEvent],
+    get_list_items: AsyncMock,
+) -> None:
+    """An item removed again before the fetch is reported as deleted."""
+    get_list_items.return_value = []
+
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "a", "itemCreated"))
+    await _settle(handler)
+
+    assert events == [AmazonListEvent(TEST_LIST_ID, "a", AmazonListEventType.DELETED)]
+
+
+@pytest.mark.anyio
+async def test_fetch_failure_is_logged(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    events: list[AmazonListEvent],
+    get_list_items: AsyncMock,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A failed fetch emits nothing and does not block later changes."""
+    get_list_items.side_effect = RuntimeError("boom")
+
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "a", "itemUpdated"))
+    await _settle(handler)
+
+    assert not events
+    assert not handler._tasks
+    assert f"Fetching todo list {TEST_LIST_ID} failed: boom" in caplog.text
+
+
+@pytest.mark.anyio
+@pytest.mark.usefixtures("events", "get_list_items")
+async def test_failing_subscriber_does_not_drop_other_events(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A subscriber raising for one event still receives the rest of the batch."""
+    on_list_event = AsyncMock(side_effect=[RuntimeError("boom"), None])
+    monkeypatch.setattr(handler, "_on_list_event", on_list_event)
+
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "a", "itemDeleted"))
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "b", "itemDeleted"))
+    await _settle(handler)
+
+    assert on_list_event.await_args_list == [
+        call(AmazonListEvent(TEST_LIST_ID, "a", AmazonListEventType.DELETED)),
+        call(AmazonListEvent(TEST_LIST_ID, "b", AmazonListEventType.DELETED)),
+    ]
+    assert (
+        f"Emitting todo event for item a of list {TEST_LIST_ID} failed" in caplog.text
+    )
+
+
+@pytest.mark.anyio
+async def test_changes_without_subscribers_skip_fetch(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    get_list_items: AsyncMock,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Without subscribers changes are not queued, so the list is not fetched."""
+    monkeypatch.setattr(todo_module, "TODO_DEBOUNCE_DELAY", DEBOUNCE_DELAY)
+
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "a", "itemUpdated"))
+    await _settle(handler)
+
+    get_list_items.assert_not_awaited()
+    assert not handler._changes
+
+
+@pytest.mark.anyio
+async def test_stop_http2_processing_cancels_pending_changes(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    events: list[AmazonListEvent],
+    get_list_items: AsyncMock,
+) -> None:
+    """Stopping drops changes still waiting for the debounce window."""
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "a", "itemUpdated"))
+    timer = handler._timers[TEST_LIST_ID]
+
+    await api.stop_http2_processing()
+
+    assert timer.cancelled()
+    assert not handler._timers
+    assert not handler._changes
+    get_list_items.assert_not_awaited()
+    assert not events
+
+
+@pytest.mark.anyio
+async def test_stop_http2_processing_cancels_in_flight_fetch(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    events: list[AmazonListEvent],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Stopping cancels a list fetch already in progress."""
+    started = asyncio.Event()
+
+    async def get_list_items(_list_id: str) -> list[AmazonListItem]:
+        started.set()
+        await asyncio.Event().wait()
+        return []
+
+    monkeypatch.setattr(handler, "get_list_items", get_list_items)
+
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "a", "itemUpdated"))
+    await started.wait()
+    (task,) = handler._tasks
+
+    await api.stop_http2_processing()
+
+    assert task.cancelled()
+    assert not handler._tasks
+    assert not events
+
+
+@pytest.mark.anyio
+async def test_cancelled_stop_is_propagated(
+    api: AmazonEchoApi,
+    handler: AmazonToDoHandler,
+    events: list[AmazonListEvent],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Cancelling the stop itself is not swallowed while waiting for a fetch."""
+    holding = asyncio.Event()
+
+    async def get_list_items(_list_id: str) -> list[AmazonListItem]:
+        """Simulate a fetch that never finishes and ignores being cancelled."""
+        try:
+            await asyncio.Event().wait()
+        except asyncio.CancelledError:
+            # Swallow the stop's cancel, so the stop is left waiting.
+            holding.set()
+            await asyncio.Event().wait()
+        return []
+
+    monkeypatch.setattr(handler, "get_list_items", get_list_items)
+
+    await api._handle_item_change_event(_payload(TEST_LIST_ID, "a", "itemUpdated"))
+    await asyncio.sleep(DEBOUNCE_DELAY * 2)
+    (task,) = handler._tasks
+    stop = asyncio.create_task(api.stop_http2_processing())
+    await holding.wait()
+
+    stop.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await stop
+
+    # Cancel the fetch again, so it does not outlive the test.
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert not events
