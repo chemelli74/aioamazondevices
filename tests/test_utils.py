@@ -294,10 +294,15 @@ def test_get_innermost_frame() -> None:
     assert get_innermost_frame(test_error.value) == "unknown"
 
 
-def test_scrub_fields_keeps_feature_names() -> None:
-    """Feature and property names stay readable, other names are redacted."""
+def test_scrub_fields_redacts_only_customer_name() -> None:
+    """Names stay readable, except the account holder's name in customer_info."""
     payload = {
-        "name": "Jane Doe",
+        "name": "connectivity",
+        "customer_info": {
+            "name": "Jane Doe",
+            "given_name": "Jane",
+            "home_region": "EU",
+        },
         "features": [
             {
                 "name": "thermostat",
@@ -307,7 +312,12 @@ def test_scrub_fields_keeps_feature_names() -> None:
     }
 
     assert scrub_fields(payload) == {
-        "name": "[REDACTED]",
+        "name": "connectivity",
+        "customer_info": {
+            "name": "[REDACTED]",
+            "given_name": "[REDACTED]",
+            "home_region": "EU",
+        },
         "features": [
             {
                 "name": "thermostat",
