@@ -44,7 +44,6 @@ TO_REDACT = {
     "deviceAddress",
     "given_name",
     "metadata1",
-    "name",
     "otpCode",
     "password",
     "postalCode",
@@ -161,9 +160,9 @@ def scrub_fields(
                 )
             elif k in field_names:
                 result[k] = replacement
-            elif k == "features":
-                # feature and property names are identifiers, not personal data
-                result[k] = scrub_fields(v, set(field_names) - {"name"}, replacement)
+            elif k == "customer_info":
+                # the account holder's real name; elsewhere "name" is an identifier
+                result[k] = scrub_fields(v, set(field_names) | {"name"}, replacement)
             else:
                 # Otherwise keep walking
                 result[k] = scrub_fields(v, field_names, replacement)
